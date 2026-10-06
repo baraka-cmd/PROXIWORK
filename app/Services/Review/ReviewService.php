@@ -129,6 +129,47 @@ class ReviewService
         }, attempts: 3);
     }
 
+    public function moderate(Review $review, User $moderator, ReviewStatus $status, string $reason): Review
+    {
+        return $this->database->transaction(function () use ($review, $moderator, $status, $reason): Review {
+            $lockedReview = Review::query()->lockForUpdate()->findOrFail($review->getKey());
+
+            $lockedReview->forceFill([
+                'status' => $status,
+                'moderated_by' => $moderator->getKey(),
+                'moderated_at' => now(),
+                'moderation_reason' => $reason,
+                'published_at' => $status === ReviewStatus::PUBLISHED
+                    ? ($lockedReview->published_at ?? now())
+                    : $lockedReview->published_at,
+            ])->save();
+
+            $professional = ProfessionalProfile::query()
+                ->lockForUpdate()
+                ->findOrFail($lockedReview->professional_id);
+
+            $this->refreshProfessionalRating($professional);
+
+            return $lockedReview->refresh()->load('response');
+        }, attempts: 3);
+    }
+
+    public function moderateResponse(ReviewResponse $response, User $moderator, ReviewStatus $status, string $reason): ReviewResponse
+    {
+        return $this->database->transaction(function () use ($response, $moderator, $status, $reason): ReviewResponse {
+            $lockedResponse = ReviewResponse::query()->lockForUpdate()->findOrFail($response->getKey());
+
+            $lockedResponse->forceFill([
+                'status' => $status,
+                'moderated_by' => $moderator->getKey(),
+                'moderated_at' => now(),
+                'moderation_reason' => $reason,
+            ])->save();
+
+            return $lockedResponse->refresh();
+        }, attempts: 3);
+    }
+
     public function findForViewer(Review $review, User $viewer): Review
     {
         $review->loadMissing('response', 'professional');
