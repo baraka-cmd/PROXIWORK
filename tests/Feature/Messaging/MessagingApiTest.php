@@ -59,6 +59,10 @@ class MessagingApiTest extends TestCase
             ->json('data');
 
         $this->assertSame($professionalUser->id, $message['sender']['id']);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $client->id,
+            'type' => App\\Notifications\\AccountActivityNotification::class,
+        ]);
 
         $this->actingAs($client, 'sanctum')
             ->getJson('/api/v1/conversations')
