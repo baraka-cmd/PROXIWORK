@@ -303,7 +303,7 @@ class ProfessionalServiceManager
                 ...$attributes,
                 'slug' => $this->uniqueSlug($base),
             ]);
-        } catch (UniqueConstraintViolationException) {
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
             return $profile->services()->create([
                 ...$attributes,
                 'slug' => $base.'-'.Str::lower(Str::random(8)),
