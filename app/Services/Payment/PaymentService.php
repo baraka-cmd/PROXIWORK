@@ -17,7 +17,6 @@ use App\Models\PaymentIntent;
 use App\Models\User;
 use App\Payments\DTO\PaymentRequest;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class PaymentService
@@ -178,7 +177,7 @@ class PaymentService
                 throw new PaymentConflictException('Vous ne pouvez pas payer cette commande.');
             }
 
-            if (!in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true)) {
+            if (! in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true)) {
                 throw new PaymentConflictException('Cette commande n’accepte plus de paiement.');
             }
 
