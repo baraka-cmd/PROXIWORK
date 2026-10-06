@@ -15,6 +15,7 @@ use App\Http\Resources\Review\ReviewResponseResource;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\ReviewResponse;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Review\ReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,10 +23,15 @@ use Illuminate\Http\Request;
 class ReviewController extends Controller
 {
     private readonly ReviewService $reviewService;
+    private readonly TransactionalNotificationService $notificationService;
 
-    public function __construct(ReviewService $reviewService)
+    public function __construct(
+        ReviewService $reviewService,
+        TransactionalNotificationService $notificationService,
+    )
     {
         $this->reviewService = $reviewService;
+        $this->notificationService = $notificationService;
     }
 
     public function store(StoreReviewRequest $request, Order $order): JsonResponse
