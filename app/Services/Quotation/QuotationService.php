@@ -12,6 +12,7 @@ use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Order\OrderService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,6 +21,7 @@ class QuotationService
 {
     public function __construct(
         private readonly ServiceRequestLifecycleService $requestLifecycle,
+        private readonly OrderService $orderService,
     ) {}
 
     public function create(ServiceRequest $serviceRequest, User $professional, array $data): Quotation
@@ -113,6 +115,7 @@ class QuotationService
             }
 
             $this->requestLifecycle->accept($request, $client);
+            $this->orderService->createFromAcceptedQuotation($locked, $client);
 
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         });

@@ -66,6 +66,11 @@ class ServiceRequest extends Model
         return $this->hasMany(ServiceRequestStatusHistory::class);
     }
 
+    public function order(): HasOne
+    {
+        return $this->hasOne(Order::class);
+    }
+
     public function quotation(): HasOne
     {
         return $this->hasOne(Quotation::class);
