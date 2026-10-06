@@ -27,7 +27,7 @@ class ProfileController extends Controller
 
     public function update(UpdateProfileRequest $request): ProfileResource
     {
-        $profile = $request->user()->profile()->firstOrCreate([]);
+        $profile = $request->user()->profile()->firstOrFail();
 
         $this->authorize('update', $profile);
 
