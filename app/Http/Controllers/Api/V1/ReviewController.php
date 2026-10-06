@@ -21,9 +21,7 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
-    public function __construct(
-        private readonly ReviewService $reviewService,
-    ) {}
+    public function __construct(private readonly ReviewService $reviewService) {}
 
     public function store(StoreReviewRequest $request, Order $order): JsonResponse
     {
