@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Messaging;
 
 use App\Models\ProfessionalProfile;
+use App\Notifications\AccountActivityNotification;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,7 +62,7 @@ class MessagingApiTest extends TestCase
         $this->assertSame($professionalUser->id, $message['sender']['id']);
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $client->id,
-            'type' => App\\Notifications\\AccountActivityNotification::class,
+            'type' => AccountActivityNotification::class,
         ]);
 
         $this->actingAs($client, 'sanctum')
