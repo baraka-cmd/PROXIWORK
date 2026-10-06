@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\AddSecurityHeaders;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -26,7 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'permission' => EnsureUserHasPermission::class,
-            'security.headers' => \App\Http\Middleware\AddSecurityHeaders::class,
+            'security.headers' => AddSecurityHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -37,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if (!$isApi($request)) {
                 return null;
             }
 
@@ -48,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if (!$isApi($request)) {
                 return null;
             }
 
@@ -59,7 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if (!$isApi($request)) {
                 return null;
             }
 
@@ -70,7 +71,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if (!$isApi($request)) {
                 return null;
             }
 
@@ -81,7 +82,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if (!$isApi($request)) {
                 return null;
             }
 
@@ -98,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if (!$isApi($request)) {
                 return null;
             }
 
