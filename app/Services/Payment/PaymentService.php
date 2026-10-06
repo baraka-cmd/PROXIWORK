@@ -17,7 +17,6 @@ use App\Models\PaymentIntent;
 use App\Models\User;
 use App\Payments\DTO\PaymentRequest;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
