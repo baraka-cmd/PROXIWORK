@@ -57,6 +57,11 @@ class ProfessionalProfile extends Model
         return $this->hasMany(Service::class);
     }
 
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class, 'professional_id');
+    }
+
     public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
