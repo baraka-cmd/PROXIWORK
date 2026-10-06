@@ -16,6 +16,7 @@ class SkillService
     {
         return DB::transaction(function () use ($attributes): Skill {
             $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $attributes['name']);
+
             return Skill::create($attributes);
         });
     }
@@ -24,6 +25,7 @@ class SkillService
     {
         return DB::transaction(function () use ($skill, $attributes): Skill {
             $skill->update($attributes);
+
             return $skill->refresh();
         });
     }
