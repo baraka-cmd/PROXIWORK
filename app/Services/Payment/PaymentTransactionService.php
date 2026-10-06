@@ -103,6 +103,12 @@ class PaymentTransactionService
 
     private function money(string $value): string
     {
-        return number_format((float) $value, 2, '.', '');
+        $value = trim($value);
+
+        if (preg_match('/^(\\d+)(?:\\.(\\d{1,2}))?$/', $value, $matches) !== 1) {
+            return '__invalid__';
+        }
+
+        return $matches[1].'.'.str_pad($matches[2] ?? '', 2, '0');
     }
 }
