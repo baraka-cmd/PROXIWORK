@@ -12,6 +12,7 @@ use App\Models\Skill;
 use App\Services\SkillService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class ProfessionalSkillController extends Controller
 {
