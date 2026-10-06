@@ -26,7 +26,7 @@ class FavoriteController extends Controller
             ->favorites()
             ->with(['professionalProfile.user.profile'])
             ->latest('id')
-            ->paginate(min((int) $request->integer('per_page', 15), 100))
+            ->paginate(min(max((int) $request->integer('per_page', 15), 1), 100))
             ->withQueryString();
 
         return FavoriteResource::collection($favorites)->additional([
