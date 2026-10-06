@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace AppEnums;
+namespace App\Enums;
 
 enum ProfessionalAvailabilityStatus: string
 {
