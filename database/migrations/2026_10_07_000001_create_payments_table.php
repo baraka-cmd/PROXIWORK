@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->unique()->constrained('orders')->restrictOnDelete();
             $table->foreignId('client_id')->constrained('users')->restrictOnDelete();
-            $table->foreignId('payment_intent_id')->unique()->constrained('payment_intents')->restrictOnDelete();
+            $table->foreignId('payment_intent_id')->nullable()->constrained('payment_intents')->restrictOnDelete();
+            $table->index('payment_intent_id');
             $table->string('method', 32);
             $table->string('provider', 32);
             $table->string('status', 32)->default(PaymentStatus::INITIATED->value);
