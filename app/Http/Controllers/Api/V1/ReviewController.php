@@ -26,7 +26,6 @@ class ReviewController extends Controller
         private readonly ReviewService $reviewService,
         private readonly TransactionalNotificationService $notificationService,
     ) {}
-}
 
     public function store(StoreReviewRequest $request, Order $order): JsonResponse
     {
