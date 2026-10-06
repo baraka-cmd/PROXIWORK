@@ -68,7 +68,7 @@ class RoleController extends Controller
         return (new RoleResource($role))->additional(['message' => 'Rôle mis à jour avec succès.', 'meta' => []]);
     }
 
-    public function destroy(Role $role): \Symfony\Component\HttpFoundation\Response
+    public function destroy(Role $role): Response
     {
         $this->authorize('delete', $role);
 
