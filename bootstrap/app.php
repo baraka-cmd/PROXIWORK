@@ -52,7 +52,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return response()->json([
-                'message' => 'Authentification requise.',
+                'message' => 'Authentification échouée ou requise.',
                 'errors' => [],
             ], 401);
         });
