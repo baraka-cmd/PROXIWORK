@@ -26,7 +26,8 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
-    ) {}
+    )
+    {}
 
     public function clientIndex(IndexServiceRequestRequest $request): AnonymousResourceCollection
     {
