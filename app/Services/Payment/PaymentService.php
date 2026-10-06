@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
-use App\Contracts\Payments\PaymentGateway;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
@@ -131,13 +130,7 @@ class PaymentService
         PaymentProvider $provider,
         string $idempotencyKey,
     ): array {
-        return $this->database->transaction(function () use (
-            $order,
-            $client,
-            $method,
-            $provider,
-            $idempotencyKey,
-        ): array {
+        return $this->database->transaction(function () use ($order, $client, $method, $provider, $idempotencyKey): array {
             $lockedOrder = Order::query()
                 ->lockForUpdate()
                 ->findOrFail($order->getKey());
