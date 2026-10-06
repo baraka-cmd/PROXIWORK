@@ -131,14 +131,14 @@ class PaymentWebhookService
 
         $expected = hash_hmac('sha256', $rawBody, $secret);
 
-        if (!hash_equals($expected, $signature)) {
+        if (! hash_equals($expected, $signature)) {
             throw new UnauthorizedHttpException('', 'Signature de webhook invalide.');
         }
     }
 
     private function money(string $value): string
     {
-        if (!preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value))) {
+        if (! preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value))) {
             return '__invalid__';
         }
 
