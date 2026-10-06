@@ -26,7 +26,7 @@ class ProfileApiTest extends TestCase
         $user->profile()->create();
 
         $this->actingAs($user, 'sanctum')
-            ->getJson('/api/v1/profile'
+            ->getJson('/api/v1/profile')
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.user_id', $user->id)
