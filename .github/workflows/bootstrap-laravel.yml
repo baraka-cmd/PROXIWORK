@@ -1,0 +1,61 @@
+name: Bootstrap Laravel 13
+
+on:
+  push:
+    branches:
+      - phase-1/foundation
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: proxiwork-bootstrap
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_mysql, bcmath, xml, ctype, curl, dom, fileinfo, filter, openssl, tokenizer
+          tools: composer
+          coverage: none
+
+      - name: Verify PHP and Composer
+        run: |
+          php --version
+          composer --version
+
+      - name: Create Laravel application
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/proxiwork-laravel
+          composer create-project laravel/laravel /tmp/proxiwork-laravel "^13.0" --prefer-dist --no-interaction --no-progress
+
+      - name: Copy Laravel application into repository
+        run: |
+          set -euo pipefail
+          rsync -a --exclude='.git' /tmp/proxiwork-laravel/ ./
+          rm -f .github/workflows/bootstrap-laravel.yml
+
+      - name: Commit generated Laravel foundation
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "build: bootstrap Laravel 13 application [skip ci]"
+          git push origin HEAD:phase-1/foundation
