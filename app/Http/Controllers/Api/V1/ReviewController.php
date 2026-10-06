@@ -44,11 +44,9 @@ class ReviewController extends Controller
         );
 
         $review->loadMissing('professional.user');
-        $review->professional?->user?->notify(new AccountActivityNotification(
-            'Nouvel avis',
-            'Un client vient de publier un avis sur votre prestation.',
-            'review',
-        ));
+        if ($review->professional?->user !== null) {
+            $this->notificationService->reviewReceived($review->professional->user);
+        }
 
         return response()->json([
             'message' => 'Avis publié avec succès.',
