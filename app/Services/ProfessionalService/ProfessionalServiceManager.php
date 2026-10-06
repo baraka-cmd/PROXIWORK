@@ -146,7 +146,7 @@ class ProfessionalServiceManager
                 }
 
                 $hasImages = $lockedService->images()->exists();
-                $isCover = (bool) ($attributes['is_cover'] ?? false) || ! $hasImages;
+                $isCover = (bool) ($attributes['is_cover'] ?? false) || $hasImages === false;
 
                 if ($isCover) {
                     $lockedService->images()->update(['is_cover' => false]);
@@ -179,7 +179,7 @@ class ProfessionalServiceManager
                     ->where('id', '!=', $image->getKey())
                     ->exists();
 
-                if (! $replacementExists) {
+                if ($replacementExists === false) {
                     throw ValidationException::withMessages([
                         'is_cover' => 'Le service doit conserver une image de couverture.',
                     ]);
