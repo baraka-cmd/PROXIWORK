@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Quotation;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class QuotationResource extends JsonResource
@@ -26,11 +27,11 @@ class QuotationResource extends JsonResource
                 'metadata' => $event->metadata,
                 'created_at' => $event->created_at?->toISOString(),
             ])),
-            'accepted_at' => $this->accepted_at?->toISOString(),
-            'rejected_at' => $this->rejected_at?->toISOString(),
-            'withdrawn_at' => $this->withdrawn_at?->toISOString(),
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'accepted_at' => $this->accepted_at ? Carbon::parse($this->accepted_at)->toISOString() : null,
+            'rejected_at' => $this->rejected_at ? Carbon::parse($this->rejected_at)->toISOString() : null,
+            'withdrawn_at' => $this->withdrawn_at ? Carbon::parse($this->withdrawn_at)->toISOString() : null,
+            'created_at' => $this->created_at ? Carbon::parse($this->created_at)->toISOString() : null,
+            'updated_at' => $this->updated_at ? Carbon::parse($this->updated_at)->toISOString() : null,
         ];
     }
 }
