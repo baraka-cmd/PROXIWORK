@@ -20,9 +20,9 @@ use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Order\OrderService;
-use Tests\Support\FailingPaymentGateway;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\FailingPaymentGateway;
 use Tests\TestCase;
 
 class PaymentApiTest extends TestCase
@@ -37,23 +37,26 @@ class PaymentApiTest extends TestCase
 
     public function test_guest_cannot_initiate_payment(): void
     {
-        $this->postJson('/api/v1/orders/1/payments', [
+        $response = $this->postJson('/api/v1/orders/1/payments', [
             'payment_method' => PaymentMethod::MOBILE_MONEY->value,
             'payment_provider' => PaymentProvider::FAKE->value,
-        ])->assertUnauthorized();
+        ]);
+
+        $response->assertUnauthorized();
     }
 
     public function test_idempotency_key_is_required(): void
     {
         [$client, $order] = $this->orderScenario();
 
-        $this->actingAs($client, 'sanctum')
+        $response = $this->actingAs($client, 'sanctum')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'payment_method' => PaymentMethod::MOBILE_MONEY->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['idempotency_key']);
+            ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['idempotency_key']);
     }
 
     public function test_professional_cannot_initiate_client_payment(): void
@@ -61,27 +64,30 @@ class PaymentApiTest extends TestCase
         [$client, $order] = $this->orderScenario();
         [$professional] = $this->professional();
 
-        $this->actingAs($professional, 'sanctum')
+        $response = $this->actingAs($professional, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-professional-denied-001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'payment_method' => PaymentMethod::MOBILE_MONEY->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])->assertForbidden();
+            ]);
+
+        $response->assertForbidden();
     }
 
     public function test_payment_amount_is_always_taken_from_server_order(): void
     {
         [$client, $order] = $this->orderScenario();
 
-        $this->actingAs($client, 'sanctum')
+        $response = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-server-amount-001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'amount' => '1.00',
                 'currency' => 'EUR',
                 'payment_method' => PaymentMethod::MOBILE_MONEY->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])
-            ->assertAccepted();
+            ]);
+
+        $response->assertAccepted();
 
         $this->assertDatabaseHas('payment_intents', [
             'order_id' => $order->id,
@@ -103,38 +109,42 @@ class PaymentApiTest extends TestCase
 
         $first = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-retry-safe-0001')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload)
-            ->assertAccepted();
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
+
+        $first->assertAccepted();
 
         $second = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-retry-safe-0001')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload)
-            ->assertAccepted();
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
 
+        $second->assertAccepted();
         $this->assertSame($first->json('data.id'), $second->json('data.id'));
         $this->assertDatabaseCount('payment_intents', 1);
     }
 
     public function test_reusing_idempotency_key_with_different_operation_is_rejected(): void
     {
+        config(['payment.fake.status' => PaymentStatus::PENDING->value]);
+
         [$client, $order] = $this->orderScenario();
 
-        $this->actingAs($client, 'sanctum')
+        $first = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-fingerprint-0001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'payment_method' => PaymentMethod::MOBILE_MONEY->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])
-            ->assertAccepted();
+            ]);
 
-        $this->actingAs($client, 'sanctum')
+        $first->assertAccepted();
+
+        $second = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-fingerprint-0001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'payment_method' => PaymentMethod::CARD->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])
-            ->assertConflict();
+            ]);
 
+        $second->assertConflict();
         $this->assertDatabaseCount('payment_intents', 1);
     }
 
@@ -149,16 +159,17 @@ class PaymentApiTest extends TestCase
             'payment_provider' => PaymentProvider::FAKE->value,
         ];
 
-        $this->actingAs($client, 'sanctum')
+        $first = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-active-0001')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload)
-            ->assertAccepted();
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
 
-        $this->actingAs($client, 'sanctum')
+        $first->assertAccepted();
+
+        $second = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-active-0002')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload)
-            ->assertConflict();
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
 
+        $second->assertConflict();
         $this->assertDatabaseCount('payment_intents', 1);
     }
 
@@ -168,14 +179,15 @@ class PaymentApiTest extends TestCase
 
         [$client, $order] = $this->orderScenario();
 
-        $this->actingAs($client, 'sanctum')
+        $response = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-failed-0001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'payment_method' => PaymentMethod::MOBILE_MONEY->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])
-            ->assertUnprocessable()
-            ->assertJsonPath('data.status', 'failed');
+            ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonPath('data.status', 'failed');
 
         $this->assertDatabaseHas('payment_intents', [
             'order_id' => $order->id,
@@ -188,7 +200,7 @@ class PaymentApiTest extends TestCase
         ]);
     }
 
-    public function test_provider_connection_failure_leaves_intent_retryable_and_does_not_create_second_intent(): void
+    public function test_provider_connection_failure_leaves_intent_retryable(): void
     {
         $this->app->bind(PaymentGateway::class, FailingPaymentGateway::class);
 
@@ -199,10 +211,11 @@ class PaymentApiTest extends TestCase
             'payment_provider' => PaymentProvider::FAKE->value,
         ];
 
-        $this->actingAs($client, 'sanctum')
+        $first = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-network-failure-001')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload)
-            ->assertStatus(503);
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
+
+        $first->assertStatus(503);
 
         $this->assertDatabaseHas('payment_intents', [
             'order_id' => $order->id,
@@ -211,11 +224,11 @@ class PaymentApiTest extends TestCase
         ]);
         $this->assertDatabaseCount('payment_intents', 1);
 
-        $this->actingAs($client, 'sanctum')
+        $second = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-network-failure-001')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload)
-            ->assertStatus(503);
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
 
+        $second->assertStatus(503);
         $this->assertDatabaseCount('payment_intents', 1);
     }
 
@@ -225,16 +238,17 @@ class PaymentApiTest extends TestCase
 
         [$client, $order] = $this->orderScenario();
 
-        $this->actingAs($client, 'sanctum')
+        $response = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-success-0001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
                 'payment_method' => PaymentMethod::MOBILE_MONEY->value,
                 'payment_provider' => PaymentProvider::FAKE->value,
-            ])
-            ->assertOk()
-            ->assertJsonPath('data.status', 'succeeded')
-            ->assertJsonPath('data.amount', '500.00')
-            ->assertJsonPath('data.currency', 'USD');
+            ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('data.status', 'succeeded');
+        $response->assertJsonPath('data.amount', '500.00');
+        $response->assertJsonPath('data.currency', 'USD');
 
         $this->assertDatabaseHas('payment_intents', [
             'order_id' => $order->id,
@@ -255,7 +269,9 @@ class PaymentApiTest extends TestCase
         [$professional, $profile] = $this->professional();
         $client = $this->client();
         $service = $this->publishedService($profile);
-        $address = Address::factory()->default()->create(['user_id' => $client->id]);
+        $address = Address::factory()->default()->create([
+            'user_id' => $client->id,
+        ]);
 
         $request = ServiceRequest::factory()->create([
             'client_id' => $client->id,
@@ -291,10 +307,14 @@ class PaymentApiTest extends TestCase
             'accepted_at' => now(),
         ])->save();
 
-        $request->forceFill(['status' => ServiceRequestStatus::ACCEPTED])->save();
+        $request->forceFill([
+            'status' => ServiceRequestStatus::ACCEPTED,
+        ])->save();
 
-        $order = app(\App\Services\Order\OrderService::class)
-            ->createFromAcceptedQuotation($quotation->fresh(), $client);
+        $order = app(OrderService::class)->createFromAcceptedQuotation(
+            $quotation->fresh(),
+            $client,
+        );
 
         return [$client, $order];
     }
@@ -307,11 +327,16 @@ class PaymentApiTest extends TestCase
         return $user;
     }
 
+    /**
+     * @return array{0: User, 1: ProfessionalProfile}
+     */
     private function professional(): array
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
-        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $profile = ProfessionalProfile::factory()->create([
+            'user_id' => $user->id,
+        ]);
 
         return [$user, $profile];
     }
