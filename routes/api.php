@@ -38,9 +38,14 @@ Route::prefix('v1')->group(function (): void {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
 
-        Route::prefix('categories')->group(function (): void {
-            Route::get('/', [CategoryController::class, 'index'])->middleware('permission:categories.view');
-            Route::get('{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view');
+        Route::prefix('categories')->middleware('security.headers')->group(function (): void {
+            Route::get('/', [CategoryController::class, 'index']);
+            Route::get('{category}', [CategoryController::class, 'show']);
+        });
+
+        Route::prefix('admin/categories')->group(function (): void {
+            Route::get('/', [CategoryController::class, 'adminIndex'])->middleware('permission:categories.view');
+            Route::get('{category}', [CategoryController::class, 'adminShow'])->middleware('permission:categories.view');
             Route::post('/', [CategoryController::class, 'store'])->middleware('permission:categories.manage');
             Route::patch('{category}', [CategoryController::class, 'update'])->middleware('permission:categories.manage');
             Route::delete('{category}', [CategoryController::class, 'destroy'])->middleware('permission:categories.manage');
