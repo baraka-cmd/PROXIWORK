@@ -85,7 +85,7 @@ class ServiceRequestLifecycleService
 
             $allowed = is_array($from) ? $from : [$from];
 
-            if (!in_array($locked->status, $allowed, true)) {
+            if (! in_array($locked->status, $allowed, true)) {
                 throw ValidationException::withMessages([
                     'status' => sprintf(
                         'La transition %s → %s n’est pas autorisée depuis l’état actuel.',
