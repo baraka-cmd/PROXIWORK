@@ -82,7 +82,7 @@ class CategoryModelTest extends TestCase
             'slug' => 'developpement-web',
         ]);
 
-        $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
+        $this->expectException(UniqueConstraintViolationException::class);
 
         Category::create([
             'name' => 'Web Development',
