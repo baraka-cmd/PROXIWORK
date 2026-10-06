@@ -30,6 +30,8 @@ class ProfessionalDashboardService
             ])
             ->firstOrFail();
 
+        $unreadNotifications = $user->unreadNotifications()->count();
+
         return [
             'profile' => $this->profile($profile),
             'services' => [
@@ -45,16 +47,9 @@ class ProfessionalDashboardService
                 'rating_count' => $profile->rating_count,
             ],
             'notifications' => [
-                'unread' => $user->unreadNotifications()->count(),
+                'unread' => $unreadNotifications,
             ],
-            'pending_actions' => $this->pendingActions($profile, $user),
-            'future_modules' => [
-                'requests' => 'phase_3',
-                'quotes' => 'phase_3',
-                'orders' => 'phase_3',
-                'revenue' => 'phase_3',
-                'reviews' => 'phase_3',
-            ],
+            'pending_actions' => $this->pendingActions($profile, $unreadNotifications),
         ];
     }
 
@@ -83,7 +78,7 @@ class ProfessionalDashboardService
         ];
     }
 
-    private function pendingActions(ProfessionalProfile $profile, User $user): Collection
+    private function pendingActions(ProfessionalProfile $profile, int $unreadNotifications): Collection
     {
         $actions = collect();
 
@@ -103,7 +98,7 @@ class ProfessionalDashboardService
             ]);
         }
 
-        if ($user->unreadNotifications()->exists()) {
+        if ($unreadNotifications > 0) {
             $actions->push([
                 'type' => 'notifications',
                 'priority' => 'normal',
