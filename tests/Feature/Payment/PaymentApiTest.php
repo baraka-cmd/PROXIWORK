@@ -238,12 +238,14 @@ class PaymentApiTest extends TestCase
 
         [$client, $order] = $this->orderScenario();
 
+        $payload = [
+            'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+            'payment_provider' => PaymentProvider::FAKE->value,
+        ];
+
         $response = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'payment-success-0001')
-            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
-                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
-                'payment_provider' => PaymentProvider::FAKE->value,
-            ]);
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', $payload);
 
         $response->assertOk();
         $response->assertJsonPath('data.status', 'succeeded');
