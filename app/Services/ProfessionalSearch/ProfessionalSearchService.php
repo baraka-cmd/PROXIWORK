@@ -73,7 +73,7 @@ class ProfessionalSearchService
 
     private function applyTextSearch(Builder $query, array $filters): void
     {
-        $term = $filters['search'] ?? $filters['profession'] ?? null;
+        $term = $filters['search'] ?? null;
 
         if ($term === null || $term === '') {
             return;
