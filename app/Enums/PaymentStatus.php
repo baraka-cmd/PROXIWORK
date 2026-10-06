@@ -14,4 +14,16 @@ enum PaymentStatus: string
     case CANCELLED = 'cancelled';
     case EXPIRED = 'expired';
     case REFUNDED = 'refunded';
+
+    public function isFinal(): bool
+    {
+        return match ($this) {
+            self::SUCCEEDED,
+            self::FAILED,
+            self::CANCELLED,
+            self::EXPIRED,
+            self::REFUNDED => true,
+            default => false,
+        };
+    }
 }
