@@ -37,6 +37,10 @@ class ServiceResource extends JsonResource
                 'slug' => $skill->slug,
             ])->values()),
             'images' => ServiceImageResource::collection($this->whenLoaded('images')),
+            'professional' => $this->whenLoaded('professionalProfile', fn () => [
+                'id' => $this->professionalProfile->getKey(),
+                'name' => $this->professionalProfile->user->name,
+            ]),
         ];
     }
 }
