@@ -11,6 +11,8 @@ use App\Enums\PaymentStatus;
 use App\Exceptions\PaymentConflictException;
 use App\Exceptions\PaymentGatewayUnavailableException;
 use App\Models\Order;
+use App\Models\OrderStatusHistory;
+use App\Models\Payment;
 use App\Models\PaymentIntent;
 use App\Models\User;
 use App\Payments\DTO\PaymentRequest;
@@ -23,6 +25,7 @@ class PaymentService
 {
     public function __construct(
         private readonly PaymentGatewayManager $gatewayManager,
+        private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
     ) {}
 
@@ -32,7 +35,7 @@ class PaymentService
         PaymentMethod $method,
         PaymentProvider $provider,
         string $idempotencyKey,
-    ): PaymentIntent {
+    ): Payment {
         $prepared = $this->prepareIntent(
             $order,
             $client,
@@ -42,24 +45,25 @@ class PaymentService
         );
 
         $intent = $prepared['intent'];
+        $payment = $this->ensurePayment($order, $client, $intent);
 
-        if ($prepared['created'] === false) {
-            if ($intent->request_fingerprint !== $prepared['fingerprint']) {
-                throw new PaymentConflictException(
-                    'La même clé d’idempotence a déjà été utilisée avec une autre opération.'
-                );
-            }
-
-            if (in_array($intent->status, [
-                PaymentStatus::SUCCEEDED,
-                PaymentStatus::FAILED,
-                PaymentStatus::CANCELLED,
-                PaymentStatus::EXPIRED,
-                PaymentStatus::REFUNDED,
-            ], true)) {
-                return $intent;
-            }
+        if ($prepared['created'] === false && $intent->request_fingerprint !== $prepared['fingerprint']) {
+            throw new PaymentConflictException(
+                'La même clé d’idempotence a déjà été utilisée avec une autre opération.'
+            );
         }
+
+        if ($payment->status === PaymentStatus::SUCCEEDED) {
+            return $payment->load('transactions');
+        }
+
+        $transaction = $this->transactionService->ensure(
+            payment: $payment,
+            idempotencyKey: $idempotencyKey,
+            amount: (string) $payment->amount,
+            currency: $payment->currency,
+            provider: $provider->value,
+        );
 
         try {
             $result = $this->gatewayManager
@@ -67,46 +71,29 @@ class PaymentService
                 ->initiate(new PaymentRequest(
                     orderId: $order->getKey(),
                     idempotencyKey: $idempotencyKey,
-                    amount: $intent->amount,
-                    currency: $intent->currency,
+                    amount: (string) $payment->amount,
+                    currency: $payment->currency,
                     method: $method,
                     provider: $provider,
-                    metadata: ['payment_intent_id' => $intent->getKey()],
+                    metadata: ['payment_intent_id' => $intent->getKey(), 'payment_id' => $payment->getKey()],
                 ));
         } catch (Throwable $exception) {
-            // The intent deliberately remains initiated. A retry with the same
-            // idempotency key can safely reconcile an unknown provider outcome.
+            // The local transaction remains durable. The same key must be reused
+            // to reconcile an unknown provider outcome safely.
             throw new PaymentGatewayUnavailableException($exception);
         }
 
-        $expectedAmount = $this->canonicalMoney((string) $intent->amount);
-        $returnedAmount = $this->canonicalMoney($result->amount);
+        $transaction = $this->transactionService->applyResult($transaction, $result);
 
-        $providerResponseIsValid = $returnedAmount === $expectedAmount
-            && strtoupper($result->currency) === strtoupper($intent->currency);
+        return $this->database->transaction(function () use ($payment, $intent, $transaction, $result): Payment {
+            $lockedPayment = Payment::query()->lockForUpdate()->findOrFail($payment->getKey());
+            $lockedIntent = PaymentIntent::query()->lockForUpdate()->findOrFail($intent->getKey());
 
-        if ($providerResponseIsValid === false) {
-            $this->markFailed(
-                $intent,
-                'PROVIDER_AMOUNT_MISMATCH',
-                'La réponse du fournisseur ne correspond pas au montant ou à la devise attendus.'
-            );
-
-            throw ValidationException::withMessages([
-                'payment' => 'La réponse du fournisseur de paiement est incohérente.',
-            ]);
-        }
-
-        return DB::transaction(function () use ($intent, $result): PaymentIntent {
-            $locked = PaymentIntent::query()
-                ->lockForUpdate()
-                ->findOrFail($intent->getKey());
-
-            if ($locked->status->isFinal()) {
-                return $locked;
+            if ($lockedPayment->status === PaymentStatus::SUCCEEDED) {
+                return $lockedPayment->load('transactions');
             }
 
-            $locked->forceFill([
+            $lockedIntent->forceFill([
                 'status' => $result->status,
                 'provider_reference' => $result->providerReference,
                 'redirect_url' => $result->redirectUrl,
@@ -116,8 +103,58 @@ class PaymentService
                 'failure_message' => $result->failureMessage,
             ])->save();
 
-            return $locked->refresh();
+            $lockedPayment->forceFill([
+                'status' => $result->status,
+                'paid_at' => $result->status === PaymentStatus::SUCCEEDED ? now() : $lockedPayment->paid_at,
+                'failed_at' => $result->status === PaymentStatus::FAILED ? now() : $lockedPayment->failed_at,
+                'cancelled_at' => $result->status === PaymentStatus::CANCELLED ? now() : $lockedPayment->cancelled_at,
+            ])->save();
+
+            if ($result->status === PaymentStatus::SUCCEEDED) {
+                $order = Order::query()->lockForUpdate()->findOrFail($lockedPayment->order_id);
+
+                if ($order->status === OrderStatus::PENDING_PAYMENT) {
+                    $from = $order->status;
+                    $order->forceFill([
+                        'status' => OrderStatus::CONFIRMED,
+                        'confirmed_at' => now(),
+                    ])->save();
+
+                    OrderStatusHistory::query()->forceCreate([
+                        'order_id' => $order->getKey(),
+                        'from_status' => $from,
+                        'to_status' => OrderStatus::CONFIRMED,
+                        'changed_by' => $lockedPayment->client_id,
+                        'reason' => 'payment_succeeded',
+                        'metadata' => [
+                            'payment_id' => $lockedPayment->getKey(),
+                            'payment_transaction_id' => $transaction->getKey(),
+                        ],
+                    ]);
+                } elseif ($order->status !== OrderStatus::CONFIRMED) {
+                    throw new PaymentConflictException(
+                        'Le paiement est confirmé mais la commande est dans un état incompatible.'
+                    );
+                }
+            }
+
+            return $lockedPayment->refresh()->load('transactions');
         }, attempts: 3);
+    }
+
+    public function paymentForOrder(Order $order, User $client): Payment
+    {
+        $payment = Payment::query()
+            ->where('order_id', $order->getKey())
+            ->where('client_id', $client->getKey())
+            ->with('transactions')
+            ->first();
+
+        if ($payment === null) {
+            throw new PaymentConflictException('Aucun paiement n’est associé à cette commande.');
+        }
+
+        return $payment;
     }
 
     /**
@@ -131,18 +168,14 @@ class PaymentService
         string $idempotencyKey,
     ): array {
         return $this->database->transaction(function () use ($order, $client, $method, $provider, $idempotencyKey): array {
-            $lockedOrder = Order::query()
-                ->lockForUpdate()
-                ->findOrFail($order->getKey());
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->getKey());
 
             if ($lockedOrder->client_id !== $client->getKey()) {
                 throw new PaymentConflictException('Vous ne pouvez pas payer cette commande.');
             }
 
-            if ($lockedOrder->status !== OrderStatus::PENDING_PAYMENT) {
-                throw new PaymentConflictException(
-                    'Cette commande n’accepte plus de nouvelle initiation de paiement.'
-                );
+            if (! in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true)) {
+                throw new PaymentConflictException('Cette commande n’accepte plus de paiement.');
             }
 
             $fingerprint = hash('sha256', implode('|', [
@@ -160,17 +193,15 @@ class PaymentService
                 ->first();
 
             if ($existing !== null) {
-                if ($existing->order_id !== $lockedOrder->getKey()) {
-                    throw new PaymentConflictException(
-                        'Cette clé d’idempotence est déjà utilisée pour une autre opération.'
-                    );
-                }
-
                 return [
                     'created' => false,
                     'intent' => $existing,
                     'fingerprint' => $fingerprint,
                 ];
+            }
+
+            if ($lockedOrder->status !== OrderStatus::PENDING_PAYMENT) {
+                throw new PaymentConflictException('Cette commande est déjà payée ou en cours de traitement.');
             }
 
             $active = PaymentIntent::query()
@@ -209,39 +240,34 @@ class PaymentService
         }, attempts: 3);
     }
 
-    private function markFailed(
-        PaymentIntent $intent,
-        string $code,
-        string $message,
-    ): void {
-        DB::transaction(function () use ($intent, $code, $message): void {
-            $locked = PaymentIntent::query()
+    private function ensurePayment(Order $order, User $client, PaymentIntent $intent): Payment
+    {
+        return $this->database->transaction(function () use ($order, $client, $intent): Payment {
+            $payment = Payment::query()
+                ->where('order_id', $order->getKey())
                 ->lockForUpdate()
-                ->findOrFail($intent->getKey());
+                ->first();
 
-            if ($locked->status->isFinal()) {
-                return;
+            if ($payment === null) {
+                return Payment::query()->forceCreate([
+                    'order_id' => $order->getKey(),
+                    'client_id' => $client->getKey(),
+                    'payment_intent_id' => $intent->getKey(),
+                    'method' => $intent->method,
+                    'provider' => $intent->provider,
+                    'status' => $intent->status,
+                    'currency' => strtoupper($intent->currency),
+                    'amount' => $intent->amount,
+                ]);
             }
 
-            $locked->forceFill([
-                'status' => PaymentStatus::FAILED,
-                'failure_code' => $code,
-                'failure_message' => $message,
+            $payment->forceFill([
+                'payment_intent_id' => $intent->getKey(),
+                'method' => $intent->method,
+                'provider' => $intent->provider,
             ])->save();
+
+            return $payment->refresh();
         }, attempts: 3);
-    }
-
-    private function canonicalMoney(string $value): string
-    {
-        if (preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value)) !== 1) {
-            throw new ValidationException([
-                'payment' => 'Le montant retourné par le fournisseur est invalide.',
-            ]);
-        }
-
-        [$whole, $fraction] = array_pad(explode('.', trim($value), 2), 2, '');
-        $whole = ltrim($whole, '0') ?: '0';
-
-        return $whole.'.'.str_pad($fraction, 2, '0');
     }
 }
