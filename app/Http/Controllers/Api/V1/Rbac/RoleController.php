@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Rbac\StoreRoleRequest;
 use App\Http\Requests\Rbac\UpdateRoleRequest;
 use App\Models\Permission;
+use App\Http\Resources\PermissionResource;
+use App\Http\Resources\RoleResource;
 use App\Models\Role;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,7 +24,7 @@ class RoleController extends Controller
             ->orderBy('display_name')
             ->paginate(min(max($request->integer('per_page', 15), 1), 100));
 
-        return response()->json(['success' => true, 'data' => $roles]);
+        return RoleResource::collection($roles)->additional(['message' => 'Rôles récupérés avec succès.']);
     }
 
     public function show(Role $role): JsonResponse
@@ -31,7 +33,7 @@ class RoleController extends Controller
 
         $role->load(['permissions:id,name,display_name,group', 'users:id,name,email']);
 
-        return response()->json(['success' => true, 'data' => $role]);
+        return (new RoleResource($role))->additional(['message' => 'Rôle récupéré avec succès.']);
     }
 
     public function store(StoreRoleRequest $request): JsonResponse
@@ -45,7 +47,7 @@ class RoleController extends Controller
             return $role->load('permissions');
         });
 
-        return response()->json(['success' => true, 'message' => 'Role created.', 'data' => $role], 201);
+        return (new RoleResource($role))->additional(['message' => 'Rôle créé avec succès.'])->response()->setStatusCode(201);
     }
 
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
@@ -60,7 +62,7 @@ class RoleController extends Controller
             return $role->load('permissions');
         });
 
-        return response()->json(['success' => true, 'message' => 'Role updated.', 'data' => $role]);
+        return (new RoleResource($role))->additional(['message' => 'Rôle mis à jour avec succès.']);
     }
 
     public function destroy(Role $role): JsonResponse
@@ -69,7 +71,7 @@ class RoleController extends Controller
 
         $role->delete();
 
-        return response()->json(['success' => true, 'message' => 'Role deleted.']);
+        return response()->noContent();
     }
 
     public function permissions(): JsonResponse
@@ -81,6 +83,6 @@ class RoleController extends Controller
             ->orderBy('display_name')
             ->get(['id', 'name', 'display_name', 'group', 'description']);
 
-        return response()->json(['success' => true, 'data' => $permissions]);
+        return PermissionResource::collection($permissions)->additional(['message' => 'Permissions récupérées avec succès.']);
     }
 }
