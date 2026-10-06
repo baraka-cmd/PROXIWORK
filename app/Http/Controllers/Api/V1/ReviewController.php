@@ -35,6 +35,8 @@ class ReviewController extends Controller
 
     public function show(Request $request, Review $review): ReviewResource
     {
+        $this->authorize('view', $review);
+
         return new ReviewResource(
             $this->reviewService->findForViewer($review, $request->user())
         );
@@ -42,6 +44,8 @@ class ReviewController extends Controller
 
     public function respond(StoreReviewResponseRequest $request, Review $review): JsonResponse
     {
+        $this->authorize('respond', $review);
+
         $response = $this->reviewService->respond(
             review: $review,
             professionalUser: $request->user(),
