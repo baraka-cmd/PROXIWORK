@@ -21,7 +21,9 @@ class PaymentWebhookService
 {
     public function __construct(
         private readonly CommissionService $commissionService,
-    ) {}
+    ) {
+    }
+
     public function handle(
         PaymentProvider $provider,
         string $signature,
@@ -57,11 +59,7 @@ class PaymentWebhookService
             if ($transaction->status->isFinal()) {
                 $transaction->forceFill(['provider_event_id' => $eventId])->save();
 
-                if ($status === PaymentStatus::SUCCEEDED) {
-                $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
-            }
-
-            return $transaction->refresh();
+                return $transaction->refresh();
             }
 
             if ($this->money($amount) !== $this->money((string) $transaction->amount)
@@ -123,6 +121,10 @@ class PaymentWebhookService
                         ],
                     ]);
                 }
+            }
+
+            if ($status === PaymentStatus::SUCCEEDED) {
+                $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
             }
 
             return $transaction->refresh();
