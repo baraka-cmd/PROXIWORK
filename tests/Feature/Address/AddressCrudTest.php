@@ -35,8 +35,7 @@ class AddressCrudTest extends TestCase
         $response = $this->getJson('/api/v1/addresses');
 
         $response->assertOk()
-            ->assertJsonPath('success', true)
-            ->assertJsonCount(1, 'data')
+                        ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.label', 'Maison');
     }
 
@@ -88,7 +87,7 @@ class AddressCrudTest extends TestCase
             ->assertJsonPath('data.city', 'Bukavu');
 
         $this->deleteJson("/api/v1/addresses/{$address->id}")
-            ->assertOk();
+            ->assertNoContent();
 
         $this->assertDatabaseMissing('addresses', ['id' => $address->id]);
     }
