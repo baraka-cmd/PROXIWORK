@@ -20,7 +20,6 @@ class ProfessionalServiceSecurityTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->seed(RbacSeeder::class);
         Storage::fake('public');
     }
