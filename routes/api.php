@@ -31,6 +31,7 @@ Route::prefix('v1')->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
+        Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
         Route::apiResource('addresses', AddressController::class)
             ->only(['index', 'store', 'show', 'update', 'destroy']);
     });
