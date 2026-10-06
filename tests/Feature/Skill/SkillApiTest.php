@@ -9,6 +9,8 @@ use App\Models\ProfessionalProfile;
 use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -147,7 +149,7 @@ class SkillApiTest extends TestCase
 
         $this->assertDatabaseHas('skills', ['id' => $skill->id]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         $skill->delete();
     }
 
@@ -160,7 +162,7 @@ class SkillApiTest extends TestCase
 
         $profile->skills()->attach($skill->id);
 
-        $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
+        $this->expectException(UniqueConstraintViolationException::class);
         $profile->skills()->attach($skill->id);
     }
 
