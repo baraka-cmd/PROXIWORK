@@ -26,7 +26,6 @@ class OrderAddressSnapshotResource extends JsonResource
             'postal_code' => $this->postal_code,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
-            'additional_instructions' => $this->additional_instructions,
         ];
     }
 }
