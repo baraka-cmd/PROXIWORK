@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\ProfessionalProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,9 +18,9 @@ class ProfessionalProfile extends Model
         'user_id',
     ];
 
-    protected static function newFactory(): \Database\Factories\ProfessionalProfileFactory
+    protected static function newFactory(): ProfessionalProfileFactory
     {
-        return \Database\Factories\ProfessionalProfileFactory::new();
+        return ProfessionalProfileFactory::new();
     }
 
     public function user(): BelongsTo
