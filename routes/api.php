@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\Client\Dashboard\ClientDashboardController;
 use App\Http\Controllers\Api\V1\FavoriteController;
+use App\Http\Controllers\Api\V1\Messaging\ConversationController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
@@ -105,6 +106,15 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/', [WalletController::class, 'show']);
             Route::post('withdrawals', [WalletController::class, 'withdraw'])->middleware('throttle:payment');
         });
+
+        Route::get('conversations', [ConversationController::class, 'index']);
+        Route::post('professionals/{professionalProfile}/conversations', [ConversationController::class, 'storeForProfessional'])
+            ->middleware('role:client');
+        Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::get('conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+        Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])
+            ->middleware('throttle:message-send');
+        Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead']);
 
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
