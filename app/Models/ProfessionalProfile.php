@@ -17,6 +17,11 @@ class ProfessionalProfile extends Model
         'user_id',
     ];
 
+    protected static function newFactory(): \Database\Factories\ProfessionalProfileFactory
+    {
+        return \Database\Factories\ProfessionalProfileFactory::new();
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
