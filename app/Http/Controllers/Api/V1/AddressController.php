@@ -9,12 +9,18 @@ use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Address\UpdateAddressRequest;
 use App\Http\Resources\AddressResource;
 use App\Models\Address;
+use App\Services\AddressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AddressController extends Controller
 {
+    public function __construct(
+        private readonly AddressService $addressService,
+    ) {
+    }
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Address::class);
@@ -38,7 +44,10 @@ class AddressController extends Controller
     {
         $this->authorize('create', Address::class);
 
-        $address = $request->user()->addresses()->create($request->validated());
+        $address = $this->addressService->create(
+            $request->user(),
+            $request->validated(),
+        );
 
         return (new AddressResource($address))->additional([
             'success' => true,
@@ -68,11 +77,23 @@ class AddressController extends Controller
         ]);
     }
 
+    public function setDefault(Request $request, Address $address): AddressResource
+    {
+        $this->authorize('setDefault', $address);
+
+        $address = $this->addressService->setDefault($request->user(), $address);
+
+        return (new AddressResource($address))->additional([
+            'success' => true,
+            'message' => 'Adresse définie comme adresse par défaut.',
+        ]);
+    }
+
     public function destroy(Request $request, Address $address): JsonResponse
     {
         $this->authorize('delete', $address);
 
-        $address->delete();
+        $this->addressService->delete($request->user(), $address);
 
         return response()->json([
             'success' => true,
