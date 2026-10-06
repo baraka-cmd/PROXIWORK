@@ -23,8 +23,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['status', 'updated_at']);
-            $table->foreign('current_offer_id')->references('id')->on('quotation_offers')->nullOnDelete();
-            $table->foreign('accepted_offer_id')->references('id')->on('quotation_offers')->nullOnDelete();
         });
     }
 
