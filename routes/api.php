@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
+use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
@@ -44,6 +45,9 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/', [CategoryController::class, 'index']);
         Route::get('{category}', [CategoryController::class, 'show']);
     });
+
+    Route::get('professionals', [ProfessionalSearchController::class, 'index'])
+        ->middleware(['security.headers', 'throttle:api']);
 
     Route::prefix('services')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
         Route::get('/', [ServiceController::class, 'index']);
