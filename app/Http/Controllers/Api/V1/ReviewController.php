@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Review\StoreReviewRequest;
+use App\Enums\ReviewStatus;
 use App\Http\Requests\Review\ModerateReviewRequest;
 use App\Http\Requests\Review\ModerateReviewResponseRequest;
+use App\Http\Requests\Review\StoreReviewRequest;
 use App\Http\Requests\Review\StoreReviewResponseRequest;
 use App\Http\Resources\Review\ReviewResource;
 use App\Http\Resources\Review\ReviewResponseResource;
@@ -54,7 +55,7 @@ class ReviewController extends Controller
         $review = $this->reviewService->moderate(
             review: $review,
             moderator: $request->user(),
-            status: \App\Enums\ReviewStatus::from($request->validated('status')),
+            status: ReviewStatus::from($request->validated('status')),
             reason: $request->validated('reason'),
         );
 
