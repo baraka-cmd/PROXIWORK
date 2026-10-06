@@ -35,6 +35,11 @@ class Skill extends Model
         ];
     }
 
+    protected static function newFactory(): \Database\Factories\SkillFactory
+    {
+        return \Database\Factories\SkillFactory::new();
+    }
+
     public function professionalProfiles(): BelongsToMany
     {
         return $this->belongsToMany(
