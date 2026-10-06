@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Profile\UpdateProfileRequest;
+use App\Http\Resources\ProfileResource;
+use Illuminate\Http\Request;
+
+class ProfileController extends Controller
+{
+    public function show(Request $request): ProfileResource
+    {
+        abort_unless($request->user()->hasPermissionTo('profiles.view'), 403);
+
+        $profile = $request->user()->profile()->firstOrCreate([]);
+
+        $this->authorize('view', $profile);
+
+        return (new ProfileResource($profile))->additional([
+            'success' => true,
+            'message' => 'Profil récupéré avec succès.',
+        ]);
+    }
+
+    public function update(UpdateProfileRequest $request): ProfileResource
+    {
+        $profile = $request->user()->profile()->firstOrCreate([]);
+
+        $this->authorize('update', $profile);
+
+        $profile->update($request->validated());
+
+        return (new ProfileResource($profile->refresh()))->additional([
+            'success' => true,
+            'message' => 'Profil mis à jour avec succès.',
+        ]);
+    }
+}
