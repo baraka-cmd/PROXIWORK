@@ -24,6 +24,7 @@ class AddressDefaultTest extends TestCase
     public function test_first_created_address_becomes_default(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
 
         Sanctum::actingAs($user);
 
@@ -46,6 +47,7 @@ class AddressDefaultTest extends TestCase
     public function test_setting_default_demotes_the_previous_default(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $first = Address::factory()->for($user)->create(['is_default' => true]);
         $second = Address::factory()->for($user)->create();
 
@@ -69,6 +71,7 @@ class AddressDefaultTest extends TestCase
     public function test_setting_another_default_keeps_exactly_one_default(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $addresses = Address::factory()->count(4)->for($user)->create();
 
         Sanctum::actingAs($user);
@@ -82,6 +85,7 @@ class AddressDefaultTest extends TestCase
     public function test_deleting_default_promotes_the_most_recent_remaining_address(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $first = Address::factory()->for($user)->create(['is_default' => true]);
         $replacement = Address::factory()->for($user)->create();
         $latest = Address::factory()->for($user)->create();
@@ -104,6 +108,7 @@ class AddressDefaultTest extends TestCase
     public function test_deleting_only_address_leaves_no_default(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $address = Address::factory()->for($user)->create(['is_default' => true]);
 
         Sanctum::actingAs($user);
@@ -117,6 +122,7 @@ class AddressDefaultTest extends TestCase
     public function test_cannot_set_another_users_address_as_default(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $otherUser = User::factory()->create();
         $address = Address::factory()->for($otherUser)->create();
 
