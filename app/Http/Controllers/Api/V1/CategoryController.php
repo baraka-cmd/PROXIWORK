@@ -5,8 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Enums\CategoryStatus;
+use App\Http\Requests\Category\IndexCategoryRequest;
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
+use App\Http\Resources\Category\CategoryDetailResource;
+use App\Http\Resources\Category\CategoryListResource;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\Audit\AuditLogService;
@@ -23,9 +27,9 @@ class CategoryController extends Controller
         private readonly AuditLogService $auditLogService,
     ) {}
 
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(IndexCategoryRequest $request): AnonymousResourceCollection
     {
-        $this->authorize('viewAny', Category::class);
+        $validated = $request->validated();
 
         $categories = Category::query()
             ->with('parent:id,name,slug')
@@ -50,6 +54,42 @@ class CategoryController extends Controller
 
         return CategoryResource::collection($categories)->additional([
             'message' => 'Catégories récupérées avec succès.',
+            'meta' => [],
+        ]);
+    }
+
+    public function adminIndex(IndexCategoryRequest $request): AnonymousResourceCollection
+    {
+        $this->authorize('viewAny', Category::class);
+        $validated = $request->validated();
+
+        $categories = Category::query()
+            ->with('parent:id,name,slug')
+            ->withCount('children')
+            ->when(array_key_exists('status', $validated), fn ($query) => $query->where('status', CategoryStatus::from($validated['status'])->value))
+            ->when($validated['search'] ?? null, function ($query, string $search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate($validated['per_page'] ?? 15)
+            ->withQueryString();
+
+        return CategoryResource::collection($categories)->additional([
+            'message' => 'Catégories administratives récupérées avec succès.',
+            'meta' => ['scope' => 'admin'],
+        ]);
+    }
+
+    public function adminShow(Category $category): CategoryResource
+    {
+        $this->authorize('view', $category);
+
+        return (new CategoryResource($category->load('parent:id,name,slug')->loadCount('children')))->additional([
+            'message' => 'Catégorie administrative récupérée avec succès.',
             'meta' => [],
         ]);
     }
