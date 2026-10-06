@@ -72,4 +72,9 @@ class ProfessionalProfile extends Model
     {
         return $this->hasOne(Wallet::class, 'professional_id')->where('currency', strtoupper($currency));
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class, 'professional_id');
+    }
 }

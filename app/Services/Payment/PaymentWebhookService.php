@@ -12,12 +12,15 @@ use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\PaymentTransaction;
+use App\Services\Commission\CommissionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class PaymentWebhookService
 {
+    public function __construct(private readonly CommissionService $commissionService) {}
+
     public function handle(
         PaymentProvider $provider,
         string $signature,
@@ -117,6 +120,10 @@ class PaymentWebhookService
                 }
             }
 
+            if ($status === PaymentStatus::SUCCEEDED) {
+                $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
+            }
+
             return $transaction->refresh();
         }, attempts: 3);
     }
@@ -131,14 +138,14 @@ class PaymentWebhookService
 
         $expected = hash_hmac('sha256', $rawBody, $secret);
 
-        if (! hash_equals($expected, $signature)) {
+        if (hash_equals($expected, $signature) === false) {
             throw new UnauthorizedHttpException('', 'Signature de webhook invalide.');
         }
     }
 
     private function money(string $value): string
     {
-        if (! preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value))) {
+        if (preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value)) !== 1) {
             return '__invalid__';
         }
 

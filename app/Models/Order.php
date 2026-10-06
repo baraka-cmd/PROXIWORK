@@ -80,4 +80,14 @@ class Order extends Model
     {
         return $this->hasOne(Payment::class);
     }
+
+    public function commission(): HasOne
+    {
+        return $this->hasOne(Commission::class);
+    }
+
+    public function review(): HasOne
+    {
+        return $this->hasOne(Review::class);
+    }
 }

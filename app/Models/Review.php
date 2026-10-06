@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\PaymentStatus;
+use App\Enums\ReviewStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Payment extends Model
+class Review extends Model
 {
     use HasFactory;
 
@@ -20,11 +19,10 @@ class Payment extends Model
     protected function casts(): array
     {
         return [
-            'status' => PaymentStatus::class,
-            'amount' => 'decimal:2',
-            'paid_at' => 'datetime',
-            'failed_at' => 'datetime',
-            'cancelled_at' => 'datetime',
+            'status' => ReviewStatus::class,
+            'rating' => 'integer',
+            'published_at' => 'datetime',
+            'moderated_at' => 'datetime',
         ];
     }
 
@@ -38,18 +36,18 @@ class Payment extends Model
         return $this->belongsTo(User::class, 'client_id');
     }
 
-    public function intent(): BelongsTo
+    public function professional(): BelongsTo
     {
-        return $this->belongsTo(PaymentIntent::class, 'payment_intent_id');
+        return $this->belongsTo(ProfessionalProfile::class, 'professional_id');
     }
 
-    public function transactions(): HasMany
+    public function response(): HasOne
     {
-        return $this->hasMany(PaymentTransaction::class);
+        return $this->hasOne(ReviewResponse::class);
     }
 
-    public function commission(): HasOne
+    public function moderator(): BelongsTo
     {
-        return $this->hasOne(Commission::class);
+        return $this->belongsTo(User::class, 'moderated_by');
     }
 }
