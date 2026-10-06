@@ -52,6 +52,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
+            'meta' => [],
         ], 201);
     }
 
@@ -185,6 +186,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',
             'data' => null,
+            'meta' => [],
         ]);
     }
 
