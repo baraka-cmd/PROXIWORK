@@ -34,7 +34,7 @@ class AuditLogTest extends TestCase
             'device_name' => 'test-device',
         ])->assertOk();
 
-        $login->assertJsonStructure(['data.token']);
+        $login->assertJsonStructure(['data' => ['token']]);
 
         $token = $login->json('data.token');
 
