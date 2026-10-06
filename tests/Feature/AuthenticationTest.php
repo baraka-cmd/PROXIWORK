@@ -69,7 +69,7 @@ class AuthenticationTest extends TestCase
             'email' => 'jean@example.com',
             'password' => 'WrongPass1!',
             'device_name' => 'android-test',
-        ])->assertStatus(422)->assertJsonValidationErrors(['email']);
+        ])->assertUnauthorized()->assertJsonStructure(['message', 'errors']);
     }
 
     public function test_authenticated_user_can_read_profile(): void
