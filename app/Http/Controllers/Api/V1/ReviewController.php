@@ -67,7 +67,7 @@ class ReviewController extends Controller
         $response = $this->reviewService->moderateResponse(
             response: $reviewResponse,
             moderator: $request->user(),
-            status: \App\Enums\ReviewStatus::from($request->validated('status')),
+            status: ReviewStatus::from($request->validated('status')),
             reason: $request->validated('reason'),
         );
 
