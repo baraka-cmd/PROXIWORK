@@ -29,6 +29,7 @@ use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Tests\TestCase;
 
 class PaymentTransactionsWalletTest extends TestCase
@@ -210,7 +211,7 @@ class PaymentTransactionsWalletTest extends TestCase
 
         $transaction = PaymentTransaction::query()->firstOrFail();
 
-        $this->expectException(\Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException::class);
+        $this->expectException(UnauthorizedHttpException::class);
 
         app(PaymentWebhookService::class)->handle(
             provider: PaymentProvider::FAKE,
