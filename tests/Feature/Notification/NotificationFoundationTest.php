@@ -6,6 +6,7 @@ namespace Tests\Feature\Notification;
 
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
+use App\Services\Notification\TransactionalNotificationService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -97,6 +98,41 @@ class NotificationFoundationTest extends TestCase
 
         $this->assertSame(0, $user->unreadNotifications()->count());
         $this->assertSame(1, $other->unreadNotifications()->count());
+    }
+
+    public function test_transactional_notification_service_covers_phase_three_events(): void
+    {
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+
+        $service = app(TransactionalNotificationService::class);
+
+        $service->serviceRequestCreated($recipient, 'Plomberie');
+        $service->quotationCreated($recipient);
+        $service->quotationAccepted($recipient);
+        $service->paymentSucceeded($recipient);
+        $service->orderConfirmed($recipient);
+        $service->messageReceived($recipient);
+        $service->reviewReceived($recipient);
+
+        $this->assertSame(7, $recipient->notifications()->count());
+        $actions = $recipient->notifications()
+            ->get()
+            ->map(fn ($notification): string => (string) ($notification->data['action'] ?? ''))
+            ->all();
+
+        $this->assertSame(
+            [
+                'service_request',
+                'quotation',
+                'quotation',
+                'payment',
+                'order',
+                'message',
+                'review',
+            ],
+            $actions,
+        );
     }
 
     public function test_notification_channel_respects_preferences(): void
