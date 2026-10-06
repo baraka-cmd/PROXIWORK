@@ -6,7 +6,6 @@ namespace Tests\Feature\ProfessionalService;
 
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
-use App\Models\ServiceImage;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
