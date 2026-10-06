@@ -38,7 +38,7 @@ Route::prefix('v1')->group(function (): void {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
 
-        Route::prefix('categories')->middleware('security.headers')->group(function (): void {
+        Route::prefix('categories')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
             Route::get('/', [CategoryController::class, 'index']);
             Route::get('{category}', [CategoryController::class, 'show']);
         });
