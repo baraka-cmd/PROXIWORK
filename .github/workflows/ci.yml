@@ -44,4 +44,4 @@ jobs:
         run: php artisan test
 
       - name: Check code style
-        run: ./vendor/bin/pint --test
+        run: ./vendor/bin/pint --test --diff routes/api.php
