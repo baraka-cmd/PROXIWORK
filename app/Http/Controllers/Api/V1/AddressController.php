@@ -9,8 +9,8 @@ use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Address\UpdateAddressRequest;
 use App\Http\Resources\AddressResource;
 use App\Models\Address;
-use App\Services\AddressService;
 use App\Notifications\AccountActivityNotification;
+use App\Services\AddressService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,6 +39,7 @@ class AddressController extends Controller
 
         return AddressResource::collection($addresses)->additional([
             'message' => 'Adresses récupérées avec succès.',
+            'meta' => [],
         ]);
     }
 
@@ -52,7 +53,6 @@ class AddressController extends Controller
         );
 
         return (new AddressResource($address))->additional([
-            'success' => true,
             'message' => 'Adresse créée avec succès.',
             'meta' => [],
         ])->response()->setStatusCode(201);
