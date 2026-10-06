@@ -64,7 +64,7 @@ class TransactionalNotificationService
         $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review');
     }
 
-    public function send(User $recipient, string $title, string $message, string $action): void
+    private function send(User $recipient, string $title, string $message, string $action): void
     {
         $recipient->notify(new AccountActivityNotification($title, $message, $action));
     }
