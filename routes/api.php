@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\Client\Dashboard\ClientDashboardController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\Professional\Dashboard\ProfessionalDashboardController;
@@ -74,6 +75,10 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/', [SkillController::class, 'store'])->middleware('permission:skills.manage');
             Route::patch('{skill}', [SkillController::class, 'update'])->middleware('permission:skills.manage');
             Route::delete('{skill}', [SkillController::class, 'destroy'])->middleware('permission:skills.manage');
+        });
+
+        Route::prefix('client')->middleware('role:client')->group(function (): void {
+            Route::get('dashboard', ClientDashboardController::class);
         });
 
         Route::prefix('professional')->middleware('role:professional')->group(function (): void {
