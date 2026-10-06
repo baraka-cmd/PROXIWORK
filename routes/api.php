@@ -22,6 +22,7 @@ use App\Http\Controllers\Api\V1\QuotationController;
 use App\Http\Controllers\Api\V1\QuotationOfferController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\ReviewController;
+use App\Http\Controllers\Api\V1\Messaging\ConversationController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\SkillController;
@@ -105,6 +106,15 @@ Route::prefix('v1')->group(function (): void {
             Route::get('/', [WalletController::class, 'show']);
             Route::post('withdrawals', [WalletController::class, 'withdraw'])->middleware('throttle:payment');
         });
+
+        Route::get('conversations', [ConversationController::class, 'index']);
+        Route::post('professionals/{professionalProfile}/conversations', [ConversationController::class, 'storeForProfessional'])
+            ->middleware('role:client');
+        Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::get('conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+        Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])
+            ->middleware('throttle:message-send');
+        Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead']);
 
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
