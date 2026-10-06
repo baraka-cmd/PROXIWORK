@@ -75,4 +75,9 @@ class Order extends Model
     {
         return $this->hasMany(PaymentIntent::class);
     }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
+    }
 }
