@@ -63,6 +63,10 @@ Route::prefix('v1')->group(function (): void {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
 
+        Route::get('favorites', [FavoriteController::class, 'index']);
+        Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
+        Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
+
         Route::prefix('admin/skills')->group(function (): void {
             Route::get('/', [SkillController::class, 'adminIndex'])->middleware('permission:skills.view');
             Route::get('{skill}', [SkillController::class, 'adminShow'])->middleware('permission:skills.view');
