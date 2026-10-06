@@ -25,7 +25,7 @@ return new class extends Migration
             $table->decimal('price_min', 12, 2)->nullable();
             $table->decimal('price_max', 12, 2)->nullable();
             $table->char('currency', 3)->nullable();
-            $table->unsignedInteger('estimated_duration')->nullable();
+            $table->unsignedInteger('estimated_duration_minutes')->nullable();
             $table->string('status', 20)->default(ServiceStatus::DRAFT->value);
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamp('published_at')->nullable();
