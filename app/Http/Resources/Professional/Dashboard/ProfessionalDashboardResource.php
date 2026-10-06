@@ -17,7 +17,6 @@ class ProfessionalDashboardResource extends JsonResource
             'engagement' => $this->resource['engagement'],
             'notifications' => $this->resource['notifications'],
             'pending_actions' => $this->resource['pending_actions'],
-            'future_modules' => $this->resource['future_modules'],
         ];
     }
 }
