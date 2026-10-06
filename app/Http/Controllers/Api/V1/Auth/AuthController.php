@@ -32,7 +32,7 @@ class AuthController extends Controller
         $token = $user->createToken(
             $request->string('device_name')->toString(),
             ['*'],
-            now()->addDays((int) config('sanctum.expiration', 30))
+            now()->addMinutes((int) config('sanctum.expiration', 43200))
         )->plainTextToken;
 
         return response()->json([
@@ -60,7 +60,7 @@ class AuthController extends Controller
         $token = $user->createToken(
             $request->string('device_name')->toString(),
             ['*'],
-            now()->addDays((int) config('sanctum.expiration', 30))
+            now()->addMinutes((int) config('sanctum.expiration', 43200))
         )->plainTextToken;
 
         return response()->json([
@@ -117,7 +117,7 @@ class AuthController extends Controller
         $token = $user->createToken(
             $request->string('device_name')->toString(),
             ['*'],
-            now()->addDays((int) config('sanctum.expiration', 30))
+            now()->addMinutes((int) config('sanctum.expiration', 43200))
         )->plainTextToken;
 
         return response()->json([
