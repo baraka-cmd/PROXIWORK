@@ -49,6 +49,21 @@ class PaymentController extends Controller
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
+        if ($payment->status === PaymentStatus::SUCCEEDED) {
+            $request->user()->notify(new \App\Notifications\AccountActivityNotification(
+                'Paiement confirmé',
+                'Votre paiement a été confirmé avec succès.',
+                'payment',
+            ));
+
+            $payment->loadMissing('order.professional.user');
+            $payment->order?->professional?->user?->notify(new \App\Notifications\AccountActivityNotification(
+                'Commande confirmée',
+                'Une commande vient d’être confirmée après paiement.',
+                'order',
+            ));
+        }
+
         $httpStatus = match ($payment->status) {
             PaymentStatus::SUCCEEDED => Response::HTTP_OK,
             PaymentStatus::PENDING,
