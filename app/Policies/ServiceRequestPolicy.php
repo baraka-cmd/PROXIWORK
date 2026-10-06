@@ -9,6 +9,16 @@ use App\Models\User;
 
 class ServiceRequestPolicy
 {
+    public function viewAnyClient(User $user): bool
+    {
+        return $user->hasRole('client');
+    }
+
+    public function viewAnyProfessional(User $user): bool
+    {
+        return $user->hasRole('professional');
+    }
+
     public function view(User $user, ServiceRequest $request): bool
     {
         return $request->client_id === $user->getKey()
@@ -23,16 +33,19 @@ class ServiceRequestPolicy
 
     public function submit(User $user, ServiceRequest $request): bool
     {
-        return $request->client_id === $user->getKey();
+        return $request->client_id === $user->getKey()
+            && $request->status->value === 'draft';
     }
 
     public function cancel(User $user, ServiceRequest $request): bool
     {
-        return $request->client_id === $user->getKey();
+        return $request->client_id === $user->getKey()
+            && in_array($request->status->value, ['draft', 'requested'], true);
     }
 
     public function reject(User $user, ServiceRequest $request): bool
     {
-        return $request->professional?->user_id === $user->getKey();
+        return $request->professional?->user_id === $user->getKey()
+            && $request->status->value === 'requested';
     }
 }
