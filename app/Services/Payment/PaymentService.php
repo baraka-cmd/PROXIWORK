@@ -25,8 +25,7 @@ class PaymentService
         private readonly PaymentGatewayManager $gatewayManager,
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
-    ) {
-    }
+    ) {}
 
     public function initiate(
         Order $order,
