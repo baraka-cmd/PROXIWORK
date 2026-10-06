@@ -157,11 +157,7 @@ class ServiceRequestController extends Controller
             'reason' => $request->validated('reason'),
         ], $request);
 
-        $serviceRequest->client->notify(new AccountActivityNotification(
-            'Demande refusée',
-            'Le professionnel a refusé votre demande de service.',
-            'service_request',
-        ));
+        $this->notificationService->serviceRequestRejected($serviceRequest->client);
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande refusée avec succès.',
