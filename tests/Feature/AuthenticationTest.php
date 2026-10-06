@@ -32,8 +32,9 @@ class AuthenticationTest extends TestCase
         ]);
 
         $response->assertCreated()
-                        ->assertJsonPath('data.user.email', 'jean@example.com')
-            ->assertJsonStructure(['success', 'message', 'data' => ['user', 'token', 'token_type']]);
+            ->assertJsonPath('data.user.email', 'jean@example.com')
+            ->assertJsonStructure(['message', 'data' => ['user', 'token', 'token_type'], 'meta'])
+            ->assertJsonMissingPath('success');
 
         $this->assertDatabaseHas('users', ['email' => 'jean@example.com']);
         $user = User::where('email', 'jean@example.com')->firstOrFail();
