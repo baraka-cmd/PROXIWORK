@@ -34,27 +34,28 @@ class CategoryController extends Controller
         $categories = Category::query()
             ->with('parent:id,name,slug')
             ->withCount('children')
-            ->when($request->filled('search'), function ($query) use ($request): void {
-                $search = trim((string) $request->input('search'));
+            ->where('status', CategoryStatus::ACTIVE->value)
+            ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->input('status')))
-            ->when($request->has('parent_id'), function ($query) use ($request): void {
-                $parentId = $request->input('parent_id');
-                $parentId === null ? $query->whereNull('parent_id') : $query->where('parent_id', $parentId);
+            ->when(array_key_exists('parent_id', $validated), function ($query) use ($validated): void {
+                $validated['parent_id'] === null
+                    ? $query->whereNull('parent_id')
+                    : $query->where('parent_id', $validated['parent_id']);
             })
-            ->when($request->boolean('root_only'), fn ($query) => $query->whereNull('parent_id'))
+            ->when(($validated['root_only'] ?? false) === true, fn ($query) => $query->whereNull('parent_id'))
+            ->orderByDesc('is_featured')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate(min(max($request->integer('per_page', 15), 1), 100))
+            ->paginate($validated['per_page'] ?? 15)
             ->withQueryString();
 
-        return CategoryResource::collection($categories)->additional([
+        return CategoryListResource::collection($categories)->additional([
             'message' => 'Catégories récupérées avec succès.',
-            'meta' => [],
+            'meta' => ['scope' => 'active'],
         ]);
     }
 
@@ -105,13 +106,19 @@ class CategoryController extends Controller
         ])->response()->setStatusCode(201);
     }
 
-    public function show(Category $category): CategoryResource
+    public function show(Category $category): CategoryDetailResource
     {
-        $this->authorize('view', $category);
+        abort_if($category->status !== CategoryStatus::ACTIVE, 404);
 
-        $category->load('parent:id,name,slug')->loadCount('children');
+        $category->load([
+            'parent:id,name,slug',
+            'children' => fn ($query) => $query
+                ->where('status', CategoryStatus::ACTIVE->value)
+                ->orderBy('sort_order')
+                ->orderBy('name'),
+        ])->loadCount('children');
 
-        return (new CategoryResource($category))->additional([
+        return (new CategoryDetailResource($category))->additional([
             'message' => 'Catégorie récupérée avec succès.',
             'meta' => [],
         ]);
