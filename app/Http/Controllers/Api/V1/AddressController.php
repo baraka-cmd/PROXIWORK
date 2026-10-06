@@ -10,6 +10,8 @@ use App\Http\Requests\Address\UpdateAddressRequest;
 use App\Http\Resources\AddressResource;
 use App\Models\Address;
 use App\Services\AddressService;
+use App\Notifications\AccountActivityNotification;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -19,6 +21,7 @@ class AddressController extends Controller
 {
     public function __construct(
         private readonly AddressService $addressService,
+        private readonly AuditLogService $auditLogService,
     ) {}
 
     public function index(Request $request): AnonymousResourceCollection
@@ -97,6 +100,13 @@ class AddressController extends Controller
         $this->authorize('delete', $address);
 
         $this->addressService->delete($request->user(), $address);
+
+        $this->auditLogService->record('address_deleted', $address, $request->user(), [], $request);
+        $request->user()->notify(new AccountActivityNotification(
+            'Adresse supprimée',
+            'Une adresse de votre compte a été supprimée.',
+            'address_deleted',
+        ));
 
         return response()->noContent();
     }
