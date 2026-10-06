@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,11 @@ Route::prefix('v1')->group(function (): void {
             Route::post('change-password', [AuthController::class, 'changePassword'])->middleware('throttle:auth-sensitive');
             Route::post('email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:auth-sensitive');
         });
+    });
+
+    Route::middleware(['auth:sanctum', 'throttle:api'])->group(function (): void {
+        Route::get('profile', [ProfileController::class, 'show']);
+        Route::patch('profile', [ProfileController::class, 'update']);
     });
 
     Route::middleware(['auth:sanctum'])->prefix('rbac')->group(function (): void {

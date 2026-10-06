@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -11,6 +12,12 @@ use Tests\TestCase;
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RbacSeeder::class);
+    }
 
     public function test_user_can_register(): void
     {
@@ -30,6 +37,9 @@ class AuthenticationTest extends TestCase
             ->assertJsonStructure(['success', 'message', 'data' => ['user', 'token', 'token_type']]);
 
         $this->assertDatabaseHas('users', ['email' => 'jean@example.com']);
+        $user = User::where('email', 'jean@example.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('client'));
+        $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
     }
 
     public function test_user_can_login_with_valid_credentials(): void
