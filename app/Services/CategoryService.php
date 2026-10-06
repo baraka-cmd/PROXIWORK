@@ -43,7 +43,13 @@ class CategoryService
 
                 if ($status === CategoryStatus::ACTIVE && $category->parent_id !== null) {
                     $parent = Category::query()->findOrFail($parentId);
-                    if ($parent->status !== CategoryStatus::ACTIVE) {
+                    if ($parent->parent_id !== null) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Une catégorie ne peut avoir qu’un seul niveau de sous-catégorie.',
+            ]);
+        }
+
+        if ($parent->status !== CategoryStatus::ACTIVE) {
                         throw ValidationException::withMessages([
                             'status' => 'Une sous-catégorie ne peut pas être active lorsque sa catégorie parente est inactive ou archivée.',
                         ]);
@@ -115,6 +121,12 @@ class CategoryService
         }
 
         if ($category !== null) {
+            if ($category->parent_id === null && $category->children()->exists()) {
+                throw ValidationException::withMessages([
+                    'parent_id' => 'Une catégorie ayant des sous-catégories ne peut pas devenir une sous-catégorie.',
+                ]);
+            }
+
             $cursor = $parent;
             while ($cursor->parent_id !== null) {
                 if ($cursor->parent_id === $category->getKey()) {
@@ -133,7 +145,7 @@ class CategoryService
             ->where('name', $name)
             ->when($parentId === null, fn ($query) => $query->whereNull('parent_id'))
             ->when($parentId !== null, fn ($query) => $query->where('parent_id', $parentId))
-            ->when($ignore !== null, fn ($query) => $query->whereKeyNot($ignore->getKey()))
+            ->when($ignore !== null, fn ($query) => $query->where('id', '!=', $ignore->getKey()))
             ->exists();
 
         if ($exists) {
