@@ -109,7 +109,7 @@ class ProfessionalDashboardApiTest extends TestCase
     public function test_dashboard_exposes_professional_profile_without_sensitive_fields(): void
     {
         [$professional, $profile] = $this->professional();
-        $profile->update([
+        $profile->forceFill([
             'professional_title' => 'Développeur Laravel',
             'verification_status' => ProfessionalVerificationStatus::VERIFIED,
             'availability_status' => ProfessionalAvailabilityStatus::AVAILABLE,
