@@ -42,7 +42,9 @@ class PaymentService
             $idempotencyKey,
         );
 
-        if (! $prepared['created']) {
+        if ($prepared['created']) {
+            $intent = $prepared['intent'];
+        } else {
             $intent = $prepared['intent'];
 
             if ($intent->request_fingerprint !== $prepared['fingerprint']) {
@@ -60,8 +62,6 @@ class PaymentService
             ], true)) {
                 return $intent;
             }
-        } else {
-            $intent = $prepared['intent'];
         }
 
         try {
@@ -85,8 +85,9 @@ class PaymentService
         $expectedAmount = $this->canonicalMoney((string) $intent->amount);
         $returnedAmount = $this->canonicalMoney($result->amount);
 
-        if ($returnedAmount !== $expectedAmount
-            || strtoupper($result->currency) !== strtoupper($intent->currency)) {
+        if ($returnedAmount === $expectedAmount
+            && strtoupper($result->currency) === strtoupper($intent->currency)) {
+        } else {
             $this->markFailed(
                 $intent,
                 'PROVIDER_AMOUNT_MISMATCH',
@@ -226,8 +227,11 @@ class PaymentService
                 ->lockForUpdate()
                 ->findOrFail($intent->getKey());
 
-            if (! $locked->status->isFinal()) {
-                $locked->forceFill([
+            if ($locked->status->isFinal()) {
+                return;
+            }
+
+            $locked->forceFill([
                     'status' => PaymentStatus::FAILED,
                     'failure_code' => $code,
                     'failure_message' => $message,
