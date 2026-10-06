@@ -11,8 +11,8 @@ use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Notifications\AccountActivityNotification;
+use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -310,7 +310,7 @@ class ServiceRequestApiTest extends TestCase
         $request->refresh();
         $this->assertSame(ServiceRequestStatus::QUOTED, $request->status);
 
-        app(\App\Services\ServiceRequest\ServiceRequestLifecycleService::class)
+        app(ServiceRequestLifecycleService::class)
             ->accept($request, $client);
 
         $this->assertSame(ServiceRequestStatus::ACCEPTED, $request->refresh()->status);
