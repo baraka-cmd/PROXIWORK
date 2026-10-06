@@ -26,8 +26,7 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
-    )
-    {}
+    ) {}
 
     public function clientIndex(IndexServiceRequestRequest $request): AnonymousResourceCollection
     {
@@ -149,8 +148,7 @@ class ServiceRequestController extends Controller
     public function reject(
         RejectServiceRequestRequest $request,
         ServiceRequest $serviceRequest,
-    ): ServiceRequestResource
-    {
+    ): ServiceRequestResource {
         $this->authorize('reject', $serviceRequest);
 
         $serviceRequest = $this->lifecycleService->rejectByProfessional(
