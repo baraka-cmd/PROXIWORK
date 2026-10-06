@@ -38,7 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApi) {
-            if (!$isApi($request)) {
+            if (! $isApi($request)) {
                 return null;
             }
 
@@ -49,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApi) {
-            if (!$isApi($request)) {
+            if (! $isApi($request)) {
                 return null;
             }
 
@@ -60,7 +60,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
-            if (!$isApi($request)) {
+            if (! $isApi($request)) {
                 return null;
             }
 
@@ -71,7 +71,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isApi) {
-            if (!$isApi($request)) {
+            if (! $isApi($request)) {
                 return null;
             }
 
@@ -82,7 +82,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isApi) {
-            if (!$isApi($request)) {
+            if (! $isApi($request)) {
                 return null;
             }
 
@@ -99,7 +99,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $e, Request $request) use ($isApi) {
-            if (!$isApi($request)) {
+            if (! $isApi($request)) {
                 return null;
             }
 
