@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SkillStatus;
+use Database\Factories\SkillFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -35,9 +36,9 @@ class Skill extends Model
         ];
     }
 
-    protected static function newFactory(): \Database\Factories\SkillFactory
+    protected static function newFactory(): SkillFactory
     {
-        return \Database\Factories\SkillFactory::new();
+        return SkillFactory::new();
     }
 
     public function professionalProfiles(): BelongsToMany
