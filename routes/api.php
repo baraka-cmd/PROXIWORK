@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -23,7 +26,7 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware(['auth:sanctum'])->prefix('rbac')->group(function (): void {
-        Route::get('me', function (\Illuminate\Http\Request $request) {
+        Route::get('me', function (Request $request) {
             $user = $request->user()->load(['roles.permissions']);
 
             return response()->json([
