@@ -23,9 +23,10 @@ class ProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('client');
+        $user->profile()->create();
 
         $this->actingAs($user, 'sanctum')
-            ->getJson('/api/v1/profile')
+            ->getJson('/api/v1/profile'
             ->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.user_id', $user->id)
@@ -36,6 +37,7 @@ class ProfileApiTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('client');
+        $user->profile()->create();
 
         $this->actingAs($user, 'sanctum')
             ->patchJson('/api/v1/profile', [
