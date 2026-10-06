@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Resources\Quotation;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
 class QuotationOfferResource extends JsonResource
 {
