@@ -99,7 +99,7 @@ class QuotationService
                 'accepted_at' => now(),
             ])->save();
 
-            QuotationEvent::query()->create([
+            QuotationEvent::query()->forceCreate([
                 'quotation_id' => $locked->getKey(),
                 'actor_id' => $client->getKey(),
                 'type' => 'offer_accepted',
@@ -139,7 +139,7 @@ class QuotationService
                 'rejected_at' => now(),
             ])->save();
 
-            QuotationEvent::query()->create([
+            QuotationEvent::query()->forceCreate([
                 'quotation_id' => $locked->getKey(),
                 'actor_id' => $client->getKey(),
                 'type' => 'quote_rejected',
