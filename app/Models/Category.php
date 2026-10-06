@@ -48,12 +48,14 @@ class Category extends Model
 
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id')
+            ->orderBy('sort_order')
+            ->orderBy('name');
     }
 
     public function scopeActive($query)
     {
-        return $query->where('status', CategoryStatus::ACTIVE);
+        return $query->where('status', CategoryStatus::ACTIVE->value);
     }
 
     public function scopeRoot($query)
