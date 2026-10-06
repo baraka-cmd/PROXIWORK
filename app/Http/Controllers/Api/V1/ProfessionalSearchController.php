@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\RequestsProfessionalSearchRequest;
-use App\Http\ResourcesProfessionalSearchResource;
-use App\Services\ProfessionalSearchProfessionalSearchService;
+use App\Http\Requests\ProfessionalSearchRequest;
+use App\Http\Resources\ProfessionalSearchResource;
+use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProfessionalSearchController
