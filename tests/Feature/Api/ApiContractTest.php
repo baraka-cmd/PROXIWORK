@@ -95,7 +95,7 @@ class ApiContractTest extends TestCase
                 'email' => 'rate@example.com',
                 'password' => 'WrongPass1!',
                 'device_name' => 'test-device',
-            ])->assertUnprocessable();
+            ])->assertUnauthorized();
         }
 
         $this->postJson('/api/v1/auth/login', [
