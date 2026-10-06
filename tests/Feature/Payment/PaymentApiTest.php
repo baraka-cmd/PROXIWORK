@@ -193,7 +193,7 @@ class PaymentApiTest extends TestCase
     public function test_provider_connection_failure_leaves_intent_retryable_and_does_not_create_second_intent(): void
     {
         $this->app->bind(PaymentGateway::class, static fn () => new class implements PaymentGateway
-{
+        {
             public function initiate(PaymentRequest $request): PaymentResult
             {
                 throw new RuntimeException('simulated connection loss');
