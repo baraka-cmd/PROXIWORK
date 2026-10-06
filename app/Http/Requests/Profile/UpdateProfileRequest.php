@@ -4,17 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Profile;
 
-use App\Models\Profile;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $profile = $this->route('profile');
-
-        return $profile instanceof Profile
-            && $this->user()?->can('update', $profile);
+        return $this->user()?->hasPermissionTo('profiles.manage') ?? false;
     }
 
     public function rules(): array
