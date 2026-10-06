@@ -16,9 +16,11 @@ class CategoryService
     public function create(array $attributes): Category
     {
         return DB::transaction(function () use ($attributes): Category {
+            $parentId = $attributes['parent_id'] ?? null;
+
+            $this->assertParentIsValid($parentId);
             $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $attributes['name']);
-            $this->assertParentIsValid($attributes['parent_id'] ?? null);
-            $this->assertSiblingNameIsUnique($attributes['name'], $attributes['parent_id'] ?? null);
+            $this->assertSiblingNameIsUnique($attributes['name'], $parentId);
 
             return Category::create($attributes);
         });
@@ -36,24 +38,27 @@ class CategoryService
             $this->assertParentIsValid($parentId, $category);
             $this->assertSiblingNameIsUnique($name, $parentId, $category);
 
-            if (array_key_exists('status', $attributes)) {
-                $status = $attributes['status'] instanceof CategoryStatus
+            $newStatus = array_key_exists('status', $attributes)
+                ? ($attributes['status'] instanceof CategoryStatus
                     ? $attributes['status']
-                    : CategoryStatus::from($attributes['status']);
+                    : CategoryStatus::from($attributes['status']))
+                : $category->status;
 
-                if ($status === CategoryStatus::ACTIVE && $category->parent_id !== null) {
-                    $parent = Category::query()->findOrFail($parentId);
-                    if ($parent->parent_id !== null) {
-            throw ValidationException::withMessages([
-                'parent_id' => 'Une catégorie ne peut avoir qu’un seul niveau de sous-catégorie.',
-            ]);
-        }
+            if ($newStatus !== CategoryStatus::ACTIVE && $category->children()
+                ->where('status', CategoryStatus::ACTIVE->value)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'status' => 'Une catégorie avec des sous-catégories actives ne peut pas être désactivée ou archivée.',
+                ]);
+            }
 
-        if ($parent->status !== CategoryStatus::ACTIVE) {
-                        throw ValidationException::withMessages([
-                            'status' => 'Une sous-catégorie ne peut pas être active lorsque sa catégorie parente est inactive ou archivée.',
-                        ]);
-                    }
+            if ($newStatus === CategoryStatus::ACTIVE && $parentId !== null) {
+                $parent = Category::query()->findOrFail($parentId);
+
+                if ($parent->status !== CategoryStatus::ACTIVE) {
+                    throw ValidationException::withMessages([
+                        'status' => 'Une sous-catégorie ne peut pas être active lorsque sa catégorie parente est inactive ou archivée.',
+                    ]);
                 }
             }
 
@@ -66,11 +71,7 @@ class CategoryService
     public function archive(Category $category): void
     {
         DB::transaction(function () use ($category): void {
-            $hasActiveChildren = $category->children()
-                ->where('status', CategoryStatus::ACTIVE->value)
-                ->exists();
-
-            if ($hasActiveChildren) {
+            if ($category->children()->where('status', CategoryStatus::ACTIVE->value)->exists()) {
                 throw ValidationException::withMessages([
                     'category' => 'Archivez ou réaffectez d’abord les sous-catégories actives.',
                 ]);
@@ -110,6 +111,7 @@ class CategoryService
         }
 
         $parent = Category::query()->find($parentId);
+
         if ($parent === null) {
             throw (new ModelNotFoundException)->setModel(Category::class, [$parentId]);
         }
@@ -120,22 +122,16 @@ class CategoryService
             ]);
         }
 
-        if ($category !== null) {
-            if ($category->parent_id === null && $category->children()->exists()) {
-                throw ValidationException::withMessages([
-                    'parent_id' => 'Une catégorie ayant des sous-catégories ne peut pas devenir une sous-catégorie.',
-                ]);
-            }
+        if ($parent->parent_id !== null) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'La hiérarchie des catégories est limitée à deux niveaux.',
+            ]);
+        }
 
-            $cursor = $parent;
-            while ($cursor->parent_id !== null) {
-                if ($cursor->parent_id === $category->getKey()) {
-                    throw ValidationException::withMessages([
-                        'parent_id' => 'Cette opération créerait une boucle dans la hiérarchie des catégories.',
-                    ]);
-                }
-                $cursor = $cursor->parent()->firstOrFail();
-            }
+        if ($category !== null && $category->parent_id === null && $category->children()->exists()) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Une catégorie ayant des sous-catégories ne peut pas devenir une sous-catégorie.',
+            ]);
         }
     }
 
