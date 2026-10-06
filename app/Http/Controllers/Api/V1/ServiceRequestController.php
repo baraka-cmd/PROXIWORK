@@ -11,10 +11,10 @@ use App\Http\Requests\ServiceRequest\StoreServiceRequestRequest;
 use App\Http\Requests\ServiceRequest\UpdateServiceRequestRequest;
 use App\Http\Resources\ServiceRequest\ServiceRequestResource;
 use App\Models\ServiceRequest;
+use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Services\ServiceRequest\ServiceRequestService;
-use App\Notifications\AccountActivityNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -148,7 +148,8 @@ class ServiceRequestController extends Controller
     public function reject(
         RejectServiceRequestRequest $request,
         ServiceRequest $serviceRequest,
-    ): ServiceRequestResource {
+    ): ServiceRequestResource
+    {
         $this->authorize('reject', $serviceRequest);
 
         $serviceRequest = $this->lifecycleService->rejectByProfessional(
