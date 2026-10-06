@@ -105,7 +105,7 @@ class ProfessionalSearchService
             foreach ($skillIds as $skillId) {
                 $query->where(function (Builder $professional) use ($skillId): void {
                     $professional
-                        ->whereHas('skills', fn (Builder $skills) => $skills->whereKey($skillId))
+                        ->whereHas('skills', fn (Builder $skills) => $skills->whereKey($skillId)->where('skills.status', 'active'))
                         ->orWhereHas('services', fn (Builder $services) => $services
                             ->published()
                             ->whereHas('skills', fn (Builder $skills) => $skills->whereKey($skillId)));
@@ -119,7 +119,7 @@ class ProfessionalSearchService
             $professional->whereHas('skills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds)->where('skills.status', 'active'))
                 ->orWhereHas('services', fn (Builder $services) => $services
                     ->published()
-                    ->whereHas('skills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds)));
+                    ->whereHas('skills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds)->where('skills.status', 'active')));
         });
     }
 
