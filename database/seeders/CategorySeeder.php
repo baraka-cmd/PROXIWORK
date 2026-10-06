@@ -70,9 +70,7 @@ class CategorySeeder extends Seeder
             ],
         ];
 
-        foreach ($categories as $rootOrder => $children) {
-            $rootName = array_search($children, $categories, true);
-
+        foreach (array_keys($categories) as $rootOrder => $rootName) {
             $root = Category::updateOrCreate(
                 ['slug' => Str::slug($rootName)],
                 [
@@ -87,7 +85,7 @@ class CategorySeeder extends Seeder
                 ],
             );
 
-            foreach ($children as $childOrder => $childName) {
+            foreach ($categories[$rootName] as $childOrder => $childName) {
                 Category::updateOrCreate(
                     ['slug' => Str::slug($childName)],
                     [
