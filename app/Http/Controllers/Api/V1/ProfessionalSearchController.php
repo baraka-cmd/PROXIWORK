@@ -13,8 +13,7 @@ class ProfessionalSearchController
 {
     public function __construct(
         private readonly ProfessionalSearchService $searchService,
-    ) {
-    }
+    ) {}
 
     public function index(ProfessionalSearchRequest $request): AnonymousResourceCollection
     {
