@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\ServiceRequest;
 
 use App\Models\Address;
+use App\Models\ServiceRequest;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -59,14 +60,27 @@ class UpdateServiceRequestRequest extends FormRequest
                 }
             }
 
-            $min = $this->input('budget_min');
-            $max = $this->input('budget_max');
+            $request = $this->route('serviceRequest');
+
+            if (! $request instanceof ServiceRequest) {
+                return;
+            }
+
+            $min = array_key_exists('budget_min', $this->all())
+                ? $this->input('budget_min')
+                : $request->budget_min;
+            $max = array_key_exists('budget_max', $this->all())
+                ? $this->input('budget_max')
+                : $request->budget_max;
+            $currency = array_key_exists('currency', $this->all())
+                ? $this->input('currency')
+                : $request->currency;
 
             if ($min !== null && $max !== null && (float) $max < (float) $min) {
                 $validator->errors()->add('budget_max', 'Le budget maximum doit être supérieur ou égal au budget minimum.');
             }
 
-            if (($min !== null || $max !== null) && $this->input('currency') === null) {
+            if (($min !== null || $max !== null) && $currency === null) {
                 $validator->errors()->add('currency', 'La devise est obligatoire lorsqu’un budget est indiqué.');
             }
         }];
