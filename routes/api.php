@@ -91,7 +91,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
-        Route::get('orders/{order}/payment', [PaymentController::class, 'show']);
+        Route::get('orders/{order}/payment', [PaymentController::class, 'show'])->middleware('role:client');
         Route::post('orders/{order}/payments', [PaymentController::class, 'store'])
             ->middleware(['role:client', 'throttle:payment']);
 
