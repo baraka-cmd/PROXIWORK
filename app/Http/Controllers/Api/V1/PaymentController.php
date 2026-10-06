@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Http\Resources\Payment\PaymentResource;
 use App\Models\Order;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Payment\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class PaymentController extends Controller
         StorePaymentRequest $request,
         Order $order,
         PaymentService $paymentService,
+        TransactionalNotificationService $notificationService,
     ): PaymentResource|JsonResponse {
         $this->authorize('pay', $order);
 
@@ -50,18 +52,12 @@ class PaymentController extends Controller
         }
 
         if ($payment->status === PaymentStatus::SUCCEEDED) {
-            $request->user()->notify(new \App\Notifications\AccountActivityNotification(
-                'Paiement confirmé',
-                'Votre paiement a été confirmé avec succès.',
-                'payment',
-            ));
+            $notificationService->paymentSucceeded($request->user());
 
             $payment->loadMissing('order.professional.user');
-            $payment->order?->professional?->user?->notify(new \App\Notifications\AccountActivityNotification(
-                'Commande confirmée',
-                'Une commande vient d’être confirmée après paiement.',
-                'order',
-            ));
+            if ($payment->order?->professional?->user !== null) {
+                $notificationService->orderConfirmed($payment->order->professional->user);
+            }
         }
 
         $httpStatus = match ($payment->status) {
