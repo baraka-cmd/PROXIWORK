@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Rbac;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -55,7 +58,7 @@ class RbacAuthorizationTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $permissionId = \App\Models\Permission::where('name', 'users.view')->value('id');
+        $permissionId = Permission::where('name', 'users.view')->value('id');
 
         $response = $this->actingAs($admin, 'sanctum')
             ->postJson('/api/v1/rbac/roles', [
