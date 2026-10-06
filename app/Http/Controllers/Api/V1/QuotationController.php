@@ -9,7 +9,7 @@ use App\Http\Requests\Quotation\StoreQuotationRequest;
 use App\Http\Resources\Quotation\QuotationResource;
 use App\Models\Quotation;
 use App\Models\ServiceRequest;
-use App\Notifications\AccountActivityNotification;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +17,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class QuotationController extends Controller
 {
-    public function __construct(private readonly QuotationService $quotationService) {}
+    public function __construct(
+        private readonly QuotationService $quotationService,
+        private readonly TransactionalNotificationService $notificationService,
+    ) {}
 
     public function show(Request $request, Quotation $quotation): QuotationResource
     {
@@ -39,11 +42,7 @@ class QuotationController extends Controller
         );
 
         $serviceRequest->load('client');
-        $serviceRequest->client->notify(new AccountActivityNotification(
-            'Nouveau devis reçu',
-            'Le professionnel vous a envoyé une nouvelle proposition commerciale.',
-            'quotation',
-        ));
+        $this->notificationService->quotationCreated($serviceRequest->client);
 
         return (new QuotationResource($quotation))->additional([
             'message' => 'Devis créé et envoyé au client avec succès.',
@@ -57,11 +56,7 @@ class QuotationController extends Controller
 
         $accepted = $this->quotationService->accept($quotation, $request->user());
         $accepted->load('serviceRequest.professional.user');
-        $accepted->serviceRequest->professional->user->notify(new AccountActivityNotification(
-            'Devis accepté',
-            'Le client a accepté votre proposition commerciale.',
-            'quotation',
-        ));
+        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user);
 
         return new QuotationResource($accepted);
     }
@@ -72,11 +67,7 @@ class QuotationController extends Controller
 
         $rejected = $this->quotationService->reject($quotation, $request->user());
         $rejected->load('serviceRequest.professional.user');
-        $rejected->serviceRequest->professional->user->notify(new AccountActivityNotification(
-            'Devis refusé',
-            'Le client a refusé votre proposition commerciale.',
-            'quotation',
-        ));
+        $this->notificationService->quotationAccepted($rejected->serviceRequest->professional->user);
 
         return new QuotationResource($rejected);
     }
