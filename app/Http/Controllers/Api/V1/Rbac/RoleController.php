@@ -33,7 +33,7 @@ class RoleController extends Controller
 
         $role->load(['permissions:id,name,display_name,group', 'users:id,name,email']);
 
-        return (new RoleResource($role))->additional(['message' => 'Rôle récupéré avec succès.']);
+        return (new RoleResource($role))->additional(['message' => 'Rôle récupéré avec succès.', 'meta' => []]);
     }
 
     public function store(StoreRoleRequest $request): JsonResponse
@@ -47,7 +47,7 @@ class RoleController extends Controller
             return $role->load('permissions');
         });
 
-        return (new RoleResource($role))->additional(['message' => 'Rôle créé avec succès.'])->response()->setStatusCode(201);
+        return (new RoleResource($role))->additional(['message' => 'Rôle créé avec succès.', 'meta' => []])->response()->setStatusCode(201);
     }
 
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
@@ -64,7 +64,7 @@ class RoleController extends Controller
             return $role->load('permissions');
         });
 
-        return (new RoleResource($role))->additional(['message' => 'Rôle mis à jour avec succès.']);
+        return (new RoleResource($role))->additional(['message' => 'Rôle mis à jour avec succès.', 'meta' => []]);
     }
 
     public function destroy(Role $role): \Symfony\Component\HttpFoundation\Response
