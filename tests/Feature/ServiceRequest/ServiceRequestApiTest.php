@@ -317,9 +317,11 @@ class ServiceRequestApiTest extends TestCase
         $this->actingAs($client, 'sanctum')
             ->patchJson('/api/v1/service-requests/'.$request->id, [
                 'status' => 'requested',
+                'title' => 'Modification autorisée du contenu',
             ])
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['status']);
+            ->assertOk()
+            ->assertJsonPath('data.status', 'accepted')
+            ->assertJsonPath('data.title', 'Modification autorisée du contenu');
     }
 
     public function test_status_history_is_returned_on_show(): void
