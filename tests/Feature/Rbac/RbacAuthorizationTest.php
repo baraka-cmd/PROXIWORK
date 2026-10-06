@@ -42,8 +42,7 @@ class RbacAuthorizationTest extends TestCase
 
         $this->actingAs($user, 'sanctum')
             ->getJson('/api/v1/rbac/roles')
-            ->assertOk()
-            ;
+            ->assertOk();
 
         $this->actingAs($user, 'sanctum')
             ->postJson('/api/v1/rbac/roles', [
