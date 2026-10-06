@@ -43,6 +43,7 @@ class ProfessionalSearchService
                     ->whereHas('category', fn (Builder $category) => $category->where('status', 'active')),
             ]);
 
+        $this->applyProfession($query, $filters);
         $this->applyTextSearch($query, $filters);
         $this->applyCategory($query, $filters);
         $this->applySkills($query, $filters);
@@ -57,6 +58,17 @@ class ProfessionalSearchService
         return $query
             ->paginate($filters['per_page'] ?? 15)
             ->withQueryString();
+    }
+
+    private function applyProfession(Builder $query, array $filters): void
+    {
+        if (empty($filters['profession'])) {
+            return;
+        }
+
+        $like = '%'.$filters['profession'].'%';
+
+        $query->where('professional_title', 'like', $like);
     }
 
     private function applyTextSearch(Builder $query, array $filters): void
@@ -118,6 +130,18 @@ class ProfessionalSearchService
         $skillSlugs = collect($filters['skills'] ?? [])->merge(
             $filters['skill'] ?? null
         )->filter()->unique()->values();
+
+        if ($skillSlugs->isEmpty()) {
+            return;
+        }
+
+        if (($filters['skills_mode'] ?? 'any') === 'any') {
+            $query->whereHas('skills', fn (Builder $skills) => $skills
+                ->where('status', 'active')
+                ->whereIn('slug', $skillSlugs->all()));
+
+            return;
+        }
 
         foreach ($skillSlugs as $skillSlug) {
             $query->whereHas('skills', fn (Builder $skills) => $skills
@@ -229,7 +253,10 @@ class ProfessionalSearchService
                 ->orderByDesc('id'),
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
             default => $query
-                ->orderByDesc('verification_status')
+                ->orderByRaw(
+                    'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
+                    [ProfessionalVerificationStatus::VERIFIED->value]
+                )
                 ->orderByDesc('rating_average')
                 ->orderByDesc('published_services_count')
                 ->orderByDesc('id'),
