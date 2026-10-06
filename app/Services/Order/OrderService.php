@@ -135,7 +135,6 @@ class OrderService
                 'postal_code' => $request->address->postal_code,
                 'latitude' => $request->address->latitude,
                 'longitude' => $request->address->longitude,
-                'additional_instructions' => null,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
