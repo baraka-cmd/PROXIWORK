@@ -8,7 +8,10 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
+use App\Http\Controllers\Api\V1\ProfessionalServiceController;
+use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\SkillController;
 use Illuminate\Http\Request;
@@ -42,6 +45,12 @@ Route::prefix('v1')->group(function (): void {
         Route::get('{category}', [CategoryController::class, 'show']);
     });
 
+    Route::prefix('services')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
+        Route::get('/', [ServiceController::class, 'index']);
+        Route::get('{service}', [ServiceController::class, 'show']);
+    });
+
+
     Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
@@ -63,6 +72,22 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/', [ProfessionalSkillController::class, 'store']);
             Route::delete('{skill}', [ProfessionalSkillController::class, 'destroy']);
         });
+
+        Route::prefix('professional/services')->middleware('role:professional')->group(function (): void {
+            Route::get('/', [ProfessionalServiceController::class, 'index']);
+            Route::post('/', [ProfessionalServiceController::class, 'store']);
+            Route::get('{service}', [ProfessionalServiceController::class, 'show']);
+            Route::patch('{service}', [ProfessionalServiceController::class, 'update']);
+            Route::delete('{service}', [ProfessionalServiceController::class, 'destroy']);
+            Route::post('{service}/publish', [ProfessionalServiceController::class, 'publish']);
+            Route::post('{service}/unpublish', [ProfessionalServiceController::class, 'unpublish']);
+            Route::post('{service}/images', [ProfessionalServiceImageController::class, 'store']);
+        });
+
+        Route::patch('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'update'])
+            ->middleware('role:professional');
+        Route::delete('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'destroy'])
+            ->middleware('role:professional');
 
         Route::prefix('admin/categories')->group(function (): void {
             Route::get('/', [CategoryController::class, 'adminIndex'])->middleware('permission:categories.view');
