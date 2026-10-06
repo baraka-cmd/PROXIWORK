@@ -29,5 +29,8 @@ class PaymentTransaction extends Model
         ];
     }
 
-    public function payment(): BelongsTo { return $this->belongsTo(Payment::class); }
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
+    }
 }
