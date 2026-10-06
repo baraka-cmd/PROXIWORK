@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace AppHttpControllersApiV1;
+namespace App\Http\Controllers\Api\V1;
 
-use AppHttpRequestsProfessionalSearchRequest;
-use AppHttpResourcesProfessionalSearchResource;
-use AppServicesProfessionalSearchProfessionalSearchService;
-use IlluminateHttpResourcesJsonAnonymousResourceCollection;
+use App\Http\RequestsProfessionalSearchRequest;
+use App\Http\ResourcesProfessionalSearchResource;
+use App\Services\ProfessionalSearchProfessionalSearchService;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ProfessionalSearchController
 {
