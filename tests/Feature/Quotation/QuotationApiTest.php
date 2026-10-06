@@ -237,7 +237,7 @@ class QuotationApiTest extends TestCase
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
             ->assertOk();
 
-        $order = \\App\\Models\\Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+        $order = Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
 
         $this->actingAs($otherClient, 'sanctum')
             ->getJson('/api/v1/orders/'.$order->id)
