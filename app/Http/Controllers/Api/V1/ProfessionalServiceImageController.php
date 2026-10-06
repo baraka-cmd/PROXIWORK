@@ -24,13 +24,6 @@ class ProfessionalServiceImageController extends Controller
     {
         $this->authorize('update', $service);
 
-        if ($service->images()->count() >= 8) {
-            return response()->json([
-                'message' => 'Un service ne peut pas contenir plus de 8 images.',
-                'errors' => ['image' => ['La limite de 8 images par service est atteinte.']],
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
         $image = $this->serviceManager->addImage(
             $service,
             $request->file('image'),
