@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace AppHttpRequests;
+namespace App\Http\Requests;
 
-use AppEnumsProfessionalAvailabilityStatus;
-use AppEnumsProfessionalVerificationStatus;
-use IlluminateFoundationHttpFormRequest;
-use IlluminateValidationRule;
-use IlluminateValidationValidator;
+use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ProfessionalVerificationStatus;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class ProfessionalSearchRequest extends FormRequest
 {
