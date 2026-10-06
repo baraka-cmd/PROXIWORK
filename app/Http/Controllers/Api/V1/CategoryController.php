@@ -22,10 +22,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CategoryController extends Controller
 {
+    private readonly CategoryService $categoryService;
+
+    private readonly AuditLogService $auditLogService;
+
     public function __construct(
-        private readonly CategoryService $categoryService,
-        private readonly AuditLogService $auditLogService,
-    ) {}
+        CategoryService $categoryService,
+        AuditLogService $auditLogService,
+    ) {
+        $this->categoryService = $categoryService;
+        $this->auditLogService = $auditLogService;
+    }
 
     public function index(IndexCategoryRequest $request): AnonymousResourceCollection
     {
