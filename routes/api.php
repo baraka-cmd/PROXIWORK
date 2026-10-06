@@ -13,9 +13,9 @@ use App\Http\Controllers\Api\V1\Professional\Dashboard\ProfessionalDashboardCont
 use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
+use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\QuotationController;
 use App\Http\Controllers\Api\V1\QuotationOfferController;
-use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\ServiceController;
