@@ -11,6 +11,7 @@ use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -303,7 +304,7 @@ class ServiceRequestApiTest extends TestCase
             'requested_at' => now(),
         ]);
 
-        app(\App\Services\ServiceRequest\ServiceRequestLifecycleService::class)
+        app(ServiceRequestLifecycleService::class)
             ->markQuoted($request, $professional);
 
         $request->refresh();
