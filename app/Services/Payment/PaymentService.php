@@ -42,11 +42,9 @@ class PaymentService
             $idempotencyKey,
         );
 
-        if ($prepared['created']) {
-            $intent = $prepared['intent'];
-        } else {
-            $intent = $prepared['intent'];
+        $intent = $prepared['intent'];
 
+        if ($prepared['created'] === false) {
             if ($intent->request_fingerprint !== $prepared['fingerprint']) {
                 throw new PaymentConflictException(
                     'La même clé d’idempotence a déjà été utilisée avec une autre opération.'
@@ -85,9 +83,10 @@ class PaymentService
         $expectedAmount = $this->canonicalMoney((string) $intent->amount);
         $returnedAmount = $this->canonicalMoney($result->amount);
 
-        if ($returnedAmount === $expectedAmount
-            && strtoupper($result->currency) === strtoupper($intent->currency)) {
-        } else {
+        $providerResponseIsValid = $returnedAmount === $expectedAmount
+            && strtoupper($result->currency) === strtoupper($intent->currency);
+
+        if ($providerResponseIsValid === false) {
             $this->markFailed(
                 $intent,
                 'PROVIDER_AMOUNT_MISMATCH',
