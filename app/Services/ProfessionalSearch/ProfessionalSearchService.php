@@ -116,7 +116,7 @@ class ProfessionalSearchService
         }
 
         $query->where(function (Builder $professional) use ($skillIds): void {
-            $professional->whereHas('skills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds))
+            $professional->whereHas('skills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds)->where('skills.status', 'active'))
                 ->orWhereHas('services', fn (Builder $services) => $services
                     ->published()
                     ->whereHas('skills', fn (Builder $skills) => $skills->whereIn('skills.id', $skillIds)));
