@@ -70,4 +70,9 @@ class Order extends Model
     {
         return $this->hasOne(OrderAddressSnapshot::class);
     }
+
+    public function paymentIntents(): HasMany
+    {
+        return $this->hasMany(PaymentIntent::class);
+    }
 }
