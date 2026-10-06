@@ -190,6 +190,13 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonValidationErrors(['per_page']);
     }
 
+    public function test_sort_parameter_is_strictly_whitelisted(): void
+    {
+        $this->getJson('/api/v1/professionals?sort=rating%20DESC%2Cemail')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['sort']);
+    }
+
     public function test_invalid_price_range_is_rejected(): void
     {
         $this->getJson('/api/v1/professionals?min_price=100&max_price=10')
