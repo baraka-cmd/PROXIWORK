@@ -82,4 +82,3 @@ class ProfessionalServiceSecurityTest extends TestCase
         return [$user, $profile];
     }
 }
-
