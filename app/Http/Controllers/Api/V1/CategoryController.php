@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\CategoryStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Category\IndexCategoryRequest;
 use App\Http\Requests\Category\StoreCategoryRequest;
 use App\Http\Requests\Category\UpdateCategoryRequest;
+use App\Http\Resources\Category\CategoryDetailResource;
+use App\Http\Resources\Category\CategoryListResource;
 use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 use App\Services\Audit\AuditLogService;
@@ -18,38 +22,82 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CategoryController extends Controller
 {
-    public function __construct(
-        private readonly CategoryService $categoryService,
-        private readonly AuditLogService $auditLogService,
-    ) {}
+    private readonly CategoryService $categoryService;
 
-    public function index(Request $request): AnonymousResourceCollection
+    private readonly AuditLogService $auditLogService;
+
+    public function __construct(
+        CategoryService $categoryService,
+        AuditLogService $auditLogService,
+    ) {
+        $this->categoryService = $categoryService;
+        $this->auditLogService = $auditLogService;
+    }
+
+    public function index(IndexCategoryRequest $request): AnonymousResourceCollection
     {
-        $this->authorize('viewAny', Category::class);
+        $validated = $request->validated();
 
         $categories = Category::query()
             ->with('parent:id,name,slug')
             ->withCount('children')
-            ->when($request->filled('search'), function ($query) use ($request): void {
-                $search = trim((string) $request->input('search'));
+            ->where('status', CategoryStatus::ACTIVE->value)
+            ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('name', 'like', "%{$search}%")
                         ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->input('status')))
-            ->when($request->has('parent_id'), function ($query) use ($request): void {
-                $parentId = $request->input('parent_id');
-                $parentId === null ? $query->whereNull('parent_id') : $query->where('parent_id', $parentId);
+            ->when(array_key_exists('parent_id', $validated), function ($query) use ($validated): void {
+                $validated['parent_id'] === null
+                    ? $query->whereNull('parent_id')
+                    : $query->where('parent_id', $validated['parent_id']);
             })
-            ->when($request->boolean('root_only'), fn ($query) => $query->whereNull('parent_id'))
+            ->when(($validated['root_only'] ?? false) === true, fn ($query) => $query->whereNull('parent_id'))
+            ->orderByDesc('is_featured')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->paginate(min(max($request->integer('per_page', 15), 1), 100))
+            ->paginate($validated['per_page'] ?? 15)
+            ->withQueryString();
+
+        return CategoryListResource::collection($categories)->additional([
+            'message' => 'Catégories récupérées avec succès.',
+            'meta' => ['scope' => 'active'],
+        ]);
+    }
+
+    public function adminIndex(IndexCategoryRequest $request): AnonymousResourceCollection
+    {
+        $this->authorize('viewAny', Category::class);
+        $validated = $request->validated();
+
+        $categories = Category::query()
+            ->with('parent:id,name,slug')
+            ->withCount('children')
+            ->when(array_key_exists('status', $validated), fn ($query) => $query->where('status', CategoryStatus::from($validated['status'])->value))
+            ->when($validated['search'] ?? null, function ($query, string $search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('slug', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate($validated['per_page'] ?? 15)
             ->withQueryString();
 
         return CategoryResource::collection($categories)->additional([
-            'message' => 'Catégories récupérées avec succès.',
+            'message' => 'Catégories administratives récupérées avec succès.',
+            'meta' => ['scope' => 'admin'],
+        ]);
+    }
+
+    public function adminShow(Category $category): CategoryResource
+    {
+        $this->authorize('view', $category);
+
+        return (new CategoryResource($category->load('parent:id,name,slug')->loadCount('children')))->additional([
+            'message' => 'Catégorie administrative récupérée avec succès.',
             'meta' => [],
         ]);
     }
@@ -65,13 +113,19 @@ class CategoryController extends Controller
         ])->response()->setStatusCode(201);
     }
 
-    public function show(Category $category): CategoryResource
+    public function show(Category $category): CategoryDetailResource
     {
-        $this->authorize('view', $category);
+        abort_if($category->status !== CategoryStatus::ACTIVE, 404);
 
-        $category->load('parent:id,name,slug')->loadCount('children');
+        $category->load([
+            'parent:id,name,slug',
+            'children' => fn ($query) => $query
+                ->where('status', CategoryStatus::ACTIVE->value)
+                ->orderBy('sort_order')
+                ->orderBy('name'),
+        ])->loadCount('children');
 
-        return (new CategoryResource($category))->additional([
+        return (new CategoryDetailResource($category))->additional([
             'message' => 'Catégorie récupérée avec succès.',
             'meta' => [],
         ]);

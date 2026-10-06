@@ -27,7 +27,7 @@ class CategoryAdminCrudTest extends TestCase
         $user->assignRole('client');
 
         $this->actingAs($user, 'sanctum')
-            ->postJson('/api/v1/categories', ['name' => 'Design'])
+            ->postJson('/api/v1/admin/categories', ['name' => 'Design'])
             ->assertForbidden();
     }
 
@@ -37,7 +37,7 @@ class CategoryAdminCrudTest extends TestCase
         $admin->assignRole('admin');
 
         $response = $this->actingAs($admin, 'sanctum')
-            ->postJson('/api/v1/categories', [
+            ->postJson('/api/v1/admin/categories', [
                 'name' => 'Développement Web',
                 'description' => 'Services web.',
             ]);
@@ -55,7 +55,7 @@ class CategoryAdminCrudTest extends TestCase
         Category::create(['name' => 'Plomberie', 'slug' => 'plomberie', 'status' => CategoryStatus::INACTIVE]);
 
         $this->actingAs($admin, 'sanctum')
-            ->getJson('/api/v1/categories?search=design&status=active&per_page=1')
+            ->getJson('/api/v1/admin/categories?search=design&status=active&per_page=1')
             ->assertOk()
             ->assertJsonPath('data.0.slug', 'design');
     }
@@ -67,7 +67,7 @@ class CategoryAdminCrudTest extends TestCase
         $category = Category::create(['name' => 'Développement Web', 'slug' => 'developpement-web']);
 
         $this->actingAs($admin, 'sanctum')
-            ->patchJson('/api/v1/categories/'.$category->id, ['name' => 'Développement Web & Mobile'])
+            ->patchJson('/api/v1/admin/categories/'.$category->id, ['name' => 'Développement Web & Mobile'])
             ->assertOk()
             ->assertJsonPath('data.slug', 'developpement-web');
     }
@@ -79,7 +79,7 @@ class CategoryAdminCrudTest extends TestCase
         $parent = Category::create(['name' => 'Développement', 'slug' => 'developpement']);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson('/api/v1/categories', [
+            ->postJson('/api/v1/admin/categories', [
                 'parent_id' => $parent->id,
                 'name' => 'Web',
             ])
@@ -88,7 +88,7 @@ class CategoryAdminCrudTest extends TestCase
         $parent->update(['status' => CategoryStatus::INACTIVE]);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson('/api/v1/categories', [
+            ->postJson('/api/v1/admin/categories', [
                 'parent_id' => $parent->id,
                 'name' => 'Mobile',
             ])
@@ -103,7 +103,7 @@ class CategoryAdminCrudTest extends TestCase
         $b = Category::create(['parent_id' => $a->id, 'name' => 'B', 'slug' => 'b']);
 
         $this->actingAs($admin, 'sanctum')
-            ->patchJson('/api/v1/categories/'.$a->id, ['parent_id' => $b->id])
+            ->patchJson('/api/v1/admin/categories/'.$a->id, ['parent_id' => $b->id])
             ->assertStatus(422);
     }
 
@@ -115,7 +115,7 @@ class CategoryAdminCrudTest extends TestCase
         $child = Category::create(['parent_id' => $root->id, 'name' => 'Conseil', 'slug' => 'conseil']);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson('/api/v1/categories', ['parent_id' => $child->id, 'name' => 'Audit'])
+            ->postJson('/api/v1/admin/categories', ['parent_id' => $child->id, 'name' => 'Audit'])
             ->assertStatus(422);
     }
 
@@ -128,7 +128,7 @@ class CategoryAdminCrudTest extends TestCase
         $target = Category::create(['name' => 'B', 'slug' => 'b']);
 
         $this->actingAs($admin, 'sanctum')
-            ->patchJson('/api/v1/categories/'.$root->id, ['parent_id' => $target->id])
+            ->patchJson('/api/v1/admin/categories/'.$root->id, ['parent_id' => $target->id])
             ->assertStatus(422);
     }
 
@@ -140,7 +140,7 @@ class CategoryAdminCrudTest extends TestCase
         Category::create(['parent_id' => $parent->id, 'name' => 'Web', 'slug' => 'web']);
 
         $this->actingAs($admin, 'sanctum')
-            ->deleteJson('/api/v1/categories/'.$parent->id)
+            ->deleteJson('/api/v1/admin/categories/'.$parent->id)
             ->assertStatus(422);
 
         $this->assertDatabaseHas('categories', [
@@ -156,7 +156,7 @@ class CategoryAdminCrudTest extends TestCase
         $category = Category::create(['name' => 'Photographie', 'slug' => 'photographie']);
 
         $this->actingAs($admin, 'sanctum')
-            ->deleteJson('/api/v1/categories/'.$category->id)
+            ->deleteJson('/api/v1/admin/categories/'.$category->id)
             ->assertNoContent();
 
         $this->assertDatabaseHas('categories', [
@@ -172,7 +172,7 @@ class CategoryAdminCrudTest extends TestCase
         $category = Category::create(['name' => 'Design', 'slug' => 'design']);
 
         $this->actingAs($admin, 'sanctum')
-            ->patchJson('/api/v1/categories/'.$category->id, [
+            ->patchJson('/api/v1/admin/categories/'.$category->id, [
                 'is_featured' => true,
                 'sort_order' => 10,
             ])
@@ -187,7 +187,7 @@ class CategoryAdminCrudTest extends TestCase
         $admin->assignRole('admin');
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson('/api/v1/categories', ['name' => 'Design'])
+            ->postJson('/api/v1/admin/categories', ['name' => 'Design'])
             ->assertCreated();
 
         $this->assertDatabaseHas('audit_logs', ['action' => 'category_created', 'user_id' => $admin->id]);

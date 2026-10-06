@@ -30,6 +30,11 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 
+    Route::prefix('categories')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
+        Route::get('/', [CategoryController::class, 'index']);
+        Route::get('{category}', [CategoryController::class, 'show']);
+    });
+
     Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
@@ -38,9 +43,9 @@ Route::prefix('v1')->group(function (): void {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
 
-        Route::prefix('categories')->group(function (): void {
-            Route::get('/', [CategoryController::class, 'index'])->middleware('permission:categories.view');
-            Route::get('{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view');
+        Route::prefix('admin/categories')->group(function (): void {
+            Route::get('/', [CategoryController::class, 'adminIndex'])->middleware('permission:categories.view');
+            Route::get('{category}', [CategoryController::class, 'adminShow'])->middleware('permission:categories.view');
             Route::post('/', [CategoryController::class, 'store'])->middleware('permission:categories.manage');
             Route::patch('{category}', [CategoryController::class, 'update'])->middleware('permission:categories.manage');
             Route::delete('{category}', [CategoryController::class, 'destroy'])->middleware('permission:categories.manage');
