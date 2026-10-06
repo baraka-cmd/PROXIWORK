@@ -258,7 +258,7 @@ class PaymentTransactionsWalletTest extends TestCase
 
     public function test_withdrawal_locks_balance_and_second_withdrawal_cannot_spend_same_money(): void
     {
-        [$professional] = $this->professional();
+        [, $professional] = $this->professional();
         $walletService = app(WalletService::class);
         $withdrawalService = app(WithdrawalService::class);
 
@@ -299,7 +299,7 @@ class PaymentTransactionsWalletTest extends TestCase
 
     public function test_withdrawal_retry_with_same_key_returns_same_request(): void
     {
-        [$professional] = $this->professional();
+        [, $professional] = $this->professional();
         $walletService = app(WalletService::class);
         $withdrawalService = app(WithdrawalService::class);
 
@@ -341,7 +341,7 @@ class PaymentTransactionsWalletTest extends TestCase
 
     public function test_failed_withdrawal_releases_locked_balance(): void
     {
-        [$professional] = $this->professional();
+        [, $professional] = $this->professional();
         $walletService = app(WalletService::class);
         $withdrawalService = app(WithdrawalService::class);
 
