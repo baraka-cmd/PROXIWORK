@@ -63,10 +63,10 @@ class ProfessionalServiceManager
     public function archive(Service $service): void
     {
         DB::transaction(function () use ($service): void {
-            $service->update([
+            $service->forceFill([
                 'status' => ServiceStatus::ARCHIVED,
                 'published_at' => null,
-            ]);
+            ])->save();
         });
     }
 
@@ -100,10 +100,10 @@ class ProfessionalServiceManager
                 ]);
             }
 
-            $service->update([
+            $service->forceFill([
                 'status' => ServiceStatus::PUBLISHED,
                 'published_at' => now(),
-            ]);
+            ])->save();
 
             return $service->refresh()->load(['category', 'skills', 'images']);
         });
@@ -118,10 +118,10 @@ class ProfessionalServiceManager
                 ]);
             }
 
-            $service->update([
+            $service->forceFill([
                 'status' => ServiceStatus::UNPUBLISHED,
                 'published_at' => null,
-            ]);
+            ])->save();
 
             return $service->refresh();
         });
