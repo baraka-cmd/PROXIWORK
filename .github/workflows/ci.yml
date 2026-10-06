@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - phase-1/foundation
+      - develop
+      - main
+  push:
+    branches:
+      - phase-1/foundation
+      - develop
+      - main
+
+jobs:
+  test:
+    name: Laravel tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --no-scripts
+
+      - name: Prepare application
+        run: cp .env.example .env && php artisan key:generate
+
+      - name: Discover Laravel packages
+        run: php artisan package:discover --ansi
+
+      - name: Run test suite
+        run: php artisan test
+
+      - name: Check code style
+        run: ./vendor/bin/pint --test

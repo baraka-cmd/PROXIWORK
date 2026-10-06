@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Laravel\Sanctum\Http\Middleware\AuthenticateSession;
+
 return [
     'stateful' => explode(',', (string) env(
         'SANCTUM_STATEFUL_DOMAINS',
@@ -9,8 +15,8 @@ return [
     'expiration' => env('SANCTUM_TOKEN_EXPIRATION_MINUTES', 43200),
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX'),
     'middleware' => [
-        'authenticate_session' => Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
-        'encrypt_cookies' => Illuminate\Cookie\Middleware\EncryptCookies::class,
-        'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\PreventRequestForgery::class,
+        'authenticate_session' => AuthenticateSession::class,
+        'encrypt_cookies' => EncryptCookies::class,
+        'validate_csrf_token' => PreventRequestForgery::class,
     ],
 ];

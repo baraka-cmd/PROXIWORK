@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Rbac\RoleController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function (): void {
@@ -19,5 +23,29 @@ Route::prefix('v1')->group(function (): void {
             Route::post('change-password', [AuthController::class, 'changePassword'])->middleware('throttle:auth-sensitive');
             Route::post('email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:auth-sensitive');
         });
+    });
+
+    Route::middleware(['auth:sanctum'])->prefix('rbac')->group(function (): void {
+        Route::get('me', function (Request $request) {
+            $user = $request->user()->load(['roles.permissions']);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'roles' => $user->roles->pluck('name')->values(),
+                    'permissions' => $user->roles
+                        ->flatMap(fn ($role) => $role->permissions->pluck('name'))
+                        ->unique()
+                        ->values(),
+                ],
+            ]);
+        });
+
+        Route::get('roles', [RoleController::class, 'index'])->middleware('permission:rbac.view');
+        Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('permission:rbac.view');
+        Route::get('permissions', [RoleController::class, 'permissions'])->middleware('permission:rbac.view');
+        Route::post('roles', [RoleController::class, 'store'])->middleware('permission:rbac.manage');
+        Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:rbac.manage');
+        Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:rbac.manage');
     });
 });
