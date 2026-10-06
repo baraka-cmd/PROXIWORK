@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Client\Dashboard\ClientDashboardController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\Professional\Dashboard\ProfessionalDashboardController;
 use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
@@ -85,6 +86,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+        Route::post('orders/{order}/payments', [PaymentController::class, 'store'])
+            ->middleware(['role:client', 'throttle:payment']);
 
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
