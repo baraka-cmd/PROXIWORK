@@ -22,7 +22,6 @@ class Service extends Model
     ];
 
     protected $fillable = [
-        'professional_profile_id',
         'category_id',
         'title',
         'slug',
@@ -34,9 +33,7 @@ class Service extends Model
         'price_max',
         'currency',
         'estimated_duration_minutes',
-        'status',
         'sort_order',
-        'published_at',
     ];
 
     protected function casts(): array
