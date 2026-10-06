@@ -75,10 +75,11 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Connexion réussie.',
             'data' => [
-                'user' => $user,
+                'user' => new UserResource($user),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
+            'meta' => [],
         ]);
     }
 
@@ -93,6 +94,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Déconnexion réussie.',
             'data' => null,
+            'meta' => [],
         ]);
     }
 
@@ -101,6 +103,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Utilisateur authentifié.',
             'data' => new UserResource($request->user()),
+            'meta' => [],
         ]);
     }
 
@@ -132,6 +135,7 @@ class AuthController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
+            'meta' => [],
         ]);
     }
 
@@ -217,6 +221,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Adresse e-mail vérifiée avec succès.',
             'data' => ['user' => new UserResource($user->fresh())],
+            'meta' => [],
         ]);
     }
 }
