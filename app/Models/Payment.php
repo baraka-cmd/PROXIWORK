@@ -28,8 +28,23 @@ class Payment extends Model
         ];
     }
 
-    public function order(): BelongsTo { return $this->belongsTo(Order::class); }
-    public function client(): BelongsTo { return $this->belongsTo(User::class, 'client_id'); }
-    public function intent(): BelongsTo { return $this->belongsTo(PaymentIntent::class, 'payment_intent_id'); }
-    public function transactions(): HasMany { return $this->hasMany(PaymentTransaction::class); }
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function intent(): BelongsTo
+    {
+        return $this->belongsTo(PaymentIntent::class, 'payment_intent_id');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
 }
