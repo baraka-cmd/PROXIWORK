@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace AppServicesProfessionalSearch;
+namespace App\Services\ProfessionalSearch;
 
-use AppEnumsProfessionalAvailabilityStatus;
-use AppEnumsProfessionalVerificationStatus;
-use AppEnumsServicePricingType;
-use AppEnumsServiceStatus;
-use AppModelsProfessionalProfile;
-use IlluminateContractsPaginationLengthAwarePaginator;
-use IlluminateDatabaseEloquentBuilder;
+use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\ServicePricingType;
+use App\Enums\ServiceStatus;
+use App\Models\ProfessionalProfile;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProfessionalSearchService
 {
