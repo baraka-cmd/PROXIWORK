@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\ServiceController;
+use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\SkillController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +66,16 @@ Route::prefix('v1')->group(function (): void {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
 
+        Route::prefix('service-requests')->group(function (): void {
+            Route::get('/', [ServiceRequestController::class, 'clientIndex'])->middleware('role:client');
+            Route::post('/', [ServiceRequestController::class, 'store'])->middleware('role:client');
+            Route::get('{serviceRequest}', [ServiceRequestController::class, 'show']);
+            Route::patch('{serviceRequest}', [ServiceRequestController::class, 'update'])->middleware('role:client');
+            Route::post('{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->middleware('role:client');
+            Route::post('{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('role:client');
+            Route::post('{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])->middleware('role:professional');
+        });
+
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
@@ -83,6 +94,7 @@ Route::prefix('v1')->group(function (): void {
 
         Route::prefix('professional')->middleware('role:professional')->group(function (): void {
             Route::get('dashboard', ProfessionalDashboardController::class);
+            Route::get('service-requests', [ServiceRequestController::class, 'professionalIndex']);
 
             Route::prefix('skills')->group(function (): void {
                 Route::get('/', [ProfessionalSkillController::class, 'index']);
