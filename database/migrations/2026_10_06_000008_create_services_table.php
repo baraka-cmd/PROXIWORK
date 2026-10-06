@@ -22,7 +22,7 @@ return new class extends Migration
                 ->restrictOnDelete();
             $table->string('title', 160);
             $table->string('slug', 180)->unique();
-            $table->string('short_description', 300)->nullable();
+            $table->string('short_description', 500)->nullable();
             $table->text('description');
             $table->string('pricing_type', 20)->default(ServicePricingType::QUOTE->value);
             $table->decimal('price', 12, 2)->nullable();
