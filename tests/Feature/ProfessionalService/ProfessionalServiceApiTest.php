@@ -152,10 +152,10 @@ class ProfessionalServiceApiTest extends TestCase
 
         $this->getJson('/api/v1/services/'.$service->id)->assertNotFound();
 
-        $service->update([
+        $service->forceFill([
             'status' => ServiceStatus::PUBLISHED,
             'published_at' => now(),
-        ]);
+        ])->save();
 
         $this->getJson('/api/v1/services/'.$service->id)
             ->assertOk()
