@@ -33,7 +33,7 @@ class QuotationOfferController extends Controller
             ? $updated->serviceRequest->professional->user
             : $updated->serviceRequest->client;
 
-        $this->notificationService->send($recipient, 'Nouvelle contre-proposition', 'Une nouvelle proposition commerciale est disponible dans votre négociation.', 'quotation');
+        $this->notificationService->counterOfferReceived($recipient);
 
         return new QuotationResource($updated);
     }
