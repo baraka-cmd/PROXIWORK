@@ -19,9 +19,8 @@ use App\Models\Quotation;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use App\Models\Wallet;
-use App\Models\WalletTransaction;
 use App\Services\Order\OrderService;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -32,7 +31,7 @@ class CommissionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RbacSeeder::class);
+        $this->seed(\RbacSeeder::class);
         config([
             'payment.fake.status' => PaymentStatus::SUCCEEDED->value,
             'commission.rate' => '10.00',
