@@ -42,7 +42,12 @@ class ServiceController extends Controller
 
     public function show(Service $service): ServiceResource
     {
-        abort_unless($service->status->value === 'published' && $service->published_at !== null, 404);
+        abort_unless(
+            $service->status->value === 'published'
+            && $service->published_at !== null
+            && $service->category->status->value === 'active',
+            404
+        );
 
         return (new ServiceResource(
             $service->load(['category', 'skills', 'images', 'professionalProfile.user'])
