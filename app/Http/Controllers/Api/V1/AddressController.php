@@ -34,7 +34,6 @@ class AddressController extends Controller
             ->withQueryString();
 
         return AddressResource::collection($addresses)->additional([
-            'success' => true,
             'message' => 'Adresses récupérées avec succès.',
         ]);
     }
@@ -94,9 +93,6 @@ class AddressController extends Controller
 
         $this->addressService->delete($request->user(), $address);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Adresse supprimée avec succès.',
-        ]);
+        return response()->noContent();
     }
 }
