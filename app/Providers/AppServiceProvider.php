@@ -56,6 +56,19 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('message-send', function (Request $request) {
+            $conversationKey = (string) $request->route('conversation');
+
+            return [
+                Limit::perMinute(30)->by(
+                    'message-user:'.($request->user()?->getAuthIdentifier() ?? $request->ip())
+                ),
+                Limit::perMinute(10)->by(
+                    'message-conversation:'.$conversationKey
+                ),
+            ];
+        });
+
         RateLimiter::for('payment', function (Request $request) {
             $userKey = 'payment-user:'.($request->user()?->getAuthIdentifier() ?? $request->ip());
             $orderKey = 'payment-order:'.((string) $request->route('order'));
