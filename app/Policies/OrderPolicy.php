@@ -14,5 +14,4 @@ class OrderPolicy
         return $order->client_id === $user->getKey()
             || $order->professional?->user_id === $user->getKey();
     }
-
 }
