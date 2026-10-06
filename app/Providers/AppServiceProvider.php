@@ -37,6 +37,15 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        RateLimiter::for('admin-login', function (Request $request) {
+            return [
+                Limit::perMinute(10)->by($request->ip()),
+                Limit::perMinute(5)->by(
+                    'admin-email:'.mb_strtolower((string) $request->input('email'))
+                ),
+            ];
+        });
+
         RateLimiter::for('auth-sensitive', function (Request $request) {
             return Limit::perMinute(10)->by(
                 $request->user()?->getAuthIdentifier() ?? $request->ip()
