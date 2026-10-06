@@ -165,7 +165,7 @@ class ServiceRequestApiTest extends TestCase
 
         $this->actingAs($clientA, 'sanctum')
             ->postJson('/api/v1/service-requests/'.$request->id.'/submit')
-            ->assertUnprocessable();
+            ->assertForbidden();
     }
 
     public function test_client_can_cancel_draft_or_requested_but_not_terminal_request(): void
