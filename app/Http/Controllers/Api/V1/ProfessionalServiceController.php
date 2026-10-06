@@ -23,8 +23,7 @@ class ProfessionalServiceController extends Controller
     public function __construct(
         private readonly ProfessionalServiceManager $serviceManager,
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     public function index(IndexServiceRequest $request): AnonymousResourceCollection
     {
