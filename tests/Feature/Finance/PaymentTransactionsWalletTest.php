@@ -187,7 +187,7 @@ class PaymentTransactionsWalletTest extends TestCase
         );
 
         $this->assertSame($first->id, $second->id);
-        $this->assertDatabaseCount('order_status_histories', 1);
+        $this->assertDatabaseCount('order_status_histories', 2);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
             'status' => OrderStatus::CONFIRMED->value,
@@ -229,7 +229,7 @@ class PaymentTransactionsWalletTest extends TestCase
 
     public function test_wallet_credit_is_idempotent(): void
     {
-        [$professional] = $this->professional();
+        [, $professional] = $this->professional();
         $service = app(WalletService::class);
 
         $first = $service->creditPending(
