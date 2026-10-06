@@ -23,6 +23,7 @@ class PaymentIntent extends Model
             'status' => PaymentStatus::class,
             'method' => PaymentMethod::class,
             'provider' => PaymentProvider::class,
+            'amount' => 'decimal:2',
             'metadata' => 'array',
         ];
     }
