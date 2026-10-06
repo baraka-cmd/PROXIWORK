@@ -39,6 +39,11 @@ class TransactionalNotificationService
         $this->send($recipient, 'Demande annulée', 'Une demande de service qui vous était destinée a été annulée par le client.', 'service_request');
     }
 
+    public function serviceRequestRejected(User $recipient): void
+    {
+        $this->send($recipient, 'Demande refusée', 'Le professionnel a refusé votre demande de service.', 'service_request');
+    }
+
     public function counterOfferReceived(User $recipient): void
     {
         $this->send($recipient, 'Nouvelle contre-proposition', 'Une nouvelle proposition commerciale est disponible dans votre négociation.', 'quotation');
