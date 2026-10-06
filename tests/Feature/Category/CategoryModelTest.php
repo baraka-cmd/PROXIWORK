@@ -6,6 +6,7 @@ namespace Tests\Feature\Category;
 
 use App\Enums\CategoryStatus;
 use App\Models\Category;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
