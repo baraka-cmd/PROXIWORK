@@ -154,6 +154,50 @@ class ReviewApiTest extends TestCase
         $this->assertDatabaseCount('review_responses', 1);
     }
 
+    public function test_moderator_can_hide_and_republish_a_review_and_rating_follows_public_state(): void
+    {
+        [$client, , $order] = $this->completedOrderScenario();
+
+        $review = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/orders/'.$order->id.'/review', ['rating' => 5])
+            ->assertCreated()
+            ->json('data.id');
+
+        $moderator = User::factory()->create();
+        $moderator->assignRole('moderator');
+
+        $this->actingAs($moderator, 'sanctum')
+            ->postJson('/api/v1/admin/reviews/'.$review.'/moderate', [
+                'status' => 'hidden',
+                'reason' => 'Contenu signalé pour modération.',
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review,
+            'status' => 'hidden',
+            'moderated_by' => $moderator->id,
+        ]);
+        $this->assertDatabaseHas('professional_profiles', [
+            'id' => $order->professional_id,
+            'rating_count' => 0,
+            'rating_average' => '0.00',
+        ]);
+
+        $this->actingAs($moderator, 'sanctum')
+            ->postJson('/api/v1/admin/reviews/'.$review.'/moderate', [
+                'status' => 'published',
+                'reason' => 'Contenu validé après contrôle.',
+            ])
+            ->assertOk();
+
+        $this->assertDatabaseHas('professional_profiles', [
+            'id' => $order->professional_id,
+            'rating_count' => 1,
+            'rating_average' => '5.00',
+        ]);
+    }
+
     public function test_unrelated_user_cannot_read_review(): void
     {
         [$client, , $order] = $this->completedOrderScenario();
