@@ -57,7 +57,7 @@ class ProfileApiTest extends TestCase
         ]);
     }
 
-    public function test_user_without_profile_gets_one_when_accessing_profile_endpoint(): void
+    public function test_missing_profile_is_not_created_as_a_side_effect(): void
     {
         $user = User::factory()->create();
         $user->assignRole('client');
@@ -66,9 +66,9 @@ class ProfileApiTest extends TestCase
 
         $this->actingAs($user, 'sanctum')
             ->getJson('/api/v1/profile')
-            ->assertOk();
+            ->assertNotFound();
 
-        $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
+        $this->assertDatabaseMissing('profiles', ['user_id' => $user->id]);
     }
 
     public function test_user_cannot_update_another_users_profile_through_policy(): void
