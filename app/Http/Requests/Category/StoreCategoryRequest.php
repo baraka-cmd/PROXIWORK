@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Category;
 
+use App\Enums\CategoryStatus;
 use App\Models\Category;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreCategoryRequest extends FormRequest
 {
@@ -28,6 +30,29 @@ class StoreCategoryRequest extends FormRequest
             'is_featured' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $parentId = $this->input('parent_id');
+            if ($parentId === null || ! $this->filled('parent_id')) {
+                return;
+            }
+
+            $parent = Category::query()->find($parentId);
+            if ($parent === null) {
+                return;
+            }
+
+            if ($parent->parent_id !== null) {
+                $validator->errors()->add('parent_id', 'La hiérarchie des catégories est limitée à deux niveaux.');
+            }
+
+            if ($parent->status !== CategoryStatus::ACTIVE) {
+                $validator->errors()->add('parent_id', 'La catégorie parente doit être active.');
+            }
+        }];
     }
 
     protected function prepareForValidation(): void
