@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Resources\Quotation;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class QuotationOfferResource extends JsonResource
@@ -22,8 +23,8 @@ class QuotationOfferResource extends JsonResource
             'duration_value' => $this->duration_value,
             'duration_unit' => $this->duration_unit->value,
             'conditions' => $this->conditions,
-            'valid_until' => $this->valid_until?->toISOString(),
-            'created_at' => $this->created_at?->toISOString(),
+            'valid_until' => $this->valid_until ? Carbon::parse($this->valid_until)->toISOString() : null,
+            'created_at' => $this->created_at ? Carbon::parse($this->created_at)->toISOString() : null,
         ];
     }
 }
