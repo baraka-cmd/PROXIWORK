@@ -159,6 +159,7 @@ class ProfessionalSearchService
             $value = $filters[$field];
 
             $query->whereHas('user.addresses', fn (Builder $addresses) => $addresses
+                ->where('is_default', true)
                 ->where($field, $value));
         }
     }
