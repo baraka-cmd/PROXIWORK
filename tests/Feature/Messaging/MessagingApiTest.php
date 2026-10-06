@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Messaging;
 
-use App\Models\Conversation;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -17,7 +17,7 @@ class MessagingApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RbacSeeder::class);
+        $this->seed(RbacSeeder::class);
     }
 
     public function test_client_can_create_one_conversation_with_a_professional(): void
