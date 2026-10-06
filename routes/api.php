@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\QuotationController;
 use App\Http\Controllers\Api\V1\QuotationOfferController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
@@ -91,6 +92,9 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+        Route::post('orders/{order}/review', [ReviewController::class, 'store'])->middleware('role:client');
+        Route::get('reviews/{review}', [ReviewController::class, 'show']);
+        Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('role:professional');
         Route::get('orders/{order}/payment', [PaymentController::class, 'show'])->middleware('role:client');
         Route::post('orders/{order}/payments', [PaymentController::class, 'store'])
             ->middleware(['role:client', 'throttle:payment']);
