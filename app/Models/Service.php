@@ -78,6 +78,11 @@ class Service extends Model
             ->orderBy('id');
     }
 
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class);
+    }
+
     public function scopePublished($query)
     {
         return $query
