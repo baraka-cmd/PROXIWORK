@@ -31,7 +31,7 @@ class CommissionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\RbacSeeder::class);
+        $this->seed(RbacSeeder::class);
         config([
             'payment.fake.status' => PaymentStatus::SUCCEEDED->value,
             'commission.rate' => '10.00',
