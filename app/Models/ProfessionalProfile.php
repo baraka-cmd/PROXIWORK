@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ProfessionalVerificationStatus;
 use Database\Factories\ProfessionalProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +19,18 @@ class ProfessionalProfile extends Model
 
     protected $fillable = [
         'user_id',
+        'professional_title',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'verification_status' => ProfessionalVerificationStatus::class,
+            'availability_status' => ProfessionalAvailabilityStatus::class,
+            'rating_average' => 'decimal:2',
+            'rating_count' => 'integer',
+        ];
+    }
 
     protected static function newFactory(): ProfessionalProfileFactory
     {
