@@ -53,6 +53,11 @@ class Category extends Model
             ->orderBy('name');
     }
 
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', CategoryStatus::ACTIVE->value);

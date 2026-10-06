@@ -51,6 +51,16 @@ class Skill extends Model
         )->withPivot(['proficiency_level', 'years_experience'])->withTimestamps();
     }
 
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Service::class,
+            'service_skills',
+            'skill_id',
+            'service_id'
+        )->withTimestamps();
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', SkillStatus::ACTIVE->value);
