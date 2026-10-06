@@ -13,7 +13,7 @@ class ProfessionalSkillResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'skill' => new SkillResource($this->whenLoaded('skill')),
+            'skill' => new SkillResource($this->resource),
             'proficiency_level' => $this->pivot?->proficiency_level,
             'years_experience' => $this->pivot?->years_experience,
         ];
