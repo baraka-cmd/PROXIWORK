@@ -208,7 +208,6 @@ class ProfessionalSearchApiTest extends TestCase
             'user_id' => $professional->user_id,
             'city' => 'Goma',
             'province' => 'Nord-Kivu',
-            'phone' => null,
             'contact_phone' => '+243000000000',
             'latitude' => -1.67,
             'longitude' => 29.22,
