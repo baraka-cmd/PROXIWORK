@@ -40,7 +40,7 @@ class AddressCrudTest extends TestCase
             ->assertJsonPath('data.0.label', 'Maison');
     }
 
-    public function test_user_can_create_an_address_without_setting_default(): void
+    public function test_user_can_create_an_address_and_first_address_is_default(): void
     {
         $user = User::factory()->create();
 
@@ -58,12 +58,12 @@ class AddressCrudTest extends TestCase
 
         $response->assertCreated()
             ->assertJsonPath('data.country_code', 'CD')
-            ->assertJsonPath('data.is_default', false);
+            ->assertJsonPath('data.is_default', true);
 
         $this->assertDatabaseHas('addresses', [
             'user_id' => $user->id,
             'country_code' => 'CD',
-            'is_default' => false,
+            'is_default' => true,
         ]);
     }
 
@@ -91,20 +91,31 @@ class AddressCrudTest extends TestCase
         $this->assertDatabaseMissing('addresses', ['id' => $address->id]);
     }
 
-    public function test_is_default_is_not_mass_assignable_through_crud(): void
+    public function test_is_default_and_user_id_are_not_mass_assignable_through_crud(): void
     {
         $user = User::factory()->create();
+        $otherUser = User::factory()->create();
+        Address::factory()->for($user)->create(['is_default' => true]);
 
         Sanctum::actingAs($user);
 
-        $this->postJson('/api/v1/addresses', [
-            'label' => 'Maison',
+        $response = $this->postJson('/api/v1/addresses', [
+            'label' => 'Bureau',
             'country_code' => 'CD',
             'city' => 'Goma',
             'address_line_1' => 'Avenue du Lac',
             'is_default' => true,
-        ])->assertCreated()
+            'user_id' => $otherUser->id,
+        ]);
+
+        $response->assertCreated()
             ->assertJsonPath('data.is_default', false);
+
+        $this->assertDatabaseHas('addresses', [
+            'id' => $response->json('data.id'),
+            'user_id' => $user->id,
+            'is_default' => false,
+        ]);
     }
 
     public function test_validation_rejects_invalid_coordinates_and_missing_pair(): void
