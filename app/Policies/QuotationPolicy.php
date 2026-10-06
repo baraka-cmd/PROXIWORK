@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\Quotation;
-use App\Models\QuotationOffer;
+use App\Models\ServiceRequest;
 use App\Models\User;
 
 class QuotationPolicy
@@ -16,7 +16,7 @@ class QuotationPolicy
             || $quotation->serviceRequest->professional?->user_id === $user->getKey();
     }
 
-    public function create(User $user, $serviceRequest): bool
+    public function create(User $user, ServiceRequest $serviceRequest): bool
     {
         return $user->hasRole('professional')
             && $serviceRequest->professional?->user_id === $user->getKey();
