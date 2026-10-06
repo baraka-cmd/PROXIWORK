@@ -46,7 +46,8 @@ class AuthController extends Controller
         });
 
         event(new Registered($user));
-        $this->auditLogService->record('register', $user, $user, ['role' => 'client'], $request);
+        $this->auditLogService->record('register', $user, $user, [], $request);
+        $this->auditLogService->record('role_assigned', $user, $user, ['role' => 'client'], $request);
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
