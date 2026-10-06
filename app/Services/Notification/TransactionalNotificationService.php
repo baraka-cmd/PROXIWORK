@@ -29,6 +29,21 @@ class TransactionalNotificationService
         $this->send($recipient, 'Devis accepté', 'Le client a accepté votre proposition commerciale.', 'quotation');
     }
 
+    public function quotationRejected(User $recipient): void
+    {
+        $this->send($recipient, 'Devis refusé', 'Le client a refusé votre proposition commerciale.', 'quotation');
+    }
+
+    public function serviceRequestCancelled(User $recipient): void
+    {
+        $this->send($recipient, 'Demande annulée', 'Une demande de service qui vous était destinée a été annulée par le client.', 'service_request');
+    }
+
+    public function counterOfferReceived(User $recipient): void
+    {
+        $this->send($recipient, 'Nouvelle contre-proposition', 'Une nouvelle proposition commerciale est disponible dans votre négociation.', 'quotation');
+    }
+
     public function paymentSucceeded(User $recipient): void
     {
         $this->send($recipient, 'Paiement confirmé', 'Votre paiement a été confirmé avec succès.', 'payment');
@@ -49,7 +64,7 @@ class TransactionalNotificationService
         $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review');
     }
 
-    private function send(User $recipient, string $title, string $message, string $action): void
+    public function send(User $recipient, string $title, string $message, string $action): void
     {
         $recipient->notify(new AccountActivityNotification($title, $message, $action));
     }
