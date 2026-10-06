@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Address;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class UpdateAddressRequest extends FormRequest
 {
@@ -28,9 +29,31 @@ class UpdateAddressRequest extends FormRequest
             'address_line_2' => ['sometimes', 'nullable', 'string', 'max:255'],
             'landmark' => ['sometimes', 'nullable', 'string', 'max:255'],
             'postal_code' => ['sometimes', 'nullable', 'string', 'max:32'],
-            'latitude' => ['sometimes', 'nullable', 'numeric', 'between:-90,90', 'required_with:longitude'],
-            'longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180', 'required_with:latitude'],
+            'latitude' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $latitudePresent = $this->input('latitude') !== null;
+            $longitudePresent = $this->input('longitude') !== null;
+
+            if ($latitudePresent xor $longitudePresent) {
+                if ($latitudePresent) {
+                    $validator->errors()->add(
+                        'longitude',
+                        'La longitude est obligatoire lorsque la latitude est fournie.',
+                    );
+                } else {
+                    $validator->errors()->add(
+                        'latitude',
+                        'La latitude est obligatoire lorsque la longitude est fournie.',
+                    );
+                }
+            }
+        }];
     }
 
     protected function prepareForValidation(): void
