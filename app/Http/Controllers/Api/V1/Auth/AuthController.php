@@ -12,6 +12,7 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,9 +63,7 @@ class AuthController extends Controller
         $user = User::where('email', $email)->first();
 
         if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Les identifiants fournis sont incorrects.'],
-            ]);
+            throw new AuthenticationException('Identifiants invalides.');
         }
 
         $token = $user->createToken(
