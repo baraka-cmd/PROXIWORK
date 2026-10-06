@@ -24,7 +24,18 @@ class Wallet extends Model
         ];
     }
 
-    public function professional(): BelongsTo { return $this->belongsTo(ProfessionalProfile::class, 'professional_id'); }
-    public function transactions(): HasMany { return $this->hasMany(WalletTransaction::class); }
-    public function withdrawals(): HasMany { return $this->hasMany(Withdrawal::class); }
+    public function professional(): BelongsTo
+    {
+        return $this->belongsTo(ProfessionalProfile::class, 'professional_id');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
 }
