@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProfessionalProfile extends Model
 {
@@ -36,5 +37,10 @@ class ProfessionalProfile extends Model
             'professional_profile_id',
             'skill_id'
         )->withPivot(['proficiency_level', 'years_experience'])->withTimestamps();
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
     }
 }
