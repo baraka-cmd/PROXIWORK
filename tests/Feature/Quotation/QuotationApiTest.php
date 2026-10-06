@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Quotation;
 
+use App\Enums\OrderStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
+use App\Models\Address;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
@@ -156,11 +158,88 @@ class QuotationApiTest extends TestCase
             'id' => $request->id,
             'status' => ServiceRequestStatus::ACCEPTED->value,
         ]);
+        $this->assertDatabaseHas('orders', [
+            'service_request_id' => $request->id,
+            'quotation_id' => $quotation->id,
+            'accepted_offer_id' => $quotation->accepted_offer_id,
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'status' => OrderStatus::PENDING_PAYMENT->value,
+            'currency' => 'USD',
+            'total' => 500,
+        ]);
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $this->app->make(\\App\\Models\\Order::class)::query()->where('quotation_id', $quotation->id)->value('id'),
+            'service_id' => $service->id,
+            'unit_price' => 500,
+            'subtotal' => 500,
+            'quantity' => 1,
+        ]);
         Notification::assertSentTo($professional, AccountActivityNotification::class);
 
         $this->actingAs($client, 'sanctum')
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
             ->assertUnprocessable();
+    }
+
+    public function test_order_address_is_a_historical_snapshot(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
+            ->assertOk();
+
+        $order = \\App\\Models\\Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+        $snapshot = $order->addressSnapshot;
+
+        $address = Address::query()->findOrFail($request->address_id);
+        $originalCity = $snapshot->city;
+
+        $address->forceFill([
+            'city' => 'Bukavu',
+            'province' => 'Sud-Kivu',
+            'address_line_1' => 'Nouvelle adresse',
+        ])->save();
+
+        $this->assertSame($originalCity, $snapshot->fresh()->city);
+        $this->assertSame('Goma', $snapshot->fresh()->city);
+        $this->assertSame('Nord-Kivu', $snapshot->fresh()->province);
+        $this->assertSame($address->address_line_1 !== 'Nouvelle adresse', true);
+    }
+
+    public function test_order_is_isolated_from_unrelated_users(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $otherClient = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
+            ->assertOk();
+
+        $order = \\App\\Models\\Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+
+        $this->actingAs($otherClient, 'sanctum')
+            ->getJson('/api/v1/orders/'.$order->id)
+            ->assertForbidden();
     }
 
     public function test_expired_current_offer_cannot_be_accepted_or_negotiated(): void
@@ -276,8 +355,13 @@ class QuotationApiTest extends TestCase
 
     private function request(User $client, ProfessionalProfile $profile, Service $service): ServiceRequest
     {
+        $address = Address::factory()->default()->create([
+            'user_id' => $client->id,
+        ]);
+
         return ServiceRequest::factory()->create([
             'client_id' => $client->id,
+            'address_id' => $address->id,
             'professional_id' => $profile->id,
             'service_id' => $service->id,
             'status' => ServiceRequestStatus::REQUESTED,
