@@ -186,6 +186,11 @@ class FavoriteApiTest extends TestCase
             ->getJson('/api/v1/favorites?per_page=101')
             ->assertOk()
             ->assertJsonPath('meta.per_page', 100);
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/favorites?per_page=0')
+            ->assertOk()
+            ->assertJsonPath('meta.per_page', 1);
     }
 
     private function user(): User
