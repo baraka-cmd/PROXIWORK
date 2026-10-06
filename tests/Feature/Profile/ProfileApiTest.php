@@ -47,7 +47,7 @@ class ProfileApiTest extends TestCase
                 'timezone' => 'Africa/Kinshasa',
             ])
             ->assertOk()
-                        ->assertJsonPath('data.first_name', 'Baraka')
+            ->assertJsonPath('data.first_name', 'Baraka')
             ->assertJsonPath('data.timezone', 'Africa/Kinshasa');
 
         $this->assertDatabaseHas('profiles', [
