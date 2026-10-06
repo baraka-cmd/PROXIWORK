@@ -52,6 +52,8 @@ class RoleController extends Controller
 
     public function update(UpdateRoleRequest $request, Role $role): JsonResponse
     {
+        $this->authorize('update', $role);
+
         $role = DB::transaction(function () use ($request, $role): Role {
             $role->update($request->safe()->only(['name', 'display_name', 'description']));
 
@@ -65,7 +67,7 @@ class RoleController extends Controller
         return (new RoleResource($role))->additional(['message' => 'Rôle mis à jour avec succès.']);
     }
 
-    public function destroy(Role $role): JsonResponse
+    public function destroy(Role $role): \Symfony\Component\HttpFoundation\Response
     {
         $this->authorize('delete', $role);
 
