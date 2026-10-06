@@ -156,6 +156,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
             'data' => null,
+            'meta' => [],
         ]);
     }
 
