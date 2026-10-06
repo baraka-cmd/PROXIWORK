@@ -36,7 +36,7 @@ Route::prefix('v1')->group(function (): void {
                         ->values(),
                 ],
             ]);
-        })->middleware('permission:rbac.view');
+        });
 
         Route::get('roles', [RoleController::class, 'index'])->middleware('permission:rbac.view');
         Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('permission:rbac.view');
