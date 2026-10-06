@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ProfessionalProfile extends Model
 {
@@ -65,5 +66,10 @@ class ProfessionalProfile extends Model
     public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function wallet(string $currency = 'USD'): HasOne
+    {
+        return $this->hasOne(Wallet::class, 'professional_id')->where('currency', strtoupper($currency));
     }
 }

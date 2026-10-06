@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\PaymentMethod;
-use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class PaymentIntent extends Model
+class Payment extends Model
 {
     use HasFactory;
 
@@ -22,10 +20,10 @@ class PaymentIntent extends Model
     {
         return [
             'status' => PaymentStatus::class,
-            'method' => PaymentMethod::class,
-            'provider' => PaymentProvider::class,
             'amount' => 'decimal:2',
-            'metadata' => 'array',
+            'paid_at' => 'datetime',
+            'failed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -39,8 +37,13 @@ class PaymentIntent extends Model
         return $this->belongsTo(User::class, 'client_id');
     }
 
-    public function payment(): HasOne
+    public function intent(): BelongsTo
     {
-        return $this->hasOne(Payment::class, 'payment_intent_id');
+        return $this->belongsTo(PaymentIntent::class, 'payment_intent_id');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
     }
 }

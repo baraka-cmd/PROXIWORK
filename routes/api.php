@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\V1\PaymentWebhookController;
 use App\Http\Controllers\Api\V1\Professional\Dashboard\ProfessionalDashboardController;
 use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
 use App\Http\Controllers\Api\V1\SkillController;
+use App\Http\Controllers\Api\V1\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -62,6 +64,9 @@ Route::prefix('v1')->group(function (): void {
     Route::get('professionals', [ProfessionalSearchController::class, 'index'])
         ->middleware(['security.headers', 'throttle:api']);
 
+    Route::post('payments/webhooks/{provider}', [PaymentWebhookController::class, 'handle'])
+        ->middleware(['security.headers', 'throttle:api']);
+
     Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
@@ -86,8 +91,14 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
         Route::get('orders/{order}', [OrderController::class, 'show']);
+        Route::get('orders/{order}/payment', [PaymentController::class, 'show'])->middleware('role:client');
         Route::post('orders/{order}/payments', [PaymentController::class, 'store'])
             ->middleware(['role:client', 'throttle:payment']);
+
+        Route::prefix('professional/wallet')->middleware('role:professional')->group(function (): void {
+            Route::get('/', [WalletController::class, 'show']);
+            Route::post('withdrawals', [WalletController::class, 'withdraw'])->middleware('throttle:payment');
+        });
 
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);

@@ -259,7 +259,7 @@ class PaymentApiTest extends TestCase
         ]);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
-            'status' => OrderStatus::PENDING_PAYMENT->value,
+            'status' => OrderStatus::CONFIRMED->value,
         ]);
     }
 

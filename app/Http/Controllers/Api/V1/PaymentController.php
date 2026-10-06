@@ -11,10 +11,11 @@ use App\Exceptions\PaymentConflictException;
 use App\Exceptions\PaymentGatewayUnavailableException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
-use App\Http\Resources\Payment\PaymentIntentResource;
+use App\Http\Resources\Payment\PaymentResource;
 use App\Models\Order;
 use App\Services\Payment\PaymentService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class PaymentController extends Controller
@@ -23,11 +24,11 @@ class PaymentController extends Controller
         StorePaymentRequest $request,
         Order $order,
         PaymentService $paymentService,
-    ): PaymentIntentResource|JsonResponse {
+    ): PaymentResource|JsonResponse {
         $this->authorize('pay', $order);
 
         try {
-            $intent = $paymentService->initiate(
+            $payment = $paymentService->initiate(
                 order: $order,
                 client: $request->user(),
                 method: $request->enum('payment_method', PaymentMethod::class),
@@ -48,7 +49,7 @@ class PaymentController extends Controller
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
-        $httpStatus = match ($intent->status) {
+        $httpStatus = match ($payment->status) {
             PaymentStatus::SUCCEEDED => Response::HTTP_OK,
             PaymentStatus::PENDING,
             PaymentStatus::PROCESSING,
@@ -56,13 +57,25 @@ class PaymentController extends Controller
             default => Response::HTTP_UNPROCESSABLE_ENTITY,
         };
 
-        return (new PaymentIntentResource($intent))
+        return (new PaymentResource($payment->load('transactions')))
             ->additional([
-                'message' => $intent->status === PaymentStatus::SUCCEEDED
+                'message' => $payment->status === PaymentStatus::SUCCEEDED
                     ? 'Paiement accepté par le fournisseur.'
                     : 'Initiation de paiement enregistrée.',
             ])
             ->response()
             ->setStatusCode($httpStatus);
+    }
+
+    public function show(
+        Request $request,
+        Order $order,
+        PaymentService $paymentService,
+    ): PaymentResource {
+        $this->authorize('view', $order);
+
+        return new PaymentResource(
+            $paymentService->paymentForOrder($order, $request->user())
+        );
     }
 }
