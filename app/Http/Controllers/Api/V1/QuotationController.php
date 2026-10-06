@@ -67,7 +67,7 @@ class QuotationController extends Controller
 
         $rejected = $this->quotationService->reject($quotation, $request->user());
         $rejected->load('serviceRequest.professional.user');
-        $this->notificationService->quotationAccepted($rejected->serviceRequest->professional->user);
+        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user);
 
         return new QuotationResource($rejected);
     }
