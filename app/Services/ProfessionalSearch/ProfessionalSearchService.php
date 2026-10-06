@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\ProfessionalSearch;
 
-use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
