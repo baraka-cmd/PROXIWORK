@@ -57,6 +57,7 @@ class SkillApiTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $skill = Skill::factory()->create(['slug' => 'laravel']);
+        Skill::factory()->create(['slug' => 'php']);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson('/api/v1/admin/skills', [
@@ -68,7 +69,7 @@ class SkillApiTest extends TestCase
 
         $this->actingAs($admin, 'sanctum')
             ->patchJson('/api/v1/admin/skills/'.$skill->id, [
-                'slug' => 'Laravel',
+                'slug' => 'php',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['slug']);
