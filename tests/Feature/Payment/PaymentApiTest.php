@@ -44,6 +44,19 @@ class PaymentApiTest extends TestCase
         ])->assertUnauthorized();
     }
 
+    public function test_idempotency_key_is_required(): void
+    {
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['idempotency_key']);
+    }
+
     public function test_professional_cannot_initiate_client_payment(): void
     {
         [$client, $order] = $this->orderScenario();
