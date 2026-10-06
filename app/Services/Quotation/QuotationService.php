@@ -48,7 +48,7 @@ class QuotationService
                 ]);
             }
 
-            $quotation = Quotation::query()->create([
+            $quotation = Quotation::query()->forceCreate([
                 'service_request_id' => $request->getKey(),
                 'status' => QuotationStatus::SENT,
             ]);
@@ -171,7 +171,7 @@ class QuotationService
     ): QuotationOffer {
         $version = ((int) $quotation->offers()->max('version')) + 1;
 
-        return QuotationOffer::query()->create([
+        return QuotationOffer::query()->forceCreate([
             'quotation_id' => $quotation->getKey(),
             'created_by' => $actor->getKey(),
             'actor_type' => $actorType,
