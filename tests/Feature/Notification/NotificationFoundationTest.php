@@ -75,7 +75,9 @@ class NotificationFoundationTest extends TestCase
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/v1/notifications/{$notification->id}/read")
             ->assertOk()
-            ->assertNotNull('data.read_at');
+            ->assertJsonPath('data.id', $notification->id);
+
+        $this->assertNotNull($user->notifications()->whereKey($notification->id)->first()->read_at);
 
         $otherNotification = $other->notifications()->firstOrFail();
 
