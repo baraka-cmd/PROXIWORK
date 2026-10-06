@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Service extends Model
 {
@@ -68,6 +69,13 @@ class Service extends Model
             'service_id',
             'skill_id'
         )->withTimestamps();
+    }
+
+    public function images(): HasMany
+    {
+        return $this->hasMany(ServiceImage::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function scopePublished($query)
