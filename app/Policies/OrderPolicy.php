@@ -15,9 +15,4 @@ class OrderPolicy
             || $order->professional?->user_id === $user->getKey();
     }
 
-    public function create(User $user, Order $order): bool
-    {
-        return $user->hasRole('client')
-            && $order->client_id === $user->getKey();
-    }
 }
