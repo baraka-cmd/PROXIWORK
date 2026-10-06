@@ -68,7 +68,7 @@ class PaymentController extends Controller
     }
 
     public function show(
-        \Illuminate\Http\Request $request,
+        Request $request,
         Order $order,
         PaymentService $paymentService,
     ): PaymentResource {
