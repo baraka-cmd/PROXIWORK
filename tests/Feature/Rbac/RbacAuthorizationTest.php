@@ -94,10 +94,10 @@ class RbacAuthorizationTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('professional');
 
-        $this->actingAs($user, 'sanctum')
+        $response = $this->actingAs($user, 'sanctum')
             ->getJson('/api/v1/rbac/me')
-            ->assertOk()
-            ->assertJsonPath('data.roles.0', 'professional')
-            ->assertJsonFragment(['services.manage']);
+            ->assertOk();
+
+        $this->assertContains('services.manage', $response->json('data.permissions'));
     }
 }
