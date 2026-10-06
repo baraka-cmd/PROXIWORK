@@ -49,7 +49,13 @@ class NotificationController extends Controller
 
     public function preferences(Request $request): NotificationPreferenceResource
     {
-        $preference = $request->user()->notificationPreference()->firstOrCreate();
+        $preference = $request->user()->notificationPreference()->first()
+            ?? new NotificationPreference([
+                'database_enabled' => true,
+                'email_enabled' => true,
+                'sms_enabled' => false,
+                'push_enabled' => false,
+            ]);
 
         return (new NotificationPreferenceResource($preference))->additional([
             'message' => 'Préférences de notification récupérées avec succès.',
