@@ -21,7 +21,9 @@ class ServiceRequestLifecycleService
             ServiceRequestStatus::DRAFT,
             ServiceRequestStatus::REQUESTED,
             null,
-            fn (ServiceRequest $locked): void => $locked->forceFill(['requested_at' => now()])->save(),
+            function (ServiceRequest $locked): void {
+                $locked->forceFill(['requested_at' => now()])->save();
+            },
         );
     }
 
