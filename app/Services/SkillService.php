@@ -23,14 +23,6 @@ class SkillService
     public function update(Skill $skill, array $attributes): Skill
     {
         return DB::transaction(function () use ($skill, $attributes): Skill {
-            if (($attributes['status'] ?? null) !== null
-                && $attributes['status'] !== SkillStatus::ACTIVE->value
-                && $skill->professionalProfiles()->exists()) {
-                throw ValidationException::withMessages([
-                    'status' => 'Une compétence utilisée par des professionnels ne peut pas être désactivée ou archivée avant traitement de ses associations.',
-                ]);
-            }
-
             $skill->update($attributes);
             return $skill->refresh();
         });
@@ -76,10 +68,16 @@ class SkillService
 
     public function detach(int $professionalProfileId, int $skillId): void
     {
-        DB::table('professional_skills')
+        $deleted = DB::table('professional_skills')
             ->where('professional_profile_id', $professionalProfileId)
             ->where('skill_id', $skillId)
             ->delete();
+
+        if ($deleted === 0) {
+            throw ValidationException::withMessages([
+                'skill_id' => 'Cette compétence n’est pas associée à ce profil professionnel.',
+            ]);
+        }
     }
 
     private function resolveSlug(?string $slug, string $name): string
