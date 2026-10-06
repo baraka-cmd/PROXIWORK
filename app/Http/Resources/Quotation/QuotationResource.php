@@ -25,7 +25,7 @@ class QuotationResource extends JsonResource
                 'offer_id' => $event->offer_id,
                 'actor_id' => $event->actor_id,
                 'metadata' => $event->metadata,
-                'created_at' => $event->created_at?->toISOString(),
+                'created_at' => $event->created_at ? Carbon::parse($event->created_at)->toISOString() : null,
             ])),
             'accepted_at' => $this->accepted_at ? Carbon::parse($this->accepted_at)->toISOString() : null,
             'rejected_at' => $this->rejected_at ? Carbon::parse($this->rejected_at)->toISOString() : null,
