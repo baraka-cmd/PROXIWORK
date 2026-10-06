@@ -231,17 +231,16 @@ class PaymentService
             }
 
             $locked->forceFill([
-                    'status' => PaymentStatus::FAILED,
-                    'failure_code' => $code,
-                    'failure_message' => $message,
-                ])->save();
-            }
+                'status' => PaymentStatus::FAILED,
+                'failure_code' => $code,
+                'failure_message' => $message,
+            ])->save();
         }, attempts: 3);
     }
 
     private function canonicalMoney(string $value): string
     {
-        if (! preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value))) {
+        if (preg_match('/^\d+(?:\.\d{1,2})?$/', trim($value)) !== 1) {
             throw new ValidationException([
                 'payment' => 'Le montant retourné par le fournisseur est invalide.',
             ]);
