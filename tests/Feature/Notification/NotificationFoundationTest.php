@@ -123,13 +123,13 @@ class NotificationFoundationTest extends TestCase
 
         $this->assertSame(
             [
-                'review',
-                'message',
-                'order',
-                'payment',
-                'quotation',
-                'quotation',
                 'service_request',
+                'quotation',
+                'quotation',
+                'payment',
+                'order',
+                'message',
+                'review',
             ],
             $actions,
         );
