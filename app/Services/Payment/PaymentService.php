@@ -53,6 +53,10 @@ class PaymentService
             );
         }
 
+        if ($prepared['created'] === false && $intent->status->isFinal()) {
+            return $payment->load('transactions');
+        }
+
         if ($payment->status === PaymentStatus::SUCCEEDED) {
             return $payment->load('transactions');
         }
