@@ -21,7 +21,7 @@ class ReviewController extends Controller
         private readonly ReviewService $reviewService,
     ) {}
 
-    public function store(StoreReviewRequest $request, Order $order): ReviewResource
+    public function store(StoreReviewRequest $request, Order $order): JsonResponse
     {
         $review = $this->reviewService->create(
             order: $order,
@@ -30,7 +30,11 @@ class ReviewController extends Controller
             comment: $request->validated('comment'),
         );
 
-        return new ReviewResource($review);
+        return response()->json([
+            'message' => 'Avis publié avec succès.',
+            'data' => new ReviewResource($review),
+            'meta' => [],
+        ], 201);
     }
 
     public function show(Request $request, Review $review): ReviewResource
