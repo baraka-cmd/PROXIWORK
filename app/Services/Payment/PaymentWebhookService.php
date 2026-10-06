@@ -12,12 +12,16 @@ use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\PaymentTransaction;
+use App\Services\Commission\CommissionService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class PaymentWebhookService
 {
+    public function __construct(
+        private readonly CommissionService $commissionService,
+    ) {}
     public function handle(
         PaymentProvider $provider,
         string $signature,
@@ -53,7 +57,11 @@ class PaymentWebhookService
             if ($transaction->status->isFinal()) {
                 $transaction->forceFill(['provider_event_id' => $eventId])->save();
 
-                return $transaction->refresh();
+                if ($status === PaymentStatus::SUCCEEDED) {
+                $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
+            }
+
+            return $transaction->refresh();
             }
 
             if ($this->money($amount) !== $this->money((string) $transaction->amount)
