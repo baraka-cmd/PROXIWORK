@@ -18,8 +18,7 @@ class ProfessionalServiceImageController extends Controller
 {
     public function __construct(
         private readonly ProfessionalServiceManager $serviceManager,
-    ) {
-    }
+    ) {}
 
     public function store(StoreServiceImageRequest $request, Service $service): JsonResponse
     {
