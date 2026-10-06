@@ -13,6 +13,7 @@ use App\Services\AddressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 class AddressController extends Controller
 {
@@ -87,7 +88,7 @@ class AddressController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, Address $address): JsonResponse
+    public function destroy(Request $request, Address $address): Response
     {
         $this->authorize('delete', $address);
 
