@@ -14,7 +14,9 @@ use Illuminate\Http\Request;
 
 class QuotationOfferController extends Controller
 {
-    public function __construct(private readonly QuotationNegotiationService $negotiationService) {}
+    public function __construct(
+        private readonly QuotationNegotiationService $negotiationService,
+    ) {}
 
     public function store(StoreQuotationOfferRequest $request, Quotation $quotation): QuotationResource
     {
