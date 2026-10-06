@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\V1\Messaging;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Messaging\StoreConversationRequest;
+use App\Http\Requests\Messaging\StoreMessageRequest;
 use App\Http\Resources\Messaging\ConversationResource;
 use App\Http\Resources\Messaging\MessageResource;
 use App\Models\Conversation;
