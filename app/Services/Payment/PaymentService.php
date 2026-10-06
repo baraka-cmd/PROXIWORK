@@ -27,7 +27,8 @@ class PaymentService
         private readonly PaymentGatewayManager $gatewayManager,
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
-    ) {}
+    ) {
+    }
 
     public function initiate(
         Order $order,
@@ -178,7 +179,7 @@ class PaymentService
                 throw new PaymentConflictException('Vous ne pouvez pas payer cette commande.');
             }
 
-            if (! in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true)) {
+            if (!in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true)) {
                 throw new PaymentConflictException('Cette commande n’accepte plus de paiement.');
             }
 
