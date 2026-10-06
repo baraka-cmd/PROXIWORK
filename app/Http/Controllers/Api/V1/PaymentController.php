@@ -28,11 +28,11 @@ class PaymentController extends Controller
 
         try {
             $intent = $paymentService->initiate(
-            order: $order,
-            client: $request->user(),
-            method: $request->enum('payment_method', PaymentMethod::class),
-            provider: $request->enum('payment_provider', PaymentProvider::class),
-            idempotencyKey: $request->string('idempotency_key')->toString(),
+                order: $order,
+                client: $request->user(),
+                method: $request->enum('payment_method', PaymentMethod::class),
+                provider: $request->enum('payment_provider', PaymentProvider::class),
+                idempotencyKey: $request->string('idempotency_key')->toString(),
             );
         } catch (PaymentConflictException $exception) {
             return response()->json([
