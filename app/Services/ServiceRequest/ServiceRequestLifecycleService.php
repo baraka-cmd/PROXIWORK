@@ -7,7 +7,6 @@ namespace App\Services\ServiceRequest;
 use App\Enums\ServiceRequestStatus;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
