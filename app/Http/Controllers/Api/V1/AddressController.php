@@ -18,8 +18,7 @@ class AddressController extends Controller
 {
     public function __construct(
         private readonly AddressService $addressService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): AnonymousResourceCollection
     {
