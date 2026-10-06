@@ -34,7 +34,7 @@ class ServiceRequestService
                 ]);
             }
 
-            $request = ServiceRequest::query()->create([
+            $request = ServiceRequest::query()->forceCreate([
                 ...collect($attributes)->only([
                     'service_id',
                     'address_id',
