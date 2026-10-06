@@ -20,7 +20,6 @@ return new class extends Migration
             $table->foreignId('professional_id')->nullable()->constrained('professional_profiles')->restrictOnDelete();
             $table->foreignId('service_request_id')->nullable()->constrained('service_requests')->nullOnDelete();
             $table->foreignId('order_id')->nullable()->constrained('orders')->nullOnDelete();
-            $table->foreignId('last_message_id')->nullable()->constrained('messages')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(
