@@ -34,18 +34,22 @@ class RbacSeeder extends Seeder
         foreach ($permissions as $name => [$displayName, $group, $description]) {
             Permission::updateOrCreate(
                 ['name' => $name],
-                compact('displayName', 'group', 'description'),
+                [
+                    'display_name' => $displayName,
+                    'group' => $group,
+                    'description' => $description,
+                ],
             );
         }
 
         $roles = [
             'client' => ['Client', 'Utilisateur qui recherche et commande des services.', false, [
                 'profiles.view', 'profiles.manage', 'services.view', 'requests.view', 'requests.manage',
-                'orders.view', 'reviews.moderate',
+                'orders.view',
             ]],
             'professional' => ['Professionnel', 'Utilisateur qui propose et réalise des services.', false, [
                 'profiles.view', 'profiles.manage', 'services.view', 'services.manage',
-                'requests.view', 'requests.manage', 'orders.view', 'reviews.moderate',
+                'requests.view', 'requests.manage', 'orders.view', 'orders.manage',
             ]],
             'moderator' => ['Modérateur', 'Gère la qualité des contenus et les signalements.', true, [
                 'rbac.view', 'users.view', 'profiles.view', 'services.view', 'requests.view',
@@ -55,7 +59,7 @@ class RbacSeeder extends Seeder
                 'users.view', 'profiles.view', 'requests.view', 'orders.view', 'payments.view',
                 'support.manage', 'reports.manage',
             ]],
-            'admin' => ['Administrateur', 'Administration complète de la plateforme.', true, Permission::query()->pluck('name')->all()],
+            'admin' => ['Administrateur', 'Administration complète de la plateforme.', true, null],
         ];
 
         foreach ($roles as $name => [$displayName, $description, $isSystem, $permissionNames]) {
@@ -68,7 +72,10 @@ class RbacSeeder extends Seeder
                 ],
             );
 
-            $permissionIds = Permission::whereIn('name', $permissionNames)->pluck('id');
+            $permissionIds = $permissionNames === null
+                ? Permission::query()->pluck('id')
+                : Permission::whereIn('name', $permissionNames)->pluck('id');
+
             $role->permissions()->sync($permissionIds);
         }
     }
