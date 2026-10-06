@@ -18,6 +18,7 @@ class ServiceController extends Controller
 
         $services = Service::query()
             ->published()
+            ->whereHas('category', fn ($category) => $category->where('status', 'active'))
             ->with(['category', 'skills', 'images', 'professionalProfile.user'])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
