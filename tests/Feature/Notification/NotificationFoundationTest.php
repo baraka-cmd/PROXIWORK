@@ -116,6 +116,11 @@ class NotificationFoundationTest extends TestCase
         $service->reviewReceived($recipient);
 
         $this->assertSame(7, $recipient->notifications()->count());
+        $actions = $recipient->notifications()
+            ->get()
+            ->map(fn ($notification): string => (string) ($notification->data['action'] ?? ''))
+            ->all();
+
         $this->assertSame(
             [
                 'review',
@@ -126,7 +131,7 @@ class NotificationFoundationTest extends TestCase
                 'quotation',
                 'service_request',
             ],
-            $recipient->notifications()->pluck('data->action')->all(),
+            $actions,
         );
     }
 
