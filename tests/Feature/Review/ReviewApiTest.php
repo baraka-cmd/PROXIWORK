@@ -12,11 +12,11 @@ use App\Models\Category;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
-use App\Models\Review;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Order\OrderService;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -27,7 +27,7 @@ class ReviewApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RbacSeeder::class);
+        $this->seed(RbacSeeder::class);
     }
 
     public function test_client_can_review_only_a_completed_owned_order_and_rating_is_recalculated(): void
