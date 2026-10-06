@@ -73,6 +73,12 @@ class ConversationService
                     $client->getKey(),
                     $professional->user_id,
                 ]);
+            } elseif ($conversation->status === ConversationStatus::CLOSED) {
+                $conversation->forceFill(['status' => ConversationStatus::OPEN])->save();
+            } elseif ($conversation->status === ConversationStatus::BLOCKED) {
+                throw ValidationException::withMessages([
+                    'conversation' => 'Cette conversation est bloquée et ne peut pas être rouverte.',
+                ]);
             }
 
             return $conversation->load(['client', 'professional.user', 'lastMessage']);
