@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 
-    Route::middleware(['auth:sanctum', 'throttle:api'])->group(function (): void {
+    Route::middleware(['security.headers', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
@@ -36,12 +36,12 @@ Route::prefix('v1')->group(function (): void {
             ->only(['index', 'store', 'show', 'update', 'destroy']);
     });
 
-    Route::middleware(['auth:sanctum'])->prefix('rbac')->group(function (): void {
+    Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->prefix('rbac')->group(function (): void {
         Route::get('me', function (Request $request) {
             $user = $request->user()->load(['roles.permissions']);
 
             return response()->json([
-                'success' => true,
+                'message' => 'Autorisations effectives récupérées avec succès.',
                 'data' => [
                     'roles' => $user->roles->pluck('name')->values(),
                     'permissions' => $user->roles
@@ -49,6 +49,7 @@ Route::prefix('v1')->group(function (): void {
                         ->unique()
                         ->values(),
                 ],
+                'meta' => [],
             ]);
         });
 
