@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Order;
 
 use App\Enums\OrderStatus;
+use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Models\Order;
 use App\Models\OrderAddressSnapshot;
@@ -25,7 +26,7 @@ class OrderService
                 ->lockForUpdate()
                 ->findOrFail($quotation->getKey());
 
-            if ($lockedQuotation->status->value !== 'accepted') {
+            if ($lockedQuotation->status !== QuotationStatus::ACCEPTED) {
                 throw ValidationException::withMessages([
                     'quotation' => 'Une commande ne peut être créée qu’à partir d’un devis accepté.',
                 ]);
