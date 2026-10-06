@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Messaging;
 
 use App\Models\ProfessionalProfile;
-use App\Notifications\AccountActivityNotification;
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
