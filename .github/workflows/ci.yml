@@ -28,11 +28,17 @@ jobs:
           extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
           coverage: none
 
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
       - name: Install Composer dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+        run: composer install --prefer-dist --no-interaction --no-progress --no-scripts
 
       - name: Prepare application
         run: cp .env.example .env && php artisan key:generate
+
+      - name: Discover Laravel packages
+        run: php artisan package:discover --ansi
 
       - name: Run test suite
         run: php artisan test
