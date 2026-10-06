@@ -15,7 +15,7 @@ class ProfileController extends Controller
     {
         abort_unless($request->user()->hasPermissionTo('profiles.view'), 403);
 
-        $profile = $request->user()->profile()->firstOrCreate([]);
+        $profile = $request->user()->profile()->firstOrFail();
 
         $this->authorize('view', $profile);
 
