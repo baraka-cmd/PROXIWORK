@@ -22,6 +22,7 @@ class ProfileController extends Controller
         return (new ProfileResource($profile))->additional([
             'message' => 'Profil récupéré avec succès.',
             'meta' => [],
+            'meta' => [],
         ]);
     }
 
@@ -35,6 +36,7 @@ class ProfileController extends Controller
 
         return (new ProfileResource($profile->refresh()))->additional([
             'message' => 'Profil mis à jour avec succès.',
+            'meta' => [],
             'meta' => [],
         ]);
     }
