@@ -8,6 +8,7 @@ use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -169,7 +170,7 @@ class FavoriteApiTest extends TestCase
             'professional_profile_id' => $professional->id,
         ]);
 
-        $this->expectException(\Illuminate\Database\UniqueConstraintViolationException::class);
+        $this->expectException(UniqueConstraintViolationException::class);
 
         Favorite::create([
             'user_id' => $user->id,
