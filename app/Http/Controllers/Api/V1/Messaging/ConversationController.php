@@ -106,6 +106,14 @@ class ConversationController extends Controller
             $messageRequest->validated('body'),
         );
 
+        $conversation->loadMissing('participants');
+        $recipient = $conversation->participants
+            ->firstWhere('id', '!=', $request->user()->getKey());
+
+        if ($recipient !== null) {
+            $this->notificationService->messageReceived($recipient);
+        }
+
         return response()->json([
             'message' => 'Message envoyé.',
             'data' => new MessageResource($message),
