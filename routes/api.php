@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
+use App\Http\Controllers\Api\V1\Professional\Dashboard\ProfessionalDashboardController;
 use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
@@ -75,21 +76,25 @@ Route::prefix('v1')->group(function (): void {
             Route::delete('{skill}', [SkillController::class, 'destroy'])->middleware('permission:skills.manage');
         });
 
-        Route::prefix('professional/skills')->middleware('role:professional')->group(function (): void {
-            Route::get('/', [ProfessionalSkillController::class, 'index']);
-            Route::post('/', [ProfessionalSkillController::class, 'store']);
-            Route::delete('{skill}', [ProfessionalSkillController::class, 'destroy']);
-        });
+        Route::prefix('professional')->middleware('role:professional')->group(function (): void {
+            Route::get('dashboard', ProfessionalDashboardController::class);
 
-        Route::prefix('professional/services')->middleware('role:professional')->group(function (): void {
-            Route::get('/', [ProfessionalServiceController::class, 'index']);
-            Route::post('/', [ProfessionalServiceController::class, 'store']);
-            Route::get('{service}', [ProfessionalServiceController::class, 'show']);
-            Route::patch('{service}', [ProfessionalServiceController::class, 'update']);
-            Route::delete('{service}', [ProfessionalServiceController::class, 'destroy']);
-            Route::post('{service}/publish', [ProfessionalServiceController::class, 'publish']);
-            Route::post('{service}/unpublish', [ProfessionalServiceController::class, 'unpublish']);
-            Route::post('{service}/images', [ProfessionalServiceImageController::class, 'store']);
+            Route::prefix('skills')->group(function (): void {
+                Route::get('/', [ProfessionalSkillController::class, 'index']);
+                Route::post('/', [ProfessionalSkillController::class, 'store']);
+                Route::delete('{skill}', [ProfessionalSkillController::class, 'destroy']);
+            });
+
+            Route::prefix('services')->group(function (): void {
+                Route::get('/', [ProfessionalServiceController::class, 'index']);
+                Route::post('/', [ProfessionalServiceController::class, 'store']);
+                Route::get('{service}', [ProfessionalServiceController::class, 'show']);
+                Route::patch('{service}', [ProfessionalServiceController::class, 'update']);
+                Route::delete('{service}', [ProfessionalServiceController::class, 'destroy']);
+                Route::post('{service}/publish', [ProfessionalServiceController::class, 'publish']);
+                Route::post('{service}/unpublish', [ProfessionalServiceController::class, 'unpublish']);
+                Route::post('{service}/images', [ProfessionalServiceImageController::class, 'store']);
+            });
         });
 
         Route::patch('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'update'])
