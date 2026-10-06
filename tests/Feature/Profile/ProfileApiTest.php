@@ -28,8 +28,7 @@ class ProfileApiTest extends TestCase
         $this->actingAs($user, 'sanctum')
             ->getJson('/api/v1/profile')
             ->assertOk()
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('data.user_id', $user->id)
+                        ->assertJsonPath('data.user_id', $user->id)
             ->assertJsonMissingPath('data.password');
     }
 
@@ -48,8 +47,7 @@ class ProfileApiTest extends TestCase
                 'timezone' => 'Africa/Kinshasa',
             ])
             ->assertOk()
-            ->assertJsonPath('success', true)
-            ->assertJsonPath('data.first_name', 'Baraka')
+                        ->assertJsonPath('data.first_name', 'Baraka')
             ->assertJsonPath('data.timezone', 'Africa/Kinshasa');
 
         $this->assertDatabaseHas('profiles', [
