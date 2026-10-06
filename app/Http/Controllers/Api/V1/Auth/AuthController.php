@@ -7,11 +7,13 @@ use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -21,11 +23,18 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
-            'name' => $request->string('name')->toString(),
-            'email' => mb_strtolower($request->string('email')->toString()),
-            'password' => $request->string('password')->toString(),
-        ]);
+        $user = DB::transaction(function () use ($request): User {
+            $user = User::create([
+                'name' => $request->string('name')->toString(),
+                'email' => mb_strtolower($request->string('email')->toString()),
+                'password' => $request->string('password')->toString(),
+            ]);
+
+            $user->profile()->create();
+            $user->assignRole(Role::where('name', 'client')->firstOrFail());
+
+            return $user;
+        });
 
         event(new Registered($user));
 
