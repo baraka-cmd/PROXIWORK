@@ -15,6 +15,8 @@ use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\QuotationController;
+use App\Http\Controllers\Api\V1\QuotationOfferController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
@@ -74,7 +76,13 @@ Route::prefix('v1')->group(function (): void {
             Route::post('{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->middleware('role:client');
             Route::post('{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('role:client');
             Route::post('{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])->middleware('role:professional');
+            Route::post('{serviceRequest}/quotation', [QuotationController::class, 'store'])->middleware('role:professional');
         });
+
+        Route::get('quotations/{quotation}', [QuotationController::class, 'show']);
+        Route::post('quotations/{quotation}/accept', [QuotationController::class, 'accept'])->middleware('role:client');
+        Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
+        Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
 
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
