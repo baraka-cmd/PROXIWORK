@@ -17,15 +17,28 @@ class WalletService
 {
     public function getOrCreate(ProfessionalProfile $professional, string $currency): Wallet
     {
-        return Wallet::query()->firstOrCreate([
-            'professional_id' => $professional->getKey(),
-            'currency' => strtoupper($currency),
-        ], [
-            'available_balance' => 0,
-            'pending_balance' => 0,
-            'locked_balance' => 0,
-            'status' => 'active',
-        ]);
+        return DB::transaction(function () use ($professional, $currency): Wallet {
+            ProfessionalProfile::query()->lockForUpdate()->findOrFail($professional->getKey());
+
+            $wallet = Wallet::query()
+                ->where('professional_id', $professional->getKey())
+                ->where('currency', strtoupper($currency))
+                ->lockForUpdate()
+                ->first();
+
+            if ($wallet !== null) {
+                return $wallet;
+            }
+
+            return Wallet::query()->forceCreate([
+                'professional_id' => $professional->getKey(),
+                'currency' => strtoupper($currency),
+                'available_balance' => 0,
+                'pending_balance' => 0,
+                'locked_balance' => 0,
+                'status' => 'active',
+            ]);
+        }, attempts: 3);
     }
 
     public function creditPending(
@@ -44,6 +57,16 @@ class WalletService
                 ->where('currency', strtoupper($currency))
                 ->lockForUpdate()
                 ->first();
+
+            if ($wallet === null) {
+                ProfessionalProfile::query()->lockForUpdate()->findOrFail($professional->getKey());
+
+                $wallet = Wallet::query()
+                    ->where('professional_id', $professional->getKey())
+                    ->where('currency', strtoupper($currency))
+                    ->lockForUpdate()
+                    ->first();
+            }
 
             if ($wallet === null) {
                 $wallet = Wallet::query()->forceCreate([
