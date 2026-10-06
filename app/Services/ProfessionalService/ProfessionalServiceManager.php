@@ -129,6 +129,12 @@ class ProfessionalServiceManager
 
     public function addImage(Service $service, UploadedFile $file, array $attributes): ServiceImage
     {
+        if ($service->images()->count() >= 8) {
+            throw ValidationException::withMessages([
+                'image' => 'Un service ne peut pas contenir plus de 8 images.',
+            ]);
+        }
+
         $path = $file->store('services/'.$service->getKey(), 'public');
 
         try {
@@ -158,8 +164,27 @@ class ProfessionalServiceManager
         return DB::transaction(function () use ($image, $attributes): ServiceImage {
             if (($attributes['is_cover'] ?? false) === true) {
                 $image->service->images()
-                    ->whereKeyNot($image->getKey())
+                    ->where('id', '!=', $image->getKey())
                     ->update(['is_cover' => false]);
+            }
+
+            if (array_key_exists('is_cover', $attributes) && $attributes['is_cover'] === false && $image->is_cover) {
+                $replacementExists = $image->service->images()
+                    ->where('id', '!=', $image->getKey())
+                    ->exists();
+
+                if (! $replacementExists) {
+                    throw ValidationException::withMessages([
+                        'is_cover' => 'Le service doit conserver une image de couverture.',
+                    ]);
+                }
+
+                $replacement = $image->service->images()
+                    ->where('id', '!=', $image->getKey())
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->firstOrFail();
+                $replacement->update(['is_cover' => true]);
             }
 
             $image->update($attributes);
