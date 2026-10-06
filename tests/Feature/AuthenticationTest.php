@@ -13,6 +13,12 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RbacSeeder::class);
+    }
+
     public function test_user_can_register(): void
     {
         Notification::fake();
