@@ -18,9 +18,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Gate::before(function (User $user): ?bool {
-            return $user->hasRole('admin') ? true : null;
-        });
 
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(
