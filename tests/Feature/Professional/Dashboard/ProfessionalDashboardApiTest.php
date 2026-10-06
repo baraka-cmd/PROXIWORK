@@ -115,7 +115,7 @@ class ProfessionalDashboardApiTest extends TestCase
             'availability_status' => ProfessionalAvailabilityStatus::AVAILABLE,
             'rating_average' => 4.75,
             'rating_count' => 12,
-        ]);
+        ])->save();
         $professional->profile()->create([
             'first_name' => 'Baraka',
             'last_name' => 'Ntwali',
