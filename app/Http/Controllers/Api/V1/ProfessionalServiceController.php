@@ -27,6 +27,8 @@ class ProfessionalServiceController extends Controller
 
     public function index(IndexServiceRequest $request): AnonymousResourceCollection
     {
+        $this->authorize('viewAny', Service::class);
+
         $profile = $this->professionalProfile($request);
         $validated = $request->validated();
 
