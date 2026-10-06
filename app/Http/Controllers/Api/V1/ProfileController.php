@@ -16,6 +16,7 @@ class ProfileController extends Controller
     public function __construct(
         private readonly AuditLogService $auditLogService,
     ) {}
+
     public function show(Request $request): ProfileResource
     {
         abort_unless($request->user()->hasPermissionTo('profiles.view'), 403);
