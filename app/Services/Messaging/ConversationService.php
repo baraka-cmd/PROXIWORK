@@ -19,9 +19,12 @@ use Illuminate\Validation\ValidationException;
 
 class ConversationService
 {
-    public function __construct(
-        private readonly DatabaseManager $database,
-    ) {}
+    private readonly DatabaseManager $database;
+
+    public function __construct(DatabaseManager $database)
+    {
+        $this->database = $database;
+    }
 
     public function findOrCreateForClient(
         User $client,
@@ -215,7 +218,7 @@ class ConversationService
             ->whereNull('left_at')
             ->exists();
 
-        if (!$exists) {
+        if ($exists === false) {
             abort(403, 'Vous n’avez pas accès à cette conversation.');
         }
     }
