@@ -67,6 +67,7 @@ class ProfessionalProfile extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
     public function wallet(string $currency = 'USD'): HasOne
     {
         return $this->hasOne(Wallet::class, 'professional_id')->where('currency', strtoupper($currency));
