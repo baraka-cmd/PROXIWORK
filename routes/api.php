@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
@@ -57,6 +58,10 @@ Route::prefix('v1')->group(function (): void {
         Route::apiResource('addresses', AddressController::class)
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
+
+        Route::get('favorites', [FavoriteController::class, 'index']);
+        Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
+        Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
 
         Route::prefix('admin/skills')->group(function (): void {
             Route::get('/', [SkillController::class, 'adminIndex'])->middleware('permission:skills.view');
