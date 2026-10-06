@@ -38,6 +38,7 @@ class AuthController extends Controller
             ]);
 
             $user->profile()->create();
+            $user->notificationPreference()->create();
             $user->assignRole(Role::where('name', 'client')->firstOrFail());
 
             return $user;
