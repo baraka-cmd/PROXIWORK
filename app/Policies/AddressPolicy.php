@@ -31,6 +31,12 @@ class AddressPolicy
             && $user->hasPermissionTo('profiles.manage');
     }
 
+    public function setDefault(User $user, Address $address): bool
+    {
+        return $user->getKey() === $address->user_id
+            && $user->hasPermissionTo('profiles.manage');
+    }
+
     public function delete(User $user, Address $address): bool
     {
         return $user->getKey() === $address->user_id
