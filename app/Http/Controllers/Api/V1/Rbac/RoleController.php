@@ -9,6 +9,7 @@ use App\Http\Resources\PermissionResource;
 use App\Http\Resources\RoleResource;
 use App\Models\Permission;
 use App\Models\Role;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -16,6 +17,10 @@ use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
+    public function __construct(
+        private readonly AuditLogService $auditLogService,
+    ) {}
+
     public function index(Request $request): JsonResource
     {
         $this->authorize('viewAny', Role::class);
@@ -48,6 +53,8 @@ class RoleController extends Controller
             return $role->load('permissions');
         });
 
+        $this->auditLogService->record('role_created', $role, $request->user(), [], $request);
+
         return (new RoleResource($role))->additional(['message' => 'Rôle créé avec succès.', 'meta' => []])->response()->setStatusCode(201);
     }
 
@@ -65,13 +72,16 @@ class RoleController extends Controller
             return $role->load('permissions');
         });
 
+        $this->auditLogService->record('role_updated', $role, $request->user(), [], $request);
+
         return (new RoleResource($role))->additional(['message' => 'Rôle mis à jour avec succès.', 'meta' => []]);
     }
 
-    public function destroy(Role $role): Response
+    public function destroy(Request $request, Role $role): Response
     {
         $this->authorize('delete', $role);
 
+        $this->auditLogService->record('role_deleted', $role, $request->user(), [], $request);
         $role->delete();
 
         return response()->noContent();
