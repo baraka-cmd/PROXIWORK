@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\ProfessionalSkillController;
+use App\Http\Controllers\Api\V1\SkillController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
@@ -30,6 +32,11 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 
+    Route::prefix('skills')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
+        Route::get('/', [SkillController::class, 'index']);
+        Route::get('{skill}', [SkillController::class, 'show']);
+    });
+
     Route::prefix('categories')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
         Route::get('/', [CategoryController::class, 'index']);
         Route::get('{category}', [CategoryController::class, 'show']);
@@ -42,6 +49,20 @@ Route::prefix('v1')->group(function (): void {
         Route::apiResource('addresses', AddressController::class)
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
+
+        Route::prefix('admin/skills')->group(function (): void {
+            Route::get('/', [SkillController::class, 'adminIndex'])->middleware('permission:skills.view');
+            Route::get('{skill}', [SkillController::class, 'adminShow'])->middleware('permission:skills.view');
+            Route::post('/', [SkillController::class, 'store'])->middleware('permission:skills.manage');
+            Route::patch('{skill}', [SkillController::class, 'update'])->middleware('permission:skills.manage');
+            Route::delete('{skill}', [SkillController::class, 'destroy'])->middleware('permission:skills.manage');
+        });
+
+        Route::prefix('professional/skills')->middleware('role:professional')->group(function (): void {
+            Route::get('/', [ProfessionalSkillController::class, 'index']);
+            Route::post('/', [ProfessionalSkillController::class, 'store']);
+            Route::delete('{skill}', [ProfessionalSkillController::class, 'destroy']);
+        });
 
         Route::prefix('admin/categories')->group(function (): void {
             Route::get('/', [CategoryController::class, 'adminIndex'])->middleware('permission:categories.view');
