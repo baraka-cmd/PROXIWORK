@@ -196,6 +196,7 @@ class AuthController extends Controller
             return response()->json([
                 'message' => 'L’adresse e-mail est déjà vérifiée.',
                 'data' => null,
+                'meta' => [],
             ]);
         }
 
@@ -204,6 +205,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Un nouveau lien de vérification a été envoyé.',
             'data' => null,
+            'meta' => [],
         ]);
     }
 
