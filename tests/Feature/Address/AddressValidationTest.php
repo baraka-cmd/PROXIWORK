@@ -23,6 +23,7 @@ class AddressValidationTest extends TestCase
     public function test_validation_rejects_invalid_phone_country_and_coordinates(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
 
         Sanctum::actingAs($user);
 
@@ -47,6 +48,7 @@ class AddressValidationTest extends TestCase
     public function test_latitude_and_longitude_must_be_provided_together(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
 
         Sanctum::actingAs($user);
 
