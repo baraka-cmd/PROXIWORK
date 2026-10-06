@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\Audit\AuditLogController;
+use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use Illuminate\Http\Request;
@@ -31,9 +33,22 @@ Route::prefix('v1')->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
-        Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
         Route::apiResource('addresses', AddressController::class)
             ->only(['index', 'store', 'show', 'update', 'destroy']);
+        Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
+
+        Route::prefix('notifications')->group(function (): void {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::post('{notification}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('read-all', [NotificationController::class, 'markAllAsRead']);
+            Route::get('preferences', [NotificationController::class, 'preferences']);
+            Route::patch('preferences', [NotificationController::class, 'updatePreferences']);
+        });
+    });
+
+    Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->prefix('audit')->group(function (): void {
+        Route::get('logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
+        Route::get('logs/{auditLog}', [AuditLogController::class, 'show'])->middleware('permission:audit.view');
     });
 
     Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->prefix('rbac')->group(function (): void {
