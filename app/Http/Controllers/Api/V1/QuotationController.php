@@ -9,6 +9,7 @@ use App\Http\Requests\Quotation\StoreQuotationRequest;
 use App\Http\Resources\Quotation\QuotationResource;
 use App\Models\Quotation;
 use App\Models\ServiceRequest;
+use App\Notifications\AccountActivityNotification;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,13 @@ class QuotationController extends Controller
             $request->validated(),
         );
 
+        $serviceRequest->load('client');
+        $serviceRequest->client->notify(new AccountActivityNotification(
+            'Nouveau devis reçu',
+            'Le professionnel vous a envoyé une nouvelle proposition commerciale.',
+            'quotation',
+        ));
+
         return (new QuotationResource($quotation))->additional([
             'message' => 'Devis créé et envoyé au client avec succès.',
             'meta' => [],
@@ -47,13 +55,29 @@ class QuotationController extends Controller
     {
         $this->authorize('accept', $quotation);
 
-        return new QuotationResource($this->quotationService->accept($quotation, $request->user()));
+        $accepted = $this->quotationService->accept($quotation, $request->user());
+        $accepted->load('serviceRequest.professional.user');
+        $accepted->serviceRequest->professional->user->notify(new AccountActivityNotification(
+            'Devis accepté',
+            'Le client a accepté votre proposition commerciale.',
+            'quotation',
+        ));
+
+        return new QuotationResource($accepted);
     }
 
     public function reject(Request $request, Quotation $quotation): QuotationResource
     {
         $this->authorize('reject', $quotation);
 
-        return new QuotationResource($this->quotationService->reject($quotation, $request->user()));
+        $rejected = $this->quotationService->reject($quotation, $request->user());
+        $rejected->load('serviceRequest.professional.user');
+        $rejected->serviceRequest->professional->user->notify(new AccountActivityNotification(
+            'Devis refusé',
+            'Le client a refusé votre proposition commerciale.',
+            'quotation',
+        ));
+
+        return new QuotationResource($rejected);
     }
 }
