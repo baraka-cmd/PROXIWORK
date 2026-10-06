@@ -10,7 +10,10 @@ use Illuminate\Validation\Rule;
 
 class IndexSkillRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
