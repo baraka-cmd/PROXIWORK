@@ -32,9 +32,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('professional_profiles', function (Blueprint $table): void {
-            $table->dropIndex(['professional_profiles_verification_status_availability_status_index']);
-            $table->dropIndex(['professional_profiles_rating_average_rating_count_index']);
-            $table->dropIndex(['professional_profiles_professional_title_index']);
+            $table->dropIndex('professional_profiles_verification_status_availability_status_index');
+            $table->dropIndex('professional_profiles_rating_average_rating_count_index');
+            $table->dropIndex('professional_profiles_professional_title_index');
             $table->dropColumn([
                 'professional_title',
                 'verification_status',
