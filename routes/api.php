@@ -95,6 +95,8 @@ Route::prefix('v1')->group(function (): void {
         Route::post('orders/{order}/review', [ReviewController::class, 'store'])->middleware('role:client');
         Route::get('reviews/{review}', [ReviewController::class, 'show']);
         Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('role:professional');
+        Route::post('admin/reviews/{review}/moderate', [ReviewController::class, 'moderate'])->middleware('permission:reviews.moderate');
+        Route::post('admin/review-responses/{reviewResponse}/moderate', [ReviewController::class, 'moderateResponse'])->middleware('permission:reviews.moderate');
         Route::get('orders/{order}/payment', [PaymentController::class, 'show'])->middleware('role:client');
         Route::post('orders/{order}/payments', [PaymentController::class, 'store'])
             ->middleware(['role:client', 'throttle:payment']);
