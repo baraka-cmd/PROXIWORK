@@ -160,7 +160,7 @@ class QuotationApiTest extends TestCase
 
         $this->actingAs($client, 'sanctum')
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
-            ->assertForbidden();
+            ->assertUnprocessable();
     }
 
     public function test_expired_current_offer_cannot_be_accepted_or_negotiated(): void
