@@ -78,7 +78,7 @@ class CategoryAdminCrudTest extends TestCase
         $admin->assignRole('admin');
         $parent = Category::create(['name' => 'Développement', 'slug' => 'developpement']);
 
-        $this->actingAs($admin, 'sanctum)
+        $this->actingAs($admin, 'sanctum')
             ->postJson('/api/v1/categories', [
                 'parent_id' => $parent->id,
                 'name' => 'Web',
@@ -104,6 +104,31 @@ class CategoryAdminCrudTest extends TestCase
 
         $this->actingAs($admin, 'sanctum')
             ->patchJson('/api/v1/categories/'.$a->id, ['parent_id' => $b->id])
+            ->assertStatus(422);
+    }
+
+    public function test_admin_cannot_create_third_hierarchy_level(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $root = Category::create(['name' => 'Services', 'slug' => 'services']);
+        $child = Category::create(['parent_id' => $root->id, 'name' => 'Conseil', 'slug' => 'conseil']);
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson('/api/v1/categories', ['parent_id' => $child->id, 'name' => 'Audit'])
+            ->assertStatus(422);
+    }
+
+    public function test_admin_cannot_move_root_with_children_under_another_category(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $root = Category::create(['name' => 'A', 'slug' => 'a']);
+        Category::create(['parent_id' => $root->id, 'name' => 'A Child', 'slug' => 'a-child']);
+        $target = Category::create(['name' => 'B', 'slug' => 'b']);
+
+        $this->actingAs($admin, 'sanctum')
+            ->patchJson('/api/v1/categories/'.$root->id, ['parent_id' => $target->id])
             ->assertStatus(422);
     }
 
