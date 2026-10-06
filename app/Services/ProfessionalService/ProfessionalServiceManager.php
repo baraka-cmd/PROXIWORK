@@ -13,12 +13,12 @@ use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceImage;
 use App\Models\Skill;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Database\UniqueConstraintViolationException;
 
 class ProfessionalServiceManager
 {
