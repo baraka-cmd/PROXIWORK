@@ -51,6 +51,7 @@ class AddressController extends Controller
         return (new AddressResource($address))->additional([
             'success' => true,
             'message' => 'Adresse créée avec succès.',
+            'meta' => [],
         ])->response()->setStatusCode(201);
     }
 
@@ -61,6 +62,7 @@ class AddressController extends Controller
         return (new AddressResource($address))->additional([
             'success' => true,
             'message' => 'Adresse récupérée avec succès.',
+            'meta' => [],
         ]);
     }
 
@@ -73,6 +75,7 @@ class AddressController extends Controller
         return (new AddressResource($address->refresh()))->additional([
             'success' => true,
             'message' => 'Adresse mise à jour avec succès.',
+            'meta' => [],
         ]);
     }
 
@@ -85,6 +88,7 @@ class AddressController extends Controller
         return (new AddressResource($address))->additional([
             'success' => true,
             'message' => 'Adresse définie comme adresse par défaut.',
+            'meta' => [],
         ]);
     }
 
