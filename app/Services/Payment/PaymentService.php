@@ -27,8 +27,7 @@ class PaymentService
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
         private readonly CommissionService $commissionService,
-    ) {
-    }
+    ) {}
 
     public function initiate(
         Order $order,
