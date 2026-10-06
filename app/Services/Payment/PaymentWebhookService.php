@@ -7,6 +7,7 @@ namespace App\Services\Payment;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
+use App\Enums\PaymentTransactionStatus;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Payment;
@@ -63,7 +64,7 @@ class PaymentWebhookService
                 ]);
             }
 
-            $newStatus = \App\Enums\PaymentTransactionStatus::from($status->value);
+            $newStatus = PaymentTransactionStatus::from($status->value);
 
             $transaction->forceFill([
                 'provider_event_id' => $eventId,
