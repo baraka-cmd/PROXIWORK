@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\SkillController;
@@ -49,6 +50,9 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/', [ServiceController::class, 'index']);
         Route::get('{service}', [ServiceController::class, 'show']);
     });
+
+    Route::get('professionals', [ProfessionalSearchController::class, 'index'])
+        ->middleware(['security.headers', 'throttle:api']);
 
     Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
