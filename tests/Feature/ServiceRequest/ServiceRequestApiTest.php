@@ -314,13 +314,19 @@ class ServiceRequestApiTest extends TestCase
 
         $this->assertSame(ServiceRequestStatus::ACCEPTED, $request->refresh()->status);
 
+        $draft = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+        ]);
+
         $this->actingAs($client, 'sanctum')
-            ->patchJson('/api/v1/service-requests/'.$request->id, [
-                'status' => 'requested',
+            ->patchJson('/api/v1/service-requests/'.$draft->id, [
+                'status' => 'accepted',
                 'title' => 'Modification autorisée du contenu',
             ])
             ->assertOk()
-            ->assertJsonPath('data.status', 'accepted')
+            ->assertJsonPath('data.status', 'draft')
             ->assertJsonPath('data.title', 'Modification autorisée du contenu');
     }
 
