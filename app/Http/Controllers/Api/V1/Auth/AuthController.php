@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
@@ -45,10 +46,9 @@ class AuthController extends Controller
         )->plainTextToken;
 
         return response()->json([
-            'success' => true,
             'message' => 'Compte créé. Vérifiez votre adresse e-mail.',
             'data' => [
-                'user' => $user,
+                'user' => new UserResource($user),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
@@ -73,7 +73,6 @@ class AuthController extends Controller
         )->plainTextToken;
 
         return response()->json([
-            'success' => true,
             'message' => 'Connexion réussie.',
             'data' => [
                 'user' => $user,
@@ -92,7 +91,6 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'message' => 'Déconnexion réussie.',
             'data' => null,
         ]);
@@ -101,9 +99,8 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json([
-            'success' => true,
             'message' => 'Utilisateur authentifié.',
-            'data' => $request->user(),
+            'data' => new UserResource($request->user()),
         ]);
     }
 
@@ -130,7 +127,6 @@ class AuthController extends Controller
         )->plainTextToken;
 
         return response()->json([
-            'success' => true,
             'message' => 'Mot de passe modifié. Les anciennes sessions ont été révoquées.',
             'data' => [
                 'token' => $token,
@@ -154,7 +150,6 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'message' => 'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
             'data' => null,
         ]);
@@ -183,7 +178,6 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'message' => 'Mot de passe réinitialisé avec succès.',
             'data' => null,
         ]);
@@ -193,7 +187,6 @@ class AuthController extends Controller
     {
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
-                'success' => true,
                 'message' => 'L’adresse e-mail est déjà vérifiée.',
                 'data' => null,
             ]);
@@ -202,7 +195,6 @@ class AuthController extends Controller
         $request->user()->sendEmailVerificationNotification();
 
         return response()->json([
-            'success' => true,
             'message' => 'Un nouveau lien de vérification a été envoyé.',
             'data' => null,
         ]);
@@ -223,9 +215,8 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'success' => true,
             'message' => 'Adresse e-mail vérifiée avec succès.',
-            'data' => ['user' => $user->fresh()],
+            'data' => ['user' => new UserResource($user->fresh())],
         ]);
     }
 }
