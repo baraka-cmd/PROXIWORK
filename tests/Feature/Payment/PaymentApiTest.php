@@ -93,6 +93,8 @@ class PaymentApiTest extends TestCase
 
     public function test_same_idempotency_key_returns_the_same_payment_intent(): void
     {
+        config(['payment.fake.status' => PaymentStatus::PENDING->value]);
+
         [$client, $order] = $this->orderScenario();
 
         $payload = [
@@ -139,6 +141,8 @@ class PaymentApiTest extends TestCase
 
     public function test_second_different_payment_attempt_for_same_order_is_rejected_while_first_is_active(): void
     {
+        config(['payment.fake.status' => PaymentStatus::PENDING->value]);
+
         [$client, $order] = $this->orderScenario();
 
         $payload = [
