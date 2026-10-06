@@ -26,7 +26,7 @@ class StoreCategoryRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:2000'],
             'icon' => ['nullable', 'string', 'max:100'],
             'image_path' => ['nullable', 'string', 'max:255'],
-            'status' => ['sometimes', Rule::enum(\App\Enums\CategoryStatus::class)],
+            'status' => ['sometimes', Rule::enum(CategoryStatus::class)],
             'is_featured' => ['sometimes', 'boolean'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
         ];
