@@ -15,6 +15,7 @@ use App\Models\OrderStatusHistory;
 use App\Models\Payment;
 use App\Models\PaymentIntent;
 use App\Models\User;
+use App\Services\Commission\CommissionService;
 use App\Payments\DTO\PaymentRequest;
 use Illuminate\Database\DatabaseManager;
 use Throwable;
@@ -25,6 +26,7 @@ class PaymentService
         private readonly PaymentGatewayManager $gatewayManager,
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
+        private readonly CommissionService $commissionService,
     ) {}
 
     public function initiate(
@@ -138,6 +140,10 @@ class PaymentService
                         'Le paiement est confirmé mais la commande est dans un état incompatible.'
                     );
                 }
+            }
+
+            if ($result->status === PaymentStatus::SUCCEEDED) {
+                $this->commissionService->postForPayment($lockedPayment, $transaction);
             }
 
             return $lockedPayment->refresh()->load('transactions');
