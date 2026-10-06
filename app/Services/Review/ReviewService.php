@@ -65,6 +65,10 @@ class ReviewService
                 ]);
             }
 
+            $professional = ProfessionalProfile::query()
+                ->lockForUpdate()
+                ->findOrFail($professional->getKey());
+
             $review = Review::query()->forceCreate([
                 'order_id' => $lockedOrder->getKey(),
                 'client_id' => $client->getKey(),
