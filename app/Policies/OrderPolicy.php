@@ -14,4 +14,9 @@ class OrderPolicy
         return $order->client_id === $user->getKey()
             || $order->professional?->user_id === $user->getKey();
     }
+
+    public function pay(User $user, Order $order): bool
+    {
+        return $order->client_id === $user->getKey();
+    }
 }
