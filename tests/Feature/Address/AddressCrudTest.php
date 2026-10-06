@@ -24,6 +24,7 @@ class AddressCrudTest extends TestCase
     public function test_authenticated_user_can_list_only_their_addresses(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $otherUser = User::factory()->create();
 
         Address::factory()->for($user)->create(['label' => 'Maison']);
@@ -42,6 +43,7 @@ class AddressCrudTest extends TestCase
     public function test_user_can_create_an_address_and_first_address_is_default(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
 
         Sanctum::actingAs($user);
 
@@ -69,6 +71,7 @@ class AddressCrudTest extends TestCase
     public function test_user_can_show_update_and_delete_their_address(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $address = Address::factory()->for($user)->create();
 
         Sanctum::actingAs($user);
@@ -93,6 +96,7 @@ class AddressCrudTest extends TestCase
     public function test_is_default_and_user_id_are_not_mass_assignable_through_crud(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $otherUser = User::factory()->create();
         Address::factory()->for($user)->create(['is_default' => true]);
 
@@ -120,6 +124,7 @@ class AddressCrudTest extends TestCase
     public function test_validation_rejects_invalid_coordinates_and_missing_pair(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
 
         Sanctum::actingAs($user);
 
@@ -136,6 +141,7 @@ class AddressCrudTest extends TestCase
     public function test_user_cannot_access_another_users_address(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         $otherUser = User::factory()->create();
         $address = Address::factory()->for($otherUser)->create();
 
@@ -159,6 +165,7 @@ class AddressCrudTest extends TestCase
     public function test_missing_address_returns_not_found(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
 
         Sanctum::actingAs($user);
 
@@ -169,6 +176,7 @@ class AddressCrudTest extends TestCase
     public function test_per_page_is_bounded(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('client');
         Address::factory()->count(3)->for($user)->create();
 
         Sanctum::actingAs($user);
