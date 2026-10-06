@@ -205,7 +205,7 @@ class ProfessionalServiceApiTest extends TestCase
 
         $this->actingAs($professional, 'sanctum')
             ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
-                'image' => \Illuminate\Http\UploadedFile::fake()->image('cover.webp'),
+                'image' => UploadedFile::fake()->image('cover.webp'),
                 'alt_text' => 'Illustration du service',
             ])
             ->assertCreated();
@@ -230,7 +230,7 @@ class ProfessionalServiceApiTest extends TestCase
 
         $image = $this->actingAs($professionalA, 'sanctum')
             ->postJson('/api/v1/professional/services/'.$serviceA->id.'/images', [
-                'image' => \Illuminate\Http\UploadedFile::fake()->image('cover.webp'),
+                'image' => UploadedFile::fake()->image('cover.webp'),
             ])
             ->assertCreated()
             ->json('data.id');
@@ -261,14 +261,14 @@ class ProfessionalServiceApiTest extends TestCase
         for ($i = 0; $i < 8; $i++) {
             $this->actingAs($professional, 'sanctum')
                 ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
-                    'image' => \Illuminate\Http\UploadedFile::fake()->image('image-'.$i.'.webp'),
+                    'image' => UploadedFile::fake()->image('image-'.$i.'.webp'),
                 ])
                 ->assertCreated();
         }
 
         $this->actingAs($professional, 'sanctum')
             ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
-                'image' => \Illuminate\Http\UploadedFile::fake()->image('ninth.webp'),
+                'image' => UploadedFile::fake()->image('ninth.webp'),
             ])
             ->assertUnprocessable();
     }
@@ -280,13 +280,13 @@ class ProfessionalServiceApiTest extends TestCase
 
         $first = $this->actingAs($professional, 'sanctum')
             ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
-                'image' => \Illuminate\Http\UploadedFile::fake()->image('first.webp'),
+                'image' => UploadedFile::fake()->image('first.webp'),
             ])
             ->json('data.id');
 
         $second = $this->actingAs($professional, 'sanctum')
             ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
-                'image' => \Illuminate\Http\UploadedFile::fake()->image('second.webp'),
+                'image' => UploadedFile::fake()->image('second.webp'),
             ])
             ->json('data.id');
 
