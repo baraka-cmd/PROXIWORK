@@ -23,7 +23,7 @@ class ProfessionalSearchService
             })
             ->with([
                 'user.profile',
-                'user.addresses' => fn (Builder $addresses) => $addresses
+                'user.addresses' => fn ($addresses) => $addresses
                     ->where('is_default', true)
                     ->select([
                         'id',
@@ -32,7 +32,7 @@ class ProfessionalSearchService
                         'province',
                         'country_code',
                     ]),
-                'skills' => fn (Builder $skills) => $skills
+                'skills' => fn ($skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
             ])
