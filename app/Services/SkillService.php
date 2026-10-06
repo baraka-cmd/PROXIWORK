@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\SkillStatus;
 use App\Models\Skill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
