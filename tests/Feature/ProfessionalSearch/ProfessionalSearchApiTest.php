@@ -98,6 +98,36 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonMissing(['email' => $professional->user->email]);
     }
 
+    public function test_location_filter_uses_the_public_default_address(): void
+    {
+        $professional = $this->professional();
+
+        Address::factory()->create([
+            'user_id' => $professional->user_id,
+            'city' => 'Goma',
+            'province' => 'Nord-Kivu',
+            'is_default' => false,
+        ]);
+        Address::factory()->create([
+            'user_id' => $professional->user_id,
+            'city' => 'Bukavu',
+            'province' => 'Sud-Kivu',
+            'is_default' => true,
+        ]);
+
+        $this->publishedService($professional);
+
+        $this->getJson('/api/v1/professionals?city=Goma')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        $this->getJson('/api/v1/professionals?city=Bukavu&province=Sud-Kivu')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.location.city', 'Bukavu')
+            ->assertJsonPath('data.0.location.province', 'Sud-Kivu');
+    }
+
     public function test_skill_mode_can_match_any_or_all_skills(): void
     {
         $laravel = Skill::factory()->create(['slug' => 'laravel']);
