@@ -177,7 +177,7 @@ class PaymentService
                 throw new PaymentConflictException('Vous ne pouvez pas payer cette commande.');
             }
 
-            if (! in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true)) {
+            if (in_array($lockedOrder->status, [OrderStatus::PENDING_PAYMENT, OrderStatus::CONFIRMED], true) === false) {
                 throw new PaymentConflictException('Cette commande n’accepte plus de paiement.');
             }
 
