@@ -57,7 +57,7 @@ class QuotationService
 
             $quotation->forceFill(['current_offer_id' => $offer->getKey()])->save();
 
-            QuotationEvent::query()->create([
+            QuotationEvent::query()->forceCreate([
                 'quotation_id' => $quotation->getKey(),
                 'actor_id' => $professional->getKey(),
                 'type' => 'quote_created',
