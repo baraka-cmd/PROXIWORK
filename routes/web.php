@@ -7,7 +7,7 @@ use App\Http\Controllers\Web\RbacDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function (): \Illuminate\Http\Response {
+Route::get('/', function () {
     return view('welcome');
 });
 
