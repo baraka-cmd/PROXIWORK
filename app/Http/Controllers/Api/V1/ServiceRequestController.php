@@ -11,8 +11,8 @@ use App\Http\Requests\ServiceRequest\StoreServiceRequestRequest;
 use App\Http\Requests\ServiceRequest\UpdateServiceRequestRequest;
 use App\Http\Resources\ServiceRequest\ServiceRequestResource;
 use App\Models\ServiceRequest;
-use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Services\ServiceRequest\ServiceRequestService;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +26,7 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function clientIndex(IndexServiceRequestRequest $request): AnonymousResourceCollection
@@ -114,11 +115,10 @@ class ServiceRequestController extends Controller
         $serviceRequest = $this->lifecycleService->submit($serviceRequest, $request->user());
 
         $this->auditLogService->record('service_request_submitted', $serviceRequest, $request->user(), [], $request);
-        $serviceRequest->professional->user->notify(new AccountActivityNotification(
-            'Nouvelle demande de service',
-            'Un client vous a envoyé une nouvelle demande pour le service « '.$serviceRequest->service->title.' ».',
-            'service_request',
-        ));
+        $this->notificationService->serviceRequestCreated(
+            $serviceRequest->professional->user,
+            $serviceRequest->service->title,
+        );
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande envoyée au professionnel avec succès.',
@@ -133,11 +133,7 @@ class ServiceRequestController extends Controller
         $serviceRequest = $this->lifecycleService->cancel($serviceRequest, $request->user());
 
         $this->auditLogService->record('service_request_cancelled', $serviceRequest, $request->user(), [], $request);
-        $serviceRequest->professional->user->notify(new AccountActivityNotification(
-            'Demande annulée',
-            'Une demande de service qui vous était destinée a été annulée par le client.',
-            'service_request',
-        ));
+        $this->notificationService->send($serviceRequest->professional->user, 'Demande annulée', 'Une demande de service qui vous était destinée a été annulée par le client.', 'service_request');
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande annulée avec succès.',
