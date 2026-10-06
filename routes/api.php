@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
@@ -36,6 +37,14 @@ Route::prefix('v1')->group(function (): void {
         Route::apiResource('addresses', AddressController::class)
             ->only(['index', 'store', 'show', 'update', 'destroy']);
         Route::post('addresses/{address}/default', [AddressController::class, 'setDefault']);
+
+        Route::prefix('categories')->group(function (): void {
+            Route::get('/', [CategoryController::class, 'index'])->middleware('permission:categories.view');
+            Route::get('{category}', [CategoryController::class, 'show'])->middleware('permission:categories.view');
+            Route::post('/', [CategoryController::class, 'store'])->middleware('permission:categories.manage');
+            Route::patch('{category}', [CategoryController::class, 'update'])->middleware('permission:categories.manage');
+            Route::delete('{category}', [CategoryController::class, 'destroy'])->middleware('permission:categories.manage');
+        });
 
         Route::prefix('notifications')->group(function (): void {
             Route::get('/', [NotificationController::class, 'index']);
