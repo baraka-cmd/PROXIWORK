@@ -31,10 +31,10 @@ class ProfessionalServiceManager
             $skillIds = $attributes['skill_ids'] ?? [];
             $this->ensureSkillsAreActive($skillIds);
 
-            $service = $profile->services()->create([
-                ...$this->serviceAttributes($attributes),
-                'slug' => $this->uniqueSlug($attributes['title']),
-            ]);
+            $service = $this->createWithUniqueSlug(
+                $profile,
+                $this->serviceAttributes($attributes),
+            );
 
             $service->skills()->sync($skillIds);
 
@@ -130,24 +130,29 @@ class ProfessionalServiceManager
 
     public function addImage(Service $service, UploadedFile $file, array $attributes): ServiceImage
     {
-        if ($service->images()->count() >= 8) {
-            throw ValidationException::withMessages([
-                'image' => 'Un service ne peut pas contenir plus de 8 images.',
-            ]);
-        }
-
         $path = $file->store('services/'.$service->getKey(), 'public');
 
         try {
             return DB::transaction(function () use ($service, $path, $attributes): ServiceImage {
-                $hasImages = $service->images()->exists();
+                $lockedService = Service::query()
+                    ->whereKey($service->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($lockedService->images()->count() >= 8) {
+                    throw ValidationException::withMessages([
+                        'image' => 'Un service ne peut pas contenir plus de 8 images.',
+                    ]);
+                }
+
+                $hasImages = $lockedService->images()->exists();
                 $isCover = (bool) ($attributes['is_cover'] ?? false) || ! $hasImages;
 
                 if ($isCover) {
-                    $service->images()->update(['is_cover' => false]);
+                    $lockedService->images()->update(['is_cover' => false]);
                 }
 
-                return $service->images()->create([
+                return $lockedService->images()->create([
                     'path' => $path,
                     'alt_text' => $attributes['alt_text'] ?? null,
                     'sort_order' => $attributes['sort_order'] ?? 0,
@@ -289,9 +294,26 @@ class ProfessionalServiceManager
         }
     }
 
-    private function uniqueSlug(string $title): string
+    private function createWithUniqueSlug(ProfessionalProfile $profile, array $attributes): Service
     {
-        $base = Str::slug($title) ?: 'service';
+        $base = Str::slug($attributes['title']) ?: 'service';
+
+        try {
+            return $profile->services()->create([
+                ...$attributes,
+                'slug' => $this->uniqueSlug($base),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            return $profile->services()->create([
+                ...$attributes,
+                'slug' => $base.'-'.Str::lower(Str::random(8)),
+            ]);
+        }
+    }
+
+    private function uniqueSlug(string $base): string
+    {
+
         $candidate = $base;
         $suffix = 2;
 
