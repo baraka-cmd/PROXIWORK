@@ -35,7 +35,7 @@ class AddressCrudTest extends TestCase
         $response = $this->getJson('/api/v1/addresses');
 
         $response->assertOk()
-                        ->assertJsonCount(1, 'data')
+            ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.label', 'Maison');
     }
 
