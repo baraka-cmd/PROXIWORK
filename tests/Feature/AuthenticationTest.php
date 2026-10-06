@@ -30,6 +30,9 @@ class AuthenticationTest extends TestCase
             ->assertJsonStructure(['success', 'message', 'data' => ['user', 'token', 'token_type']]);
 
         $this->assertDatabaseHas('users', ['email' => 'jean@example.com']);
+        $user = User::where('email', 'jean@example.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('client'));
+        $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
     }
 
     public function test_user_can_login_with_valid_credentials(): void
