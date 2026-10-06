@@ -77,7 +77,7 @@ class AddressDefaultTest extends TestCase
         Sanctum::actingAs($user);
 
         $this->postJson("/api/v1/addresses/{$addresses[2]->id}/default")
-            ->assertNoContent();
+            ->assertOk();
 
         $this->assertSame(1, $user->addresses()->where('is_default', true)->count());
     }
