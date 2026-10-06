@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
+use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
@@ -50,6 +51,9 @@ Route::prefix('v1')->group(function (): void {
         Route::get('/', [ServiceController::class, 'index']);
         Route::get('{service}', [ServiceController::class, 'show']);
     });
+
+    Route::get('professionals', [ProfessionalSearchController::class, 'index'])
+        ->middleware(['security.headers', 'throttle:api']);
 
     Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
