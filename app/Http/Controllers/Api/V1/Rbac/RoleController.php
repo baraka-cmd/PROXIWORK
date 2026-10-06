@@ -10,12 +10,13 @@ use App\Http\Resources\PermissionResource;
 use App\Http\Resources\RoleResource;
 use App\Models\Role;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): JsonResource
     {
         $this->authorize('viewAny', Role::class);
 
@@ -27,7 +28,7 @@ class RoleController extends Controller
         return RoleResource::collection($roles)->additional(['message' => 'Rôles récupérés avec succès.']);
     }
 
-    public function show(Role $role): JsonResponse
+    public function show(Role $role): JsonResource
     {
         $this->authorize('view', $role);
 
@@ -36,7 +37,7 @@ class RoleController extends Controller
         return (new RoleResource($role))->additional(['message' => 'Rôle récupéré avec succès.', 'meta' => []]);
     }
 
-    public function store(StoreRoleRequest $request): JsonResponse
+    public function store(StoreRoleRequest $request): JsonResource|JsonResponse
     {
         $role = DB::transaction(function () use ($request): Role {
             $role = Role::create($request->safe()->only(['name', 'display_name', 'description']));
@@ -50,7 +51,7 @@ class RoleController extends Controller
         return (new RoleResource($role))->additional(['message' => 'Rôle créé avec succès.', 'meta' => []])->response()->setStatusCode(201);
     }
 
-    public function update(UpdateRoleRequest $request, Role $role): JsonResponse
+    public function update(UpdateRoleRequest $request, Role $role): JsonResource
     {
         $this->authorize('update', $role);
 
@@ -76,7 +77,7 @@ class RoleController extends Controller
         return response()->noContent();
     }
 
-    public function permissions(): JsonResponse
+    public function permissions(): JsonResource
     {
         $this->authorize('viewAny', Role::class);
 
