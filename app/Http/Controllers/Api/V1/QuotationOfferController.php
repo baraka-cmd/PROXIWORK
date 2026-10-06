@@ -10,7 +10,6 @@ use App\Http\Resources\Quotation\QuotationResource;
 use App\Models\Quotation;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Quotation\QuotationNegotiationService;
-use Illuminate\Http\Request;
 
 class QuotationOfferController extends Controller
 {
