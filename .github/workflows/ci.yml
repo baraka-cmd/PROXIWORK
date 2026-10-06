@@ -27,7 +27,6 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
           coverage: none
-          ini-values: display_errors=1
 
       - name: Validate Composer configuration
         run: composer validate --strict
