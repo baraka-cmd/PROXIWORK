@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 
-    Route::middleware(['security.headers', 'throttle:api'])->group(function (): void {
+    Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
