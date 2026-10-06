@@ -21,6 +21,9 @@ class RbacSeeder extends Seeder
             'profiles.manage' => ['Profils - administrer', 'profiles', 'Gérer les profils.'],
             'categories.view' => ['Catégories - consulter', 'categories', 'Consulter le catalogue des catégories.'],
             'categories.manage' => ['Catégories - administrer', 'categories', 'Créer, modifier, désactiver et archiver les catégories.'],
+            'skills.view' => ['Compétences - consulter', 'skills', 'Consulter le catalogue des compétences.'],
+            'skills.manage' => ['Compétences - administrer', 'skills', 'Créer, modifier et archiver les compétences.'],
+            'professional_skills.manage' => ['Compétences professionnelles - gérer', 'skills', 'Associer et retirer les compétences de son profil professionnel.'],
             'services.view' => ['Services - consulter', 'services', 'Consulter les services publiés.'],
             'services.manage' => ['Services - administrer', 'services', 'Gérer les services.'],
             'requests.view' => ['Demandes - consulter', 'requests', 'Consulter les demandes de service.'],
@@ -48,19 +51,19 @@ class RbacSeeder extends Seeder
 
         $roles = [
             'client' => ['Client', 'Utilisateur qui recherche et commande des services.', false, [
-                'profiles.view', 'profiles.manage', 'categories.view', 'services.view',
+                'profiles.view', 'profiles.manage', 'categories.view', 'skills.view', 'services.view',
                 'requests.view', 'requests.manage', 'orders.view',
             ]],
             'professional' => ['Professionnel', 'Utilisateur qui propose et réalise des services.', false, [
-                'profiles.view', 'profiles.manage', 'categories.view', 'services.view', 'services.manage',
+                'profiles.view', 'profiles.manage', 'categories.view', 'skills.view', 'professional_skills.manage', 'services.view', 'services.manage',
                 'requests.view', 'requests.manage', 'orders.view', 'orders.manage',
             ]],
             'moderator' => ['Modérateur', 'Gère la qualité des contenus et les signalements.', true, [
-                'rbac.view', 'users.view', 'profiles.view', 'categories.view', 'services.view',
+                'rbac.view', 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
                 'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage',
             ]],
             'support' => ['Support', 'Assure l’assistance et le suivi des utilisateurs.', true, [
-                'users.view', 'profiles.view', 'categories.view', 'services.view',
+                'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
                 'requests.view', 'orders.view', 'payments.view', 'support.manage', 'reports.manage',
             ]],
             'admin' => ['Administrateur', 'Administration complète de la plateforme.', true, null],
