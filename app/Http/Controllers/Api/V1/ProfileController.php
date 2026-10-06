@@ -20,7 +20,6 @@ class ProfileController extends Controller
         $this->authorize('view', $profile);
 
         return (new ProfileResource($profile))->additional([
-            'success' => true,
             'message' => 'Profil récupéré avec succès.',
         ]);
     }
@@ -34,7 +33,6 @@ class ProfileController extends Controller
         $profile->update($request->validated());
 
         return (new ProfileResource($profile->refresh()))->additional([
-            'success' => true,
             'message' => 'Profil mis à jour avec succès.',
         ]);
     }
