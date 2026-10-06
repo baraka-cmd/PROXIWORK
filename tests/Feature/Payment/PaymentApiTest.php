@@ -19,12 +19,10 @@ use App\Models\Quotation;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use App\Payments\DTO\PaymentRequest;
-use App\Payments\DTO\PaymentResult;
 use App\Services\Order\OrderService;
+use Tests\Support\FailingPaymentGateway;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use RuntimeException;
 use Tests\TestCase;
 
 class PaymentApiTest extends TestCase
@@ -192,13 +190,7 @@ class PaymentApiTest extends TestCase
 
     public function test_provider_connection_failure_leaves_intent_retryable_and_does_not_create_second_intent(): void
     {
-        $this->app->bind(PaymentGateway::class, static fn () => new class implements PaymentGateway
-        {
-            public function initiate(PaymentRequest $request): PaymentResult
-            {
-                throw new RuntimeException('simulated connection loss');
-            }
-        });
+        $this->app->bind(PaymentGateway::class, FailingPaymentGateway::class);
 
         [$client, $order] = $this->orderScenario();
 
