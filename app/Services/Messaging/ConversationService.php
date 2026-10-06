@@ -8,9 +8,9 @@ use App\Enums\ConversationStatus;
 use App\Enums\ConversationType;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\ServiceRequest;
-use App\Models\Order;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\DatabaseManager;
@@ -30,7 +30,7 @@ class ConversationService
         ?Order $order = null,
     ): Conversation {
         return $this->database->transaction(function () use ($client, $professional, $serviceRequest, $order): Conversation {
-            if (!$client->hasRole('client')) {
+            if ($client->hasRole('client') === false) {
                 throw ValidationException::withMessages([
                     'user' => 'Seul un client peut démarrer une conversation avec un professionnel.',
                 ]);
