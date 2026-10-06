@@ -41,7 +41,7 @@ class AddressService
                 ->firstOrFail();
 
             $lockedUser->addresses()
-                ->whereKeyNot($ownedAddress->getKey())
+                ->where($ownedAddress->getKeyName(), '!=', $ownedAddress->getKey())
                 ->where('is_default', true)
                 ->update(['is_default' => false]);
 
