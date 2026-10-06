@@ -32,9 +32,9 @@ class AuthenticationTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('success', true)
             ->assertJsonPath('data.user.email', 'jean@example.com')
-            ->assertJsonStructure(['success', 'message', 'data' => ['user', 'token', 'token_type']]);
+            ->assertJsonStructure(['message', 'data' => ['user', 'token', 'token_type'], 'meta'])
+            ->assertJsonMissingPath('success');
 
         $this->assertDatabaseHas('users', ['email' => 'jean@example.com']);
         $user = User::where('email', 'jean@example.com')->firstOrFail();
@@ -53,7 +53,7 @@ class AuthenticationTest extends TestCase
             'email' => $user->email,
             'password' => 'SecurePass1!',
             'device_name' => 'android-test',
-        ])->assertOk()->assertJsonPath('success', true)->assertJsonPath('data.token_type', 'Bearer');
+        ])->assertOk()->assertJsonPath('data.token_type', 'Bearer');
 
         $this->assertDatabaseCount('personal_access_tokens', 1);
     }
@@ -69,7 +69,7 @@ class AuthenticationTest extends TestCase
             'email' => 'jean@example.com',
             'password' => 'WrongPass1!',
             'device_name' => 'android-test',
-        ])->assertStatus(422)->assertJsonValidationErrors(['email']);
+        ])->assertUnauthorized()->assertJsonStructure(['message', 'errors']);
     }
 
     public function test_authenticated_user_can_read_profile(): void

@@ -13,6 +13,7 @@ use App\Services\AddressService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Symfony\Component\HttpFoundation\Response;
 
 class AddressController extends Controller
 {
@@ -34,7 +35,6 @@ class AddressController extends Controller
             ->withQueryString();
 
         return AddressResource::collection($addresses)->additional([
-            'success' => true,
             'message' => 'Adresses récupérées avec succès.',
         ]);
     }
@@ -51,6 +51,7 @@ class AddressController extends Controller
         return (new AddressResource($address))->additional([
             'success' => true,
             'message' => 'Adresse créée avec succès.',
+            'meta' => [],
         ])->response()->setStatusCode(201);
     }
 
@@ -61,6 +62,7 @@ class AddressController extends Controller
         return (new AddressResource($address))->additional([
             'success' => true,
             'message' => 'Adresse récupérée avec succès.',
+            'meta' => [],
         ]);
     }
 
@@ -73,6 +75,7 @@ class AddressController extends Controller
         return (new AddressResource($address->refresh()))->additional([
             'success' => true,
             'message' => 'Adresse mise à jour avec succès.',
+            'meta' => [],
         ]);
     }
 
@@ -85,18 +88,16 @@ class AddressController extends Controller
         return (new AddressResource($address))->additional([
             'success' => true,
             'message' => 'Adresse définie comme adresse par défaut.',
+            'meta' => [],
         ]);
     }
 
-    public function destroy(Request $request, Address $address): JsonResponse
+    public function destroy(Request $request, Address $address): Response
     {
         $this->authorize('delete', $address);
 
         $this->addressService->delete($request->user(), $address);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Adresse supprimée avec succès.',
-        ]);
+        return response()->noContent();
     }
 }

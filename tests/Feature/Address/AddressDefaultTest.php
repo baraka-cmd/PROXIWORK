@@ -93,7 +93,7 @@ class AddressDefaultTest extends TestCase
         Sanctum::actingAs($user);
 
         $this->deleteJson("/api/v1/addresses/{$first->id}")
-            ->assertOk();
+            ->assertNoContent();
 
         $this->assertDatabaseHas('addresses', [
             'id' => $latest->id,
@@ -114,7 +114,7 @@ class AddressDefaultTest extends TestCase
         Sanctum::actingAs($user);
 
         $this->deleteJson("/api/v1/addresses/{$address->id}")
-            ->assertOk();
+            ->assertNoContent();
 
         $this->assertSame(0, $user->addresses()->where('is_default', true)->count());
     }

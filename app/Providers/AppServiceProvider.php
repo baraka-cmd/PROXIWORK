@@ -43,9 +43,15 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('auth-sensitive', function (Request $request) {
-            return Limit::perMinute(10)->by(
-                $request->user()?->getAuthIdentifier() ?? $request->ip()
-            );
+            return [
+                Limit::perMinute(10)->by($request->ip()),
+                Limit::perMinute(5)->by(
+                    'sensitive-user:'.($request->user()?->getAuthIdentifier() ?? 'guest')
+                ),
+                Limit::perMinute(5)->by(
+                    'sensitive-email:'.mb_strtolower((string) $request->input('email'))
+                ),
+            ];
         });
     }
 }
