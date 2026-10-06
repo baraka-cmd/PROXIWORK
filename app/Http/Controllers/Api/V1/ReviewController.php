@@ -37,6 +37,13 @@ class ReviewController extends Controller
             comment: $request->validated('comment'),
         );
 
+        $review->loadMissing('professional.user');
+        $review->professional?->user?->notify(new AccountActivityNotification(
+            'Nouvel avis',
+            'Un client vient de publier un avis sur votre prestation.',
+            'review',
+        ));
+
         return response()->json([
             'message' => 'Avis publié avec succès.',
             'data' => new ReviewResource($review),
