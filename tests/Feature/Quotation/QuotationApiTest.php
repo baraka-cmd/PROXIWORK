@@ -11,6 +11,7 @@ use App\Enums\ServiceStatus;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
+use App\Models\Order;
 use App\Models\Quotation;
 use App\Models\QuotationOffer;
 use App\Models\Service;
@@ -169,7 +170,7 @@ class QuotationApiTest extends TestCase
             'total' => 500,
         ]);
         $this->assertDatabaseHas('order_items', [
-            'order_id' => $this->app->make(\\App\\Models\\Order::class)::query()->where('quotation_id', $quotation->id)->value('id'),
+            'order_id' => Order::query()->where('quotation_id', $quotation->id)->value('id'),
             'service_id' => $service->id,
             'unit_price' => 500,
             'subtotal' => 500,
@@ -199,7 +200,7 @@ class QuotationApiTest extends TestCase
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
             ->assertOk();
 
-        $order = \\App\\Models\\Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+        $order = Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
         $snapshot = $order->addressSnapshot;
 
         $address = Address::query()->findOrFail($request->address_id);
@@ -214,7 +215,8 @@ class QuotationApiTest extends TestCase
         $this->assertSame($originalCity, $snapshot->fresh()->city);
         $this->assertSame('Goma', $snapshot->fresh()->city);
         $this->assertSame('Nord-Kivu', $snapshot->fresh()->province);
-        $this->assertSame($address->address_line_1 !== 'Nouvelle adresse', true);
+        $this->assertSame('Nouvelle adresse', $address->fresh()->address_line_1);
+        $this->assertNotSame($address->fresh()->address_line_1, $snapshot->fresh()->address_line_1);
     }
 
     public function test_order_is_isolated_from_unrelated_users(): void
