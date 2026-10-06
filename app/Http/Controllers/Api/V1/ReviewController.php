@@ -28,8 +28,7 @@ class ReviewController extends Controller
     public function __construct(
         ReviewService $reviewService,
         TransactionalNotificationService $notificationService,
-    )
-    {
+    ) {
         $this->reviewService = $reviewService;
         $this->notificationService = $notificationService;
     }
