@@ -25,6 +25,7 @@ class ProfessionalSearchRequest extends FormRequest
             'category' => ['sometimes', 'string', 'max:180', 'exists:categories,slug'],
             'skills' => ['sometimes', 'array', 'max:10'],
             'skills.*' => ['string', 'max:180', 'exists:skills,slug'],
+            'skills_mode' => ['sometimes', Rule::in(['any', 'all'])],
             'skill' => ['sometimes', 'string', 'max:180', 'exists:skills,slug'],
             'city' => ['sometimes', 'string', 'max:120'],
             'province' => ['sometimes', 'string', 'max:120'],
