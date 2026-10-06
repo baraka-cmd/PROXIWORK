@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notification;
 
-use App\Models\NotificationPreference;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Notifications\AnonymousNotifiable;
-use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Tests\TestCase;
 
 class NotificationFoundationTest extends TestCase
