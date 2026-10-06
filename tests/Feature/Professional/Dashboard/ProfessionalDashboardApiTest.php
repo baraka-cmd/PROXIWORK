@@ -12,8 +12,7 @@ use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Notifications\Notification;
-use Illuminate\Support\Facades\Notification as NotificationFacade;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ProfessionalDashboardApiTest extends TestCase
@@ -135,17 +134,26 @@ class ProfessionalDashboardApiTest extends TestCase
             ->assertJsonPath('data.profile.verification_status', 'verified')
             ->assertJsonPath('data.profile.availability_status', 'available')
             ->assertJsonPath('data.profile.rating_average', '4.75')
-            ->assertJsonMissingPath('data.profile.password')
-            ->assertJsonMissingPath('data.profile.remember_token')
-            ->assertJsonMissingPath('data.profile.roles')
-            ->assertJsonMissingPath('data.profile.tokens');
+            ->assertJsonMissingPath('data.profile.user.password')
+            ->assertJsonMissingPath('data.profile.user.remember_token')
+            ->assertJsonMissingPath('data.profile.user.roles')
+            ->assertJsonMissingPath('data.profile.user.tokens');
     }
 
     public function test_dashboard_reports_unread_notifications(): void
     {
         [$professional] = $this->professional();
 
-        NotificationFacade::send($professional, Notification::fake());
+        DB::table('notifications')->insert([
+            'id' => (string) str()->uuid(),
+            'type' => 'test',
+            'notifiable_type' => User::class,
+            'notifiable_id' => $professional->id,
+            'data' => json_encode(['title' => 'Test', 'message' => 'Test']),
+            'read_at' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $this->actingAs($professional, 'sanctum')
             ->getJson('/api/v1/professional/dashboard')
