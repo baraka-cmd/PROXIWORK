@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\ServiceRequest;
 use App\Services\Messaging\ConversationService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,6 +22,7 @@ class ConversationController extends Controller
 {
     public function __construct(
         private readonly ConversationService $conversationService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function index(Request $request): JsonResponse
