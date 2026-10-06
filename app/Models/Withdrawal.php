@@ -26,6 +26,13 @@ class Withdrawal extends Model
         ];
     }
 
-    public function wallet(): BelongsTo { return $this->belongsTo(Wallet::class); }
-    public function professional(): BelongsTo { return $this->belongsTo(ProfessionalProfile::class, 'professional_id'); }
+    public function wallet(): BelongsTo
+    {
+        return $this->belongsTo(Wallet::class);
+    }
+
+    public function professional(): BelongsTo
+    {
+        return $this->belongsTo(ProfessionalProfile::class, 'professional_id');
+    }
 }
