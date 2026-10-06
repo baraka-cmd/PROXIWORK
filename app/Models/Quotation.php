@@ -49,6 +49,11 @@ class Quotation extends Model
         return $this->hasMany(QuotationEvent::class)->orderBy('created_at')->orderBy('id');
     }
 
+    public function order(): HasOne
+    {
+        return $this->hasOne(Order::class);
+    }
+
     public function latestOffer(): HasOne
     {
         return $this->hasOne(QuotationOffer::class)->latestOfMany('version');
