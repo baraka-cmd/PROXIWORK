@@ -10,6 +10,8 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -23,6 +25,9 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    public function __construct(
+        private readonly AuditLogService $auditLogService,
+    ) {}
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = DB::transaction(function () use ($request): User {
@@ -39,6 +44,7 @@ class AuthController extends Controller
         });
 
         event(new Registered($user));
+        $this->auditLogService->record('register', $user, $user, ['role' => 'client'], $request);
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
@@ -72,6 +78,8 @@ class AuthController extends Controller
             now()->addMinutes((int) config('sanctum.expiration', 43200))
         )->plainTextToken;
 
+        $this->auditLogService->record('login', $user, $user, [], $request);
+
         return response()->json([
             'message' => 'Connexion réussie.',
             'data' => [
@@ -90,6 +98,8 @@ class AuthController extends Controller
         if ($token) {
             $token->delete();
         }
+
+        $this->auditLogService->record('logout', $request->user(), $request->user(), [], $request);
 
         return response()->json([
             'message' => 'Déconnexion réussie.',
@@ -122,6 +132,13 @@ class AuthController extends Controller
         ]);
 
         $user->tokens()->delete();
+
+        $this->auditLogService->record('password_changed', $user, $user, [], $request);
+        $user->notify(new AccountActivityNotification(
+            'Mot de passe modifié',
+            'Votre mot de passe a été modifié et vos anciennes sessions ont été révoquées.',
+            'password_changed',
+        ));
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
@@ -181,6 +198,13 @@ class AuthController extends Controller
                 'email' => [__($status)],
             ]);
         }
+
+        $this->auditLogService->record('password_reset', $user, $user, [], $request);
+        $user->notify(new AccountActivityNotification(
+            'Mot de passe réinitialisé',
+            'Votre mot de passe a été réinitialisé avec succès.',
+            'password_reset',
+        ));
 
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',
