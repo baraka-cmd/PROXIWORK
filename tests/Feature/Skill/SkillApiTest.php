@@ -22,7 +22,6 @@ class SkillApiTest extends TestCase
         $this->seed(RbacSeeder::class);
     }
 
-
     public function test_admin_can_update_skill_and_reactivate_an_archived_skill(): void
     {
         $admin = User::factory()->create();
