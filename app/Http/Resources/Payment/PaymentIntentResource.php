@@ -24,7 +24,6 @@ class PaymentIntentResource extends JsonResource
             'redirect_url' => $this->redirect_url,
             'instructions' => $this->instructions,
             'failure_code' => $this->failure_code,
-            'failure_message' => $this->failure_message,
             'created_at' => $this->created_at ? Carbon::parse($this->created_at)->toISOString() : null,
             'updated_at' => $this->updated_at ? Carbon::parse($this->updated_at)->toISOString() : null,
         ];
