@@ -133,7 +133,7 @@ class ServiceRequestController extends Controller
         $serviceRequest = $this->lifecycleService->cancel($serviceRequest, $request->user());
 
         $this->auditLogService->record('service_request_cancelled', $serviceRequest, $request->user(), [], $request);
-        $this->notificationService->send($serviceRequest->professional->user, 'Demande annulée', 'Une demande de service qui vous était destinée a été annulée par le client.', 'service_request');
+        $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user);
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande annulée avec succès.',
