@@ -14,6 +14,12 @@ class Category extends Model
 {
     use HasFactory;
 
+    protected $attributes = [
+        'status' => CategoryStatus::ACTIVE->value,
+        'is_featured' => false,
+        'sort_order' => 0,
+    ];
+
     protected $fillable = [
         'parent_id',
         'name',
