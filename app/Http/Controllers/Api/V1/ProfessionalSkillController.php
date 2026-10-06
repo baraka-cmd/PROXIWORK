@@ -16,16 +16,19 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ProfessionalSkillController extends Controller
 {
-    public function __construct(private readonly SkillService $skillService) {}
+    private readonly SkillService $skillService;
+
+    public function __construct(SkillService $skillService)
+    {
+        $this->skillService = $skillService;
+    }
 
     public function index(Request $request): JsonResponse
     {
         $profile = $this->professionalProfile($request);
 
         return response()->json([
-            'data' => ProfessionalSkillResource::collection(
-                $profile->skills()->withPivot(['proficiency_level', 'years_experience'])->with('professionalProfiles')->get()
-            ),
+            'data' => ProfessionalSkillResource::collection($profile->skills()->get()),
             'message' => 'Compétences du profil professionnel récupérées avec succès.',
             'meta' => [],
         ]);
@@ -37,9 +40,10 @@ class ProfessionalSkillController extends Controller
         $this->skillService->attach($profile->getKey(), $request->validated());
 
         $skill = Skill::findOrFail($request->integer('skill_id'));
+        $professionalSkill = $profile->skills()->whereKey($skill->getKey())->firstOrFail();
 
         return response()->json([
-            'data' => new ProfessionalSkillResource($profile->skills()->whereKey($skill->getKey())->withPivot(['proficiency_level', 'years_experience'])->with('professionalProfiles')->firstOrFail()),
+            'data' => new ProfessionalSkillResource($professionalSkill),
             'message' => 'Compétence associée au profil professionnel avec succès.',
             'meta' => [],
         ], 201);
@@ -49,6 +53,7 @@ class ProfessionalSkillController extends Controller
     {
         $profile = $this->professionalProfile($request);
         $this->skillService->detach($profile->getKey(), $skill->getKey());
+
         return response()->noContent();
     }
 
