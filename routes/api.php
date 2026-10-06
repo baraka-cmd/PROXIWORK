@@ -61,7 +61,7 @@ Route::prefix('v1')->group(function (): void {
         Route::prefix('professional/skills')->middleware('role:professional')->group(function (): void {
             Route::get('/', [ProfessionalSkillController::class, 'index']);
             Route::post('/', [ProfessionalSkillController::class, 'store']);
-            Route::delete('{skill}', [ProSkillController::class, 'destroy']);
+            Route::delete('{skill}', [ProfessionalSkillController::class, 'destroy']);
         });
 
         Route::prefix('admin/categories')->group(function (): void {
