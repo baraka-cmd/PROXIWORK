@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\SkillController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
 use Illuminate\Http\Request;
@@ -58,9 +59,9 @@ Route::prefix('v1')->group(function (): void {
         });
 
         Route::prefix('professional/skills')->middleware('role:professional')->group(function (): void {
-            Route::get('/', [\App\Http\Controllers\Api\V1\ProfessionalSkillController::class, 'index']);
-            Route::post('/', [\App\Http\Controllers\Api\V1\ProfessionalSkillController::class, 'store']);
-            Route::delete('{skill}', [\App\Http\Controllers\Api\V1\ProfessionalSkillController::class, 'destroy']);
+            Route::get('/', [ProfessionalSkillController::class, 'index']);
+            Route::post('/', [ProfessionalSkillController::class, 'store']);
+            Route::delete('{skill}', [ProfessionalSkillController::class, 'destroy']);
         });
 
         Route::prefix('admin/categories')->group(function (): void {
