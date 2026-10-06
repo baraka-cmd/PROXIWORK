@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace AppHttpResources;
+namespace App\Http\Resources;
 
-use IlluminateHttpRequest;
-use IlluminateHttpResourcesJsonJsonResource;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProfessionalSearchResource extends JsonResource
 {
@@ -23,7 +23,7 @@ class ProfessionalSearchResource extends JsonResource
             'bio' => $profile?->bio,
             'verification' => [
                 'status' => $this->verification_status->value,
-                'verified' => $this->verification_status === AppEnumsProfessionalVerificationStatus::VERIFIED,
+                'verified' => $this->verification_status === App\Enums\ProfessionalVerificationStatus::VERIFIED,
             ],
             'availability' => $this->availability_status->value,
             'rating' => [
