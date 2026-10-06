@@ -6,11 +6,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Review\StoreReviewRequest;
+use App\Http\Requests\Review\ModerateReviewRequest;
+use App\Http\Requests\Review\ModerateReviewResponseRequest;
 use App\Http\Requests\Review\StoreReviewResponseRequest;
 use App\Http\Resources\Review\ReviewResource;
 use App\Http\Resources\Review\ReviewResponseResource;
 use App\Models\Order;
 use App\Models\Review;
+use App\Models\ReviewResponse;
 use App\Services\Review\ReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,6 +47,34 @@ class ReviewController extends Controller
         return new ReviewResource(
             $this->reviewService->findForViewer($review, $request->user())
         );
+    }
+
+    public function moderate(ModerateReviewRequest $request, Review $review): ReviewResource
+    {
+        $review = $this->reviewService->moderate(
+            review: $review,
+            moderator: $request->user(),
+            status: \App\Enums\ReviewStatus::from($request->validated('status')),
+            reason: $request->validated('reason'),
+        );
+
+        return new ReviewResource($review);
+    }
+
+    public function moderateResponse(ModerateReviewResponseRequest $request, ReviewResponse $reviewResponse): JsonResponse
+    {
+        $response = $this->reviewService->moderateResponse(
+            response: $reviewResponse,
+            moderator: $request->user(),
+            status: \App\Enums\ReviewStatus::from($request->validated('status')),
+            reason: $request->validated('reason'),
+        );
+
+        return response()->json([
+            'message' => 'Réponse modérée avec succès.',
+            'data' => new ReviewResponseResource($response),
+            'meta' => [],
+        ]);
     }
 
     public function respond(StoreReviewResponseRequest $request, Review $review): JsonResponse
