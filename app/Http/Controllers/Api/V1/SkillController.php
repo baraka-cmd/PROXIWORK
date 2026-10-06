@@ -21,10 +21,17 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SkillController extends Controller
 {
+    private readonly SkillService $skillService;
+
+    private readonly AuditLogService $auditLogService;
+
     public function __construct(
-        private readonly SkillService $skillService,
-        private readonly AuditLogService $auditLogService,
-    ) {}
+        SkillService $skillService,
+        AuditLogService $auditLogService,
+    ) {
+        $this->skillService = $skillService;
+        $this->auditLogService = $auditLogService;
+    }
 
     public function index(IndexSkillRequest $request): AnonymousResourceCollection
     {
@@ -52,6 +59,7 @@ class SkillController extends Controller
     public function show(Skill $skill): SkillResource
     {
         abort_if($skill->status !== SkillStatus::ACTIVE, 404);
+
         return (new SkillResource($skill))->additional([
             'message' => 'Compétence récupérée avec succès.',
             'meta' => [],
@@ -71,8 +79,10 @@ class SkillController extends Controller
                         ->orWhere('slug', 'like', "%{$search}%");
                 });
             })
-            ->orderBy('sort_order')->orderBy('name')
-            ->paginate($validated['per_page'] ?? 15)->withQueryString();
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->paginate($validated['per_page'] ?? 15)
+            ->withQueryString();
 
         return SkillAdminResource::collection($skills)->additional([
             'message' => 'Compétences administratives récupérées avec succès.',
@@ -83,7 +93,11 @@ class SkillController extends Controller
     public function adminShow(Skill $skill): SkillAdminResource
     {
         $this->authorize('view', $skill);
-        return (new SkillAdminResource($skill))->additional(['message' => 'Compétence administrative récupérée avec succès.', 'meta' => []]);
+
+        return (new SkillAdminResource($skill))->additional([
+            'message' => 'Compétence administrative récupérée avec succès.',
+            'meta' => [],
+        ]);
     }
 
     public function store(StoreSkillRequest $request): JsonResponse
@@ -91,8 +105,10 @@ class SkillController extends Controller
         $skill = $this->skillService->create($request->validated());
         $this->auditLogService->record('skill_created', $skill, $request->user(), [], $request);
 
-        return (new SkillAdminResource($skill))->additional(['message' => 'Compétence créée avec succès.', 'meta' => []])
-            ->response()->setStatusCode(201);
+        return (new SkillAdminResource($skill))->additional([
+            'message' => 'Compétence créée avec succès.',
+            'meta' => [],
+        ])->response()->setStatusCode(201);
     }
 
     public function update(UpdateSkillRequest $request, Skill $skill): SkillAdminResource
@@ -101,7 +117,10 @@ class SkillController extends Controller
         $skill = $this->skillService->update($skill, $request->validated());
         $this->auditLogService->record('skill_updated', $skill, $request->user(), [], $request);
 
-        return (new SkillAdminResource($skill))->additional(['message' => 'Compétence mise à jour avec succès.', 'meta' => []]);
+        return (new SkillAdminResource($skill))->additional([
+            'message' => 'Compétence mise à jour avec succès.',
+            'meta' => [],
+        ]);
     }
 
     public function destroy(Request $request, Skill $skill): Response
@@ -109,6 +128,7 @@ class SkillController extends Controller
         $this->authorize('delete', $skill);
         $this->skillService->archive($skill);
         $this->auditLogService->record('skill_archived', $skill, $request->user(), [], $request);
+
         return response()->noContent();
     }
 }
