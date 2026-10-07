@@ -21,12 +21,9 @@ use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Order\OrderService;
-
 use Database\Seeders\RbacSeeder;
-
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-
 use Tests\Support\FailingPaymentGateway;
 use Tests\TestCase;
 
