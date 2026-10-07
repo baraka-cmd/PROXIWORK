@@ -5,17 +5,15 @@
     'id' => null,
 ])
 
-@php($headingId = $id ?: 'empty-state-' . Illuminate\Support\Str::uuid())
-
 <section
     {{ $attributes->merge(['class' => 'state-empty']) }}
-    aria-labelledby="{{ $headingId }}"
+    aria-label="{{ $title }}"
 >
     <div class="state-empty__icon" aria-hidden="true">
         <i class="{{ $icon }}"></i>
     </div>
 
-    <h2 id="{{ $headingId }}">{{ $title }}</h2>
+    <h2>{{ $title }}</h2>
 
     @if ($description)
         <p>{{ $description }}</p>
