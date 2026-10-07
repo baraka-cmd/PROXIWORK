@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api\V1\Admin\Moderation;
 use App\Enums\ModerationActionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Moderation\ModerateReportRequest;
-use App\Http\Resources\Admin\Moderation\ModerationActionResource;
+use App\Http\Resources\AdminActionResource;
 use App\Models\Report;
 use App\Services\Admin\Moderation\ModerationService;
 
