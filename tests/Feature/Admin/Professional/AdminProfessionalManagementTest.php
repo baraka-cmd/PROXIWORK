@@ -87,6 +87,17 @@ class AdminProfessionalManagementTest extends TestCase
         ]);
     }
 
+    public function test_admin_cannot_suspend_own_professional_account(): void
+    {
+        $admin = $this->admin();
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $admin->id]);
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/admin/professionals/{$professional->id}/suspend")
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['professional']);
+    }
+
     public function test_non_admin_cannot_manage_professionals(): void
     {
         $client = User::factory()->create();
