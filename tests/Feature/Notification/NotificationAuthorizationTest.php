@@ -68,7 +68,7 @@ class NotificationAuthorizationTest extends TestCase
         $second->assignRole('client');
 
         Notification::send($first, new AccountActivityNotification('One', 'One', 'one'));
-        Notification::send($second, new \App\Notifications\AccountActivityNotification('Two', 'Two', 'two'));
+        Notification::send($second, new AccountActivityNotification('Two', 'Two', 'two'));
 
         $this->actingAs($first, 'sanctum')
             ->postJson('/api/v1/notifications/read-all')
