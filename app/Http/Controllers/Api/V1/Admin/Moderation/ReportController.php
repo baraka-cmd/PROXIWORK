@@ -11,16 +11,17 @@ use App\Http\Resources\Admin\Moderation\ReportResource;
 use App\Models\{Report,User};
 use App\Services\Admin\Moderation\ModerationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class ReportController extends Controller
 {
     public function __construct(private ModerationService $service) {}
 
-    public function store(StoreReportRequest $request): ReportResource
+    public function store(StoreReportRequest $request): JsonResponse
     {
         $this->authorize('create', Report::class);
         $report = $this->service->createReport($request->user(), $request->string('target_type')->toString(), $request->integer('target_id'), $request->string('reason_code')->toString(), $request->input('description'), $request);
-        return (new ReportResource($report))->additional(['message'=>'Signalement créé avec succès.','meta'=>[]]);
+        return (new ReportResource($report))->additional(['message'=>'Signalement créé avec succès.','meta'=>[]])->response()->setStatusCode(201);
     }
 
     public function index(Request $request)
