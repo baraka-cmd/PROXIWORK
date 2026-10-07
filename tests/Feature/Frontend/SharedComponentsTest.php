@@ -82,7 +82,7 @@ final class SharedComponentsTest extends TestCase
     {
         $html = Blade::render(
             '<x-input name="password" label="Mot de passe" type="password" autocomplete="current-password" />',
-            ['errors' => new ViewErrorBag()]
+            ['errors' => new ViewErrorBag]
         );
 
         $this->assertStringContainsString('data-password-toggle="password"', $html);
