@@ -8,6 +8,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
+use App\Events\OrderPaid;
 use App\Exceptions\PaymentConflictException;
 use App\Exceptions\PaymentGatewayUnavailableException;
 use App\Models\Order;
@@ -27,7 +28,9 @@ class PaymentService
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
         private readonly CommissionService $commissionService,
-    ) {}
+    ) {
+        // Dependencies are injected only.
+    }
 
     public function initiate(
         Order $order,
@@ -144,6 +147,8 @@ class PaymentService
 
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($lockedPayment, $transaction);
+
+                OrderPaid::dispatch($order);
             }
 
             return $lockedPayment->refresh()->load('transactions');
