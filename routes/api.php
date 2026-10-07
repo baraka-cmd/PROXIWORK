@@ -100,12 +100,12 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
         Route::prefix('reports')->group(function (): void {
-            Route::post('/', [ReportController::class, 'store'])->middleware('throttle:report-create');
+            Route::post('/', [ReportController::class, 'store'])->middleware('throttle:api');
         });
 
         Route::prefix('support/tickets')->group(function (): void {
             Route::get('/', [SupportTicketController::class, 'index']);
-            Route::post('/', [SupportTicketController::class, 'store'])->middleware('throttle:support-ticket-create');
+            Route::post('/', [SupportTicketController::class, 'store'])->middleware('throttle:api');
             Route::get('{ticket}', [SupportTicketController::class, 'show']);
             Route::post('{ticket}/messages', [SupportTicketController::class, 'message'])->middleware('throttle:message-send');
             Route::post('{ticket}/transition', [SupportTicketController::class, 'transition'])->middleware('permission:support.manage');
