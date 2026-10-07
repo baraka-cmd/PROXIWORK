@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\AdminAuthController;
-use App\Http\Controllers\Web\Admin\RoleController as AdminRoleController;
-use App\Http\Controllers\Web\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Web\Admin\RoleController;
+use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
@@ -55,7 +55,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     });
 
     Route::middleware(['auth', 'permission:admin.users.view'])->group(function (): void {
-        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     });
 
@@ -70,7 +70,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
     Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
         Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
-        Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');
+        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
     });
 
     Route::middleware(['auth', 'permission:rbac.manage'])->group(function (): void {
