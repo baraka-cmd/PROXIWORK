@@ -4,7 +4,9 @@
 @section('page_description','Catalogue des capacités utilisées par les rôles et les contrôles d’accès.')
 @section('page_actions')<span class="admin-page-badge"><i class="fa-solid fa-lock"></i> Catalogue système</span>@endsection
 @push('head')
-    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @endunless
 @endpush
 
 @section('content')
