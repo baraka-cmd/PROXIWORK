@@ -73,7 +73,7 @@ class SupportTicketService
 
             if (
                 $ticket->status === SupportTicketStatus::WAITING
-                && ! $user->hasPermissionTo('support.manage')
+                && $user->hasPermissionTo('support.manage') === false
             ) {
                 $next = SupportTicketStatus::IN_PROGRESS;
             }
@@ -109,7 +109,7 @@ class SupportTicketService
                 SupportTicketStatus::CLOSED => false,
             };
 
-            if (! $valid) {
+            if ($valid === false) {
                 throw ValidationException::withMessages([
                     'status' => 'Transition de ticket invalide.',
                 ]);
@@ -143,7 +143,7 @@ class SupportTicketService
         User $assignee,
         Request $request,
     ): SupportTicket {
-        if (! $assignee->isActive() || ! $assignee->hasPermissionTo('support.manage')) {
+        if ($assignee->isActive() === false || $assignee->hasPermissionTo('support.manage') === false) {
             throw ValidationException::withMessages([
                 'assigned_to' => 'Le destinataire doit être un agent support actif autorisé.',
             ]);
