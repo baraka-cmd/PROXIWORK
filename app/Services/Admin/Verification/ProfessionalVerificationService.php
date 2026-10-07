@@ -106,13 +106,14 @@ class ProfessionalVerificationService
                 ]);
             }
 
-            $target->update(['verification_status' => $to]);
+            $target->verification_status = $to->value;
+            $target->save();
 
             ProfessionalVerificationReview::create([
                 'professional_profile_id' => $target->getKey(),
                 'admin_user_id' => $admin->getAuthIdentifier(),
-                'from_status' => $from,
-                'to_status' => $to,
+                'from_status' => $from->value,
+                'to_status' => $to->value,
                 'reason_code' => $reasonCode,
                 'note' => $note,
             ]);
