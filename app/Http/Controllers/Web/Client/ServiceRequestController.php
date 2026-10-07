@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Client;
 
+use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceRequest;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
@@ -21,17 +22,14 @@ class ServiceRequestController extends Controller
 
     public function index(Request $request): View
     {
+        $status = $request->query('status');
+        $statusEnum = is_string($status) ? ServiceRequestStatus::tryFrom($status) : null;
+
         $requests = $this->serviceRequestService->clientRequests(
             $request->user(),
             12,
+            $statusEnum,
         );
-
-        $status = $request->query('status');
-        if (is_string($status) && $status !== '') {
-            $requests->getCollection()->transform(static function (ServiceRequest $item) use ($status) {
-                return $item;
-            });
-        }
 
         return view('client.requests.index', [
             'requests' => $requests,
