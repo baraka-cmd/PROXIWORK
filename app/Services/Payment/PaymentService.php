@@ -146,7 +146,7 @@ class PaymentService
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($lockedPayment, $transaction);
 
-                OrderPaid::dispatch($lockedOrder);
+                OrderPaid::dispatch($order);
             }
 
             return $lockedPayment->refresh()->load('transactions');
