@@ -1,5 +1,11 @@
 @extends('layouts.professional')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/professional/reviews-messages.css', 'resources/js/pages/professional/reviews-messages.js'])
+    @endunless
+@endpush
+
 @section('page_title', 'Conversation')
 @section('page_description', 'Échange sécurisé avec votre client.')
 
