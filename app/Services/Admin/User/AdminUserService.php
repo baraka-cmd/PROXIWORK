@@ -71,7 +71,8 @@ class AdminUserService
                 return $target->fresh(['roles']);
             }
 
-            $target->update(['account_status' => UserAccountStatus::SUSPENDED]);
+            $target->account_status = UserAccountStatus::SUSPENDED->value;
+            $target->save();
             $changed = true;
             $target->tokens()->delete();
 
@@ -106,7 +107,8 @@ class AdminUserService
                 return $target;
             }
 
-            $target->update(['account_status' => UserAccountStatus::ACTIVE]);
+            $target->account_status = UserAccountStatus::ACTIVE->value;
+            $target->save();
 
             $this->auditLogService->record(
                 'admin.user.activated',
