@@ -6,7 +6,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('ticket_messages', function (Blueprint $table): void {
@@ -15,6 +16,7 @@ return new class extends Migration {
             $table->foreignId('sender_id')->constrained('users')->restrictOnDelete();
             $table->text('body');
             $table->timestamps();
+
             $table->index(['ticket_id', 'id']);
             $table->index(['sender_id', 'created_at']);
         });
