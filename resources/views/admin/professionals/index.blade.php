@@ -4,7 +4,9 @@
 @section('page_description','Supervisez les comptes professionnels, leur activité et leur cycle de vérification.')
 @section('page_actions')<span class="admin-page-badge"><i class="fa-solid fa-user-tie"></i> Dossiers professionnels</span>@endsection
 @push('head')
-    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @endunless
 @endpush
 
 @section('content')
