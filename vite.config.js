@@ -15,6 +15,8 @@ export default defineConfig({
                 'resources/js/pages/auth/register.js',
                 'resources/css/pages/client/orders-payments.css',
                 'resources/js/pages/client/orders-payments.js',
+                'resources/css/pages/professional/wallet-withdrawals.css',
+                'resources/js/pages/professional/wallet-withdrawals.js',
             ],
             refresh: true,
             fonts: [
