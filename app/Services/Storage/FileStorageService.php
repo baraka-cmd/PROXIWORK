@@ -85,7 +85,7 @@ class FileStorageService
      */
     private function validate(UploadedFile $file, array $allowedExtensions, int $maxKb): void
     {
-        if (! $file->isValid()) {
+        if (!$file->isValid()) {
             throw ValidationException::withMessages([
                 'file' => 'The uploaded file is invalid.',
             ]);
