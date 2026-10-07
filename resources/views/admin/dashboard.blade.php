@@ -1,5 +1,11 @@
 @extends('layouts.admin')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/dashboard.css', 'resources/js/pages/admin/dashboard.js'])
+    @endunless
+@endpush
+
 @section('page_eyebrow', 'PILOTAGE DE LA PLATEFORME')
 @section('page_title', 'Dashboard')
 @section('page_description', 'Une vue opérationnelle de l’activité de PROXIWORK sur la période sélectionnée.')
