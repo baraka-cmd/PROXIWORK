@@ -1,4 +1,9 @@
 @extends('layouts.professional')
+@push('head')
+@unless(app()->environment('testing'))
+@vite(['resources/css/pages/professional/wallet-withdrawals.css','resources/js/pages/professional/wallet-withdrawals.js'])
+@endunless
+@endpush
 @section('page_eyebrow','FINANCES')
 @section('page_title','Retraits')
 @section('page_description','Suivez toutes vos demandes de retrait et leur état de traitement.')
