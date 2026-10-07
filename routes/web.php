@@ -8,6 +8,8 @@ use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\Client\OrderController;
 use App\Http\Controllers\Web\Client\PaymentController;
+use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
+use App\Http\Controllers\Web\Professional\RevenueController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
