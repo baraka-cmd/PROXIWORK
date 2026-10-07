@@ -18,6 +18,12 @@ class PaymentController extends Controller
 {
     public function __construct(private readonly PaymentService $payments) {}
 
+    public function index(Request $request)
+    {
+        $payments = Payment::query()->where('client_id', $request->user()->getKey())->with('order')->latest()->paginate(12)->withQueryString();
+        return view('client.payments.index', compact('payments'));
+    }
+
     public function show(Request $request, Payment $payment)
     {
         abort_unless($payment->client_id === $request->user()->getKey(), 403);
