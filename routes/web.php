@@ -27,6 +27,10 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('professional')->name('professional.')->middleware(['active.account', 'role:professional'])->group(function (): void {
+        Route::get('/', \App\Http\Controllers\Web\Professional\DashboardController::class)->name('dashboard');
+    });
 });
 
 Route::get('/reset-password/{token}', function (Request $request, string $token) {
