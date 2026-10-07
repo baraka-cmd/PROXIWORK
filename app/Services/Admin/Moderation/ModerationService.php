@@ -23,9 +23,7 @@ use Illuminate\Validation\ValidationException;
 
 class ModerationService
 {
-    public function __construct(private AuditLogService $audit)
-    {
-    }
+    public function __construct(private AuditLogService $audit) {}
 
     public function resolveTarget(string $type, int $id): Model
     {
