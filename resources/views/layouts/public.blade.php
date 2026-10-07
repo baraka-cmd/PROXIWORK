@@ -89,6 +89,27 @@
                             <span>Professionnels</span>
                         </a>
                     @endif
+
+                    @if (Route::has('public.services.index'))
+                        <a class="public-nav-link" data-nav-link href="{{ route('public.services.index') }}">
+                            <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                            <span>Services</span>
+                        </a>
+                    @endif
+
+                    @auth
+                        <a class="public-nav-link" data-nav-link href="{{ url('/dashboard') }}">
+                            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+                            <span>Mon espace</span>
+                        </a>
+                    @else
+                        @if (Route::has('login'))
+                            <a class="public-nav-link" href="{{ route('login') }}">
+                                <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                                <span>Connexion</span>
+                            </a>
+                        @endif
+                    @endauth
                 </nav>
             </div>
         </header>
