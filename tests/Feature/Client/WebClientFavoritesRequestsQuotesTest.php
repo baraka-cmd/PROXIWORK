@@ -108,6 +108,93 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->actingAs($other)->get('/client/quotes/'.$quotation->id)->assertForbidden();
     }
 
+
+    public function test_client_can_create_and_edit_a_draft_request(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = \App\Models\Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($client)
+            ->get('/client/requests/create?service='.$service->id)
+            ->assertOk()
+            ->assertViewIs('client.requests.create');
+
+        $response = $this->actingAs($client)->post('/client/requests', [
+            'service_id' => $service->id,
+            'title' => 'Créer une application de gestion',
+            'description' => 'Je souhaite une application complète pour gérer les activités de mon entreprise.',
+            'currency' => 'USD',
+        ])->assertRedirect();
+
+        $request = ServiceRequest::query()->where('client_id', $client->id)->latest('id')->firstOrFail();
+        $this->assertSame('draft', $request->status->value);
+
+        $this->actingAs($client)
+            ->get('/client/requests/'.$request->id.'/edit')
+            ->assertOk()
+            ->assertViewIs('client.requests.edit');
+
+        $this->actingAs($client)
+            ->put('/client/requests/'.$request->id, [
+                'title' => 'Application de gestion professionnelle',
+                'description' => 'Je souhaite une application complète avec tableau de bord et gestion des utilisateurs.',
+                'currency' => 'USD',
+            ])
+            ->assertRedirect('/client/requests/'.$request->id);
+
+        $this->assertDatabaseHas('service_requests', [
+            'id' => $request->id,
+            'title' => 'Application de gestion professionnelle',
+            'status' => 'draft',
+        ]);
+    }
+
+    public function test_client_cannot_edit_another_clients_request(): void
+    {
+        $owner = $this->client();
+        $other = $this->client();
+        $serviceRequest = ServiceRequest::factory()->create([
+            'client_id' => $owner->id,
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($other)->get('/client/requests/'.$serviceRequest->id.'/edit')->assertForbidden();
+        $this->actingAs($other)->put('/client/requests/'.$serviceRequest->id, [
+            'title' => 'Tentative non autorisée',
+            'description' => 'Cette modification ne doit jamais être appliquée au compte propriétaire.',
+            'currency' => 'USD',
+        ])->assertForbidden();
+    }
+
+    public function test_expired_current_offer_cannot_be_accepted(): void
+    {
+        $client = $this->client();
+        $serviceRequest = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'status' => 'quoted',
+        ]);
+        $quotation = Quotation::factory()->create([
+            'service_request_id' => $serviceRequest->id,
+            'status' => 'sent',
+        ]);
+        $offer = \App\Models\QuotationOffer::factory()->create([
+            'quotation_id' => $quotation->id,
+            'valid_until' => now()->subMinute(),
+        ]);
+        $quotation->forceFill(['current_offer_id' => $offer->id])->save();
+
+        $this->actingAs($client)
+            ->post('/client/quotes/'.$quotation->id.'/accept')
+            ->assertSessionHasErrors('valid_until');
+    }
+
     private function client(): User
     {
         $user = User::factory()->create();
