@@ -54,9 +54,10 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
             ->middleware('permission:admin.dashboard.view')
             ->name('dashboard');
 
-        Route::middleware('permission:rbac.view')->group(function (): void {
-        Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
+
+        Route::middleware('permission:rbac.view')->group(function (): void {
+            Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
         });
     });
 });
