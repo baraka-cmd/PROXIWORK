@@ -22,7 +22,7 @@ class AdminUserService
     {
         $query = User::query()->with('roles');
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = trim($filters['search']);
             $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
