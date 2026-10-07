@@ -13,6 +13,10 @@ export default defineConfig({
                 'resources/js/pages/auth/login.js',
                 'resources/css/pages/auth/register.css',
                 'resources/js/pages/auth/register.js',
+                'resources/css/pages/public/search.css',
+                'resources/js/pages/public/search.js',
+                'resources/css/pages/public/professionals.css',
+                'resources/js/pages/public/professionals.js',
             ],
             refresh: true,
             fonts: [
