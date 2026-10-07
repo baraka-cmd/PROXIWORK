@@ -151,7 +151,6 @@ Route::prefix('v1')->group(function (): void {
                 Route::post('{report}/actions', [ModerationActionController::class, 'store'])->middleware('permission:reports.manage');
             });
 
-
             Route::prefix('users')->group(function (): void {
                 Route::get('/', [AdminUserController::class, 'index'])->middleware('permission:admin.users.view');
                 Route::get('{user}', [AdminUserController::class, 'show'])->middleware('permission:admin.users.view');
