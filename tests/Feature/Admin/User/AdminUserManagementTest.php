@@ -88,7 +88,7 @@ class AdminUserManagementTest extends TestCase
             'id' => $user->id,
             'account_status' => 'suspended',
         ]);
-        $this->assertDatabaseCount('personal_access_tokens', 1);
+        $this->assertDatabaseCount('personal_access_tokens', 0);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/users/{$user->id}/activate")
