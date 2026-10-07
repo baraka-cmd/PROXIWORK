@@ -30,13 +30,14 @@ class AdminUserService
             });
         }
 
-        $query->when($filters['role'] ?? null, fn ($q, $role) =>
-            $q->whereHas('roles', fn ($roles) => $roles->where('name', $role))
-        );
+        if (($role = $filters['role'] ?? null) !== null) {
+            $query->whereHas('roles', fn ($roles) => $roles->where('name', $role));
+        }
 
-        $query->when($filters['account_status'] ?? null, fn ($q, $status) =>
-            $q->where('account_status', $status)
-        );
+        if (($status = $filters['account_status'] ?? null) !== null) {
+            $status = $status instanceof \BackedEnum ? $status->value : $status;
+            $query->where('account_status', $status);
+        }
 
         if (array_key_exists('email_verified', $filters)) {
             $filters['email_verified']
