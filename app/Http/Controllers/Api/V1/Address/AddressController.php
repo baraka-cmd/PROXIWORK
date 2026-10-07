@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Address;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Address\StoreAddressRequest;
 use App\Http\Requests\Address\UpdateAddressRequest;
-use App\Http\Resources\AddressResource;
+use App\Http\Resources\Address\AddressResource;
 use App\Models\Address;
 use App\Notifications\AccountActivityNotification;
-use App\Services\AddressService;
+use App\Services\Address\AddressService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -63,7 +63,6 @@ class AddressController extends Controller
         $this->authorize('view', $address);
 
         return (new AddressResource($address))->additional([
-            'success' => true,
             'message' => 'Adresse récupérée avec succès.',
             'meta' => [],
         ]);
@@ -76,7 +75,6 @@ class AddressController extends Controller
         $address->update($request->validated());
 
         return (new AddressResource($address->refresh()))->additional([
-            'success' => true,
             'message' => 'Adresse mise à jour avec succès.',
             'meta' => [],
         ]);
@@ -89,7 +87,6 @@ class AddressController extends Controller
         $address = $this->addressService->setDefault($request->user(), $address);
 
         return (new AddressResource($address))->additional([
-            'success' => true,
             'message' => 'Adresse définie comme adresse par défaut.',
             'meta' => [],
         ]);

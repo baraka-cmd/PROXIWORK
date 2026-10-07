@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\V1;
+namespace App\Http\Controllers\Api\V1\Profile;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
-use App\Http\Resources\ProfileResource;
+use App\Http\Resources\Profile\ProfileResource;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
