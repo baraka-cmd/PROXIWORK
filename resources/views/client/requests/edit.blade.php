@@ -32,11 +32,11 @@
             <h2>{{ $serviceRequest->service?->title }}</h2>
             <p>{{ $serviceRequest->service?->short_description }}</p>
             <div class="client-request-professional">
-                <div class="client-avatar">{{ strtoupper(substr($service->professionalProfile?->user?->name ?? 'P', 0, 1)) }}</div>
+                <div class="client-avatar">{{ strtoupper(substr($serviceRequest->professional?->user?->name ?? 'P', 0, 1)) }}</div>
                 <div><strong>{{ $serviceRequest->professional?->user?->name }}</strong><span>{{ $serviceRequest->professional?->professional_title }}</span></div>
             </div>
             <dl class="client-definition-list">
-                <div><dt>Tarification</dt><dd>{{ ucfirst($service->pricing_type->value) }}</dd></div>
+                <div><dt>Tarification</dt><dd>{{ ucfirst($serviceRequest->service?->pricing_type?->value) }}</dd></div>
                 <div><dt>Devise</dt><dd>{{ $serviceRequest->service?->currency }}</dd></div>
                 <div><dt>Durée</dt><dd>{{ $serviceRequest->service?->estimated_duration_minutes ? $serviceRequest->service->estimated_duration_minutes.' min' : 'À définir' }}</dd></div>
             </dl>
