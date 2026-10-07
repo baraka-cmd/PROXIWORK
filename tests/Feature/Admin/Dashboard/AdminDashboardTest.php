@@ -44,7 +44,7 @@ class AdminDashboardTest extends TestCase
         User::factory()->create(['created_at' => '2026-10-01 10:00:00']);
         User::factory()->create(['created_at' => '2026-09-01 10:00:00']);
         $professional = ProfessionalProfile::factory()->create(['created_at' => '2026-10-03 10:00:00']);
-        Service::factory()->for(\$professional, 'professionalProfile')->create(['created_at' => '2026-10-04 10:00:00']);
+        Service::factory()->for($professional, 'professionalProfile')->create(['created_at' => '2026-10-04 10:00:00']);
 
         $this->actingAs($admin, 'sanctum')
             ->getJson('/api/v1/admin/dashboard?from=2026-10-01T00:00:00Z&to=2026-10-31T23:59:59Z')
