@@ -70,7 +70,7 @@ class WebProfessionalDashboardTest extends TestCase
             ->assertSee('Services')
             ->assertSee('4,8')
             ->assertSee('5 avis')
-            ->assertSee('Créez votre premier service');
+            ->assertSee('Publiez au moins un service pour apparaître dans le catalogue.');
     }
 
     public function test_suspended_professional_cannot_access_dashboard(): void
