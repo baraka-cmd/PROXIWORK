@@ -2,6 +2,7 @@
     'title' => 'Aucun résultat',
     'description' => null,
     'icon' => 'fa-solid fa-inbox',
+    'id' => null,
 ])
 
 <section
@@ -12,7 +13,7 @@
         <i class="{{ $icon }}"></i>
     </div>
 
-    <h2 id="empty-state-title">{{ $title }}</h2>
+    <h2 id="{{ $headingId }}">{{ $title }}</h2>
 
     @if ($description)
         <p>{{ $description }}</p>
