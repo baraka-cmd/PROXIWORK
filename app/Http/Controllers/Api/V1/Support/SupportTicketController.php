@@ -11,6 +11,7 @@ use App\Http\Resources\Support\SupportTicketResource;
 use App\Models\{SupportTicket,User};
 use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class SupportTicketController extends Controller
 {
@@ -27,11 +28,12 @@ class SupportTicketController extends Controller
         return SupportTicketResource::collection($query->paginate($perPage)->withQueryString())->additional(['message'=>'Tickets récupérés avec succès.','meta'=>[]]);
     }
 
-    public function store(StoreSupportTicketRequest $request): SupportTicketResource
+    public function store(StoreSupportTicketRequest $request): JsonResponse
     {
         $this->authorize('create',SupportTicket::class);
         $data=$request->validated(); $data['priority']=$data['priority']??'normal';
-        return new SupportTicketResource($this->service->create($request->user(),$data,$request));
+        $ticket=$this->service->create($request->user(),$data,$request);
+        return (new SupportTicketResource($ticket))->additional(['message'=>'Ticket créé avec succès.','meta'=>[]])->response()->setStatusCode(201);
     }
 
     public function show(Request $request,SupportTicket $ticket): SupportTicketResource
