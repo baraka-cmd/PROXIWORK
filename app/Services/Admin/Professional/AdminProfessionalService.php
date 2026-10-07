@@ -63,7 +63,8 @@ class AdminProfessionalService
 
     public function suspend(ProfessionalProfile $professional, User $actor, Request $request): ProfessionalProfile
     {
-        $updated = DB::transaction(function () use ($professional, $actor, $request): ProfessionalProfile {
+        $changed = false;
+        $updated = DB::transaction(function () use ($professional, $actor, $request, &$changed): ProfessionalProfile {
             $target = ProfessionalProfile::query()->lockForUpdate()->with('user')->findOrFail($professional->getKey());
 
             if ($target->user->getKey() === $actor->getKey()) {
@@ -78,6 +79,7 @@ class AdminProfessionalService
 
             $target->user->update(['account_status' => UserAccountStatus::SUSPENDED]);
             $target->user->tokens()->delete();
+            $changed = true;
 
             $this->auditLogService->record(
                 'admin.professional.suspended',
@@ -90,11 +92,13 @@ class AdminProfessionalService
             return $target->fresh(['user.roles']);
         });
 
-        $updated->user->notify(new AccountActivityNotification(
-            'Compte professionnel suspendu',
-            'Votre compte professionnel PROXIWORK a été suspendu par l’administration.',
-            'professional_account_suspended',
-        ));
+        if ($changed) {
+            $updated->user->notify(new AccountActivityNotification(
+                'Compte professionnel suspendu',
+                'Votre compte professionnel PROXIWORK a été suspendu par l’administration.',
+                'professional_account_suspended',
+            ));
+        }
 
         return $updated;
     }
