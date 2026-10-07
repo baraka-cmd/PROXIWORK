@@ -13,6 +13,9 @@ export default defineConfig({
                 'resources/js/pages/auth/login.js',
                 'resources/css/pages/auth/register.css',
                 'resources/js/pages/auth/register.js',
+                'resources/css/pages/client/profile.css',
+                'resources/css/pages/client/addresses.css',
+                'resources/js/pages/client/addresses.js',
             ],
             refresh: true,
             fonts: [
