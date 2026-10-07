@@ -14,12 +14,26 @@ use Illuminate\Http\JsonResponse;
 
 class ModerationActionController extends Controller
 {
-    public function __construct(private ModerationService $service) {}
+    public function __construct(private ModerationService $service)
+    {
+    }
 
     public function store(ModerateReportRequest $request, Report $report): JsonResponse
     {
         $this->authorize('manage', $report);
-        $action=$this->service->act($request->user(),$report,ModerationActionType::from($request->string('action_type')->toString()),$request->input('reason_code'),$request->input('note'),$request);
-        return (new ModerationActionResource($action))->additional(['message'=>'Action de modération appliquée avec succès.','meta'=>[]]);
+
+        $action = $this->service->act(
+            $request->user(),
+            $report,
+            ModerationActionType::from($request->string('action_type')->toString()),
+            $request->input('reason_code'),
+            $request->input('note'),
+            $request,
+        );
+
+        return (new AdminActionResource($action))->additional([
+            'message' => 'Action de modération appliquée avec succès.',
+            'meta' => [],
+        ]);
     }
 }
