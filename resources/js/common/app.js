@@ -57,12 +57,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-nav-link]').forEach((link) => {
         const linkPath = new URL(link.href, window.location.origin).pathname.replace(/\/$/, '') || '/';
 
-        if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
-            link.classList.add('is-active');
-            link.setAttribute('aria-current', 'page');
-        }
+        const exactMatch = link.hasAttribute('data-nav-exact') && currentPath === linkPath;
+        const prefixMatch = !link.hasAttribute('data-nav-exact') && linkPath !== '/' && currentPath.startsWith(linkPath);
+        const rootMatch = linkPath === '/' && currentPath === '/';
 
-        if (linkPath === '/' && currentPath === '/') {
+        if (exactMatch || prefixMatch || rootMatch) {
             link.classList.add('is-active');
             link.setAttribute('aria-current', 'page');
         }
