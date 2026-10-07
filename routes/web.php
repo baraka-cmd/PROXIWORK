@@ -40,6 +40,18 @@ Route::get('/reset-password/{token}', function (Request $request, string $token)
     ]);
 })->middleware('guest')->name('password.reset');
 
+Route::prefix('professional')->name('professional.')
+    ->middleware(['auth', 'active.account', 'role:professional'])
+    ->group(function (): void {
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])
+            ->middleware('throttle:10,1')
+            ->name('notifications.read-all');
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])
+            ->middleware('throttle:20,1')
+            ->name('notifications.read');
+    });
+
 Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('guest')->group(function (): void {
         Route::get('login', [AdminAuthController::class, 'create'])->name('login');
