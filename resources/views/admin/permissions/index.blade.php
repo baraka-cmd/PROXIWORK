@@ -3,6 +3,10 @@
 @section('page_title','Permissions')
 @section('page_description','Catalogue des capacités utilisées par les rôles et les contrôles d’accès.')
 @section('page_actions')<span class="admin-page-badge"><i class="fa-solid fa-lock"></i> Catalogue système</span>@endsection
+@push('head')
+    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+@endpush
+
 @section('content')
 <section class="admin-card">
 <div class="admin-card__header"><div><span class="admin-card__eyebrow">Recherche</span><h3>Explorer les permissions</h3></div><a class="admin-link" href="{{ route('admin.permissions.index') }}">Réinitialiser</a></div>
