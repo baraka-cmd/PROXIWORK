@@ -1,0 +1,8 @@
+@extends('layouts.client')
+@section('title','Payer la commande')
+@section('content')
+@push('head')@vite('resources/css/pages/client/orders-payments.css')@endpush
+<div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">PAIEMENT SÉCURISÉ</p><h1>Payer {{ $order->order_number ?? '#'.$order->id }}</h1><p>{{ $order->items->first()?->service_title }}</p></div></div>
+<section class="client-panel payment-checkout"><span class="client-module__eyebrow">MONTANT</span><strong class="payment-amount">{{ number_format((float)$order->total,2,',',' ') }} {{ $order->currency }}</strong>
+<form method="POST" action="{{ route('client.payments.store',$order) }}" data-payment-form>@csrf<input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}"><label>Méthode<select name="method" required><option value="">Choisir</option>@foreach($methods as $method)<option value="{{ $method->value }}">{{ ucfirst(str_replace('_',' ',$method->value)) }}</option>@endforeach</select></label><label>Fournisseur<select name="provider" required><option value="">Choisir</option>@foreach($providers as $provider)<option value="{{ $provider->value }}">{{ ucfirst(str_replace('_',' ',$provider->value)) }}</option>@endforeach</select></label><button class="btn btn-primary" type="submit">Payer maintenant</button></form></section><a class="btn btn-secondary" href="{{ route('client.orders.show',$order) }}">Annuler</a></div>
+@endsection
