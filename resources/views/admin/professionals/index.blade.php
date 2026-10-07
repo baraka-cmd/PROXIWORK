@@ -1,0 +1,29 @@
+@extends('layouts.admin')
+@section('page_eyebrow','PLATEFORME')
+@section('page_title','Professionnels')
+@section('page_description','Supervisez les comptes professionnels, leur activité et leur cycle de vérification.')
+@section('page_actions')<span class="admin-page-badge"><i class="fa-solid fa-user-tie"></i> Dossiers professionnels</span>@endsection
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @endunless
+@endpush
+
+@section('content')
+@if(session('success'))<div class="admin-alert admin-alert--success" role="status"><i class="fa-solid fa-circle-check"></i>{{ session('success') }}</div>@endif
+<section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Recherche</span><h3>Filtrer les professionnels</h3></div><a class="admin-link" href="{{ route('admin.professionals.index') }}">Réinitialiser</a></div>
+<form method="GET" class="admin-filter-grid">
+<label class="admin-field admin-field--wide"><span>Recherche</span><div class="admin-input-icon"><i class="fa-solid fa-magnifying-glass"></i><input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nom, e-mail ou titre professionnel"></div></label>
+<label class="admin-field"><span>Vérification</span><select name="verification_status"><option value="">Tous</option>@foreach(['pending'=>'En attente','under_review'=>'En revue','verified'=>'Vérifié','rejected'=>'Rejeté'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['verification_status'] ?? '') === $v)>{{ $l }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Compte</span><select name="account_status"><option value="">Tous</option><option value="active" @selected(($filters['account_status'] ?? '') === 'active')>Actif</option><option value="suspended" @selected(($filters['account_status'] ?? '') === 'suspended')>Suspendu</option></select></label>
+<label class="admin-field"><span>Disponibilité</span><select name="availability_status"><option value="">Toutes</option><option value="available" @selected(($filters['availability_status'] ?? '') === 'available')>Disponible</option><option value="unavailable" @selected(($filters['availability_status'] ?? '') === 'unavailable')>Indisponible</option><option value="unknown" @selected(($filters['availability_status'] ?? '') === 'unknown')>Inconnue</option></select></label>
+<label class="admin-field"><span>Du</span><input type="date" name="created_from" value="{{ $filters['created_from'] ?? '' }}"></label><label class="admin-field"><span>Au</span><input type="date" name="created_to" value="{{ $filters['created_to'] ?? '' }}"></label>
+<label class="admin-field"><span>Trier</span><select name="sort"><option value="-created_at" @selected(($filters['sort'] ?? '-created_at') === '-created_at')>Plus récents</option><option value="created_at" @selected(($filters['sort'] ?? '') === 'created_at')>Plus anciens</option><option value="-rating" @selected(($filters['sort'] ?? '') === '-rating')>Meilleures notes</option><option value="rating" @selected(($filters['sort'] ?? '') === 'rating')>Notes croissantes</option></select></label>
+<div class="admin-filter-actions"><button class="button button--primary" type="submit"><i class="fa-solid fa-filter"></i> Appliquer</button></div>
+</form></section>
+<section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Dossiers</span><h3>{{ $professionals->total() }} professionnel{{ $professionals->total()>1?'s':'' }}</h3></div></div>
+<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Professionnel</th><th>Vérification</th><th>Compte</th><th>Disponibilité</th><th>Activité</th><th><span class="sr-only">Actions</span></th></tr></thead><tbody>
+@forelse($professionals as $p)<tr><td><a class="admin-user-cell" href="{{ route('admin.professionals.show',$p) }}"><span class="admin-avatar">{{ mb_strtoupper(mb_substr($p->user->name ?? '?',0,1)) }}</span><span><strong>{{ $p->user->name ?? '—' }}</strong><small>{{ $p->professional_title ?: ($p->user->email ?? '—') }}</small></span></a></td><td><span class="admin-status admin-status--{{ $p->verification_status?->value }}">{{ ['pending'=>'En attente','under_review'=>'En revue','verified'=>'Vérifié','rejected'=>'Rejeté'][$p->verification_status?->value] ?? '—' }}</span></td><td><span class="admin-status admin-status--{{ $p->user->account_status?->value }}">{{ $p->user->account_status?->value === 'active' ? 'Actif' : 'Suspendu' }}</span></td><td>{{ ['available'=>'Disponible','unavailable'=>'Indisponible','unknown'=>'Inconnue'][$p->availability_status?->value] ?? '—' }}</td><td><span class="admin-metrics-inline"><span>{{ $p->services_count }} services</span><span>{{ $p->reviews_count }} avis</span><span>{{ $p->rating_average }}/5</span></span></td><td class="admin-table__actions"><a class="admin-icon-button" href="{{ route('admin.professionals.show',$p) }}" aria-label="Voir le dossier"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></td></tr>
+@empty<tr><td colspan="6"><div class="admin-empty"><i class="fa-solid fa-user-tie"></i><strong>Aucun professionnel trouvé</strong><span>Modifiez vos filtres.</span></div></td></tr>@endforelse
+</tbody></table></div>@if($professionals->hasPages())<div class="admin-pagination">{{ $professionals->links() }}</div>@endif</section>
+@endsection

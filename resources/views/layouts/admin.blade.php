@@ -27,10 +27,12 @@
                 <span>Utilisateurs</span>
             </a>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/professionals') }}">
-                <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
-                <span>Professionnels</span>
-            </a>
+            @can('viewAny', App\Models\ProfessionalProfile::class)
+                <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/professionals') }}">
+                    <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
+                    <span>Professionnels</span>
+                </a>
+            @endcan
 
             <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/categories') }}">
                 <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
@@ -61,10 +63,12 @@
                 <span>Rôles</span>
             </a>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/permissions') }}">
-                <i class="fa-solid fa-key" aria-hidden="true"></i>
-                <span>Permissions</span>
-            </a>
+            @can('viewAny', App\Models\Permission::class)
+                <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/permissions') }}">
+                    <i class="fa-solid fa-key" aria-hidden="true"></i>
+                    <span>Permissions</span>
+                </a>
+            @endcan
 
             <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/verification') }}">
                 <i class="fa-solid fa-user-check" aria-hidden="true"></i>
