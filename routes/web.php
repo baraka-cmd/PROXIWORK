@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
@@ -48,8 +49,14 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
             ->name('login.store');
     });
 
-    Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
+    Route::middleware('auth')->group(function (): void {
+        Route::get('dashboard', [DashboardController::class, 'index'])
+            ->middleware('permission:admin.dashboard.view')
+            ->name('dashboard');
+
+        Route::middleware('permission:rbac.view')->group(function (): void {
         Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
+        });
     });
 });
