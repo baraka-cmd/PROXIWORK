@@ -12,7 +12,7 @@
 <article class="client-panel notification-item {{ $notification->read_at ? 'is-read' : 'is-unread' }}">
 <div class="notification-icon" aria-hidden="true"><i class="fa-solid {{ match($notification->data['action'] ?? '') { 'message'=>'fa-envelope', 'payment'=>'fa-credit-card', 'order'=>'fa-box', 'quotation'=>'fa-file-invoice-dollar', 'service_request'=>'fa-list-check', 'review'=>'fa-star', default=>'fa-bell' } }}"></i></div>
 <div class="notification-body"><div class="notification-heading"><h2>{{ $notification->data['title'] ?? 'Notification' }}</h2>@unless($notification->read_at)<span class="unread-dot" aria-label="Non lue"></span>@endunless</div><p>{{ $notification->data['message'] ?? '' }}</p><time datetime="{{ optional($notification->created_at)->toISOString() }}">{{ optional($notification->created_at)->diffForHumans() }}</time>
-@if(!$notification->read_at)<form method="POST" action="{{ route('client.notifications.read',$notification->id) }}"><@csrf><button class="link-button" type="submit">Marquer comme lue</button></form>@endif</div>
+@if(!$notification->read_at)<form method="POST" action="{{ route('client.notifications.read',$notification->id) }}">@csrf<button class="link-button" type="submit">Marquer comme lue</button></form>@endif</div>
 </article>
 @endforeach
 </section>
