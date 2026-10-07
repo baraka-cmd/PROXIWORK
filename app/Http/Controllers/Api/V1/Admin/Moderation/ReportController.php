@@ -19,9 +19,7 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function __construct(private ModerationService $service)
-    {
-    }
+    public function __construct(private ModerationService $service) {}
 
     public function store(StoreReportRequest $request): JsonResponse
     {
