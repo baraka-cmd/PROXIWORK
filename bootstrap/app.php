@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -28,6 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserHasRole::class,
             'permission' => EnsureUserHasPermission::class,
             'security.headers' => AddSecurityHeaders::class,
+            'active.account' => EnsureUserIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -38,9 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
-            }
+            if (! $isApi($request)) return null;
 
             return response()->json([
                 'message' => 'Les données fournies sont invalides.',
@@ -49,9 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
-            }
+            if (! $isApi($request)) return null;
 
             return response()->json([
                 'message' => 'Authentification échouée ou requise.',
@@ -60,9 +58,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
-            }
+            if (! $isApi($request)) return null;
 
             return response()->json([
                 'message' => 'Action non autorisée.',
@@ -71,9 +67,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
-            }
+            if (! $isApi($request)) return null;
 
             return response()->json([
                 'message' => 'Ressource introuvable.',
@@ -82,9 +76,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
-            }
+            if (! $isApi($request)) return null;
 
             $status = $e->getStatusCode();
 
@@ -99,9 +91,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
-            }
+            if (! $isApi($request)) return null;
 
             return response()->json([
                 'message' => 'Une erreur interne est survenue.',
