@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Api\V1\Notification;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Notification\UpdateNotificationPreferenceRequest;
-use App\Models\NotificationPreference;
 use App\Http\Resources\Notification\NotificationPreferenceResource;
 use App\Http\Resources\Notification\NotificationResource;
+use App\Models\NotificationPreference;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
