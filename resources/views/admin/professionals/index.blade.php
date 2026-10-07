@@ -3,6 +3,10 @@
 @section('page_title','Professionnels')
 @section('page_description','Supervisez les comptes professionnels, leur activité et leur cycle de vérification.')
 @section('page_actions')<span class="admin-page-badge"><i class="fa-solid fa-user-tie"></i> Dossiers professionnels</span>@endsection
+@push('head')
+    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+@endpush
+
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status"><i class="fa-solid fa-circle-check"></i>{{ session('success') }}</div>@endif
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Recherche</span><h3>Filtrer les professionnels</h3></div><a class="admin-link" href="{{ route('admin.professionals.index') }}">Réinitialiser</a></div>
