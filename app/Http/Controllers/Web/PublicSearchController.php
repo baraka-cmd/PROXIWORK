@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Http\Requests\ProfessionalSearchRequest;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
@@ -16,27 +17,9 @@ class PublicSearchController
         private readonly ProfessionalSearchService $searchService,
     ) {}
 
-    public function search(Request $request): View
+    public function search(ProfessionalSearchRequest $request): View
     {
-        $filters = $request->validate([
-            'profession' => ['sometimes', 'string', 'max:120'],
-            'search' => ['sometimes', 'string', 'max:120'],
-            'category' => ['sometimes', 'string', 'max:180'],
-            'skills' => ['sometimes', 'array', 'max:10'],
-            'skills.*' => ['string', 'max:180'],
-            'skills_mode' => ['sometimes', 'in:any,all'],
-            'city' => ['sometimes', 'string', 'max:120'],
-            'province' => ['sometimes', 'string', 'max:120'],
-            'min_price' => ['sometimes', 'numeric', 'min:0'],
-            'max_price' => ['sometimes', 'numeric', 'min:0'],
-            'currency' => ['sometimes', 'string', 'size:3', 'regex:/^[A-Z]{3}$/i'],
-            'rating' => ['sometimes', 'numeric', 'min:0', 'max:5'],
-            'availability' => ['sometimes', 'in:unknown,available,unavailable'],
-            'verification' => ['sometimes', 'in:pending,under_review,verified,rejected'],
-            'sort' => ['sometimes', 'in:relevance,rating,price_low,price_high,newest'],
-        ]);
-
-        $filters = $this->normalizeFilters($filters);
+        $filters = $request->validated();
         $hasCriteria = $this->hasSearchCriteria($filters);
 
         return view('public.search', [
@@ -46,27 +29,9 @@ class PublicSearchController
         ]);
     }
 
-    public function professionals(Request $request): View
+    public function professionals(ProfessionalSearchRequest $request): View
     {
-        $filters = $request->validate([
-            'profession' => ['sometimes', 'string', 'max:120'],
-            'search' => ['sometimes', 'string', 'max:120'],
-            'category' => ['sometimes', 'string', 'max:180'],
-            'skills' => ['sometimes', 'array', 'max:10'],
-            'skills.*' => ['string', 'max:180'],
-            'skills_mode' => ['sometimes', 'in:any,all'],
-            'city' => ['sometimes', 'string', 'max:120'],
-            'province' => ['sometimes', 'string', 'max:120'],
-            'min_price' => ['sometimes', 'numeric', 'min:0'],
-            'max_price' => ['sometimes', 'numeric', 'min:0'],
-            'currency' => ['sometimes', 'string', 'size:3', 'regex:/^[A-Z]{3}$/i'],
-            'rating' => ['sometimes', 'numeric', 'min:0', 'max:5'],
-            'availability' => ['sometimes', 'in:unknown,available,unavailable'],
-            'verification' => ['sometimes', 'in:pending,under_review,verified,rejected'],
-            'sort' => ['sometimes', 'in:relevance,rating,price_low,price_high,newest'],
-        ]);
-
-        $filters = $this->normalizeFilters($filters);
+        $filters = $request->validated();
 
         return view('public.professionals.index', [
             'professionals' => $this->searchService->search($filters),
@@ -89,28 +54,18 @@ class PublicSearchController
         ];
     }
 
-    private function normalizeFilters(array $filters): array
+    private function filterOptions(): array
     {
-        foreach (['profession', 'search', 'category', 'city', 'province'] as $field) {
-            if (isset($filters[$field])) {
-                $filters[$field] = trim((string) $filters[$field]);
-            }
-        }
-
-        if (isset($filters['currency'])) {
-            $filters['currency'] = strtoupper(trim((string) $filters['currency']));
-        }
-
-        if (isset($filters['skills'])) {
-            $filters['skills'] = collect($filters['skills'])
-                ->map(fn ($skill): string => trim((string) $skill))
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
-        }
-
-        return $filters;
+        return [
+            'categories' => Category::query()
+                ->active()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']),
+            'skills' => Skill::query()
+                ->active()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']),
+        ];
     }
 
     private function hasSearchCriteria(array $filters): bool
