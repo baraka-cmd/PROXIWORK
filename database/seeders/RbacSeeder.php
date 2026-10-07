@@ -36,6 +36,7 @@ class RbacSeeder extends Seeder
             'reports.manage' => ['Signalements - traiter', 'reports', 'Traiter les signalements.'],
             'support.manage' => ['Support - administrer', 'support', 'Gérer les tickets de support.'],
             'audit.view' => ['Audit - consulter', 'audit', 'Consulter les journaux d’audit.'],
+            'admin.dashboard.view' => ['Dashboard administrateur - consulter', 'admin', 'Consulter les statistiques administratives.'],
         ];
 
         foreach ($permissions as $name => [$displayName, $group, $description]) {
