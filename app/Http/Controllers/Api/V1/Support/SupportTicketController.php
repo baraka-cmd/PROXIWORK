@@ -30,7 +30,7 @@ class SupportTicketController extends Controller
         $query = SupportTicket::query()
             ->with(['user:id,name,email', 'assignee:id,name'])
             ->when(
-                ! $user->hasPermissionTo('support.manage'),
+                !$user->hasPermissionTo('support.manage'),
                 fn ($query) => $query->where('user_id', $user->id)
             )
             ->when(
