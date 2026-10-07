@@ -12,6 +12,7 @@ use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class ReviewService
@@ -186,7 +187,7 @@ class ReviewService
         ?ReviewStatus $status = null,
         string $sort = 'latest',
         int $perPage = 15,
-    ) {
+    ): LengthAwarePaginator {
         if ($rating !== null && ($rating < 1 || $rating > 5)) {
             throw ValidationException::withMessages([
                 'rating' => 'La note doit être comprise entre 1 et 5.',
