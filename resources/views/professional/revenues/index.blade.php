@@ -2,7 +2,10 @@
 
 @section('title', 'Revenus')
 
-@section('dashboard_content')
+@section('content')
+    @push('head')
+        @vite(['resources/css/pages/professional/orders-revenues.css', 'resources/js/pages/professional/orders-revenues.js'])
+    @endpush
     <div class="page-header">
         <div>
             <p class="page-kicker">FINANCES</p>
