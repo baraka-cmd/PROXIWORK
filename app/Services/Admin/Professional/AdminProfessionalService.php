@@ -26,7 +26,7 @@ class AdminProfessionalService
             ->with(['user.roles'])
             ->withCount(['services', 'reviews', 'serviceRequests']);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = trim($filters['search']);
             $query->where(function ($q) use ($search): void {
                 $q->where('professional_title', 'like', "%{$search}%")
