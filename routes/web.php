@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\Admin\RoleController as AdminRoleController;
-use App\Http\Controllers\Web\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
@@ -44,7 +41,7 @@ Route::get('/reset-password/{token}', function (Request $request, string $token)
 
 Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('guest')->group(function (): void {
-        Route::get('login', [AdminAuthController::class, 'create'])->name('login');
+        Route::get('login', [\App\Http\Controllers\Web\AdminAuthController::class, 'create'])->name('login');
         Route::post('login', [AdminAuthController::class, 'store'])
             ->middleware('throttle:admin-login')
             ->name('login.store');
@@ -55,7 +52,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     });
 
     Route::middleware(['auth', 'permission:admin.users.view'])->group(function (): void {
-        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('users', [\App\Http\Controllers\Web\Admin\UserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
     });
 
@@ -70,7 +67,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
     Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
         Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
-        Route::get('roles', [AdminRoleController::class, 'index'])->name('roles.index');
+        Route::get('roles', [\App\Http\Controllers\Web\Admin\RoleController::class, 'index'])->name('roles.index');
     });
 
     Route::middleware(['auth', 'permission:rbac.manage'])->group(function (): void {
