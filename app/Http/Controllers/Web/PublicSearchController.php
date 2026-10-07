@@ -8,7 +8,6 @@ use App\Http\Requests\ProfessionalSearchRequest;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PublicSearchController
@@ -54,7 +53,7 @@ class PublicSearchController
         ];
     }
 
-    private function filterOptions(): array
+    private
     {
         return [
             'categories' => Category::query()
