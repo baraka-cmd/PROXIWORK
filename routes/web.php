@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\UserController;
+use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
@@ -44,7 +44,7 @@ Route::get('/reset-password/{token}', function (Request $request, string $token)
 
 Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('guest')->group(function (): void {
-        Route::get('login', [\App\Http\Controllers\Web\AdminAuthController::class, 'create'])->name('login');
+        Route::get('login', [AdminAuthController::class, 'create'])->name('login');
         Route::post('login', [AdminAuthController::class, 'store'])
             ->middleware('throttle:admin-login')
             ->name('login.store');
