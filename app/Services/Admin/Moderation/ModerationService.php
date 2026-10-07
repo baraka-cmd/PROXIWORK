@@ -39,7 +39,7 @@ class ModerationService
 
         $class = $map[$type] ?? null;
 
-        if (! $class) {
+        if ($class === null) {
             throw ValidationException::withMessages([
                 'target_type' => 'Cible de signalement non supportée.',
             ]);
@@ -47,7 +47,7 @@ class ModerationService
 
         $target = $class::query()->find($id);
 
-        if (! $target) {
+        if ($target === null) {
             throw ValidationException::withMessages([
                 'target_id' => 'La cible demandée est introuvable.',
             ]);
@@ -74,7 +74,7 @@ class ModerationService
 
         if (
             $target instanceof Message
-            && ! $target->conversation->participants()->whereKey($reporter->getKey())->exists()
+            && $target->conversation->participants()->whereKey($reporter->getKey())->exists() === false
         ) {
             throw ValidationException::withMessages([
                 'target_id' => 'Vous n’êtes pas autorisé à signaler ce message.',
@@ -108,7 +108,7 @@ class ModerationService
 
     public function assign(User $actor, Report $report, User $assignee, Request $request): Report
     {
-        if (! $assignee->isActive() || ! $assignee->hasPermissionTo('reports.manage')) {
+        if ($assignee->isActive() === false || $assignee->hasPermissionTo('reports.manage') === false) {
             throw ValidationException::withMessages([
                 'assigned_to' => 'Le destinataire doit être un modérateur actif autorisé.',
             ]);
@@ -163,7 +163,7 @@ class ModerationService
         ?string $note,
         Request $request,
     ): Report {
-        if (! in_array($status, [ReportStatus::RESOLVED, ReportStatus::DISMISSED], true)) {
+        if (in_array($status, [ReportStatus::RESOLVED, ReportStatus::DISMISSED], true) === false) {
             throw ValidationException::withMessages([
                 'status' => 'Statut final invalide.',
             ]);
@@ -286,7 +286,7 @@ class ModerationService
     {
         $user = $target instanceof User ? $target : ($target instanceof Profile ? $target->user : null);
 
-        if (! $user) {
+        if ($user === null) {
             throw ValidationException::withMessages([
                 'action_type' => 'Cette action exige un utilisateur ou un profil.',
             ]);
@@ -298,7 +298,7 @@ class ModerationService
 
     private function suspendProfessional(Model $target): void
     {
-        if (! $target instanceof ProfessionalProfile) {
+        if ($target instanceof ProfessionalProfile === false) {
             throw ValidationException::withMessages([
                 'action_type' => 'Cette action exige un profil professionnel.',
             ]);
