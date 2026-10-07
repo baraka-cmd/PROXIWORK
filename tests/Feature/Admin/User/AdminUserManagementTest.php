@@ -111,8 +111,7 @@ class AdminUserManagementTest extends TestCase
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/users/{$admin->id}/suspend")
-            ->assertUnprocessable()
-            ->assertJsonValidationErrors(['user']);
+            ->assertForbidden();
     }
 
     public function test_suspended_user_cannot_login(): void
