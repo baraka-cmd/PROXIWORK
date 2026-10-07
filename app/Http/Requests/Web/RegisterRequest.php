@@ -19,6 +19,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
+            'terms' => ['accepted'],
             'password' => [
                 'required',
                 'string',
@@ -45,6 +46,7 @@ class RegisterRequest extends FormRequest
             'email.required' => 'Votre adresse e-mail est obligatoire.',
             'email.unique' => 'Cette adresse e-mail est déjà associée à un compte.',
             'password.confirmed' => 'Les deux mots de passe ne correspondent pas.',
+            'terms.accepted' => 'Vous devez accepter les conditions d’utilisation pour créer votre compte.',
         ];
     }
 }
