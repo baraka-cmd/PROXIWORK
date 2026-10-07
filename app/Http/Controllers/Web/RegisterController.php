@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Web;
 use App\Enums\UserAccountStatus;
 use App\Http\Requests\Web\RegisterRequest;
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -30,8 +29,6 @@ class RegisterController
                 'account_status' => UserAccountStatus::ACTIVE,
             ]);
         });
-
-        event(new Registered($user));
 
         Auth::login($user);
         $request->session()->regenerate();
