@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
+use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,10 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('client')->name('client.')->middleware(['active.account', 'role:client'])->group(function (): void {
+        Route::get('/', ClientDashboardController::class)->name('dashboard');
+    });
 });
 
 Route::get('/reset-password/{token}', function (Request $request, string $token) {
