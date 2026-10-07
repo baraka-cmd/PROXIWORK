@@ -93,7 +93,7 @@ class FileStorageService
 
         $extension = strtolower((string) $file->extension());
 
-        if (! in_array($extension, $allowedExtensions, true)) {
+        if (!in_array($extension, $allowedExtensions, true)) {
             throw ValidationException::withMessages([
                 'file' => 'The uploaded file type is not allowed.',
             ]);
