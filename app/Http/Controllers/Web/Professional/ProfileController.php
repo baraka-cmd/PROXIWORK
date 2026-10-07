@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web\Professional;
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalService\StoreServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceRequest;
@@ -72,10 +73,12 @@ class ProfileController extends Controller
 
     public function services(Request $request): View
     {
+        $this->authorize('viewAny', Service::class);
+
         $profile = $request->user()->professionalProfile()->firstOrFail();
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
-            'status' => ['nullable', 'string'],
+            'status' => ['nullable', Rule::enum(ServiceStatus::class)],
         ]);
 
         $services = $profile->services()
