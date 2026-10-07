@@ -31,9 +31,12 @@ class ModerationActionController extends Controller
             $request,
         );
 
-        return (new AdminActionResource($action))->additional([
-            'message' => 'Action de modération appliquée avec succès.',
-            'meta' => [],
-        ]);
+        return (new AdminActionResource($action))
+            ->additional([
+                'message' => 'Action de modération appliquée avec succès.',
+                'meta' => [],
+            ])
+            ->response()
+            ->setStatusCode(201);
     }
 }
