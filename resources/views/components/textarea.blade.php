@@ -10,7 +10,7 @@
 ])
 
 @php
-    $inputId = $id ?? IlluminateSupportStr::slug($name);
+    $inputId = $id ?? str($name)->slug()->toString();
     $hasError = $errors->has($name);
     $errorId = "{$inputId}-error";
     $helpId = "{$inputId}-help";
