@@ -6,14 +6,13 @@ namespace App\Http\Controllers\Api\V1\Support;
 
 use App\Enums\SupportTicketStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Support\{
-    AssignSupportTicketRequest,
-    StoreSupportTicketRequest,
-    StoreTicketMessageRequest,
-    TransitionSupportTicketRequest,
-};
+use App\Http\Requests\Support\AssignSupportTicketRequest;
+use App\Http\Requests\Support\StoreSupportTicketRequest;
+use App\Http\Requests\Support\StoreTicketMessageRequest;
+use App\Http\Requests\Support\TransitionSupportTicketRequest;
 use App\Http\Resources\Support\SupportTicketResource;
-use App\Models\{SupportTicket, User};
+use App\Models\SupportTicket;
+use App\Models\User;
 use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -32,11 +31,11 @@ class SupportTicketController extends Controller
             ->with(['user:id,name,email', 'assignee:id,name'])
             ->when(
                 !$user->hasPermissionTo('support.manage'),
-                fn ($q) => $q->where('user_id', $user->id)
+                fn ($query) => $query->where('user_id', $user->id)
             )
             ->when(
                 $request->filled('status'),
-                fn ($q) => $q->where('status', $request->string('status'))
+                fn ($query) => $query->where('status', $request->string('status'))
             )
             ->latest('id');
 
@@ -76,7 +75,7 @@ class SupportTicketController extends Controller
 
     public function message(
         StoreTicketMessageRequest $request,
-        SupportTicket $ticket
+        SupportTicket $ticket,
     ): SupportTicketResource {
         $this->authorize('message', $ticket);
 
@@ -84,7 +83,7 @@ class SupportTicketController extends Controller
             $request->user(),
             $ticket,
             $request->string('body')->toString(),
-            $request
+            $request,
         );
 
         return new SupportTicketResource(
@@ -94,7 +93,7 @@ class SupportTicketController extends Controller
 
     public function transition(
         TransitionSupportTicketRequest $request,
-        SupportTicket $ticket
+        SupportTicket $ticket,
     ): SupportTicketResource {
         $this->authorize('update', $ticket);
 
@@ -102,7 +101,7 @@ class SupportTicketController extends Controller
             $request->user(),
             $ticket,
             SupportTicketStatus::from($request->string('status')->toString()),
-            $request
+            $request,
         );
 
         return new SupportTicketResource($result);
@@ -110,7 +109,7 @@ class SupportTicketController extends Controller
 
     public function assign(
         AssignSupportTicketRequest $request,
-        SupportTicket $ticket
+        SupportTicket $ticket,
     ): SupportTicketResource {
         $this->authorize('update', $ticket);
 
@@ -118,7 +117,7 @@ class SupportTicketController extends Controller
             $request->user(),
             $ticket,
             User::findOrFail($request->integer('assigned_to')),
-            $request
+            $request,
         );
 
         return new SupportTicketResource($result);
