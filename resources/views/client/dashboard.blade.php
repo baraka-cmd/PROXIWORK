@@ -1,5 +1,17 @@
 @extends('layouts.client')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/client/dashboard.css')
+    @endunless
+@endpush
+
+@push('scripts')
+    @unless (app()->environment('testing'))
+        @vite('resources/js/pages/client/dashboard.js')
+    @endunless
+@endpush
+
 @section('page_eyebrow', 'VOTRE ACTIVITÉ')
 @section('page_title', 'Tableau de bord')
 @section('page_description', 'Retrouvez en un coup d’œil votre profil, vos favoris, vos adresses et les actions importantes.')
