@@ -16,6 +16,8 @@ class StartProfessionalVerificationRequest extends FormRequest
 
     public function rules(): array
     {
-        return [];
+        return [
+            'note' => ['nullable', 'string', 'max:2000'],
+        ];
     }
 }
