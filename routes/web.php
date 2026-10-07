@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use Illuminate\Http\Request;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
+Route::get('/professionals', [PublicSearchController::class, 'professionals'])->name('public.professionals.index');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
