@@ -6,6 +6,8 @@ use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
+use App\Http\Controllers\Web\Professional\MessageController;
+use App\Http\Controllers\Web\Professional\ReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +41,23 @@ Route::get('/reset-password/{token}', function (Request $request, string $token)
         ],
     ]);
 })->middleware('guest')->name('password.reset');
+
+Route::prefix('professional')->name('professional.')
+    ->middleware(['auth', 'active.account', 'role:professional'])
+    ->group(function (): void {
+        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews');
+        Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])
+            ->middleware('throttle:10,1')
+            ->name('reviews.respond');
+
+        Route::get('messages', [MessageController::class, 'index'])->name('messages');
+        Route::get('messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
+        Route::post('messages/{conversation}', [MessageController::class, 'store'])
+            ->middleware('throttle:message')
+            ->name('messages.store');
+        Route::post('messages/{conversation}/read', [MessageController::class, 'read'])
+            ->name('messages.read');
+    });
 
 Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware('guest')->group(function (): void {
