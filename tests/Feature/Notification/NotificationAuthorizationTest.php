@@ -37,7 +37,7 @@ class NotificationAuthorizationTest extends TestCase
         $this->actingAs($first, 'sanctum')->patchJson('/api/v1/notifications/preferences', [
             'email_enabled' => false,
             'push_enabled' => true,
-        ])->assertOk();
+        ])->assertCreated();
 
         $this->actingAs($second, 'sanctum')
             ->getJson('/api/v1/notifications/preferences')
