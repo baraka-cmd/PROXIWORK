@@ -13,8 +13,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-require __DIR__.'/admin.php';
-
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])
