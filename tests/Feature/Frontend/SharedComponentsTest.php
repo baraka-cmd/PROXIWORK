@@ -68,7 +68,7 @@ final class SharedComponentsTest extends TestCase
     {
         $html = Blade::render(
             '<x-input name="email" label="Adresse e-mail" type="email" help="Utilisez une adresse valide." />',
-            ['errors' => new ViewErrorBag()]
+            ['errors' => new ViewErrorBag]
         );
 
         $this->assertStringContainsString('for="email"', $html);
