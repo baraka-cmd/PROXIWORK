@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\AddressController;
+use App\Http\Controllers\Api\V1\Admin\Dashboard\AdminDashboardController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
@@ -119,6 +120,10 @@ Route::prefix('v1')->group(function (): void {
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
+
+        Route::prefix('admin')->group(function (): void {
+            Route::get('dashboard', AdminDashboardController::class)->middleware('permission:admin.dashboard.view');
+        });
 
         Route::prefix('admin/skills')->group(function (): void {
             Route::get('/', [SkillController::class, 'adminIndex'])->middleware('permission:skills.view');
