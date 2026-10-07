@@ -14,7 +14,7 @@
                 </a>
 
                 <div class="public-nav-links">
-                    <a class="public-nav-link" data-nav-link href="{{ url('/') }}">
+                    <a class="public-nav-link" data-nav-link data-nav-exact href="{{ url('/') }}">
                         <i class="fa-solid fa-house" aria-hidden="true"></i>
                         <span>Accueil</span>
                     </a>
