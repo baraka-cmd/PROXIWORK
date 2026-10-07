@@ -21,7 +21,7 @@ class WebAdminDashboardTest extends TestCase
 
     public function test_guest_is_redirected_to_admin_login(): void
     {
-        $this->get('/admin/dashboard')->assertRedirect('/admin/login');
+        $this->get('/admin/dashboard')->assertRedirect('/login');
     }
 
     public function test_user_without_dashboard_permission_is_forbidden(): void
