@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Moderation;
 
-use App\Enums\{ModerationActionType, ReportReasonCode};
+use App\Enums\ModerationActionType;
+use App\Enums\ReportReasonCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
