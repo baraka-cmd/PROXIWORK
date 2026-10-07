@@ -41,9 +41,9 @@ class RoleController extends Controller
 
     public function store(StoreRoleRequest $request): RedirectResponse
     {
-        $this->service->create($request->validated(), $request);
+        $role = $this->service->create($request->validated(), $request);
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('admin.roles.show', $role)
             ->with('success', 'Le rôle a été créé avec succès.');
     }
 
