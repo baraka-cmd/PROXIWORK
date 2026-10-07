@@ -15,7 +15,7 @@ class AdminProfessionalIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('viewAny', \App\Models\ProfessionalProfile::class) ?? false;
+        return $this->user()?->can('viewAny', ProfessionalProfile::class) ?? false;
     }
 
     public function rules(): array
