@@ -28,7 +28,9 @@ class PaymentService
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
         private readonly CommissionService $commissionService,
-    ) {}
+    ) {
+        // Dependencies are injected only.
+    }
 
     public function initiate(
         Order $order,
