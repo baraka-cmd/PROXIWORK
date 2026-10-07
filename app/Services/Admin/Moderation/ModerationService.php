@@ -218,7 +218,7 @@ class ModerationService
             }
 
             $target = $report->target;
-            $this->apply($type, $target);
+            $this->apply($type, $target, $actor, $reason, $note);
 
             $action = $report->moderationActions()->create([
                 'moderator_id' => $actor->id,
@@ -241,12 +241,22 @@ class ModerationService
         });
     }
 
-    private function apply(ModerationActionType $type, Model $target): void
-    {
+    private function apply(
+        ModerationActionType $type,
+        Model $target,
+        User $actor,
+        ?string $reason,
+        ?string $note,
+    ): void {
         match ($type) {
             ModerationActionType::WARNING => null,
             ModerationActionType::HIDE_REVIEW => $target instanceof Review
-                ? $target->update(['status' => 'hidden', 'moderated_at' => now()])
+                ? $target->update([
+                    'status' => 'hidden',
+                    'moderated_at' => now(),
+                    'moderated_by' => $actor->id,
+                    'moderation_reason' => $reason ?? $note,
+                ])
                 : throw ValidationException::withMessages([
                     'action_type' => 'Cette action exige un avis.',
                 ]),
