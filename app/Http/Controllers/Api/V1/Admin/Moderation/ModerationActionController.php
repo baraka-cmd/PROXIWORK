@@ -1,0 +1,24 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Api\V1\Admin\Moderation;
+
+use App\Enums\ModerationActionType;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Moderation\ModerateReportRequest;
+use App\Http\Resources\Admin\Moderation\ModerationActionResource;
+use App\Models\Report;
+use App\Services\Admin\Moderation\ModerationService;
+
+class ModerationActionController extends Controller
+{
+    public function __construct(private ModerationService $service) {}
+
+    public function store(ModerateReportRequest $request, Report $report): ModerationActionResource
+    {
+        $this->authorize('manage', $report);
+        $action=$this->service->act($request->user(),$report,ModerationActionType::from($request->string('action_type')->toString()),$request->input('reason_code'),$request->input('note'),$request);
+        return (new ModerationActionResource($action))->additional(['message'=>'Action de modération appliquée avec succès.','meta'=>[]]);
+    }
+}
