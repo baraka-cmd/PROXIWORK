@@ -20,7 +20,7 @@ class ModerationService {
   $target=$this->resolveTarget($type,$id);
   if($this->ownsTarget($reporter,$target)) throw ValidationException::withMessages(['target_id'=>'Vous ne pouvez pas signaler votre propre contenu.']);
   if($target instanceof Message && !$target->conversation->participants()->whereKey($reporter->getKey())->exists()) throw ValidationException::withMessages(['target_id'=>'Vous n’êtes pas autorisé à signaler ce message.']);
-  $report=Report::create(['reporter_id'=>$reporter->id,'target_type'=>$target->getMorphClass(),'target_id'=>$target->getKey(),'reason_code'=>$reason,'description'=>$description]);
+  $report=Report::create(['reporter_id'=>$reporter->id,'target_type'=>$target->getMorphClass(),'target_id'=>$target->getKey(),'reason_code'=>$reason,'description'=>$description,'status'=>ReportStatus::PENDING,'priority'=>\App\Enums\ReportPriority::NORMAL]);
   $this->audit->record('report.created',$report,$reporter,['reason_code'=>$reason,'target_type'=>$report->target_type,'target_id'=>$report->target_id],$request);
   return $report->load(['reporter','target']);
  }
