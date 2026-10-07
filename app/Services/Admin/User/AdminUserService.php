@@ -57,7 +57,8 @@ class AdminUserService
 
     public function suspend(User $user, User $actor, Request $request): User
     {
-        $updated = DB::transaction(function () use ($user, $actor, $request): User {
+        $changed = false;
+        $updated = DB::transaction(function () use ($user, $actor, $request, &$changed): User {
             $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
             if ($target->getKey() === $actor->getKey()) {
@@ -67,10 +68,11 @@ class AdminUserService
             }
 
             if ($target->account_status === UserAccountStatus::SUSPENDED) {
-                return $target;
+                return $target->fresh(['roles']);
             }
 
             $target->update(['account_status' => UserAccountStatus::SUSPENDED]);
+            $changed = true;
             $target->tokens()->delete();
 
             $this->auditLogService->record(
@@ -84,11 +86,13 @@ class AdminUserService
             return $target->fresh(['roles']);
         });
 
-        $updated->notify(new AccountActivityNotification(
-            'Compte suspendu',
-            'Votre compte PROXIWORK a été suspendu par l’administration.',
-            'account_suspended',
-        ));
+        if ($changed) {
+            $updated->notify(new AccountActivityNotification(
+                'Compte suspendu',
+                'Votre compte PROXIWORK a été suspendu par l’administration.',
+                'account_suspended',
+            ));
+        }
 
         return $updated;
     }
