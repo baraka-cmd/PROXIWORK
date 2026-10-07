@@ -71,7 +71,7 @@
 
             <div id="public-mobile-navigation" class="public-mobile-navigation page-container" aria-hidden="true">
                 <nav aria-label="Navigation mobile">
-                    <a class="public-nav-link" data-nav-link href="{{ url('/') }}">
+                    <a class="public-nav-link" data-nav-link data-nav-exact href="{{ url('/') }}">
                         <i class="fa-solid fa-house" aria-hidden="true"></i>
                         <span>Accueil</span>
                     </a>
