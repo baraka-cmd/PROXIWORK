@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserAccountStatus;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -15,7 +16,7 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'account_status'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -24,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'account_status' => UserAccountStatus::class,
         ];
     }
 
@@ -107,5 +109,10 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->roles()->detach($roleIds);
 
         return $this->refresh();
+    }
+
+    public function isActive(): bool
+    {
+        return $this->account_status === UserAccountStatus::ACTIVE;
     }
 }

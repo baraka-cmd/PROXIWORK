@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Api\V1\AddressController;
+use App\Http\Controllers\Api\V1\Admin\Dashboard\AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\Professional\AdminProfessionalController;
+use App\Http\Controllers\Api\V1\Admin\User\AdminUserController;
+use App\Http\Controllers\Api\V1\Admin\Verification\ProfessionalVerificationController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
@@ -69,7 +73,7 @@ Route::prefix('v1')->group(function (): void {
     Route::post('payments/webhooks/{provider}', [PaymentWebhookController::class, 'handle'])
         ->middleware(['security.headers', 'throttle:api']);
 
-    Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->group(function (): void {
+    Route::middleware(['security.headers', 'auth:sanctum', 'active.account', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
@@ -119,6 +123,30 @@ Route::prefix('v1')->group(function (): void {
         Route::get('favorites', [FavoriteController::class, 'index']);
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
         Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
+
+        Route::prefix('admin')->group(function (): void {
+            Route::get('dashboard', AdminDashboardController::class)->middleware('permission:admin.dashboard.view');
+
+            Route::prefix('users')->group(function (): void {
+                Route::get('/', [AdminUserController::class, 'index'])->middleware('permission:admin.users.view');
+                Route::get('{user}', [AdminUserController::class, 'show'])->middleware('permission:admin.users.view');
+                Route::post('{user}/suspend', [AdminUserController::class, 'suspend'])->middleware('permission:admin.users.suspend');
+                Route::post('{user}/activate', [AdminUserController::class, 'activate'])->middleware('permission:admin.users.activate');
+            });
+
+            Route::prefix('professionals')->group(function (): void {
+                Route::get('/', [AdminProfessionalController::class, 'index'])->middleware('permission:admin.professionals.view');
+                Route::get('{professional}', [AdminProfessionalController::class, 'show'])->middleware('permission:admin.professionals.view');
+                Route::post('{professional}/suspend', [AdminProfessionalController::class, 'suspend'])->middleware('permission:admin.professionals.suspend');
+                Route::post('{professional}/activate', [AdminProfessionalController::class, 'activate'])->middleware('permission:admin.professionals.activate');
+
+                Route::prefix('{professional}/verification')->group(function (): void {
+                    Route::post('start-review', [ProfessionalVerificationController::class, 'startReview'])->middleware('permission:admin.professionals.review');
+                    Route::post('verify', [ProfessionalVerificationController::class, 'verify'])->middleware('permission:admin.professionals.verify');
+                    Route::post('reject', [ProfessionalVerificationController::class, 'reject'])->middleware('permission:admin.professionals.reject');
+                });
+            });
+        });
 
         Route::prefix('admin/skills')->group(function (): void {
             Route::get('/', [SkillController::class, 'adminIndex'])->middleware('permission:skills.view');

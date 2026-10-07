@@ -77,4 +77,9 @@ class ProfessionalProfile extends Model
     {
         return $this->hasMany(Review::class, 'professional_id');
     }
+
+    public function verificationReviews(): HasMany
+    {
+        return $this->hasMany(ProfessionalVerificationReview::class);
+    }
 }

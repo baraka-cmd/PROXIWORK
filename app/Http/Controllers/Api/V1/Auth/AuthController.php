@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class AuthController extends Controller
 {
@@ -73,6 +75,10 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
             throw new AuthenticationException('Identifiants invalides.');
+        }
+
+        if ($user->account_status === UserAccountStatus::SUSPENDED) {
+            throw new AccessDeniedHttpException('Compte suspendu.');
         }
 
         $token = $user->createToken(
