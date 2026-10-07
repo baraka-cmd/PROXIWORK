@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace App\Http\Resources\Admin\Moderation;
+use App\Http\Resources\Admin\Moderation\ModerationActionResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 class ReportResource extends JsonResource {
  public function toArray($request):array{return [
