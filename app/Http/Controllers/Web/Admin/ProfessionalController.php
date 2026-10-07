@@ -40,21 +40,46 @@ class ProfessionalController extends Controller
         ]);
     }
 
-    public function startReview(StartProfessionalVerificationRequest $request, ProfessionalProfile $professional): RedirectResponse
-    {
-        $this->verificationService->startReview($professional, $request->user(), $request, $request->validated('note'));
+    public function startReview(
+        StartProfessionalVerificationRequest $request,
+        ProfessionalProfile $professional,
+    ): RedirectResponse {
+        $this->verificationService->startReview(
+            $professional,
+            $request->user(),
+            $request,
+            $request->validated('note'),
+        );
+
         return back()->with('success', 'La vérification est maintenant en cours de revue.');
     }
 
-    public function verify(VerifyProfessionalVerificationRequest $request, ProfessionalProfile $professional): RedirectResponse
-    {
-        $this->verificationService->verify($professional, $request->user(), $request, $request->validated('note'));
+    public function verify(
+        VerifyProfessionalVerificationRequest $request,
+        ProfessionalProfile $professional,
+    ): RedirectResponse {
+        $this->verificationService->verify(
+            $professional,
+            $request->user(),
+            $request,
+            $request->validated('note'),
+        );
+
         return back()->with('success', 'Le profil professionnel a été vérifié.');
     }
 
-    public function reject(RejectProfessionalVerificationRequest $request, ProfessionalProfile $professional): RedirectResponse
-    {
-        $this->verificationService->reject($professional, $request->user(), $request, $request->validated('reason_code'), $request->validated('note'));
+    public function reject(
+        RejectProfessionalVerificationRequest $request,
+        ProfessionalProfile $professional,
+    ): RedirectResponse {
+        $this->verificationService->reject(
+            $professional,
+            $request->user(),
+            $request,
+            $request->validated('reason_code'),
+            $request->validated('note'),
+        );
+
         return back()->with('success', 'La vérification du profil a été rejetée.');
     }
 
@@ -62,6 +87,7 @@ class ProfessionalController extends Controller
     {
         $this->authorize('suspend', $professional);
         $this->professionalService->suspend($professional, $request->user(), $request);
+
         return back()->with('success', 'Le compte professionnel a été suspendu.');
     }
 
@@ -69,6 +95,7 @@ class ProfessionalController extends Controller
     {
         $this->authorize('activate', $professional);
         $this->professionalService->activate($professional, $request->user(), $request);
+
         return back()->with('success', 'Le compte professionnel a été réactivé.');
     }
 }
