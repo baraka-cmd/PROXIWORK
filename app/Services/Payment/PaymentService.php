@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
+use App\Events\OrderPaid;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
@@ -144,6 +145,8 @@ class PaymentService
 
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($lockedPayment, $transaction);
+
+                OrderPaid::dispatch($lockedOrder);
             }
 
             return $lockedPayment->refresh()->load('transactions');
