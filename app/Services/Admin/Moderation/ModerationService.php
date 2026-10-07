@@ -251,17 +251,20 @@ class ModerationService
         match ($type) {
             ModerationActionType::WARNING => null,
             ModerationActionType::HIDE_REVIEW => $target instanceof Review
-                ? $target->update([
+                ? $target->forceFill([
                     'status' => 'hidden',
                     'moderated_at' => now(),
                     'moderated_by' => $actor->id,
                     'moderation_reason' => $reason ?? $note,
-                ])
+                ])->save()
                 : throw ValidationException::withMessages([
                     'action_type' => 'Cette action exige un avis.',
                 ]),
             ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service
-                ? $target->update(['status' => 'unpublished', 'published_at' => null])
+                ? $target->forceFill([
+                    'status' => 'unpublished',
+                    'published_at' => null,
+                ])->save()
                 : throw ValidationException::withMessages([
                     'action_type' => 'Cette action exige un service.',
                 ]),
