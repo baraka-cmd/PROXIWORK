@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Notification;
 
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -66,7 +67,7 @@ class NotificationAuthorizationTest extends TestCase
         $second = User::factory()->create();
         $second->assignRole('client');
 
-        Notification::send($first, new \App\Notifications\AccountActivityNotification('One', 'One', 'one'));
+        Notification::send($first, new AccountActivityNotification('One', 'One', 'one'));
         Notification::send($second, new \App\Notifications\AccountActivityNotification('Two', 'Two', 'two'));
 
         $this->actingAs($first, 'sanctum')
