@@ -31,7 +31,6 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::prefix('professional')->name('professional.')->middleware(['active.account', 'role:professional'])->group(function (): void {
-        Route::get('/', [\App\Http\Controllers\Web\Professional\DashboardController::class, 'index'])->name('dashboard');
         Route::get('orders', [ProfessionalOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [ProfessionalOrderController::class, 'show'])->name('orders.show');
         Route::get('revenues', [RevenueController::class, 'index'])->name('revenues.index');
