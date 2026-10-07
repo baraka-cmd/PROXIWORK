@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 namespace App\Services\Admin\Support;
-use App\Enums\SupportTicketStatus;
+use App\Enums\{SupportTicketCategory,SupportTicketPriority,SupportTicketStatus};
 use App\Models\{SupportTicket,TicketMessage,User};
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
@@ -10,7 +10,7 @@ use Illuminate\Validation\ValidationException;
 class SupportTicketService {
  public function __construct(private AuditLogService $audit){}
  public function create(User $user,array $data,Request $request):SupportTicket {
-  return DB::transaction(function()use($user,$data,$request){$ticket=SupportTicket::create(['user_id'=>$user->id,'subject'=>$data['subject'],'category'=>$data['category'],'priority'=>$data['priority']]); $message=$ticket->messages()->create(['sender_id'=>$user->id,'body'=>$data['body']]); $ticket->update(['last_message_at'=>$message->created_at]); $this->audit->record('support.ticket_created',$ticket,$user,[],$request); return $ticket->load(['user','messages.sender']);});
+  return DB::transaction(function()use($user,$data,$request){$ticket=SupportTicket::create(['user_id'=>$user->id,'subject'=>$data['subject'],'category'=>SupportTicketCategory::from($data['category']),'priority'=>SupportTicketPriority::from($data['priority'] ?? SupportTicketPriority::NORMAL->value),'status'=>SupportTicketStatus::OPEN]); $message=$ticket->messages()->create(['sender_id'=>$user->id,'body'=>$data['body']]); $ticket->update(['last_message_at'=>$message->created_at]); $this->audit->record('support.ticket_created',$ticket,$user,[],$request); return $ticket->load(['user','messages.sender']);});
  }
  public function message(User $user,SupportTicket $ticket,string $body,Request $request):TicketMessage {
   return DB::transaction(function()use($user,$ticket,$body,$request){$ticket=SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id); if($ticket->status===SupportTicketStatus::CLOSED) throw ValidationException::withMessages(['status'=>'Un ticket fermé ne peut plus recevoir de message.']); $message=$ticket->messages()->create(['sender_id'=>$user->id,'body'=>$body]); $next=$user->hasPermissionTo('support.manage')?SupportTicketStatus::IN_PROGRESS:SupportTicketStatus::OPEN; if($ticket->status===SupportTicketStatus::WAITING && !$user->hasPermissionTo('support.manage')) $next=SupportTicketStatus::IN_PROGRESS; $ticket->update(['last_message_at'=>$message->created_at,'status'=>$next]); return $message->load('sender');});
