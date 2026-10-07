@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace AppModels;
+namespace App\Models;
 
-use AppEnumsReportPriority;
-use AppEnumsReportStatus;
-use IlluminateDatabaseEloquentFactoriesHasFactory;
-use IlluminateDatabaseEloquentModel;
-use IlluminateDatabaseEloquentRelationsBelongsTo;
-use IlluminateDatabaseEloquentRelationsHasMany;
-use IlluminateDatabaseEloquentRelationsMorphTo;
+use App\Enums\ReportPriority;
+use App\Enums\ReportStatus;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Report extends Model
 {
@@ -23,7 +23,11 @@ class Report extends Model
 
     protected function casts(): array
     {
-        return ['status'=>ReportStatus::class,'priority'=>ReportPriority::class,'resolved_at'=>'datetime'];
+        return [
+            'status' => ReportStatus::class,
+            'priority' => ReportPriority::class,
+            'resolved_at' => 'datetime',
+        ];
     }
 
     public function reporter(): BelongsTo { return $this->belongsTo(User::class, 'reporter_id'); }
