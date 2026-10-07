@@ -8,7 +8,7 @@
         <section class="dashboard-nav-section">
             <h2 class="dashboard-nav-title">Principal</h2>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/professional') }}">
+            <a class="dashboard-nav-link" data-nav-link data-nav-exact href="{{ url('/professional') }}">
                 <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
                 <span>Tableau de bord</span>
             </a>
