@@ -10,7 +10,6 @@ use App\Enums\ServiceStatus;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
-use App\Models\Profile;
 use App\Models\Service;
 use App\Models\Skill;
 use App\Models\User;
@@ -40,7 +39,7 @@ class PublicProfessionalDirectoryTest extends TestCase
     public function test_professionals_page_uses_published_professional_data(): void
     {
         $user = User::factory()->create(['name' => 'Baraka Ntwali']);
-        Profile::factory()->create([
+        Profile::query()->create([
             'user_id' => $user->id,
             'first_name' => 'Baraka',
             'last_name' => 'Ntwali',
