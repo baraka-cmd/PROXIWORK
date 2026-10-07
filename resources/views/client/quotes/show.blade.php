@@ -1,6 +1,13 @@
 @extends('layouts.client')
 @section('title','Détail du devis')
-@section('dashboard_content')
+@push('head')
+    @vite('resources/css/pages/client/favorites-requests-quotes.css')
+@endpush
+@push('scripts')
+    @vite('resources/js/pages/client/favorites-requests-quotes.js')
+@endpush
+
+@section('content')
 <div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">DEVIS #{{ $quotation->id }}</p><h1>Proposition commerciale</h1><p>{{ $quotation->serviceRequest?->service?->title }} · {{ $quotation->serviceRequest?->professional?->user?->name }}</p></div><span class="status-badge status-badge--{{ $quotation->status->value }}">{{ ucfirst($quotation->status->value) }}</span></div>
 @if(session('success'))<x-alert type="success" :message="session('success')" />@endif
 @if($quotation->currentOffer)<section class="client-panel client-panel--accent"><p class="client-module__eyebrow">OFFRE COURANTE</p><h2>{{ number_format((float)$quotation->currentOffer->amount,2,',',' ') }} {{ $quotation->currentOffer->currency }}</h2><p>{{ $quotation->currentOffer->description }}</p><dl class="client-definition-list"><div><dt>Durée</dt><dd>{{ $quotation->currentOffer->duration_value }} {{ $quotation->currentOffer->duration_unit->value }}</dd></div><div><dt>Valable jusqu'au</dt><dd>{{ optional($quotation->currentOffer->valid_until)->format('d/m/Y à H:i') }}</dd></div><div><dt>Conditions</dt><dd>{{ $quotation->currentOffer->conditions ?: 'Aucune condition supplémentaire.' }}</dd></div></dl></section>@endif
