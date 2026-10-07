@@ -193,6 +193,83 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
+    public function test_webhook_http_endpoint_rejects_invalid_signature(): void
+    {
+        config(['payment.webhooks.secrets.fake' => 'real-secret']);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'finance-webhook-http-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertAccepted();
+
+        $transaction = PaymentTransaction::query()->firstOrFail();
+
+        $this->postJson('/api/v1/payments/webhooks/fake', [
+            'event_id' => 'HTTP-EVENT-INVALID',
+            'transaction_id' => $transaction->provider_transaction_id,
+            'amount' => '500.00',
+            'currency' => 'USD',
+            'status' => PaymentStatus::SUCCEEDED->value,
+        ], [
+            'X-Payment-Signature' => 'invalid-signature',
+        ])->assertUnauthorized();
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::PENDING_PAYMENT->value,
+        ]);
+    }
+
+    public function test_webhook_http_endpoint_confirms_payment_with_valid_signature(): void
+    {
+        config(['payment.webhooks.secrets.fake' => 'test-webhook-secret']);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'finance-webhook-http-0002')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertAccepted();
+
+        $transaction = PaymentTransaction::query()->firstOrFail();
+        $payload = [
+            'event_id' => 'HTTP-EVENT-VALID',
+            'transaction_id' => $transaction->provider_transaction_id,
+            'amount' => '500.00',
+            'currency' => 'USD',
+            'status' => PaymentStatus::SUCCEEDED->value,
+            'metadata' => ['source' => 'http-test'],
+        ];
+        $rawBody = json_encode($payload, JSON_THROW_ON_ERROR);
+        $signature = hash_hmac('sha256', $rawBody, 'test-webhook-secret');
+
+        $this->call(
+            'POST',
+            '/api/v1/payments/webhooks/fake',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_PAYMENT_SIGNATURE' => $signature,
+            ],
+            content: $rawBody,
+        )->assertOk()
+            ->assertJsonPath('data.status', PaymentStatus::SUCCEEDED->value);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::CONFIRMED->value,
+        ]);
+        $this->assertDatabaseCount('commissions', 1);
+        $this->assertDatabaseCount('wallet_transactions', 1);
+    }
+
     public function test_invalid_webhook_signature_is_rejected(): void
     {
         config(['payment.webhooks.secrets.fake' => 'real-secret']);

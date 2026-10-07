@@ -4,11 +4,13 @@ on:
   pull_request:
     branches:
       - phase-1/foundation
+      - phase-3/**
       - develop
       - main
   push:
     branches:
       - phase-1/foundation
+      - phase-3/**
       - develop
       - main
 
