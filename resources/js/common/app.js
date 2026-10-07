@@ -67,6 +67,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.querySelectorAll('[data-alert-dismiss]').forEach((dismissButton) => {
+        dismissButton.addEventListener('click', () => {
+            const alert = dismissButton.closest('[role="alert"]');
+
+            if (!alert) {
+                return;
+            }
+
+            alert.setAttribute('hidden', '');
+        });
+    });
+
     document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
         const targetId = toggle.getAttribute('data-password-toggle');
         const input = targetId ? document.getElementById(targetId) : null;
