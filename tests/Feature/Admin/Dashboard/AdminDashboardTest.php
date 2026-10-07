@@ -43,15 +43,15 @@ class AdminDashboardTest extends TestCase
 
         User::factory()->create(['created_at' => '2026-10-01 10:00:00']);
         User::factory()->create(['created_at' => '2026-09-01 10:00:00']);
-        ProfessionalProfile::factory()->create(['created_at' => '2026-10-03 10:00:00']);
-        Service::factory()->create(['created_at' => '2026-10-04 10:00:00']);
+        \$professional = ProfessionalProfile::factory()->create(['created_at' => '2026-10-03 10:00:00']);
+        Service::factory()->for(\$professional, 'professionalProfile')->create(['created_at' => '2026-10-04 10:00:00']);
 
         $this->actingAs($admin, 'sanctum')
             ->getJson('/api/v1/admin/dashboard?from=2026-10-01T00:00:00Z&to=2026-10-31T23:59:59Z')
             ->assertOk()
             ->assertJsonPath('data.period.from', '2026-10-01T00:00:00+00:00')
             ->assertJsonPath('data.period.to', '2026-10-31T23:59:59+00:00')
-            ->assertJsonPath('data.users.total', 3)
+            ->assertJsonPath('data.users.total', 4)
             ->assertJsonPath('data.users.new', 2)
             ->assertJsonPath('data.professionals.total', 1)
             ->assertJsonPath('data.professionals.new', 1)
