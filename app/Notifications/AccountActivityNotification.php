@@ -18,7 +18,9 @@ class AccountActivityNotification extends Notification implements ShouldQueue
         private readonly string $title,
         private readonly string $message,
         private readonly string $action,
-    ) {}
+    ) {
+        $this->afterCommit();
+    }
 
     public function via(object $notifiable): array
     {
