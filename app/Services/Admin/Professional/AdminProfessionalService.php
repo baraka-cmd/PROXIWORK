@@ -77,7 +77,8 @@ class AdminProfessionalService
                 return $target;
             }
 
-            $target->user->update(['account_status' => UserAccountStatus::SUSPENDED]);
+            $target->user->account_status = UserAccountStatus::SUSPENDED->value;
+            $target->user->save();
             $target->user->tokens()->delete();
             $changed = true;
 
@@ -112,7 +113,8 @@ class AdminProfessionalService
                 return $target;
             }
 
-            $target->user->update(['account_status' => UserAccountStatus::ACTIVE]);
+            $target->user->account_status = UserAccountStatus::ACTIVE->value;
+            $target->user->save();
 
             $this->auditLogService->record(
                 'admin.professional.activated',
