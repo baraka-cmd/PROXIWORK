@@ -37,17 +37,20 @@ class AdminProfessionalService
             });
         }
 
-        $query->when($filters['verification_status'] ?? null, fn ($q, $status) =>
-            $q->where('verification_status', $status instanceof BackedEnum ? $status->value : $status)
-        );
+        if (($status = $filters['verification_status'] ?? null) !== null) {
+            $status = $status instanceof BackedEnum ? $status->value : $status;
+            $query->where('verification_status', $status);
+        }
 
-        $query->when($filters['account_status'] ?? null, fn ($q, $status) =>
-            $q->whereHas('user', fn ($user) => $user->where('account_status', $status instanceof BackedEnum ? $status->value : $status))
-        );
+        if (($status = $filters['account_status'] ?? null) !== null) {
+            $status = $status instanceof BackedEnum ? $status->value : $status;
+            $query->whereHas('user', fn ($user) => $user->where('account_status', $status));
+        }
 
-        $query->when($filters['availability_status'] ?? null, fn ($q, $status) =>
-            $q->where('availability_status', $status instanceof BackedEnum ? $status->value : $status)
-        );
+        if (($status = $filters['availability_status'] ?? null) !== null) {
+            $status = $status instanceof BackedEnum ? $status->value : $status;
+            $query->where('availability_status', $status);
+        }
 
         $query->when($filters['created_from'] ?? null, fn ($q, $date) => $q->where('created_at', '>=', $date));
         $query->when($filters['created_to'] ?? null, fn ($q, $date) => $q->where('created_at', '<=', $date));
