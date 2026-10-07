@@ -2,7 +2,14 @@
 
 @section('title', 'Mes demandes')
 
-@section('dashboard_content')
+@push('head')
+    @vite('resources/css/pages/client/favorites-requests-quotes.css')
+@endpush
+@push('scripts')
+    @vite('resources/js/pages/client/favorites-requests-quotes.js')
+@endpush
+
+@section('content')
 <div class="client-module">
     <div class="client-module__header">
         <div>
