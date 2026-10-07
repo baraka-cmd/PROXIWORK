@@ -48,24 +48,8 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
             ->name('login.store');
     });
 
-    Route::middleware('auth')->group(function (): void {
-        Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
-    });
-
     Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
         Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
-        Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
-    });
-
-    Route::middleware(['auth', 'permission:rbac.manage'])->group(function (): void {
-        Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
-        Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
-        Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
-        Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
-        Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
-    });
-
-    Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
-        Route::get('roles/{role}', [RoleController::class, 'show'])->name('roles.show');
+        Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
     });
 });
