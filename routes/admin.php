@@ -23,7 +23,6 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
     Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
         Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
-        Route::get('roles/{role}', [RoleController::class, 'show'])->name('roles.show');
     });
 
     Route::middleware(['auth', 'permission:rbac.manage'])->group(function (): void {
@@ -32,5 +31,9 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
         Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
         Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+    });
+
+    Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
+        Route::get('roles/{role}', [RoleController::class, 'show'])->name('roles.show');
     });
 });
