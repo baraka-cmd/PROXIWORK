@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Admin\User;
 
 use App\Enums\UserAccountStatus;
-use BackedEnum;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -60,7 +60,7 @@ class AdminUserService
     public function suspend(User $user, User $actor, Request $request): User
     {
         $changed = false;
-        $updated = DB::transaction(function () use ($user, $actor, $request, &$changed): User {
+        $updated = DB::transaction(function () use ($user, $actor, $request, & $changed): User {
             $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
             if ($target->getKey() === $actor->getKey()) {
