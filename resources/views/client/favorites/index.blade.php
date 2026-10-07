@@ -66,7 +66,7 @@
                         </div>
                     </dl>
                     <div class="client-entity-card__actions">
-                        <a class="btn btn-secondary" href="{{ url('/professionals/'.$professional->id) }}">Voir le profil</a>
+                        <a class="btn btn-secondary" href="{{ url('/professionals') }}">Voir le profil</a>
                         <form method="POST" action="{{ route('client.favorites.destroy', $favorite) }}">
                             @csrf
                             @method('DELETE')
