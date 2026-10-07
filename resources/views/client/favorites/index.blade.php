@@ -62,7 +62,7 @@
                         </div>
                         <div>
                             <dt>Disponibilité</dt>
-                            <dd>{{ ucfirst(str_replace('_', ' ', $professional->availability_status->value ?? $professional->availability_status ?? 'non définie')) }}</dd>
+                            <dd>{{ ucfirst(str_replace('_', ' ', data_get($professional->availability_status, 'value', $professional->availability_status ?? 'non définie'))) }}</dd>
                         </div>
                     </dl>
                     <div class="client-entity-card__actions">
