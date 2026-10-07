@@ -1,0 +1,117 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Admin\Professional;
+
+use App\Enums\UserAccountStatus;
+use App\Models\ProfessionalProfile;
+use App\Models\User;
+use App\Notifications\AccountActivityNotification;
+use App\Services\Audit\AuditLogService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class AdminProfessionalService
+{
+    public function __construct(
+        private readonly AuditLogService $auditLogService,
+    ) {}
+
+    public function paginate(array $filters)
+    {
+        $query = ProfessionalProfile::query()
+            ->with(['user.roles'])
+            ->withCount(['services', 'reviews', 'serviceRequests']);
+
+        if (!empty($filters['search'])) {
+            $search = trim($filters['search']);
+            $query->where(function ($q) use ($search): void {
+                $q->where('professional_title', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($user) use ($search): void {
+                        $user->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $query->when($filters['verification_status'] ?? null, fn ($q, $status) =>
+            $q->where('verification_status', $status)
+        );
+
+        $query->when($filters['account_status'] ?? null, fn ($q, $status) =>
+            $q->whereHas('user', fn ($user) => $user->where('account_status', $status))
+        );
+
+        $query->when($filters['availability_status'] ?? null, fn ($q, $status) =>
+            $q->where('availability_status', $status)
+        );
+
+        $query->when($filters['created_from'] ?? null, fn ($q, $date) => $q->where('created_at', '>=', $date));
+        $query->when($filters['created_to'] ?? null, fn ($q, $date) => $q->where('created_at', '<=', $date));
+
+        $sort = $filters['sort'] ?? '-created_at';
+        if ($sort === 'rating' || $sort === '-rating') {
+            $query->orderBy('rating_average', $sort === 'rating' ? 'asc' : 'desc');
+        } else {
+            $query->orderBy('created_at', str_starts_with($sort, '-') ? 'desc' : 'asc');
+        }
+
+        return $query->paginate((int) ($filters['per_page'] ?? 25))->withQueryString();
+    }
+
+    public function suspend(ProfessionalProfile $professional, User $actor, Request $request): ProfessionalProfile
+    {
+        $updated = DB::transaction(function () use ($professional, $actor, $request): ProfessionalProfile {
+            $target = ProfessionalProfile::query()->lockForUpdate()->with('user')->findOrFail($professional->getKey());
+            $target->user->update(['account_status' => UserAccountStatus::SUSPENDED]);
+            $target->user->tokens()->delete();
+
+            $this->auditLogService->record(
+                'admin.professional.suspended',
+                $target,
+                $actor,
+                ['previous_status' => UserAccountStatus::ACTIVE->value, 'new_status' => UserAccountStatus::SUSPENDED->value],
+                $request,
+            );
+
+            return $target->fresh(['user.roles']);
+        });
+
+        $updated->user->notify(new AccountActivityNotification(
+            'Compte professionnel suspendu',
+            'Votre compte professionnel PROXIWORK a été suspendu par l’administration.',
+            'professional_account_suspended',
+        ));
+
+        return $updated;
+    }
+
+    public function activate(ProfessionalProfile $professional, User $actor, Request $request): ProfessionalProfile
+    {
+        return DB::transaction(function () use ($professional, $actor, $request): ProfessionalProfile {
+            $target = ProfessionalProfile::query()->lockForUpdate()->with('user')->findOrFail($professional->getKey());
+            $target->user->update(['account_status' => UserAccountStatus::ACTIVE]);
+
+            $this->auditLogService->record(
+                'admin.professional.activated',
+                $target,
+                $actor,
+                ['previous_status' => UserAccountStatus::SUSPENDED->value, 'new_status' => UserAccountStatus::ACTIVE->value],
+                $request,
+            );
+
+            return $target->fresh(['user.roles']);
+        });
+    }
+
+    public function show(ProfessionalProfile $professional): ProfessionalProfile
+    {
+        return $professional->load([
+            'user.roles',
+            'user.profile',
+            'skills',
+            'verificationReviews' => fn ($q) => $q->latest()->with('admin:id,name'),
+        ])->loadCount(['services', 'reviews', 'serviceRequests']);
+    }
+}
