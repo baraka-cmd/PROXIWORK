@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin\Moderation;
 
-use App\Models\{Report, Service, User};
+use App\Models\Report;
+use App\Models\Service;
+use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
