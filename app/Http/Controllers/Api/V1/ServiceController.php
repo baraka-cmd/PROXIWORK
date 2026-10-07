@@ -17,9 +17,33 @@ class ServiceController extends Controller
         $validated = $request->validated();
 
         $services = Service::query()
+            ->select([
+                'id',
+                'professional_profile_id',
+                'category_id',
+                'title',
+                'slug',
+                'short_description',
+                'description',
+                'pricing_type',
+                'price',
+                'price_min',
+                'price_max',
+                'currency',
+                'estimated_duration_minutes',
+                'status',
+                'sort_order',
+                'published_at',
+            ])
             ->published()
             ->whereHas('category', fn ($category) => $category->where('status', 'active'))
-            ->with(['category', 'skills', 'images', 'professionalProfile.user'])
+            ->with([
+                'category:id,name,slug',
+                'skills:id,name,slug',
+                'images:id,service_id,path,alt_text,sort_order,is_cover',
+                'professionalProfile:id,user_id',
+                'professionalProfile.user:id,name',
+            ])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")

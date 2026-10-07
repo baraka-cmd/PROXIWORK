@@ -16,13 +16,24 @@ class ProfessionalSearchService
     public function search(array $filters): LengthAwarePaginator
     {
         $query = ProfessionalProfile::query()
+            ->select([
+                'id',
+                'user_id',
+                'professional_title',
+                'verification_status',
+                'availability_status',
+                'rating_average',
+                'rating_count',
+                'created_at',
+            ])
             ->whereHas('services', function (Builder $services): void {
                 $services
                     ->published()
                     ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'));
             })
             ->with([
-                'user.profile',
+                'user:id,name',
+                'user.profile:id,user_id,first_name,last_name,bio',
                 'user.addresses' => fn ($addresses) => $addresses
                     ->where('is_default', true)
                     ->select([
