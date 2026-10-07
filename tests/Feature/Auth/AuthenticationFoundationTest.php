@@ -102,7 +102,6 @@ class AuthenticationFoundationTest extends TestCase
 
         $this->assertDatabaseCount('personal_access_tokens', 1);
         $this->assertTrue(Hash::check($newPlain, $user->fresh()->password));
-        $this->assertDatabaseCount('personal_access_tokens', 1);
     }
 
     public function test_password_reset_updates_password_revokes_tokens_and_audits(): void
@@ -112,7 +111,7 @@ class AuthenticationFoundationTest extends TestCase
         $oldPlain = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
         $newPlain = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
         $user = User::factory()->create(['password' => Hash::make($oldPlain)]);
-        $oldToken = $user->createToken('old-device')->plainTextToken;
+        $user->createToken('old-device');
         $resetToken = Password::broker()->createToken($user);
 
         $this->postJson('/api/v1/auth/reset-password', [
@@ -126,7 +125,6 @@ class AuthenticationFoundationTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 0);
         $this->assertDatabaseHas('audit_logs', ['user_id' => $user->id, 'action' => 'password_reset']);
         Notification::assertSentTo($user, AccountActivityNotification::class);
-        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
     public function test_email_verification_requires_a_valid_signed_url(): void
