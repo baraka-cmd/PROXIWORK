@@ -240,19 +240,26 @@ class PaymentTransactionsWalletTest extends TestCase
             ->assertAccepted();
 
         $transaction = PaymentTransaction::query()->firstOrFail();
-        $rawBody = 'HTTP-EVENT-VALID|'.$transaction->provider_transaction_id.'|500.00|USD|succeeded';
-        $signature = hash_hmac('sha256', $rawBody, 'test-webhook-secret');
-
-        $this->postJson('/api/v1/payments/webhooks/fake', [
+        $payload = [
             'event_id' => 'HTTP-EVENT-VALID',
             'transaction_id' => $transaction->provider_transaction_id,
             'amount' => '500.00',
             'currency' => 'USD',
             'status' => PaymentStatus::SUCCEEDED->value,
             'metadata' => ['source' => 'http-test'],
-        ], [
-            'X-Payment-Signature' => $signature,
-        ])->assertOk()
+        ];
+        $rawBody = json_encode($payload, JSON_THROW_ON_ERROR);
+        $signature = hash_hmac('sha256', $rawBody, 'test-webhook-secret');
+
+        $this->call(
+            'POST',
+            '/api/v1/payments/webhooks/fake',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_PAYMENT_SIGNATURE' => $signature,
+            ],
+            content: $rawBody,
+        )->assertOk()
             ->assertJsonPath('data.status', PaymentStatus::SUCCEEDED->value);
 
         $this->assertDatabaseHas('orders', [
