@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Professional;
 
+use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\UserAccountStatus;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,7 +23,7 @@ class AdminProfessionalIndexRequest extends FormRequest
             'search' => ['sometimes', 'string', 'max:160'],
             'verification_status' => ['sometimes', Rule::enum(ProfessionalVerificationStatus::class)],
             'account_status' => ['sometimes', Rule::enum(UserAccountStatus::class)],
-            'availability_status' => ['sometimes', 'string', 'max:20'],
+            'availability_status' => ['sometimes', Rule::enum(ProfessionalAvailabilityStatus::class)],
             'created_from' => ['sometimes', 'date'],
             'created_to' => ['sometimes', 'date', 'after_or_equal:created_from'],
             'sort' => ['sometimes', Rule::in(['created_at', '-created_at', 'rating', '-rating'])],
