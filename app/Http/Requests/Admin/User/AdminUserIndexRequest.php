@@ -13,7 +13,7 @@ class AdminUserIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('viewAny', \App\Models\User::class) ?? false;
+        return $this->user()?->can('viewAny', User::class) ?? false;
     }
 
     protected function prepareForValidation(): void
