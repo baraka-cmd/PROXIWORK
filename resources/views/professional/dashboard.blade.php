@@ -39,7 +39,7 @@
 @endphp
 
 @section('page_actions')
-    <a class="button button-primary" href="{{ url('/professional/services') }}">
+    <a class="button button--primary" href="{{ url('/professional/services') }}">
         <i class="fa-solid fa-plus" aria-hidden="true"></i>
         <span>Créer un service</span>
     </a>
