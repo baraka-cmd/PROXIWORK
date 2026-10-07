@@ -8,6 +8,7 @@ use App\Contracts\Payments\PaymentGateway;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
+use App\Events\OrderPaid;
 use App\Enums\PaymentStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
@@ -22,6 +23,7 @@ use App\Models\User;
 use App\Services\Order\OrderService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Tests\Support\FailingPaymentGateway;
 use Tests\TestCase;
 
@@ -232,9 +234,10 @@ class PaymentApiTest extends TestCase
         $this->assertDatabaseCount('payment_intents', 1);
     }
 
-    public function test_successful_payment_is_normalized_without_changing_order_status_yet(): void
+    public function test_successful_payment_dispatches_order_paid_event(): void
     {
         config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+        Event::fake([OrderPaid::class]);
 
         [$client, $order] = $this->orderScenario();
 
@@ -261,6 +264,8 @@ class PaymentApiTest extends TestCase
             'id' => $order->id,
             'status' => OrderStatus::CONFIRMED->value,
         ]);
+
+        Event::assertDispatched(OrderPaid::class, fn (OrderPaid $event): bool => $event->order->is($order));
     }
 
     /**
