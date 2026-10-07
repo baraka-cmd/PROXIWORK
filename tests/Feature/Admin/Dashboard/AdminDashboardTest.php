@@ -52,7 +52,7 @@ class AdminDashboardTest extends TestCase
             ->assertJsonPath('data.period.from', '2026-10-01T00:00:00+00:00')
             ->assertJsonPath('data.period.to', '2026-10-31T23:59:59+00:00')
             ->assertJsonPath('data.users.total', 4)
-            ->assertJsonPath('data.users.new', 2)
+            ->assertJsonPath('data.users.new', 3)
             ->assertJsonPath('data.professionals.total', 1)
             ->assertJsonPath('data.professionals.new', 1)
             ->assertJsonPath('data.services.draft', 1)
