@@ -38,8 +38,12 @@ class AdminProfessionalManagementTest extends TestCase
         ]);
         $professional->user->update(['account_status' => UserAccountStatus::SUSPENDED->value]);
 
+        $this->assertDatabaseHas('professional_profiles', ['id' => $professional->id, 'professional_title' => 'Développeur Laravel', 'verification_status' => 'verified']);
+        $this->assertDatabaseHas('users', ['id' => $professional->user_id, 'account_status' => 'suspended']);
+
         $this->actingAs($admin, 'sanctum')
             ->getJson('/api/v1/admin/professionals?search=Laravel&account_status=suspended&verification_status=verified')
+            ->dump()
             ->assertOk()
             ->assertJsonPath('data.0.id', $professional->id)
             ->assertJsonPath('data.0.account.account_status', 'suspended')
