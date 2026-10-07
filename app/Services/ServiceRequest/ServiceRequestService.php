@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\ServiceRequest;
 
 use App\Enums\ServiceRequestStatus;
+use App\Models\Address;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
@@ -79,7 +80,10 @@ class ServiceRequestService
                 ]);
             }
 
-            if (! empty($attributes['address_id']) && ! $locked->client()->whereKey($request->client_id)->exists()) {
+            if (! empty($attributes['address_id']) && ! Address::query()
+                ->whereKey($attributes['address_id'])
+                ->where('user_id', $locked->client_id)
+                ->exists()) {
                 throw ValidationException::withMessages([
                     'address_id' => 'Cette adresse ne vous appartient pas.',
                 ]);
