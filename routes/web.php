@@ -6,6 +6,9 @@ use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\RbacDashboardController;
+use App\Http\Controllers\Web\Client\FavoriteController;
+use App\Http\Controllers\Web\Client\QuotationController;
+use App\Http\Controllers\Web\Client\ServiceRequestController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,6 +30,23 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('client')->name('client.')->middleware(['active.account', 'role:client'])->group(function (): void {
+        Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+        Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store'])->name('favorites.store');
+        Route::delete('favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
+
+        Route::get('requests', [ServiceRequestController::class, 'index'])->name('requests.index');
+        Route::get('requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('requests.show');
+        Route::post('requests/{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->name('requests.submit');
+        Route::post('requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->name('requests.cancel');
+
+        Route::get('quotes', [QuotationController::class, 'index'])->name('quotes.index');
+        Route::get('quotes/{quotation}', [QuotationController::class, 'show'])->name('quotes.show');
+        Route::post('quotes/{quotation}/accept', [QuotationController::class, 'accept'])->name('quotes.accept');
+        Route::post('quotes/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotes.reject');
+        Route::post('quotes/{quotation}/counter-offer', [QuotationController::class, 'counterOffer'])->name('quotes.counter-offer');
+    });
 });
 
 Route::get('/reset-password/{token}', function (Request $request, string $token) {
