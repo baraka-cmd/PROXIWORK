@@ -25,12 +25,14 @@ class AuditRetentionAndAuthorizationTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('admin');
 
-        AuditLog::create([
+        $old = AuditLog::create([
             'user_id' => $user->id,
             'action' => 'old',
+        ]);
+        $old->forceFill([
             'created_at' => now()->subDays(181),
             'updated_at' => now()->subDays(181),
-        ]);
+        ])->saveQuietly();
         AuditLog::create(['user_id' => $user->id, 'action' => 'recent']);
 
         $this->artisan('audit:prune --days=180')->assertExitCode(0);
