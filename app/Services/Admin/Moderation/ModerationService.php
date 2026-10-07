@@ -5,6 +5,7 @@ use App\Enums\{ModerationActionType,ReportStatus};
 use App\Models\{Report,User,Profile,ProfessionalProfile,Service,Message,Review,ModerationAction};
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 class ModerationService {
