@@ -23,6 +23,7 @@ class SecurityHeadersTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('client');
+        $user->profile()->create();
 
         $this->actingAs($user, 'sanctum')->getJson('/api/v1/profile')
             ->assertOk()
