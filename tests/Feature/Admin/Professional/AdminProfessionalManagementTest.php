@@ -36,7 +36,7 @@ class AdminProfessionalManagementTest extends TestCase
             'professional_title' => 'Développeur Laravel',
             'verification_status' => 'verified',
         ]);
-        $professional->user->update(['account_status' => UserAccountStatus::SUSPENDED]);
+        $professional->user->update(['account_status' => UserAccountStatus::SUSPENDED->value]);
 
         $this->actingAs($admin, 'sanctum')
             ->getJson('/api/v1/admin/professionals?search=Laravel&account_status=suspended&verification_status=verified')
