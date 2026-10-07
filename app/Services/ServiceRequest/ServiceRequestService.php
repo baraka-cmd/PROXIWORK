@@ -81,10 +81,16 @@ class ServiceRequestService
         });
     }
 
-    public function clientRequests(User $client, int $perPage = 15)
+    public function clientRequests(User $client, int $perPage = 15, ?ServiceRequestStatus $status = null)
     {
-        return $this->baseQuery()
-            ->where('client_id', $client->getKey())
+        $query = $this->baseQuery()
+            ->where('client_id', $client->getKey());
+
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+
+        return $query
             ->latest('id')
             ->paginate(min(max($perPage, 1), 100))
             ->withQueryString();
