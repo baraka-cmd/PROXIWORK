@@ -27,6 +27,17 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('client')->name('client.')->middleware(['active.account', 'role:client'])->group(function (): void {
+        Route::get('notifications', [\App\Http\Controllers\Web\Client\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('notifications/{notification}/read', [\App\Http\Controllers\Web\Client\NotificationController::class, 'markAsRead'])->name('notifications.read');
+        Route::post('notifications/read-all', [\App\Http\Controllers\Web\Client\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+        Route::get('messages', [\App\Http\Controllers\Web\Client\MessageController::class, 'index'])->name('messages.index');
+        Route::get('messages/{conversation}', [\App\Http\Controllers\Web\Client\MessageController::class, 'show'])->name('messages.show');
+        Route::post('messages/{conversation}', [\App\Http\Controllers\Web\Client\MessageController::class, 'store'])->name('messages.store');
+        Route::post('messages/{conversation}/read', [\App\Http\Controllers\Web\Client\MessageController::class, 'read'])->name('messages.read');
+    });
 });
 
 Route::get('/reset-password/{token}', function (Request $request, string $token) {
