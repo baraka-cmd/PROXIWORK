@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
+use App\Events\OrderPaid;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
@@ -122,6 +123,8 @@ class PaymentWebhookService
 
             if ($status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
+
+                OrderPaid::dispatch($order);
             }
 
             return $transaction->refresh();
