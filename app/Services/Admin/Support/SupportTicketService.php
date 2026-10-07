@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Admin\Support;
 
-use App\Enums\{SupportTicketCategory, SupportTicketPriority, SupportTicketStatus};
-use App\Models\{SupportTicket, TicketMessage, User};
+use App\Enums\SupportTicketCategory;
+use App\Enums\SupportTicketPriority;
+use App\Enums\SupportTicketStatus;
+use App\Models\SupportTicket;
+use App\Models\TicketMessage;
+use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
