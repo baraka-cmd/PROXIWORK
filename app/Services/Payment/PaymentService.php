@@ -23,7 +23,12 @@ use Throwable;
 
 class PaymentService
 {
-    public function __construct(private readonly PaymentGatewayManager $gatewayManager, private readonly PaymentTransactionService $transactionService, private readonly DatabaseManager $database, private readonly CommissionService $commissionService) {}
+    public function __construct(
+        private readonly PaymentGatewayManager $gatewayManager,
+        private readonly PaymentTransactionService $transactionService,
+        private readonly DatabaseManager $database,
+        private readonly CommissionService $commissionService,
+    ) {}
 
     public function initiate(
         Order $order,
