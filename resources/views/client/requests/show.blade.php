@@ -1,6 +1,13 @@
 @extends('layouts.client')
 @section('title', 'Détail de la demande')
-@section('dashboard_content')
+@push('head')
+    @vite('resources/css/pages/client/favorites-requests-quotes.css')
+@endpush
+@push('scripts')
+    @vite('resources/js/pages/client/favorites-requests-quotes.js')
+@endpush
+
+@section('content')
 <div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">DEMANDE #{{ $serviceRequest->id }}</p><h1>{{ $serviceRequest->title }}</h1><p>{{ $serviceRequest->service?->title }} · {{ $serviceRequest->professional?->user?->name }}</p></div><span class="status-badge status-badge--{{ $serviceRequest->status->value }}">{{ ucfirst(str_replace('_', ' ', $serviceRequest->status->value)) }}</span></div>
 @if(session('success'))<x-alert type="success" :message="session('success')" />@endif
 <div class="client-detail-grid"><section class="client-panel"><h2>Votre demande</h2><p class="client-detail-text">{{ $serviceRequest->description }}</p><dl class="client-definition-list"><div><dt>Budget</dt><dd>{{ $serviceRequest->budget_min ?? '—' }}{{ $serviceRequest->budget_max ? ' – '.$serviceRequest->budget_max : '' }} {{ $serviceRequest->currency }}</dd></div><div><dt>Date souhaitée</dt><dd>{{ optional($serviceRequest->desired_at)->format('d/m/Y à H:i') ?: 'Non précisée' }}</dd></div><div><dt>Adresse</dt><dd>{{ $serviceRequest->address?->city ?: 'Non précisée' }}{{ $serviceRequest->address?->province ? ', '.$serviceRequest->address->province : '' }}</dd></div></dl></section><section class="client-panel"><h2>Professionnel</h2><p class="client-detail-highlight">{{ $serviceRequest->professional?->user?->name }}</p><p>{{ $serviceRequest->professional?->professional_title }}</p></section></div>
