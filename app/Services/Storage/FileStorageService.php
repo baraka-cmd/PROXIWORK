@@ -80,9 +80,6 @@ class FileStorageService
         return $path;
     }
 
-    /**
-     * @param list<string> $allowedExtensions
-     */
     private function validate(UploadedFile $file, array $allowedExtensions, int $maxKb): void
     {
         if ($file->isValid() === false) {
