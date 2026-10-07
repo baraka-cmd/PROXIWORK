@@ -4,7 +4,9 @@
 @section('page_description',$professional->professional_title ?: 'Dossier professionnel')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.professionals.index') }}"><i class="fa-solid fa-arrow-left"></i> Professionnels</a>@endsection
 @push('head')
-    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @endunless
 @endpush
 
 @section('content')
