@@ -9,7 +9,6 @@ use App\Http\Requests\Admin\User\AdminUserIndexRequest;
 use App\Http\Resources\Admin\User\AdminUserResource;
 use App\Models\User;
 use App\Services\Admin\User\AdminUserService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
