@@ -49,7 +49,7 @@ class WebProfessionalNotificationsTest extends TestCase
             ->assertSee('Votre notification')
             ->assertDontSee('Autre notification');
 
-        $this->assertNotNull($own->fresh()->read_at);
+        $this->assertNull($own->fresh()->read_at);
     }
 
     public function test_unread_filter_and_mark_as_read_work(): void
