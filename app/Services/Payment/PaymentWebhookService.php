@@ -22,7 +22,9 @@ class PaymentWebhookService
 {
     public function __construct(
         private readonly CommissionService $commissionService,
-    ) {}
+    ) {
+        // Dependencies are injected only.
+    }
 
     public function handle(
         PaymentProvider $provider,
