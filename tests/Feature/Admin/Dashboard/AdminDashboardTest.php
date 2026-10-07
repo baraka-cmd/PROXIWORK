@@ -43,7 +43,7 @@ class AdminDashboardTest extends TestCase
 
         User::factory()->create(['created_at' => '2026-10-01 10:00:00']);
         User::factory()->create(['created_at' => '2026-09-01 10:00:00']);
-        \$professional = ProfessionalProfile::factory()->create(['created_at' => '2026-10-03 10:00:00']);
+        $professional = ProfessionalProfile::factory()->create(['created_at' => '2026-10-03 10:00:00']);
         Service::factory()->for(\$professional, 'professionalProfile')->create(['created_at' => '2026-10-04 10:00:00']);
 
         $this->actingAs($admin, 'sanctum')
