@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
-use App\Events\OrderPaid;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Enums\PaymentTransactionStatus;
+use App\Events\OrderPaid;
 use App\Models\Order;
 use App\Models\OrderStatusHistory;
 use App\Models\Payment;
