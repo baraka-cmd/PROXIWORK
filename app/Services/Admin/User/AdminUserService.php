@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Admin\User;
 
 use App\Enums\UserAccountStatus;
+use BackedEnum;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
@@ -35,7 +36,7 @@ class AdminUserService
         }
 
         if (($status = $filters['account_status'] ?? null) !== null) {
-            $status = $status instanceof \BackedEnum ? $status->value : $status;
+            $status = $status instanceof BackedEnum ? $status->value : $status;
             $query->where('account_status', $status);
         }
 
