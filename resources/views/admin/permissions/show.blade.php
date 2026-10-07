@@ -4,7 +4,9 @@
 @section('page_description','Détail de la permission et rôles auxquels elle est attribuée.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.permissions.index') }}"><i class="fa-solid fa-arrow-left"></i> Permissions</a>@endsection
 @push('head')
-    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+    @endunless
 @endpush
 
 @section('content')
