@@ -37,6 +37,15 @@ class RbacSeeder extends Seeder
             'support.manage' => ['Support - administrer', 'support', 'Gérer les tickets de support.'],
             'audit.view' => ['Audit - consulter', 'audit', 'Consulter les journaux d’audit.'],
             'admin.dashboard.view' => ['Dashboard administrateur - consulter', 'admin', 'Consulter les statistiques administratives.'],
+            'admin.users.view' => ['Administration - utilisateurs consulter', 'admin.users', 'Consulter, rechercher et filtrer les utilisateurs.'],
+            'admin.users.suspend' => ['Administration - utilisateurs suspendre', 'admin.users', 'Suspendre un compte utilisateur.'],
+            'admin.users.activate' => ['Administration - utilisateurs activer', 'admin.users', 'Réactiver un compte utilisateur.'],
+            'admin.professionals.view' => ['Administration - professionnels consulter', 'admin.professionals', 'Consulter les dossiers professionnels.'],
+            'admin.professionals.suspend' => ['Administration - professionnels suspendre', 'admin.professionals', 'Suspendre un compte professionnel.'],
+            'admin.professionals.activate' => ['Administration - professionnels activer', 'admin.professionals', 'Réactiver un compte professionnel.'],
+            'admin.professionals.review' => ['Administration - professionnels revoir', 'admin.professionals', 'Placer une vérification professionnelle en revue.'],
+            'admin.professionals.verify' => ['Administration - professionnels vérifier', 'admin.professionals', 'Valider une vérification professionnelle.'],
+            'admin.professionals.reject' => ['Administration - professionnels rejeter', 'admin.professionals', 'Rejeter une vérification professionnelle.'],
         ];
 
         foreach ($permissions as $name => [$displayName, $group, $description]) {
