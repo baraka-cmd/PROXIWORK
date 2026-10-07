@@ -19,9 +19,7 @@ use Illuminate\Http\Request;
 
 class SupportTicketController extends Controller
 {
-    public function __construct(private SupportTicketService $service)
-    {
-    }
+    public function __construct(private SupportTicketService $service) {}
 
     public function index(Request $request)
     {
