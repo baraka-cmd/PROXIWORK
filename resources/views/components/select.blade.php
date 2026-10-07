@@ -10,7 +10,8 @@
 
 @php
     $selectId = $id ?? str($name)->slug()->toString();
-    $hasError = $errors->has($name);
+    $validationErrors = app('view')->shared('errors');
+    $hasError = $validationErrors?->has($name) ?? false;
     $errorId = "{$selectId}-error";
     $helpId = "{$selectId}-help";
 @endphp
@@ -50,7 +51,7 @@
     @if ($hasError)
         <p id="{{ $errorId }}" class="form-error">
             <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-            <span>{{ $errors->first($name) }}</span>
+            <span>{{ $validationErrors->first($name) }}</span>
         </p>
     @endif
 </div>
