@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
+use App\Enums\UserAccountStatus;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
@@ -73,6 +74,10 @@ class AuthController extends Controller
 
         if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
             throw new AuthenticationException('Identifiants invalides.');
+        }
+
+        if ($user->account_status === UserAccountStatus::SUSPENDED) {
+            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException('Compte suspendu.');
         }
 
         $token = $user->createToken(
