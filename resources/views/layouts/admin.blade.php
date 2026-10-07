@@ -8,7 +8,7 @@
         <section class="dashboard-nav-section">
             <h2 class="dashboard-nav-title">Pilotage</h2>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/dashboard') }}">
+            <a class="dashboard-nav-link" data-nav-link data-nav-exact href="{{ url('/admin/dashboard') }}">
                 <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
