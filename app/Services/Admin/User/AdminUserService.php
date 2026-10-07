@@ -60,7 +60,7 @@ class AdminUserService
     public function suspend(User $user, User $actor, Request $request): User
     {
         $changed = false;
-        $updated = DB::transaction(function () use ($user, $actor, $request, & $changed): User {
+        $updated = DB::transaction(function () use ($user, $actor, $request, &$changed): User {
             $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
             if ($target->getKey() === $actor->getKey()) {
