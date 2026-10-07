@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
-use App\Enums\UserAccountStatus;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
@@ -16,7 +16,6 @@ use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +23,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class AuthController extends Controller
 {
@@ -78,7 +78,7 @@ class AuthController extends Controller
         }
 
         if ($user->account_status === UserAccountStatus::SUSPENDED) {
-            throw new \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException('Compte suspendu.');
+            throw new AccessDeniedHttpException('Compte suspendu.');
         }
 
         $token = $user->createToken(
