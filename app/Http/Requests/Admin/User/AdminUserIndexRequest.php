@@ -15,6 +15,20 @@ class AdminUserIndexRequest extends FormRequest
         return $this->user()?->can('viewAny', \App\Models\User::class) ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('email_verified')) {
+            $value = $this->input('email_verified');
+
+            if (is_string($value)) {
+                $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                if ($normalized !== null) {
+                    $this->merge(['email_verified' => $normalized]);
+                }
+            }
+        }
+    }
+
     public function rules(): array
     {
         return [
