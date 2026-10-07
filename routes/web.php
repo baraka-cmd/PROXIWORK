@@ -27,6 +27,20 @@ Route::middleware('guest')->group(function (): void {
 
 Route::middleware('auth')->group(function (): void {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::prefix('client')->name('client.')->middleware(['active.account', 'role:client'])->group(function (): void {
+        Route::get('profile', [\App\Http\Controllers\Web\Client\ProfileController::class, 'show'])->name('profile');
+        Route::get('profile/edit', [\App\Http\Controllers\Web\Client\ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('profile', [\App\Http\Controllers\Web\Client\ProfileController::class, 'update'])->name('profile.update');
+
+        Route::get('addresses', [\App\Http\Controllers\Web\Client\AddressController::class, 'index'])->name('addresses.index');
+        Route::get('addresses/create', [\App\Http\Controllers\Web\Client\AddressController::class, 'create'])->name('addresses.create');
+        Route::post('addresses', [\App\Http\Controllers\Web\Client\AddressController::class, 'store'])->name('addresses.store');
+        Route::get('addresses/{address}/edit', [\App\Http\Controllers\Web\Client\AddressController::class, 'edit'])->name('addresses.edit');
+        Route::patch('addresses/{address}', [\App\Http\Controllers\Web\Client\AddressController::class, 'update'])->name('addresses.update');
+        Route::delete('addresses/{address}', [\App\Http\Controllers\Web\Client\AddressController::class, 'destroy'])->name('addresses.destroy');
+        Route::post('addresses/{address}/default', [\App\Http\Controllers\Web\Client\AddressController::class, 'makeDefault'])->name('addresses.default');
+    });
 });
 
 Route::get('/reset-password/{token}', function (Request $request, string $token) {
