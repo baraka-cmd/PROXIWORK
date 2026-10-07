@@ -11,6 +11,7 @@ use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class AdminProfessionalService
 {
@@ -64,6 +65,17 @@ class AdminProfessionalService
     {
         $updated = DB::transaction(function () use ($professional, $actor, $request): ProfessionalProfile {
             $target = ProfessionalProfile::query()->lockForUpdate()->with('user')->findOrFail($professional->getKey());
+
+            if ($target->user->getKey() === $actor->getKey()) {
+                throw ValidationException::withMessages([
+                    'professional' => ['Un administrateur ne peut pas suspendre son propre compte professionnel.'],
+                ]);
+            }
+
+            if ($target->user->account_status === UserAccountStatus::SUSPENDED) {
+                return $target;
+            }
+
             $target->user->update(['account_status' => UserAccountStatus::SUSPENDED]);
             $target->user->tokens()->delete();
 
@@ -91,6 +103,11 @@ class AdminProfessionalService
     {
         return DB::transaction(function () use ($professional, $actor, $request): ProfessionalProfile {
             $target = ProfessionalProfile::query()->lockForUpdate()->with('user')->findOrFail($professional->getKey());
+
+            if ($target->user->account_status === UserAccountStatus::ACTIVE) {
+                return $target;
+            }
+
             $target->user->update(['account_status' => UserAccountStatus::ACTIVE]);
 
             $this->auditLogService->record(
