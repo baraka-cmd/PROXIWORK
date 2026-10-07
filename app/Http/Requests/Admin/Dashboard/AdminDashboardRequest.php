@@ -23,11 +23,14 @@ class AdminDashboardRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (!$this->filled('from') && !$this->filled('to')) {
-            $this->merge([
-                'from' => now()->subDays(29)->startOfDay()->toDateTimeString(),
-                'to' => now()->endOfDay()->toDateTimeString(),
-            ]);
-        }
+        $to = $this->filled('to') ? now()->parse($this->input('to')) : now();
+        $from = $this->filled('from')
+            ? now()->parse($this->input('from'))
+            : $to->copy()->subDays(29)->startOfDay();
+
+        $this->merge([
+            'from' => $from->toDateTimeString(),
+            'to' => $to->toDateTimeString(),
+        ]);
     }
 }
