@@ -74,7 +74,7 @@ class RbacSeeder extends Seeder
             ]],
             'support' => ['Support', 'Assure l’assistance et le suivi des utilisateurs.', true, [
                 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
-                'requests.view', 'orders.view', 'payments.view', 'support.manage', 'reports.manage',
+                'requests.view', 'orders.view', 'payments.view', 'support.manage',
             ]],
             'admin' => ['Administrateur', 'Administration complète de la plateforme.', true, null],
         ];
