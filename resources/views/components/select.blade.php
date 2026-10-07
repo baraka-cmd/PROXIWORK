@@ -9,7 +9,7 @@
 ])
 
 @php
-    $selectId = $id ?? IlluminateSupportStr::slug($name);
+    $selectId = $id ?? str($name)->slug()->toString();
     $hasError = $errors->has($name);
     $errorId = "{$selectId}-error";
     $helpId = "{$selectId}-help";
