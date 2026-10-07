@@ -41,6 +41,7 @@ class AdminProfessionalResource extends JsonResource
             'verification_history' => $this->whenLoaded('verificationReviews', fn () => $this->verificationReviews->map(fn ($review) => [
                 'id' => $review->id,
                 'admin_user_id' => $review->admin_user_id,
+                'admin_name' => $review->admin?->name,
                 'from_status' => $review->from_status?->value,
                 'to_status' => $review->to_status?->value,
                 'reason_code' => $review->reason_code,
