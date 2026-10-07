@@ -2,6 +2,11 @@ body {
     overflow-x: hidden;
 }
 
+body.navigation-is-open {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
 .app-shell {
     min-height: 100vh;
 }
@@ -274,6 +279,17 @@ body {
     gap: var(--space-1);
 }
 
+.public-mobile-navigation .public-nav-link {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.public-mobile-navigation .public-nav-link.is-active {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
 .public-mobile-navigation.is-open {
     display: block;
 }
@@ -423,6 +439,7 @@ body {
 
     .dashboard-sidebar.is-open {
         transform: translateX(0);
+        box-shadow: var(--shadow-lg);
     }
 
     .dashboard-content {
@@ -439,6 +456,15 @@ body {
 }
 
 @media (max-width: 767px) {
+    .public-mobile-navigation {
+        padding-bottom: var(--space-3);
+    }
+
+    .public-mobile-navigation .public-nav-link {
+        min-height: 46px;
+        padding-inline: var(--space-3);
+    }
+
     .page-container {
         width: min(100% - 1.25rem, var(--container-width));
     }
