@@ -4,7 +4,9 @@
 @section('meta_description', 'Connectez-vous à votre compte PROXIWORK pour accéder à votre espace.')
 
 @push('head')
-    @vite('resources/css/pages/auth/login.css')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/auth/login.css')
+    @endunless
 @endpush
 
 @section('auth_content')
@@ -200,5 +202,7 @@
 @endsection
 
 @push('scripts')
-    @vite('resources/js/pages/auth/login.js')
+    @unless (app()->environment('testing'))
+        @vite('resources/js/pages/auth/login.js')
+    @endunless
 @endpush
