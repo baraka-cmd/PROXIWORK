@@ -37,7 +37,11 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
 
         Route::get('requests', [ServiceRequestController::class, 'index'])->name('requests.index');
+        Route::get('requests/create', [ServiceRequestController::class, 'create'])->name('requests.create');
+        Route::post('requests', [ServiceRequestController::class, 'store'])->name('requests.store');
         Route::get('requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('requests.show');
+        Route::get('requests/{serviceRequest}/edit', [ServiceRequestController::class, 'edit'])->name('requests.edit');
+        Route::put('requests/{serviceRequest}', [ServiceRequestController::class, 'update'])->name('requests.update');
         Route::post('requests/{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->name('requests.submit');
         Route::post('requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->name('requests.cancel');
 
