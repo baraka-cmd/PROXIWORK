@@ -9,6 +9,7 @@ use App\Models\ProfessionalProfile;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -37,15 +38,15 @@ class AdminProfessionalService
         }
 
         $query->when($filters['verification_status'] ?? null, fn ($q, $status) =>
-            $q->where('verification_status', $status)
+            $q->where('verification_status', $status instanceof BackedEnum ? $status->value : $status)
         );
 
         $query->when($filters['account_status'] ?? null, fn ($q, $status) =>
-            $q->whereHas('user', fn ($user) => $user->where('account_status', $status))
+            $q->whereHas('user', fn ($user) => $user->where('account_status', $status instanceof BackedEnum ? $status->value : $status))
         );
 
         $query->when($filters['availability_status'] ?? null, fn ($q, $status) =>
-            $q->where('availability_status', $status)
+            $q->where('availability_status', $status instanceof BackedEnum ? $status->value : $status)
         );
 
         $query->when($filters['created_from'] ?? null, fn ($q, $date) => $q->where('created_at', '>=', $date));
