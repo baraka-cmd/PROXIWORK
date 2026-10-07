@@ -142,7 +142,7 @@ class ModerationService
         return DB::transaction(function () use ($actor, $report, $request): Report {
             $report = Report::query()->lockForUpdate()->findOrFail($report->id);
 
-            if ($report->status ! == ReportStatus::PENDING) {
+            if ($report->status !== ReportStatus::PENDING) {
                 throw ValidationException::withMessages([
                     'status' => 'Seuls les signalements en attente peuvent être mis en revue.',
                 ]);
@@ -172,7 +172,7 @@ class ModerationService
         return DB::transaction(function () use ($actor, $report, $status, $note, $request): Report {
             $report = Report::query()->lockForUpdate()->findOrFail($report->id);
 
-            if ($report->status ! == ReportStatus::UNDER_REVIEW) {
+            if ($report->status !== ReportStatus::UNDER_REVIEW) {
                 throw ValidationException::withMessages([
                     'status' => 'Le signalement doit être en revue avant clôture.',
                 ]);
@@ -214,7 +214,7 @@ class ModerationService
         return DB::transaction(function () use ($actor, $report, $type, $reason, $note, $request): ModerationAction {
             $report = Report::query()->lockForUpdate()->with('target')->findOrFail($report->id);
 
-            if ($report->status ! == ReportStatus::UNDER_REVIEW) {
+            if ($report->status !== ReportStatus::UNDER_REVIEW) {
                 throw ValidationException::withMessages([
                     'status' => 'Le signalement doit être en revue avant une action.',
                 ]);
