@@ -26,7 +26,12 @@ class AdminDashboardService
 
         $professionalsTotal = ProfessionalProfile::query()->count();
         $professionalsNew = ProfessionalProfile::query()->whereBetween('created_at', [$from, $to])->count();
-        $verification = $this->statusCounts(ProfessionalProfile::class, $from, $to, 'verification_status');
+        $verification = ProfessionalProfile::query()
+            ->select('verification_status', DB::raw('COUNT(*) AS aggregate'))
+            ->groupBy('verification_status')
+            ->pluck('aggregate', 'verification_status')
+            ->mapWithKeys(fn ($value, $key): array => [(string) $key => (int) $value])
+            ->all();
 
         $clientsTotal = User::query()->whereHas('roles', fn ($query) => $query->where('name', 'client'))->count();
         $clientsNew = User::query()
