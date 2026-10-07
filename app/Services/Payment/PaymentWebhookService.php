@@ -20,7 +20,10 @@ use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 
 class PaymentWebhookService
 {
-    public function __construct(private readonly CommissionService $commissionService) {}
+    public function __construct(
+        private readonly CommissionService $commissionService
+    )
+    {}
 
     public function handle(
         PaymentProvider $provider,
