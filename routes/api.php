@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\V1\Admin\Professional\AdminProfessionalController;
 use App\Http\Controllers\Api\V1\Admin\User\AdminUserController;
 use App\Http\Controllers\Api\V1\Admin\Verification\ProfessionalVerificationController;
 use App\Http\Controllers\Api\V1\Audit\AuditLogController;
+use App\Http\Controllers\Api\V1\Admin\Moderation\ReportController;
+use App\Http\Controllers\Api\V1\Admin\Moderation\ModerationActionController;
+use App\Http\Controllers\Api\V1\Support\SupportTicketController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\Client\Dashboard\ClientDashboardController;
@@ -96,6 +99,19 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/accept', [QuotationController::class, 'accept'])->middleware('role:client');
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
+        Route::prefix('reports')->group(function (): void {
+            Route::post('/', [ReportController::class, 'store'])->middleware('throttle:report-create');
+        });
+
+        Route::prefix('support/tickets')->group(function (): void {
+            Route::get('/', [SupportTicketController::class, 'index']);
+            Route::post('/', [SupportTicketController::class, 'store'])->middleware('throttle:support-ticket-create');
+            Route::get('{ticket}', [SupportTicketController::class, 'show']);
+            Route::post('{ticket}/messages', [SupportTicketController::class, 'message'])->middleware('throttle:message-send');
+            Route::post('{ticket}/transition', [SupportTicketController::class, 'transition'])->middleware('permission:support.manage');
+            Route::post('{ticket}/assign', [SupportTicketController::class, 'assign'])->middleware('permission:support.manage');
+        });
+
         Route::get('orders/{order}', [OrderController::class, 'show']);
         Route::post('orders/{order}/review', [ReviewController::class, 'store'])->middleware('role:client');
         Route::get('reviews/{review}', [ReviewController::class, 'show']);
@@ -126,6 +142,16 @@ Route::prefix('v1')->group(function (): void {
 
         Route::prefix('admin')->group(function (): void {
             Route::get('dashboard', AdminDashboardController::class)->middleware('permission:admin.dashboard.view');
+            Route::prefix('reports')->group(function (): void {
+                Route::get('/', [ReportController::class, 'index'])->middleware('permission:reports.manage');
+                Route::get('{report}', [ReportController::class, 'show'])->middleware('permission:reports.manage');
+                Route::post('{report}/assign', [ReportController::class, 'assign'])->middleware('permission:reports.manage');
+                Route::post('{report}/start-review', [ReportController::class, 'startReview'])->middleware('permission:reports.manage');
+                Route::post('{report}/resolve', [ReportController::class, 'resolve'])->middleware('permission:reports.manage');
+                Route::post('{report}/actions', [ModerationActionController::class, 'store'])->middleware('permission:reports.manage');
+            });
+
+
 
             Route::prefix('users')->group(function (): void {
                 Route::get('/', [AdminUserController::class, 'index'])->middleware('permission:admin.users.view');
