@@ -3,6 +3,10 @@
 @section('page_title',$professional->user->name ?? 'Professionnel')
 @section('page_description',$professional->professional_title ?: 'Dossier professionnel')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.professionals.index') }}"><i class="fa-solid fa-arrow-left"></i> Professionnels</a>@endsection
+@push('head')
+    @vite(['resources/css/pages/admin/permissions-professionals.css', 'resources/js/pages/admin/permissions-professionals.js'])
+@endpush
+
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status"><i class="fa-solid fa-circle-check"></i>{{ session('success') }}</div>@endif
 @if($errors->any())<div class="admin-alert admin-alert--danger" role="alert"><i class="fa-solid fa-triangle-exclamation"></i>{{ $errors->first() }}</div>@endif
