@@ -2,9 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\LoginController;
-use App\Http\Controllers\Web\RegisterController;
-use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\{AdminAuthController, LoginController, RegisterController, RbacDashboardController};
 use App\Http\Controllers\Web\Admin\{RoleController as AdminRoleController, UserController as AdminUserController};
 use Illuminate\Http\Request;
