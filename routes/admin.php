@@ -6,7 +6,6 @@ use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware(['auth', 'permission:admin.users.view'])->group(function (): void {
         Route::get('users', [UserController::class, 'index'])->name('users.index');
         Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
@@ -36,4 +35,3 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
         Route::get('roles/{role}', [RoleController::class, 'show'])->name('roles.show');
     });
-});
