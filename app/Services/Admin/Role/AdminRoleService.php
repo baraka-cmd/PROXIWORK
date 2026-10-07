@@ -82,7 +82,7 @@ class AdminRoleService
             $this->auditLogService->record(
                 'role_updated',
                 $role,
-                $request,
+                $request->user(),
                 ['permission_ids_changed' => array_key_exists('permission_ids', $data)],
                 $request,
             );
