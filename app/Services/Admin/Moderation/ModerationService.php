@@ -39,7 +39,7 @@ class ModerationService
 
         $class = $map[$type] ?? null;
 
-        if (!$class) {
+        if (! $class) {
             throw ValidationException::withMessages([
                 'target_type' => 'Cible de signalement non supportée.',
             ]);
@@ -47,7 +47,7 @@ class ModerationService
 
         $target = $class::query()->find($id);
 
-        if (!$target) {
+        if (! $target) {
             throw ValidationException::withMessages([
                 'target_id' => 'La cible demandée est introuvable.',
             ]);
@@ -74,7 +74,7 @@ class ModerationService
 
         if (
             $target instanceof Message
-            && !$target->conversation->participants()->whereKey($reporter->getKey())->exists()
+            && ! $target->conversation->participants()->whereKey($reporter->getKey())->exists()
         ) {
             throw ValidationException::withMessages([
                 'target_id' => 'Vous n’êtes pas autorisé à signaler ce message.',
@@ -108,7 +108,7 @@ class ModerationService
 
     public function assign(User $actor, Report $report, User $assignee, Request $request): Report
     {
-        if (!$assignee->isActive() || !$assignee->hasPermissionTo('reports.manage')) {
+        if (! $assignee->isActive() || ! $assignee->hasPermissionTo('reports.manage')) {
             throw ValidationException::withMessages([
                 'assigned_to' => 'Le destinataire doit être un modérateur actif autorisé.',
             ]);
@@ -142,7 +142,7 @@ class ModerationService
         return DB::transaction(function () use ($actor, $report, $request): Report {
             $report = Report::query()->lockForUpdate()->findOrFail($report->id);
 
-            if ($report->status !== ReportStatus::PENDING) {
+            if ($report->status ! == ReportStatus::PENDING) {
                 throw ValidationException::withMessages([
                     'status' => 'Seuls les signalements en attente peuvent être mis en revue.',
                 ]);
@@ -163,7 +163,7 @@ class ModerationService
         ?string $note,
         Request $request,
     ): Report {
-        if (!in_array($status, [ReportStatus::RESOLVED, ReportStatus::DISMISSED], true)) {
+        if (! in_array($status, [ReportStatus::RESOLVED, ReportStatus::DISMISSED], true)) {
             throw ValidationException::withMessages([
                 'status' => 'Statut final invalide.',
             ]);
@@ -172,7 +172,7 @@ class ModerationService
         return DB::transaction(function () use ($actor, $report, $status, $note, $request): Report {
             $report = Report::query()->lockForUpdate()->findOrFail($report->id);
 
-            if ($report->status !== ReportStatus::UNDER_REVIEW) {
+            if ($report->status ! == ReportStatus::UNDER_REVIEW) {
                 throw ValidationException::withMessages([
                     'status' => 'Le signalement doit être en revue avant clôture.',
                 ]);
@@ -214,7 +214,7 @@ class ModerationService
         return DB::transaction(function () use ($actor, $report, $type, $reason, $note, $request): ModerationAction {
             $report = Report::query()->lockForUpdate()->with('target')->findOrFail($report->id);
 
-            if ($report->status !== ReportStatus::UNDER_REVIEW) {
+            if ($report->status ! == ReportStatus::UNDER_REVIEW) {
                 throw ValidationException::withMessages([
                     'status' => 'Le signalement doit être en revue avant une action.',
                 ]);
@@ -286,7 +286,7 @@ class ModerationService
     {
         $user = $target instanceof User ? $target : ($target instanceof Profile ? $target->user : null);
 
-        if (!$user) {
+        if (! $user) {
             throw ValidationException::withMessages([
                 'action_type' => 'Cette action exige un utilisateur ou un profil.',
             ]);
@@ -298,7 +298,7 @@ class ModerationService
 
     private function suspendProfessional(Model $target): void
     {
-        if (!$target instanceof ProfessionalProfile) {
+        if (! $target instanceof ProfessionalProfile) {
             throw ValidationException::withMessages([
                 'action_type' => 'Cette action exige un profil professionnel.',
             ]);
