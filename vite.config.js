@@ -11,6 +11,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/css/pages/auth/login.css',
                 'resources/js/pages/auth/login.js',
+                'resources/css/pages/auth/register.css',
+                'resources/js/pages/auth/register.js',
             ],
             refresh: true,
             fonts: [
