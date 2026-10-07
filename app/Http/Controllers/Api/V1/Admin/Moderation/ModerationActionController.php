@@ -14,9 +14,7 @@ use Illuminate\Http\JsonResponse;
 
 class ModerationActionController extends Controller
 {
-    public function __construct(private ModerationService $service)
-    {
-    }
+    public function __construct(private ModerationService $service) {}
 
     public function store(ModerateReportRequest $request, Report $report): JsonResponse
     {
