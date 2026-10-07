@@ -19,21 +19,29 @@ class WebAdminPermissionsTest extends TestCase
     {
         $this->seed(RbacSeeder::class);
         $user = User::factory()->create();
-        $user->assignRole(Role::where('name','client')->firstOrFail());
+        $user->assignRole(Role::where('name', 'client')->firstOrFail());
 
-        $this->actingAs($user)->get(route('admin.permissions.index'))->assertForbidden();
+        $this->actingAs($user)
+            ->get(route('admin.permissions.index'))
+            ->assertForbidden();
     }
 
     public function test_authorized_admin_can_view_and_filter_permissions(): void
     {
         $this->seed(RbacSeeder::class);
         $admin = User::factory()->create();
-        $admin->assignRole(Role::where('name','admin')->firstOrFail());
+        $admin->assignRole(Role::where('name', 'admin')->firstOrFail());
 
-        $this->actingAs($admin)->get(route('admin.permissions.index',['group'=>'admin.professionals']))
-            ->assertOk()->assertSee('admin.professionals.view');
+        $this->actingAs($admin)
+            ->get(route('admin.permissions.index', ['group' => 'admin.professionals']))
+            ->assertOk()
+            ->assertSee('admin.professionals.view');
 
-        $permission = Permission::where('name','admin.professionals.view')->firstOrFail();
-        $this->actingAs($admin)->get(route('admin.permissions.show',$permission))->assertOk()->assertSee($permission->display_name);
+        $permission = Permission::where('name', 'admin.professionals.view')->firstOrFail();
+
+        $this->actingAs($admin)
+            ->get(route('admin.permissions.show', $permission))
+            ->assertOk()
+            ->assertSee($permission->display_name);
     }
 }
