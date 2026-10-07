@@ -1,0 +1,71 @@
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-family);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin-top: 0;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+}
+
+h1 {
+    font-size: clamp(1.75rem, 3vw, var(--font-size-4xl));
+}
+
+h2 {
+    font-size: clamp(1.5rem, 2.5vw, var(--font-size-3xl));
+}
+
+h3 {
+    font-size: clamp(1.25rem, 2vw, var(--font-size-2xl));
+}
+
+p {
+    color: var(--color-text-muted);
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.text-subtle {
+    color: var(--color-text-subtle);
+}
+
+.text-primary {
+    color: var(--color-primary);
+}
+
+.text-accent {
+    color: var(--color-accent);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.eyebrow {
+    margin-bottom: var(--space-2);
+    color: var(--color-primary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
