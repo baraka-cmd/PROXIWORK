@@ -25,11 +25,11 @@ class AdminDashboardRequest extends FormRequest
     {
         $defaults = [];
 
-        if (!$this->filled('from')) {
+        if (! $this->filled('from')) {
             $defaults['from'] = now()->subDays(29)->startOfDay()->toDateTimeString();
         }
 
-        if (!$this->filled('to')) {
+        if (! $this->filled('to')) {
             $defaults['to'] = now()->endOfDay()->toDateTimeString();
         }
 
