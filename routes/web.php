@@ -53,7 +53,7 @@ Route::prefix('professional')->name('professional.')
         Route::get('messages', [MessageController::class, 'index'])->name('messages');
         Route::get('messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
         Route::post('messages/{conversation}', [MessageController::class, 'store'])
-            ->middleware('throttle:message')
+            ->middleware('throttle:10,1')
             ->name('messages.store');
         Route::post('messages/{conversation}/read', [MessageController::class, 'read'])
             ->name('messages.read');
