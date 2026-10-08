@@ -40,7 +40,7 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('/dashboard', function (\Illuminate\Http\Request $request): \Illuminate\Http\RedirectResponse {
+    Route::get('/dashboard', function (Request $request): RedirectResponse {
         $user = $request->user();
 
         abort_unless($user !== null, 403);
@@ -106,7 +106,7 @@ Route::middleware('auth')->group(function (): void {
     });
 });
 
-Route::get('/reset-password/{token}', function (\Illuminate\Http\Request $request, string $token) {
+Route::get('/reset-password/{token}', function (Request $request, string $token) {
     return response()->json(['success' => true, 'message' => 'Password reset link received.', 'data' => ['token' => $token, 'email' => $request->query('email')]]);
 })->middleware('guest')->name('password.reset');
 
