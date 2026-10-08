@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\PaymentController;
@@ -99,4 +100,9 @@ Route::middleware(['auth', 'permission:support.manage'])->group(function (): voi
     Route::post('support/{ticket}/message', [SupportController::class, 'message'])->name('support.message');
     Route::post('support/{ticket}/resolve', [SupportController::class, 'resolve'])->name('support.resolve');
     Route::post('support/{ticket}/close', [SupportController::class, 'close'])->name('support.close');
+});
+
+Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
+    Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('audit/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
 });
