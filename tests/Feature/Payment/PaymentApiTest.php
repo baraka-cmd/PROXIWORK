@@ -393,7 +393,7 @@ class PaymentApiTest extends TestCase
             'accepted_at' => now(),
         ])->save();
 
-        return app(OrderService::class)->createFromAcceptedQuotation($quotation->fresh(), $client);
+        return [$client, app(OrderService::class)->createFromAcceptedQuotation($quotation->fresh(), $client)];
     }
 
     private function client(): User
