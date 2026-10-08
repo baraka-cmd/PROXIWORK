@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Client;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentProvider;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Services\Order\OrderService;
@@ -37,21 +39,25 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         Gate::authorize('view', $order);
-        $order->load(['professional.user','items','serviceRequest.service','acceptedOffer','statusHistories','addressSnapshot','payment.transactions']);
+        $order->load(['professional.user', 'items', 'serviceRequest.service', 'acceptedOffer', 'statusHistories', 'addressSnapshot', 'payment.transactions']);
+
         return view('client.orders.show', compact('order'));
     }
 
     public function pay(Order $order)
     {
         Gate::authorize('pay', $order);
+
         if ($order->status !== OrderStatus::PENDING_PAYMENT) {
             return redirect()->route('client.orders.show', $order)->withErrors(['payment' => 'Cette commande n’accepte plus de paiement.']);
         }
+
         $order->load('items');
+
         return view('client.orders.payment', [
             'order' => $order,
-            'methods' => \App\Enums\PaymentMethod::cases(),
-            'providers' => \App\Enums\PaymentProvider::cases(),
+            'methods' => PaymentMethod::cases(),
+            'providers' => PaymentProvider::cases(),
         ]);
     }
 }
