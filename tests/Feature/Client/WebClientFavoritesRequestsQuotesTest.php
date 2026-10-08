@@ -7,6 +7,7 @@ namespace Tests\Feature\Client;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
+use App\Models\QuotationOffer;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
@@ -184,7 +185,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'service_request_id' => $serviceRequest->id,
             'status' => 'sent',
         ]);
-        $offer = \App\Models\QuotationOffer::factory()->create([
+        $offer = QuotationOffer::factory()->create([
             'quotation_id' => $quotation->id,
             'valid_until' => now()->subMinute(),
         ]);
