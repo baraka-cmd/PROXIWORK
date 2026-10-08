@@ -8,12 +8,14 @@ use App\Http\Controllers\Web\Admin\CategoryController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\PaymentController;
 use App\Http\Controllers\Web\Admin\PermissionController;
+use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
+use App\Http\Controllers\Web\Admin\VerificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'permission:admin.users.view'])->group(function (): void {
@@ -110,4 +112,20 @@ Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
 
 Route::middleware(['auth', 'permission:admin.dashboard.view'])->group(function (): void {
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
+});
+
+
+Route::middleware(['auth', 'permission:admin.professionals.view'])->group(function (): void {
+    Route::get('verification', [VerificationController::class, 'index'])->name('verification.index');
+    Route::get('verification/{professional}', [VerificationController::class, 'show'])->name('verification.show');
+});
+
+Route::middleware(['auth', 'permission:reports.manage'])->group(function (): void {
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::post('reports/{report}/assign', [ReportController::class, 'assign'])->name('reports.assign');
+    Route::post('reports/{report}/start-review', [ReportController::class, 'startReview'])->name('reports.start-review');
+    Route::post('reports/{report}/moderate', [ReportController::class, 'moderate'])->name('reports.moderate');
+    Route::post('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::post('reports/{report}/dismiss', [ReportController::class, 'dismiss'])->name('reports.dismiss');
 });
