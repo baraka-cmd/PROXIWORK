@@ -147,6 +147,7 @@ class WebRegisterTest extends TestCase
             ->post(route('register.store'), [
                 'name' => 'Baraka Ntwali',
                 'email' => 'baraka@example.com',
+                'account_type' => 'client',
                 'password' => 'Password123!',
                 'password_confirmation' => 'Password123!',
             ])
