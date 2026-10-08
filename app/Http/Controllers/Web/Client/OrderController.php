@@ -15,7 +15,11 @@ use Illuminate\Support\Facades\Gate;
 
 class OrderController extends Controller
 {
-    public function __construct(\n        private readonly OrderService $orders,\n    ) {\n        // Dependencies are injected only.\n    }
+    public function __construct(
+        private readonly OrderService $orders,
+    ) {
+        // Dependencies are injected only.
+    }
 
     public function index(Request $request)
     {
