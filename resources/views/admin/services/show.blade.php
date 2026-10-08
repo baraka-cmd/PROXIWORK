@@ -3,6 +3,11 @@
 @section('page_title',$service->title)
 @section('page_description',$service->short_description ?: 'Détail et modération du service.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.services.index') }}"><i class="fa-solid fa-arrow-left"></i> Services</a>@endsection
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/services-requests.css', 'resources/js/pages/admin/services-requests.js'])
+    @endunless
+@endpush
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="admin-alert admin-alert--danger" role="alert">{{ $errors->first() }}</div>@endif
