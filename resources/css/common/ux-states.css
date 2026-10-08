@@ -3,6 +3,10 @@
    Presentation only: no business rules or authorization logic.
    ========================================================= */
 
+.error-page-container {
+    padding-block: var(--space-12);
+}
+
 .state-loading {
     width: 100%;
 }
