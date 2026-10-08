@@ -102,3 +102,15 @@ Référence contrôlée : commit `08db1fbab4ffa3a4d1fd94b27c0ea081dc9963ab`.
 - La suite signale encore **3 tests risqués** (avertissements PHPUnit, sans échec bloquant). Ils ne sont pas présentés comme des tests parfaitement propres.
 
 Cette validation automatisée ne remplace pas une recette manuelle complète dans un navigateur ni un test avec de véritables fournisseurs de paiement Mobile Money. La branche reste donc proposée pour revue et recette, et la PR vers `main` reste en brouillon tant que ces étapes n’ont pas été approuvées.
+
+## Fonctionnalités qui restent à compléter avant une mise en production réelle
+
+Cet audit distingue les fonctionnalités effectivement intégrées de celles qui ne sont pas entièrement implémentées dans les branches historiques :
+
+- **Réinitialisation du mot de passe côté navigateur :** l'API dispose des endpoints de demande et de réinitialisation, mais la route web `password.reset` est encore un placeholder JSON et aucune route `password.request` ni vue de formulaire n'est déclarée. Le parcours navigateur n'est pas complet.
+- **Vérification d'e-mail côté navigateur :** les endpoints API existent, mais le contrôleur d'inscription web n'envoie pas de notification de vérification et les routes web ne proposent pas de parcours dédié.
+- **OAuth Google :** le bouton de connexion est un emplacement préparé; aucune route OAuth Google fonctionnelle n'est définie.
+- **Paiements de production :** le contrat et l'abstraction de paiement sont présents, mais le conteneur lie actuellement `PaymentGateway` à `FakePaymentGateway`. Les transactions Mobile Money réelles nécessitent un fournisseur, ses secrets de configuration et des tests de callbacks dans un environnement autorisé.
+
+Ces éléments ne sont pas des fichiers oubliés lors d'une fusion : aucune des branches examinées ne contient une implémentation web complète de ces parcours ni un fournisseur de paiement réel. Ils restent des travaux distincts à planifier; la release ne doit pas être présentée comme prête pour une mise en production réelle tant qu'ils ne sont pas achevés et testés.
+
