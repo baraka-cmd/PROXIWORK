@@ -79,18 +79,27 @@
         <button class="button button--primary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer la réponse</button>
     </form>
 </section>
+@endif
 
+@if($ticket->status->value === 'in_progress')
 <section class="admin-card">
     <div class="admin-card__header"><div><span class="admin-card__eyebrow">Workflow</span><h3>Finalisation</h3></div></div>
     <div class="admin-action-row">
-        <form method="POST" action="{{ route('admin.support.resolve', $ticket) }}">@csrf<button class="button button--primary" type="submit">Marquer comme résolu</button></form>
+        <form method="POST" action="{{ route('admin.support.resolve', $ticket) }}">
+            @csrf
+            <button class="button button--primary" type="submit">Marquer comme résolu</button>
+        </form>
     </div>
 </section>
-@endif
-
-@if($ticket->status->value === 'resolved')
+@elseif($ticket->status->value === 'resolved')
 <section class="admin-card">
-    <div class="admin-action-row"><form method="POST" action="{{ route('admin.support.close', $ticket) }}">@csrf<button class="button button--primary" type="submit">Clôturer définitivement</button></form></div>
+    <div class="admin-card__header"><div><span class="admin-card__eyebrow">Workflow</span><h3>Clôture</h3></div></div>
+    <div class="admin-action-row">
+        <form method="POST" action="{{ route('admin.support.close', $ticket) }}">
+            @csrf
+            <button class="button button--primary" type="submit">Clôturer définitivement</button>
+        </form>
+    </div>
 </section>
 @endif
 @endsection
