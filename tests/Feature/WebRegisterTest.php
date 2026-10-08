@@ -39,7 +39,7 @@ class WebRegisterTest extends TestCase
     {
         $response = $this->post(route('register.store'), [
             'name' => 'Baraka Ntwali',
-            'email' => 'baraka@example.com',
+            'email' => 'Baraka@Example.com',
             'account_type' => 'client',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
