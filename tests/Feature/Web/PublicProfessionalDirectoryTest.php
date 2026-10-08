@@ -9,7 +9,6 @@ use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Address;
 use App\Models\Category;
-use App\Models\Profile;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\Skill;
