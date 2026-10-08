@@ -105,6 +105,23 @@ class WebRegisterTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_registration_requires_an_explicit_account_type(): void
+    {
+        $this->from(route('register'))
+            ->post(route('register.store'), [
+                'name' => 'Compte sans type',
+                'email' => 'missing-type@example.com',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+                'terms' => '1',
+            ])
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors('account_type');
+
+        $this->assertDatabaseMissing('users', ['email' => 'missing-type@example.com']);
+        $this->assertGuest();
+    }
+
     public function test_registration_requires_unique_email(): void
     {
         User::factory()->create(['email' => 'baraka@example.com']);
