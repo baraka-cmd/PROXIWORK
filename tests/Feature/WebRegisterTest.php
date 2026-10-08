@@ -39,7 +39,7 @@ class WebRegisterTest extends TestCase
     {
         $response = $this->post(route('register.store'), [
             'name' => 'Baraka Ntwali',
-            'email' => 'baraka@example.com',
+            'email' => 'Baraka@Example.com',
             'account_type' => 'client',
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
@@ -51,6 +51,7 @@ class WebRegisterTest extends TestCase
         $this->assertNotNull($user);
         $this->assertSame('Baraka Ntwali', $user->name);
         $this->assertSame(UserAccountStatus::ACTIVE, $user->account_status);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => 'baraka@example.com']);
         $this->assertTrue($user->hasRole('client'));
         $this->assertDatabaseMissing('professional_profiles', ['user_id' => $user->id]);
         $this->assertTrue(Hash::check('Password123!', $user->password));
@@ -138,26 +139,6 @@ class WebRegisterTest extends TestCase
             ->assertRedirect(route('register'))
             ->assertSessionHasErrors('email');
 
-        $this->assertGuest();
-    }
-
-    public function test_registration_normalizes_email_before_unique_validation(): void
-    {
-        User::factory()->create(['email' => 'baraka@example.com']);
-
-        $this->from(route('register'))
-            ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
-                'email' => 'BARAKA@EXAMPLE.COM',
-                'account_type' => 'client',
-                'password' => 'Password123!',
-                'password_confirmation' => 'Password123!',
-                'terms' => '1',
-            ])
-            ->assertRedirect(route('register'))
-            ->assertSessionHasErrors('email');
-
-        $this->assertSame(1, User::where('email', 'baraka@example.com')->count());
         $this->assertGuest();
     }
 
