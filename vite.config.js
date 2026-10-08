@@ -17,6 +17,8 @@ export default defineConfig({
                 'resources/js/pages/admin/users-roles.js',
                 'resources/css/pages/admin/permissions-professionals.css',
                 'resources/js/pages/admin/permissions-professionals.js',
+                'resources/css/pages/admin/services-requests.css',
+                'resources/js/pages/admin/services-requests.js',
             ],
             refresh: true,
             fonts: [

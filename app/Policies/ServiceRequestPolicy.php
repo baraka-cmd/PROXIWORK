@@ -9,6 +9,16 @@ use App\Models\User;
 
 class ServiceRequestPolicy
 {
+    public function adminView(User $user, ServiceRequest $request): bool
+    {
+        return $user->hasPermissionTo('requests.view');
+    }
+
+    public function adminManage(User $user, ServiceRequest $request): bool
+    {
+        return $user->hasPermissionTo('requests.manage');
+    }
+
     public function viewAnyClient(User $user): bool
     {
         return $user->hasRole('client');
