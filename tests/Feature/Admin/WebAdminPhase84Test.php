@@ -17,7 +17,7 @@ class WebAdminPhase84Test extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\RbacSeeder::class);
+        $this->seed(RbacSeeder::class);
     }
 
     public function test_guest_cannot_access_admin_transaction_areas(): void
