@@ -45,7 +45,7 @@ class LoginController
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(url('/'));
     }
 
     public function destroy(Request $request): RedirectResponse
