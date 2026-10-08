@@ -4,15 +4,15 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
-use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\URL;
-use Tests\TestCase;
+
 
 class AuthenticationTest extends TestCase
 {
@@ -219,5 +219,4 @@ class AuthenticationTest extends TestCase
         $this->postJson('/api/v1/auth/change-password', [])->assertUnauthorized();
         $this->postJson('/api/v1/auth/email/verification-notification')->assertUnauthorized();
     }
-
 }
