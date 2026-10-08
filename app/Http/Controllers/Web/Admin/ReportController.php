@@ -38,6 +38,7 @@ class ReportController extends Controller
 
         return view('admin.reports.show', [
             'report' => $this->reportService->show($report),
+            'assignees' => $this->reportService->assignableUsers(),
         ]);
     }
 
