@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
 use App\Http\Controllers\Web\Admin\OrderController;
@@ -105,4 +106,8 @@ Route::middleware(['auth', 'permission:support.manage'])->group(function (): voi
 Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
     Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
     Route::get('audit/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
+});
+
+Route::middleware(['auth', 'permission:admin.dashboard.view'])->group(function (): void {
+    Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 });

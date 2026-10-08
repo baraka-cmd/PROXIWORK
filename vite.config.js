@@ -15,6 +15,7 @@ export default defineConfig({
                 'resources/css/pages/admin/services-requests.css','resources/js/pages/admin/services-requests.js',
                 'resources/css/pages/admin/dashboard.css','resources/js/pages/admin/dashboard.js',
                 'resources/css/pages/admin/orders.css','resources/css/pages/admin/payments.css',
+                'resources/css/pages/admin/analytics.css','resources/js/pages/admin/analytics.js',
             ],
             refresh: true,
             fonts: [bunny('Poppins',{weights:[400,500,600,700]})],
