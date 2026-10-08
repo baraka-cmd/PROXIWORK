@@ -10,14 +10,14 @@ use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Services\Admin\Service\AdminServiceManagementService;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class ServiceController extends Controller
 {
     public function __construct(
-        private readonly AdminServiceManagementService $serviceManager
+        private readonly AdminServiceManagementService $serviceManager,
     ) {}
 
     public function index(AdminServiceIndexRequest $request): View
