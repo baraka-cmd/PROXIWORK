@@ -18,6 +18,7 @@ final class PublicHomePageTest extends TestCase
             ->assertSee('Découvrir les professionnels')
             ->assertSee('COMMENT ÇA MARCHE')
             ->assertSee('name="search"', false)
+            ->assertSee('role="search"', false)
             ->assertDontSee('Laravel has an incredibly rich ecosystem');
     }
 }
