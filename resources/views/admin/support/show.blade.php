@@ -86,7 +86,9 @@
         <form method="POST" action="{{ route('admin.support.resolve', $ticket) }}">@csrf<button class="button button--primary" type="submit">Marquer comme résolu</button></form>
     </div>
 </section>
-@elseif($ticket->status->value === 'resolved')
+@endif
+
+@if($ticket->status->value === 'resolved')
 <section class="admin-card">
     <div class="admin-action-row"><form method="POST" action="{{ route('admin.support.close', $ticket) }}">@csrf<button class="button button--primary" type="submit">Clôturer définitivement</button></form></div>
 </section>
