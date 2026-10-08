@@ -85,15 +85,15 @@ Ne pas fermer ni supprimer automatiquement les branches historiques : conserver 
 
 ### Vérification des branches
 
-- Un contrôle structurel des arbres de fichiers des **103 branches** du dépôt a été effectué.
+- Un contrôle structurel des arbres de fichiers des **105 branches** visibles du dépôt a été effectué. Les arbres ont été comparés à celui de la release; les anciens chemins propres aux premières branches de fondation ont été vérifiés comme variantes historiques, et leurs équivalents actuels (contrôleurs, Resources et tests) sont présents.
 - Les modules fonctionnels des branches historiques sont représentés dans la release. Les différences relevées concernaient principalement des variantes historiques, des chemins renommés, des documents ou des tests remplacés par des tests plus récents.
-- Les points de risque ont été comparés séparément : modèle de profil professionnel et migration de schéma, hiérarchie des catégories, idempotence des paiements, notifications et configuration des queues.
+- Les points de risque ont été comparés séparément au niveau des fichiers et du contenu : modèle/migration du profil professionnel, hiérarchie des catégories, idempotence des paiements, recherche publique, notifications, durcissement HTTP, cache, queues, stockage des fichiers et index de performance. Les variantes historiques de ces branches sont remplacées par des versions présentes dans la release; les tests plus récents du projet couvrent ces invariants.
 - La release conserve la migration additive du profil professionnel et son backfill d’état, la configuration explicite du hachage des mots de passe, ainsi que les documents d’architecture et d’intégration utiles.
 - Les tests couvrent notamment le schéma du profil professionnel et la rétention des journaux d’audit.
 
 ### Dernière validation automatisée réussie
 
-Référence contrôlée : commit `9160e7bb7a701d136f6910b42d93177ffa2b0e93` (après intégration des tests de durcissement).
+Référence contrôlée : commit `122860d416050d16835bd4cdf8c603100be54d68` — [workflow CI #712](https://github.com/baraka-cmd/PROXIWORK/actions/runs/37857101057) — [PR #100](https://github.com/baraka-cmd/PROXIWORK/pull/100).
 
 - Build frontend Vite : **réussi**.
 - Validation stricte Composer : **réussie**.
