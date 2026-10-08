@@ -16,9 +16,7 @@ use Illuminate\View\View;
 
 class ServiceController extends Controller
 {
-    public function __construct(
-        private readonly AdminServiceManagementService $serviceManager,
-    ) {}
+    public function __construct(private readonly AdminServiceManagementService $serviceManager) {}
 
     public function index(AdminServiceIndexRequest $request): View
     {
