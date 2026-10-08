@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function (): void {
 });
 
 Route::get('/reset-password/{token}', function (Request $request, string $token) {
-    return response()->json(['success' => true, 'message' => 'Password reset link received.', 'data' => ['token' => $token, 'email' => $request->query('email')]]); 
+    return response()->json(['success' => true, 'message' => 'Password reset link received.', 'data' => ['token' => $token, 'email' => $request->query('email')]]);
 })->middleware('guest')->name('password.reset');
 
 Route::prefix('admin')->name('admin.')->group(function (): void {
