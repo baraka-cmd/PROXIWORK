@@ -28,16 +28,21 @@ class WebAdminServicesRequestsTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('admin');
+
         return $user;
     }
 
     public function test_admin_can_browse_services_and_filter_by_status(): void
     {
         $admin = $this->admin();
-        $published = Service::factory()->create(['status' => ServiceStatus::PUBLISHED, 'published_at' => now()]);
+        $published = Service::factory()->create([
+            'status' => ServiceStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
         Service::factory()->create(['status' => ServiceStatus::DRAFT]);
 
-        $this->actingAs($admin)->get(route('admin.services.index', ['status' => 'published']))
+        $this->actingAs($admin)
+            ->get(route('admin.services.index', ['status' => 'published']))
             ->assertOk()
             ->assertSee($published->title);
     }
@@ -45,7 +50,10 @@ class WebAdminServicesRequestsTest extends TestCase
     public function test_user_without_service_permission_cannot_browse_admin_services(): void
     {
         $user = User::factory()->create();
-        $this->actingAs($user)->get(route('admin.services.index'))->assertForbidden();
+
+        $this->actingAs($user)
+            ->get(route('admin.services.index'))
+            ->assertForbidden();
     }
 
     public function test_admin_can_publish_a_service_through_domain_service(): void
@@ -60,7 +68,8 @@ class WebAdminServicesRequestsTest extends TestCase
             'is_cover' => true,
         ]);
 
-        $this->actingAs($admin)->post(route('admin.services.publish', $service))
+        $this->actingAs($admin)
+            ->post(route('admin.services.publish', $service))
             ->assertRedirect();
 
         $this->assertDatabaseHas('services', [
@@ -72,13 +81,17 @@ class WebAdminServicesRequestsTest extends TestCase
     public function test_admin_can_browse_requests_and_isolated_detail(): void
     {
         $admin = $this->admin();
-        $request = ServiceRequest::factory()->create(['status' => ServiceRequestStatus::REQUESTED]);
+        $request = ServiceRequest::factory()->create([
+            'status' => ServiceRequestStatus::REQUESTED,
+        ]);
 
-        $this->actingAs($admin)->get(route('admin.service-requests.index', ['status' => 'requested']))
+        $this->actingAs($admin)
+            ->get(route('admin.service-requests.index', ['status' => 'requested']))
             ->assertOk()
             ->assertSee($request->title);
 
-        $this->actingAs($admin)->get(route('admin.service-requests.show', $request))
+        $this->actingAs($admin)
+            ->get(route('admin.service-requests.show', $request))
             ->assertOk()
             ->assertSee($request->title);
     }
@@ -86,11 +99,15 @@ class WebAdminServicesRequestsTest extends TestCase
     public function test_admin_can_cancel_requested_request_and_history_is_created(): void
     {
         $admin = $this->admin();
-        $request = ServiceRequest::factory()->create(['status' => ServiceRequestStatus::REQUESTED]);
+        $request = ServiceRequest::factory()->create([
+            'status' => ServiceRequestStatus::REQUESTED,
+        ]);
 
-        $this->actingAs($admin)->post(route('admin.service-requests.cancel', $request), [
-            'reason' => 'Décision administrative',
-        ])->assertRedirect();
+        $this->actingAs($admin)
+            ->post(route('admin.service-requests.cancel', $request), [
+                'reason' => 'Décision administrative',
+            ])
+            ->assertRedirect();
 
         $this->assertDatabaseHas('service_requests', [
             'id' => $request->id,
