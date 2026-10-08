@@ -10,11 +10,11 @@ use App\Enums\SupportTicketStatus;
 use App\Models\SupportTicket;
 use App\Models\TicketMessage;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Services\Audit\AuditLogService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\ValidationException
 
 class SupportTicketService
 {
