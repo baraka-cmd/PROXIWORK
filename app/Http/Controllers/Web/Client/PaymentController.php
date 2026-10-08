@@ -16,11 +16,20 @@ use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
-    public function __construct(private readonly PaymentService $payments) {}
+    public function __construct(
+        private readonly PaymentService $payments,
+    ) {
+        // Dependencies are injected only.
+    }
 
     public function index(Request $request)
     {
-        $payments = Payment::query()->where('client_id', $request->user()->getKey())->with('order')->latest()->paginate(12)->withQueryString();
+        $payments = Payment::query()
+            ->where('client_id', $request->user()->getKey())
+            ->with('order')
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
 
         return view('client.payments.index', compact('payments'));
     }
@@ -30,6 +39,7 @@ class PaymentController extends Controller
         abort_unless($payment->client_id === $request->user()->getKey(), 403);
 
         $payment->load(['order', 'transactions']);
+
         return view('client.payments.show', compact('payment'));
     }
 
