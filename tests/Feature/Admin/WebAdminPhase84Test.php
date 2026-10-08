@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class WebAdminTransactionAreasTest extends TestCase
+class WebAdminPhase84Test extends TestCase
 {
     use RefreshDatabase;
 
