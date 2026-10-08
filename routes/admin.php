@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\Admin\ProfessionalController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
+use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,4 +89,14 @@ Route::middleware(['auth', 'permission:orders.view'])->group(function (): void {
 Route::middleware(['auth', 'permission:payments.view'])->group(function (): void {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+});
+
+Route::middleware(['auth', 'permission:support.manage'])->group(function (): void {
+    Route::get('support', [SupportController::class, 'index'])->name('support.index');
+    Route::get('support/{ticket}', [SupportController::class, 'show'])->name('support.show');
+    Route::post('support/{ticket}/assign', [SupportController::class, 'assign'])->name('support.assign');
+    Route::patch('support/{ticket}', [SupportController::class, 'update'])->name('support.update');
+    Route::post('support/{ticket}/message', [SupportController::class, 'message'])->name('support.message');
+    Route::post('support/{ticket}/resolve', [SupportController::class, 'resolve'])->name('support.resolve');
+    Route::post('support/{ticket}/close', [SupportController::class, 'close'])->name('support.close');
 });
