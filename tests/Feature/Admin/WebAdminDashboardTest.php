@@ -44,7 +44,7 @@ class WebAdminDashboardTest extends TestCase
             ->assertViewHas('dashboard')
             ->assertSee('Utilisateurs')
             ->assertSee('Professionnels')
-            ->assertSee('Volumes et commissions');
+            ->assertSee('Finances');
     }
 
     public function test_period_filters_are_passed_to_the_dashboard(): void
