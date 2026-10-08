@@ -48,13 +48,14 @@ class PaymentService
         );
 
         $intent = $prepared['intent'];
-        $payment = $this->ensurePayment($order, $client, $intent);
 
         if ($prepared['created'] === false && $intent->request_fingerprint !== $prepared['fingerprint']) {
             throw new PaymentConflictException(
                 'La même clé d’idempotence a déjà été utilisée avec une autre opération.'
             );
         }
+
+        $payment = $this->ensurePayment($order, $client, $intent);
 
         if ($prepared['created'] === false && $intent->status->isFinal()) {
             return $payment->load('transactions');
