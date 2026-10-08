@@ -79,7 +79,6 @@ class SupportTicketService
         ]);
     }
 
-
     public function create(User $user, array $data, Request $request): SupportTicket
     {
         return DB::transaction(function () use ($user, $data, $request): SupportTicket {
