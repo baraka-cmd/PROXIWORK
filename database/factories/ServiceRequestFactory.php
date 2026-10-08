@@ -21,7 +21,7 @@ class ServiceRequestFactory extends Factory
         return [
             'client_id' => User::factory(),
             'professional_id' => fn (array $attributes) => Service::find($attributes['service_id'])->professional_profile_id,
-            'service_id' => $service,
+            'service_id' => $service->getKey(),
             'address_id' => null,
             'title' => fake()->sentence(5),
             'description' => fake()->paragraph(2),
