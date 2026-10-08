@@ -3,10 +3,15 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -108,4 +113,111 @@ class AuthenticationTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 1);
         $this->assertTrue(Hash::check('NewSecurePass2!', $user->fresh()->password));
     }
+
+    public function test_password_reset_updates_password_revokes_tokens_and_audits(): void
+    {
+        Notification::fake();
+
+        $oldPassword = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
+        $newPassword = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
+        $user = User::factory()->create(['password' => Hash::make($oldPassword)]);
+        $user->createToken('old-device');
+        $resetToken = Password::broker()->createToken($user);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => $resetToken,
+            'password' => $newPassword,
+            'password_confirmation' => $newPassword,
+        ])->assertOk();
+
+        $this->assertTrue(Hash::check($newPassword, $user->fresh()->password));
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertDatabaseHas('audit_logs', ['user_id' => $user->id, 'action' => 'password_reset']);
+        Notification::assertSentTo($user, AccountActivityNotification::class);
+    }
+
+    public function test_forgot_password_sends_a_reset_notification_to_existing_user(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+
+        $this->postJson('/api/v1/auth/forgot-password', ['email' => $user->email])
+            ->assertOk();
+
+        Notification::assertSentTo($user, ResetPassword::class);
+    }
+
+    public function test_email_verification_requires_a_valid_signed_url_and_matching_hash(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $validUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(10),
+            ['id' => $user->id, 'hash' => sha1($user->getEmailForVerification())],
+        );
+
+        $this->getJson($validUrl)->assertOk()->assertJsonPath('data.user.id', $user->id);
+        $this->assertNotNull($user->fresh()->email_verified_at);
+
+        $invalidUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(10),
+            ['id' => $user->id, 'hash' => sha1('mismatch@example.com')],
+        );
+
+        $this->getJson($invalidUrl)->assertForbidden();
+    }
+
+    public function test_unverified_user_can_resend_verification_but_verified_user_is_not_notified(): void
+    {
+        Notification::fake();
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/auth/email/verification-notification')
+            ->assertOk();
+
+        Notification::assertSentTo($user, VerifyEmail::class);
+
+        Notification::fake();
+        $user->markEmailAsVerified();
+
+        $this->actingAs($user->fresh(), 'sanctum')
+            ->postJson('/api/v1/auth/email/verification-notification')
+            ->assertOk();
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_login_is_rate_limited_after_repeated_failures(): void
+    {
+        $password = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
+        $email = 'throttle-'.fake()->unique()->numerify('####').'@example.com';
+        User::factory()->create(['email' => $email, 'password' => Hash::make($password)]);
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->postJson('/api/v1/auth/login', [
+                'email' => $email,
+                'password' => $password.'-wrong',
+                'device_name' => 'test',
+            ])->assertUnauthorized();
+        }
+
+        $this->postJson('/api/v1/auth/login', [
+            'email' => $email,
+            'password' => $password.'-wrong',
+            'device_name' => 'test',
+        ])->assertStatus(429);
+    }
+
+    public function test_protected_auth_routes_require_authentication(): void
+    {
+        $this->getJson('/api/v1/auth/me')->assertUnauthorized();
+        $this->postJson('/api/v1/auth/logout')->assertUnauthorized();
+        $this->postJson('/api/v1/auth/change-password', [])->assertUnauthorized();
+        $this->postJson('/api/v1/auth/email/verification-notification')->assertUnauthorized();
+    }
+
 }
