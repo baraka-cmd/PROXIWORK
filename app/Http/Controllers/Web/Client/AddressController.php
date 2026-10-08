@@ -27,7 +27,7 @@ class AddressController extends Controller
         $user = $request->user();
 
         DB::transaction(function () use ($user, $data): void {
-            if (($data['is_default'] ?? false) === true || ! $user->addresses()->exists()) {
+            if (($data['is_default'] ?? false) === true || $user->addresses()->doesntExist()) {
                 $user->addresses()->update(['is_default' => false]);
                 $data['is_default'] = true;
             }
