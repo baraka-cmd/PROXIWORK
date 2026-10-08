@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Enums\UserAccountStatus;
 use App\Models\User;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -13,6 +14,13 @@ use Tests\TestCase;
 class WebLoginTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(RbacSeeder::class);
+    }
 
     public function test_login_page_is_available_to_guests(): void
     {
@@ -31,13 +39,44 @@ class WebLoginTest extends TestCase
             'account_status' => UserAccountStatus::ACTIVE,
         ]);
 
+        $user->assignRole('client');
+
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
             'password' => 'Password123!',
         ]);
 
-        $response->assertRedirect('/');
+        $response->assertRedirect(route('dashboard'));
         $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_dashboard_redirects_client_to_client_workspace(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertRedirect(route('client.dashboard'));
+    }
+
+    public function test_dashboard_redirects_professional_to_professional_workspace(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertRedirect(route('professional.dashboard'));
+    }
+
+    public function test_dashboard_rejects_accounts_without_a_workspace_role(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertForbidden();
     }
 
     public function test_invalid_credentials_are_rejected(): void
