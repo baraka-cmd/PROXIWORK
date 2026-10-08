@@ -16,8 +16,12 @@ Route::middleware(['auth', 'permission:admin.users.view'])->group(function (): v
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->middleware('permission:admin.users.suspend')->name('users.suspend');
-    Route::post('users/{user}/activate', [UserController::class, 'activate'])->middleware('permission:admin.users.activate')->name('users.activate');
+    Route::post('users/{user}/suspend', [UserController::class, 'suspend'])
+        ->middleware('permission:admin.users.suspend')
+        ->name('users.suspend');
+    Route::post('users/{user}/activate', [UserController::class, 'activate'])
+        ->middleware('permission:admin.users.activate')
+        ->name('users.activate');
 });
 
 Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
@@ -61,16 +65,21 @@ Route::middleware('auth')->group(function (): void {
         ->name('professionals.verification.reject');
 });
 
-
 Route::middleware(['auth', 'permission:services.view'])->group(function (): void {
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::post('services/{service}/publish', [ServiceController::class, 'publish'])->middleware('permission:services.manage')->name('services.publish');
-    Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])->middleware('permission:services.manage')->name('services.unpublish');
-    Route::post('services/{service}/archive', [ServiceController::class, 'archive'])->middleware('permission:services.manage')->name('services.archive');
+    Route::post('services/{service}/publish', [ServiceController::class, 'publish'])
+        ->middleware('permission:services.manage')
+        ->name('services.publish');
+    Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])
+        ->middleware('permission:services.manage')
+        ->name('services.unpublish');
+    Route::post('services/{service}/archive', [ServiceController::class, 'archive'])
+        ->middleware('permission:services.manage')
+        ->name('services.archive');
 });
 
 Route::middleware(['auth', 'permission:requests.view'])->group(function (): void {
@@ -79,6 +88,10 @@ Route::middleware(['auth', 'permission:requests.view'])->group(function (): void
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('permission:requests.manage')->name('service-requests.cancel');
-    Route::post('service-requests/{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])->middleware('permission:requests.manage')->name('service-requests.reject');
+    Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])
+        ->middleware('permission:requests.manage')
+        ->name('service-requests.cancel');
+    Route::post('service-requests/{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])
+        ->middleware('permission:requests.manage')
+        ->name('service-requests.reject');
 });
