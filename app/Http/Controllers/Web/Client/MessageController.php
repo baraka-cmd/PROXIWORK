@@ -12,7 +12,11 @@ use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
-    public function __construct(private readonly ConversationService $conversationService) {}
+    public function __construct(
+        private readonly ConversationService $conversationService,
+    ) {
+        // Dependencies are injected only.
+    }
 
     public function index(Request $request)
     {
@@ -41,7 +45,7 @@ class MessageController extends Controller
         $model = Conversation::query()->findOrFail($conversation);
         $this->authorize('send', $model);
 
-        $message = $this->conversationService->sendMessage(
+        $this->conversationService->sendMessage(
             $model,
             $request->user(),
             $request->validated('body'),
