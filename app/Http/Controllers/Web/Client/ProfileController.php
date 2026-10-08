@@ -13,6 +13,7 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         $user = $request->user()->load('profile');
+
         return view('client.profile.show', compact('user'));
     }
 
@@ -25,12 +26,12 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'first_name' => ['required','string','max:100'],
-            'last_name' => ['required','string','max:100'],
-            'phone' => ['nullable','string','max:30'],
-            'bio' => ['nullable','string','max:2000'],
-            'locale' => ['nullable','string','max:10'],
-            'timezone' => ['nullable','string','max:64'],
+            'first_name' => ['required', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'bio' => ['nullable', 'string', 'max:2000'],
+            'locale' => ['nullable', 'string', 'max:10'],
+            'timezone' => ['nullable', 'string', 'max:64'],
         ]);
 
         DB::transaction(function () use ($request, $data): void {

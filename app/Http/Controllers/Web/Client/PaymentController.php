@@ -21,13 +21,15 @@ class PaymentController extends Controller
     public function index(Request $request)
     {
         $payments = Payment::query()->where('client_id', $request->user()->getKey())->with('order')->latest()->paginate(12)->withQueryString();
+
         return view('client.payments.index', compact('payments'));
     }
 
     public function show(Request $request, Payment $payment)
     {
         abort_unless($payment->client_id === $request->user()->getKey(), 403);
-        $payment->load(['order','transactions']);
+
+        $payment->load(['order', 'transactions']);
         return view('client.payments.show', compact('payment'));
     }
 
@@ -38,7 +40,7 @@ class PaymentController extends Controller
         $data = $request->validate([
             'method' => ['required', Rule::enum(PaymentMethod::class)],
             'provider' => ['required', Rule::enum(PaymentProvider::class)],
-            'idempotency_key' => ['required','string','uuid'],
+            'idempotency_key' => ['required', 'string', 'uuid'],
         ]);
 
         $payment = $this->payments->initiate(

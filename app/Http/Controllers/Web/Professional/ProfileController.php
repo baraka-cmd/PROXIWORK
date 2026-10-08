@@ -20,6 +20,7 @@ use App\Models\Skill;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller

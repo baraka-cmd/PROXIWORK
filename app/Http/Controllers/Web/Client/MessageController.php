@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web\Client;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Messaging\StoreMessageRequest;
+use App\Models\Conversation;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\Request;
 
@@ -23,7 +24,7 @@ class MessageController extends Controller
 
     public function show(Request $request, int $conversation)
     {
-        $model = \App\Models\Conversation::query()->findOrFail($conversation);
+        $model = Conversation::query()->findOrFail($conversation);
         $this->authorize('view', $model);
 
         $conversationData = $this->conversationService->showForUser($model, $request->user());
@@ -37,7 +38,7 @@ class MessageController extends Controller
 
     public function store(StoreMessageRequest $request, int $conversation)
     {
-        $model = \App\Models\Conversation::query()->findOrFail($conversation);
+        $model = Conversation::query()->findOrFail($conversation);
         $this->authorize('send', $model);
 
         $message = $this->conversationService->sendMessage(
@@ -53,7 +54,7 @@ class MessageController extends Controller
 
     public function read(Request $request, int $conversation)
     {
-        $model = \App\Models\Conversation::query()->findOrFail($conversation);
+        $model = Conversation::query()->findOrFail($conversation);
         $this->authorize('read', $model);
         $this->conversationService->markAsRead($model, $request->user());
 

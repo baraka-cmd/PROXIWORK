@@ -27,7 +27,7 @@ class AddressController extends Controller
         $user = $request->user();
 
         DB::transaction(function () use ($user, $data): void {
-            if (($data['is_default'] ?? false) === true || ! $user->addresses()->exists()) {
+            if (($data['is_default'] ?? false) === true || !$user->addresses()->exists()) {
                 $user->addresses()->update(['is_default' => false]);
                 $data['is_default'] = true;
             }
@@ -91,20 +91,20 @@ class AddressController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'label' => ['required','string','max:80'],
-            'recipient_name' => ['required','string','max:120'],
-            'contact_phone' => ['nullable','string','max:30'],
-            'country_code' => ['required','string','size:2'],
-            'province' => ['required','string','max:120'],
-            'city' => ['required','string','max:120'],
-            'commune' => ['nullable','string','max:120'],
-            'neighborhood' => ['nullable','string','max:120'],
-            'address_line_1' => ['required','string','max:255'],
-            'address_line_2' => ['nullable','string','max:255'],
-            'landmark' => ['nullable','string','max:255'],
-            'postal_code' => ['nullable','string','max:30'],
-            'latitude' => ['nullable','numeric','between:-90,90'],
-            'longitude' => ['nullable','numeric','between:-180,180'],
+            'label' => ['required', 'string', 'max:80'],
+            'recipient_name' => ['required', 'string', 'max:120'],
+            'contact_phone' => ['nullable', 'string', 'max:30'],
+            'country_code' => ['required', 'string', 'size:2'],
+            'province' => ['required', 'string', 'max:120'],
+            'city' => ['required', 'string', 'max:120'],
+            'commune' => ['nullable', 'string', 'max:120'],
+            'neighborhood' => ['nullable', 'string', 'max:120'],
+            'address_line_1' => ['required', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
+            'landmark' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:30'],
+            'latitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude' => ['nullable', 'numeric', 'between:-180,180'],
             'is_default' => ['boolean'],
         ]);
     }

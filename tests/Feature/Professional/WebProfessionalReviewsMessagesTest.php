@@ -208,7 +208,7 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             'requested_at' => now(),
         ]);
 
-        $quotation = \App\Models\Quotation::query()->forceCreate([
+        $quotation = Quotation::query()->forceCreate([
             'service_request_id' => $request->id,
             'status' => 'sent',
         ]);
