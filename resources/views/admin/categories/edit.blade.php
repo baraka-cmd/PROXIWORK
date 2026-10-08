@@ -1,0 +1,2 @@
+@extends('layouts.admin')@section('page_title','Modifier une catégorie')@section('page_description','Modifier une catégorie en respectant les invariants métier.')
+@section('content')<section class="admin-card"><form method="POST" action="{{ route('admin.categories.update',$category) }}" class="admin-form">@csrf @method('PUT') @include('admin.categories.partials.form',['category'=>$category])<button class="button button--primary">Enregistrer</button></form></section>@endsection

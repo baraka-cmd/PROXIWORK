@@ -1,0 +1,13 @@
+@extends('layouts.admin')
+@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/orders.css')@endunless@endpush
+@section('page_title','Commandes')@section('page_description','Supervisez les commandes sans contourner leur cycle transactionnel.')
+@section('content')
+<section class="admin-card"><div class="admin-card__header"><h3>Filtres</h3><a class="admin-link" href="{{ route('admin.orders.index') }}">Réinitialiser</a></div><form method="GET" class="admin-filter-grid">
+<label class="admin-field admin-field--wide"><span>Recherche</span><input name="search" value="{{ $filters['search']??'' }}" placeholder="Numéro, client ou e-mail"></label>
+<label class="admin-field"><span>Commande</span><select name="status"><option value="">Tous</option>@foreach($statuses as $s)<option value="{{ $s }}" @selected(($filters['status']??'')===$s)>{{ $s }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Paiement</span><select name="payment_status"><option value="">Tous</option>@foreach(['initiated','pending','processing','succeeded','failed','cancelled','expired','refunded'] as $s)<option value="{{ $s }}" @selected(($filters['payment_status']??'')===$s)>{{ $s }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Du</span><input type="date" name="from" value="{{ $filters['from']??'' }}"></label><label class="admin-field"><span>Au</span><input type="date" name="to" value="{{ $filters['to']??'' }}"></label>
+<div class="admin-filter-actions"><button class="button button--primary">Appliquer</button></div></form></section>
+<section class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Commande</th><th>Client</th><th>Professionnel</th><th>État</th><th>Total</th><th>Paiement</th><th></th></tr></thead><tbody>
+@forelse($orders as $order)<tr><td><a href="{{ route('admin.orders.show',$order) }}"><strong>{{ $order->order_number }}</strong></a><small>{{ $order->created_at?->format('d/m/Y H:i') }}</small></td><td>{{ $order->client?->name??'—' }}</td><td>{{ $order->professional?->user?->name??'—' }}</td><td><span class="admin-status admin-status--{{ $order->status->value }}">{{ $order->status->value }}</span></td><td>{{ number_format((float)$order->total,2) }} {{ $order->currency }}</td><td>{{ $order->payment?->status?->value??'—' }}</td><td><a class="admin-icon-button" href="{{ route('admin.orders.show',$order) }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></td></tr>@empty<tr><td colspan="7"><div class="admin-empty"><strong>Aucune commande.</strong></div></td></tr>@endforelse</tbody></table></div>@if($orders->hasPages())<div class="admin-pagination">{{ $orders->links() }}</div>@endif</section>
+@endsection
