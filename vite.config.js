@@ -7,31 +7,19 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css',
-                'resources/js/app.js',
-                'resources/css/pages/auth/login.css',
-                'resources/js/pages/auth/login.js',
-                'resources/css/pages/auth/register.css',
-                'resources/js/pages/auth/register.js',
-                'resources/css/pages/admin/users-roles.css',
-                'resources/js/pages/admin/users-roles.js',
-                'resources/css/pages/admin/permissions-professionals.css',
-                'resources/js/pages/admin/permissions-professionals.js',
-                'resources/css/pages/admin/services-requests.css',
-                'resources/js/pages/admin/services-requests.js',
+                'resources/css/app.css','resources/js/app.js',
+                'resources/css/pages/auth/login.css','resources/js/pages/auth/login.js',
+                'resources/css/pages/auth/register.css','resources/js/pages/auth/register.js',
+                'resources/css/pages/admin/users-roles.css','resources/js/pages/admin/users-roles.js',
+                'resources/css/pages/admin/permissions-professionals.css','resources/js/pages/admin/permissions-professionals.js',
+                'resources/css/pages/admin/services-requests.css','resources/js/pages/admin/services-requests.js',
+                'resources/css/pages/admin/dashboard.css','resources/js/pages/admin/dashboard.js',
+                'resources/css/pages/admin/orders.css','resources/css/pages/admin/payments.css',
             ],
             refresh: true,
-            fonts: [
-                bunny('Poppins', {
-                    weights: [400, 500, 600, 700],
-                }),
-            ],
+            fonts: [bunny('Poppins',{weights:[400,500,600,700]})],
         }),
         tailwindcss(),
     ],
-    server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
-        },
-    },
+    server: {watch:{ignored:['**/storage/framework/views/**']}},
 });
