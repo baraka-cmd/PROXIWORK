@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Admin;
 
+use App\Enums\SupportTicketPriority;
+use App\Enums\SupportTicketStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Support\AdminSupportAssignRequest;
 use App\Http\Requests\Admin\Support\AdminSupportIndexRequest;
 use App\Http\Requests\Admin\Support\AdminSupportMessageRequest;
 use App\Http\Requests\Admin\Support\AdminSupportUpdateRequest;
-use App\Enums\SupportTicketPriority;
-use App\Enums\SupportTicketStatus;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\View\View
 
 class SupportController extends Controller
 {
