@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('a[data-nav-link]').forEach(link=>{if(link.href===window.location.href)link.setAttribute('aria-current','page')})});

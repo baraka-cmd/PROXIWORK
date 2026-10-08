@@ -1,0 +1,7 @@
+@extends('layouts.client')
+@section('title','Mes paiements')
+@section('content')
+@push('head')@vite('resources/css/pages/client/orders-payments.css')@endpush
+<div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">HISTORIQUE FINANCIER</p><h1>Mes paiements</h1><p>Retrouvez les paiements liés à vos commandes.</p></div></div>
+@if($payments->isEmpty())<x-empty-state icon="fa-credit-card" title="Aucun paiement" message="Vos paiements apparaîtront ici après une tentative de règlement." />@else<div class="client-list">@foreach($payments as $payment)<article class="client-list-item"><div class="client-list-item__main"><div class="client-list-item__icon"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></div><div><h2>{{ $payment->order?->order_number ?? '#'.$payment->order_id }}</h2><p>{{ number_format((float)$payment->amount,2,',',' ') }} {{ $payment->currency }} · {{ $payment->provider->value ?? '—' }}</p><small>{{ optional($payment->created_at)->format('d/m/Y à H:i') }}</small></div></div><div class="client-list-item__side"><span class="status-badge status-badge--{{ $payment->status->value }}">{{ ucfirst($payment->status->value) }}</span><a class="btn btn-secondary btn-sm" href="{{ route('client.payments.show',$payment) }}">Détails</a></div></article>@endforeach</div><div class="client-pagination">{{ $payments->links() }}</div>@endif</div>
+@endsection

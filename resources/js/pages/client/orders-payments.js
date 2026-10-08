@@ -1,0 +1,1 @@
+document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;const button=event.submitter;if(!(button instanceof HTMLButtonElement))return;button.disabled=true;button.setAttribute('aria-busy','true');button.innerHTML='<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Traitement…';});
