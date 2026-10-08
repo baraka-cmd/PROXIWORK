@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\AdminAuthController;
+use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Client\AddressController as ClientAddressController;
 use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
 use App\Http\Controllers\Web\Client\FavoriteController;
@@ -20,12 +20,13 @@ use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
 use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
 use App\Http\Controllers\Web\Professional\ProfileController;
-use App\Http\Controllers\Web\Professional\ReviewController;
 use App\Http\Controllers\Web\Professional\RevenueController;
+use App\Http\Controllers\Web\Professional\ReviewController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\RegisterController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'));
@@ -86,7 +87,7 @@ Route::middleware('auth')->group(function (): void {
     });
 });
 
-Route::get('/reset-password/{token}', function (\Illuminate\Http\Request $request, string $token) {
+Route::get('/reset-password/{token}', function (Request $request, string $token) {
     return response()->json(['success' => true, 'message' => 'Password reset link received.', 'data' => ['token' => $token, 'email' => $request->query('email')]]);
 })->middleware('guest')->name('password.reset');
 
