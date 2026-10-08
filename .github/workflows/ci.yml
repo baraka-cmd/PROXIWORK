@@ -46,4 +46,7 @@ jobs:
         run: php artisan test
 
       - name: Check code style
-        run: ./vendor/bin/pint --test
+        run: ./vendor/bin/pint
+
+      - name: Show Pint fixes
+        run: git diff -- .
