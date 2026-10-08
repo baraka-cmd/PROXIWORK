@@ -30,6 +30,11 @@ class ProfessionalProfile extends Model
 
     public const VISIBILITY_PRIVATE = 'private';
 
+    protected $attributes = [
+        'status' => self::STATUS_DRAFT,
+        'visibility' => self::VISIBILITY_PRIVATE,
+    ];
+
     protected $fillable = [
         'professional_title',
         'description',

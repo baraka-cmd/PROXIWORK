@@ -92,7 +92,7 @@ class ProfessionalProfileManagementTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
-        $profile = $user->professionalProfile()->create();
+        $profile = $user->professionalProfile()->create()->refresh();
 
         $this->assertSame(ProfessionalProfile::STATUS_DRAFT, $profile->status);
         $this->assertSame(ProfessionalProfile::VISIBILITY_PRIVATE, $profile->visibility);
