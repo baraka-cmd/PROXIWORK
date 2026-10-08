@@ -11,10 +11,20 @@ use Illuminate\Validation\Rule;
 
 class AdminOrderIndexRequest extends FormRequest
 {
-    public function authorize(): bool{return $this->user()?->hasPermissionTo('orders.view')??false;}
-    public function rules():array{return[
-        'search'=>['nullable','string','max:120'],'status'=>['nullable',Rule::enum(OrderStatus::class)],
-        'payment_status'=>['nullable',Rule::enum(PaymentStatus::class)],'from'=>['nullable','date'],
-        'to'=>['nullable','date','after_or_equal:from'],'per_page'=>['nullable','integer','min:10','max:100'],
-    ];}
+    public function authorize(): bool
+    {
+        return $this->user()?->hasPermissionTo('orders.view') ?? false;
+    }
+
+    public function rules(): array
+    {
+        return [
+            'search' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::enum(OrderStatus::class)],
+            'payment_status' => ['nullable', Rule::enum(PaymentStatus::class)],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
+        ];
+    }
 }
