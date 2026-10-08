@@ -1,0 +1,21 @@
+@import './search.css';
+
+.directory-section-header {
+    align-items: flex-end;
+    margin-bottom: var(--space-8);
+}
+
+.directory-section-header > div {
+    min-width: 0;
+}
+
+.directory-section-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+}
+
+@media (max-width: 767px) {
+    .directory-section-header {
+        display: flex;
+        align-items: stretch;
+    }
+}
