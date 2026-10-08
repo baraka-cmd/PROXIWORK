@@ -55,28 +55,28 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 
-    Route::prefix('skills')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
+    Route::prefix('skills')->middleware(['throttle:api'])->group(function (): void {
         Route::get('/', [SkillController::class, 'index']);
         Route::get('{skill}', [SkillController::class, 'show']);
     });
 
-    Route::prefix('categories')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
+    Route::prefix('categories')->middleware(['throttle:api'])->group(function (): void {
         Route::get('/', [CategoryController::class, 'index']);
         Route::get('{category}', [CategoryController::class, 'show']);
     });
 
-    Route::prefix('services')->middleware(['security.headers', 'throttle:api'])->group(function (): void {
+    Route::prefix('services')->middleware(['throttle:api'])->group(function (): void {
         Route::get('/', [ServiceController::class, 'index']);
         Route::get('{service}', [ServiceController::class, 'show']);
     });
 
     Route::get('professionals', [ProfessionalSearchController::class, 'index'])
-        ->middleware(['security.headers', 'throttle:api']);
+        ->middleware(['throttle:api']);
 
     Route::post('payments/webhooks/{provider}', [PaymentWebhookController::class, 'handle'])
-        ->middleware(['security.headers', 'throttle:api']);
+        ->middleware(['throttle:api']);
 
-    Route::middleware(['security.headers', 'auth:sanctum', 'active.account', 'throttle:api'])->group(function (): void {
+    Route::middleware(['auth:sanctum', 'active.account', 'throttle:api'])->group(function (): void {
         Route::get('profile', [ProfileController::class, 'show']);
         Route::patch('profile', [ProfileController::class, 'update']);
 
@@ -228,12 +228,12 @@ Route::prefix('v1')->group(function (): void {
         });
     });
 
-    Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->prefix('audit')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('audit')->group(function (): void {
         Route::get('logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
         Route::get('logs/{auditLog}', [AuditLogController::class, 'show'])->middleware('permission:audit.view');
     });
 
-    Route::middleware(['security.headers', 'auth:sanctum', 'throttle:api'])->prefix('rbac')->group(function (): void {
+    Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('rbac')->group(function (): void {
         Route::get('me', function (Request $request) {
             $user = $request->user()->load(['roles.permissions']);
 
