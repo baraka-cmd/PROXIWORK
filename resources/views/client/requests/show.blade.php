@@ -1,0 +1,18 @@
+@extends('layouts.client')
+@section('title', 'Détail de la demande')
+@push('head')
+    @vite('resources/css/pages/client/favorites-requests-quotes.css')
+@endpush
+@push('scripts')
+    @vite('resources/js/pages/client/favorites-requests-quotes.js')
+@endpush
+
+@section('content')
+<div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">DEMANDE #{{ $serviceRequest->id }}</p><h1>{{ $serviceRequest->title }}</h1><p>{{ $serviceRequest->service?->title }} · {{ $serviceRequest->professional?->user?->name }}</p></div><span class="status-badge status-badge--{{ $serviceRequest->status->value }}">{{ ucfirst(str_replace('_', ' ', $serviceRequest->status->value)) }}</span></div>
+@if(session('success'))<x-alert type="success" :message="session('success')" />@endif
+<div class="client-detail-grid"><section class="client-panel"><h2>Votre demande</h2><p class="client-detail-text">{{ $serviceRequest->description }}</p><dl class="client-definition-list"><div><dt>Budget</dt><dd>{{ $serviceRequest->budget_min ?? '—' }}{{ $serviceRequest->budget_max ? ' – '.$serviceRequest->budget_max : '' }} {{ $serviceRequest->currency }}</dd></div><div><dt>Date souhaitée</dt><dd>{{ optional($serviceRequest->desired_at)->format('d/m/Y à H:i') ?: 'Non précisée' }}</dd></div><div><dt>Adresse</dt><dd>{{ $serviceRequest->address?->city ?: 'Non précisée' }}{{ $serviceRequest->address?->province ? ', '.$serviceRequest->address->province : '' }}</dd></div></dl></section><section class="client-panel"><h2>Professionnel</h2><p class="client-detail-highlight">{{ $serviceRequest->professional?->user?->name }}</p><p>{{ $serviceRequest->professional?->professional_title }}</p></section></div>
+<section class="client-panel"><h2>Historique</h2><ol class="client-timeline">@forelse($serviceRequest->statusHistories as $history)<li><strong>{{ ucfirst(str_replace('_', ' ', $history->to_status)) }}</strong><span>{{ optional($history->created_at)->format('d/m/Y à H:i') }}</span>@if($history->reason)<p>{{ $history->reason }}</p>@endif</li>@empty<li>La demande est encore à son état initial.</li>@endforelse</ol></section>
+@if($serviceRequest->quotation)<section class="client-panel client-panel--accent"><div class="client-panel__header"><div><p class="client-module__eyebrow">DEVIS ASSOCIÉ</p><h2>Une proposition est disponible</h2></div><a class="btn btn-primary" href="{{ route('client.quotes.show', $serviceRequest->quotation) }}">Voir le devis</a></div>@if($serviceRequest->quotation->currentOffer)<p class="client-detail-highlight">{{ number_format((float) $serviceRequest->quotation->currentOffer->amount, 2, ',', ' ') }} {{ $serviceRequest->quotation->currentOffer->currency }}</p>@endif</section>@endif
+<div class="client-action-bar">@if($serviceRequest->status->value === 'draft')<a class="btn btn-secondary" href="{{ route('client.requests.edit', $serviceRequest) }}"><i class="fa-solid fa-pen" aria-hidden="true"></i> Modifier</a><form method="POST" action="{{ route('client.requests.submit', $serviceRequest) }}">@csrf<button class="btn btn-primary">Envoyer la demande</button></form>@endif @if(in_array($serviceRequest->status->value,['draft','requested'],true))<form method="POST" action="{{ route('client.requests.cancel',$serviceRequest) }}">@csrf<button class="btn btn-danger">Annuler la demande</button></form>@endif<a class="btn btn-secondary" href="{{ route('client.requests.index') }}">Retour</a></div>
+</div>
+@endsection

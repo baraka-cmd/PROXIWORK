@@ -1,0 +1,1 @@
+document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement)||!form.matches('.message-composer form'))return;const button=form.querySelector('button[type="submit"]');if(button){button.disabled=true;button.setAttribute('aria-busy','true');}});
