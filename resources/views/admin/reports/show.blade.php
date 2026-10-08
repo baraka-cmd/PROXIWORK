@@ -14,7 +14,7 @@
 <dl class="admin-detail-list"><div><dt>Reporter</dt><dd>{{ $report->reporter?->name }} · {{ $report->reporter?->email }}</dd></div><div><dt>Cible</dt><dd>{{ class_basename($report->target_type) }} #{{ $report->target_id }}</dd></div><div><dt>Priorité</dt><dd>{{ $report->priority->value }}</dd></div><div><dt>Créé</dt><dd>{{ $report->created_at?->format('d/m/Y H:i') }}</dd></div><div><dt>Description</dt><dd>{{ $report->description ?: 'Aucune description.' }}</dd></div></dl></section>
 
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Affectation</span><h3>{{ $report->assignee?->name ?? 'Non assigné' }}</h3></div></div>
-<form method="POST" action="{{ route('admin.reports.assign',$report) }}" class="admin-filter-grid">@csrf<label class="admin-field admin-field--wide"><span>Administrateur / modérateur</span><input type="number" name="assigned_to" value="{{ $report->assigned_to }}" required></label><div class="admin-filter-actions"><button class="button button--secondary" type="submit">Assigner</button></div></form>
+<form method="POST" action="{{ route('admin.reports.assign',$report) }}" class="admin-filter-grid">@csrf<label class="admin-field admin-field--wide"><span>Administrateur / modérateur</span><select name="assigned_to" required><option value="">Choisir un modérateur</option>@foreach($assignees as $assignee)<option value="{{ $assignee->id }}" @selected($report->assigned_to === $assignee->id)>{{ $assignee->name }} — {{ $assignee->email }}</option>@endforeach</select></label><div class="admin-filter-actions"><button class="button button--secondary" type="submit">Assigner</button></div></form>
 </section>
 </div>
 
