@@ -3,6 +3,11 @@
 @section('page_title',$request->title)
 @section('page_description','Dossier transactionnel et historique des transitions.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.service-requests.index') }}"><i class="fa-solid fa-arrow-left"></i> Demandes</a>@endsection
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/services-requests.css', 'resources/js/pages/admin/services-requests.js'])
+    @endunless
+@endpush
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="admin-alert admin-alert--danger" role="alert">{{ $errors->first() }}</div>@endif
