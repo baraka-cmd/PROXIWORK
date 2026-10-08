@@ -19,6 +19,9 @@ const confirmationController = () => {
 
     let trigger = null;
     let confirmedAction = null;
+    const defaultTitle = panel.querySelector('.confirmation__title').textContent;
+    const defaultMessage = panel.querySelector('.confirmation__message').textContent;
+    const defaultConfirmLabel = acceptButton.textContent;
 
     const getFocusable = () => Array.from(panel.querySelectorAll(focusableSelector))
         .filter((element) => !element.hasAttribute('hidden'))
@@ -29,6 +32,9 @@ const confirmationController = () => {
         dialog.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('confirmation-is-open');
         confirmedAction = null;
+        panel.querySelector('.confirmation__title').textContent = defaultTitle;
+        panel.querySelector('.confirmation__message').textContent = defaultMessage;
+        acceptButton.textContent = defaultConfirmLabel;
 
         if (restoreFocus && trigger && typeof trigger.focus === 'function') {
             trigger.focus();
@@ -73,22 +79,12 @@ const confirmationController = () => {
             return;
         }
 
-        const form = source.matches('form') ? source : source.form;
-        if (form && source.matches('button, input[type="submit"]')) {
+        if (!source.matches('a[href]')) {
             return;
         }
 
         event.preventDefault();
-        open(source, () => {
-            if (source.matches('a[href]')) {
-                window.location.assign(source.href);
-                return;
-            }
-
-            if (typeof source._confirmationAction === 'function') {
-                source._confirmationAction();
-            }
-        });
+        open(source, () => window.location.assign(source.href));
     });
 
     document.addEventListener('submit', (event) => {
