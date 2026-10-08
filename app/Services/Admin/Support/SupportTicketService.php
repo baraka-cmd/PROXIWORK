@@ -184,6 +184,7 @@ class SupportTicketService
         });
     }
 
+    public function transition(
         User $actor,
         SupportTicket $ticket,
         SupportTicketStatus $to,
