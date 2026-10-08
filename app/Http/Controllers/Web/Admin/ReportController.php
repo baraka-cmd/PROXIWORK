@@ -28,6 +28,7 @@ class ReportController extends Controller
         return view('admin.reports.index', [
             'reports' => $this->reportService->paginate($request->validated()),
             'filters' => $request->validated(),
+            'assignees' => $this->reportService->assignableUsers(),
         ]);
     }
 
