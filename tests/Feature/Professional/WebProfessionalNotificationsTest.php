@@ -8,7 +8,7 @@ use App\Models\ProfessionalProfile;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class WebProfessionalNotificationsTest extends TestCase
@@ -32,13 +32,13 @@ class WebProfessionalNotificationsTest extends TestCase
         ProfessionalProfile::factory()->create(['user_id' => $other->id]);
 
         $own = $professional->notifications()->create([
-            'id' => (string) IlluminateSupportStr::uuid(),
+            'id' => (string) Str::uuid(),
             'type' => 'account_activity',
             'data' => ['title' => 'Votre notification', 'message' => 'Message personnel', 'action' => 'order'],
         ]);
 
         $other->notifications()->create([
-            'id' => (string) IlluminateSupportStr::uuid(),
+            'id' => (string) Str::uuid(),
             'type' => 'account_activity',
             'data' => ['title' => 'Autre notification', 'message' => 'Ne doit pas apparaître', 'action' => 'order'],
         ]);
@@ -59,13 +59,13 @@ class WebProfessionalNotificationsTest extends TestCase
         ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
 
         $unread = $professional->notifications()->create([
-            'id' => (string) IlluminateSupportStr::uuid(),
+            'id' => (string) Str::uuid(),
             'type' => 'account_activity',
             'data' => ['title' => 'Non lue', 'message' => 'À traiter', 'action' => 'message'],
         ]);
 
         $read = $professional->notifications()->create([
-            'id' => (string) IlluminateSupportStr::uuid(),
+            'id' => (string) Str::uuid(),
             'type' => 'account_activity',
             'data' => ['title' => 'Déjà lue', 'message' => 'Terminée', 'action' => 'review'],
             'read_at' => now(),
@@ -93,7 +93,7 @@ class WebProfessionalNotificationsTest extends TestCase
 
         foreach (['one', 'two'] as $title) {
             $professional->notifications()->create([
-                'id' => (string) IlluminateSupportStr::uuid(),
+                'id' => (string) Str::uuid(),
                 'type' => 'account_activity',
                 'data' => ['title' => $title, 'message' => 'Notification', 'action' => 'order'],
             ]);
@@ -127,7 +127,7 @@ class WebProfessionalNotificationsTest extends TestCase
         ProfessionalProfile::factory()->create(['user_id' => $other->id]);
 
         $notification = $other->notifications()->create([
-            'id' => (string) IlluminateSupportStr::uuid(),
+            'id' => (string) Str::uuid(),
             'type' => 'account_activity',
             'data' => ['title' => 'Privée', 'message' => 'Ne pas modifier', 'action' => 'message'],
         ]);

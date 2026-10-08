@@ -6,11 +6,14 @@ namespace App\Models;
 
 use App\Enums\QuotationDurationUnit;
 use App\Enums\QuotationOfferActor;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class QuotationOffer extends Model
 {
+    use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [];

@@ -7,6 +7,8 @@ namespace Tests\Feature\Client;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
+use App\Models\QuotationOffer;
+use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -108,14 +110,13 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->actingAs($other)->get('/client/quotes/'.$quotation->id)->assertForbidden();
     }
 
-
     public function test_client_can_create_and_edit_a_draft_request(): void
     {
         $client = $this->client();
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
         $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
-        $service = \App\Models\Service::factory()->create([
+        $service = Service::factory()->create([
             'professional_profile_id' => $professional->id,
             'status' => 'published',
             'published_at' => now(),
@@ -184,7 +185,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'service_request_id' => $serviceRequest->id,
             'status' => 'sent',
         ]);
-        $offer = \App\Models\QuotationOffer::factory()->create([
+        $offer = QuotationOffer::factory()->create([
             'quotation_id' => $quotation->id,
             'valid_until' => now()->subMinute(),
         ]);

@@ -39,7 +39,7 @@ class PublicProfessionalDirectoryTest extends TestCase
     public function test_professionals_page_uses_published_professional_data(): void
     {
         $user = User::factory()->create(['name' => 'Baraka Ntwali']);
-        Profile::query()->create([
+        $user->profile()->create([
             'user_id' => $user->id,
             'first_name' => 'Baraka',
             'last_name' => 'Ntwali',
