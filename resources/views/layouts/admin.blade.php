@@ -44,6 +44,11 @@
                 <span>Services</span>
             </a>
 
+            <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/service-requests') }}">
+                <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+                <span>Demandes</span>
+            </a>
+
             <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/orders') }}">
                 <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
                 <span>Commandes</span>
