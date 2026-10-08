@@ -18,9 +18,12 @@ use Illuminate\Validation\ValidationException;
 
 class SupportTicketService
 {
-    public function __construct(
-        private readonly AuditLogService $audit,
-    ) {}
+    private readonly AuditLogService $audit;
+
+    public function __construct(AuditLogService $audit)
+    {
+        $this->audit = $audit;
+    }
 
     public function paginate(array $filters): LengthAwarePaginator
     {
