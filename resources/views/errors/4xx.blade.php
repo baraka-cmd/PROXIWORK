@@ -4,7 +4,7 @@
 
 @section('body')
     <main id="main-content" class="public-main">
-        <div class="page-container" style="padding-block: var(--space-12);">
+        <div class="page-container error-page-container">
             <x-error-state
                 status="{{ $exception->getStatusCode() }}"
                 title="La requête n’a pas pu aboutir"
