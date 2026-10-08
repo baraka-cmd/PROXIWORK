@@ -95,6 +95,34 @@ class SupportControllerTest extends TestCase
         $this->assertSame(0, TicketMessage::query()->where('ticket_id', $ticket->id)->count());
     }
 
+    public function test_only_in_progress_ticket_can_be_resolved_and_resolved_ticket_can_be_closed(): void
+    {
+        $agent = $this->supportAgent();
+        $ticket = $this->ticket(User::factory()->create());
+
+        $this->actingAs($agent)
+            ->post(route('admin.support.resolve', $ticket))
+            ->assertSessionHasErrors('status');
+
+        $ticket->update(['status' => SupportTicketStatus::IN_PROGRESS]);
+
+        $this->actingAs($agent)
+            ->post(route('admin.support.resolve', $ticket))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(SupportTicketStatus::RESOLVED, $ticket->refresh()->status);
+        $this->assertNotNull($ticket->resolved_at);
+
+        $this->actingAs($agent)
+            ->post(route('admin.support.close', $ticket))
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(SupportTicketStatus::CLOSED, $ticket->refresh()->status);
+        $this->assertNotNull($ticket->closed_at);
+    }
+
     public function test_ticket_must_be_resolved_before_close(): void
     {
         $agent = $this->supportAgent();

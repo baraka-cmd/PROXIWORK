@@ -15,16 +15,14 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class SupportController extends Controller
 {
-    private readonly SupportTicketService $supportService;
-
-    public function __construct(SupportTicketService $supportService)
-    {
-        $this->supportService = $supportService;
-    }
+    public function __construct(
+        private readonly SupportTicketService $supportService,
+    ) {}
 
     public function index(AdminSupportIndexRequest $request): View
     {
@@ -94,20 +92,30 @@ class SupportController extends Controller
         return back()->with('success', 'La réponse a été envoyée.');
     }
 
-    public function resolve(SupportTicket $ticket): RedirectResponse
+    public function resolve(Request $request, SupportTicket $ticket): RedirectResponse
     {
         $this->authorize('update', $ticket);
 
-        $this->supportService->transition(request()->user(), $ticket, SupportTicketStatus::RESOLVED, request());
+        $this->supportService->transition(
+            $request->user(),
+            $ticket,
+            SupportTicketStatus::RESOLVED,
+            $request,
+        );
 
         return back()->with('success', 'Le ticket a été marqué comme résolu.');
     }
 
-    public function close(SupportTicket $ticket): RedirectResponse
+    public function close(Request $request, SupportTicket $ticket): RedirectResponse
     {
         $this->authorize('update', $ticket);
 
-        $this->supportService->transition(request()->user(), $ticket, SupportTicketStatus::CLOSED, request());
+        $this->supportService->transition(
+            $request->user(),
+            $ticket,
+            SupportTicketStatus::CLOSED,
+            $request,
+        );
 
         return back()->with('success', 'Le ticket a été clôturé.');
     }

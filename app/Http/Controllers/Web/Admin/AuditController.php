@@ -18,6 +18,8 @@ class AuditController extends Controller
 
     public function index(AdminAuditIndexRequest $request): View
     {
+        $this->authorize('viewAny', AuditLog::class);
+
         return view('admin.audit.index', [
             'logs' => $this->auditService->paginate($request->validated()),
             'filters' => $request->validated(),
@@ -26,15 +28,10 @@ class AuditController extends Controller
 
     public function show(AuditLog $auditLog): View
     {
-        $this->authorizeAccess();
+        $this->authorize('view', $auditLog);
 
         return view('admin.audit.show', [
             'log' => $this->auditService->show($auditLog),
         ]);
-    }
-
-    private function authorizeAccess(): void
-    {
-        abort_unless(auth()->user()?->hasPermissionTo('audit.view'), 403);
     }
 }
