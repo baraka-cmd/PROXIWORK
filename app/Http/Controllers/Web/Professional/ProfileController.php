@@ -13,10 +13,12 @@ use App\Http\Requests\ProfessionalService\StoreServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceRequest;
 use App\Http\Requests\ProfessionalService\UpdateServiceImageRequest;
 use App\Http\Requests\ProfessionalService\UpdateServiceRequest;
+use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
 use App\Models\Category;
 use App\Models\Service;
 use App\Models\ServiceImage;
 use App\Models\Skill;
+use App\Services\Audit\AuditLogService;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,6 +29,7 @@ class ProfileController extends Controller
 {
     public function __construct(
         private readonly ProfessionalServiceManager $serviceManager,
+        private readonly AuditLogService $auditLogService,
     ) {}
 
     public function show(Request $request): View
@@ -34,7 +37,6 @@ class ProfileController extends Controller
         $professional = $request->user()->professionalProfile()
             ->with([
                 'user.profile',
-                'user.addresses',
                 'skills',
                 'services' => fn ($query) => $query
                     ->with(['category', 'skills', 'images'])
@@ -54,6 +56,8 @@ class ProfileController extends Controller
         $completionItems = [
             'personal' => $professional->user->profile !== null,
             'profession' => filled($professional->professional_title),
+            'presentation' => filled($professional->description),
+            'service_area' => filled($professional->city) && filled($professional->province),
             'skills' => $professional->skills_count > 0,
             'services' => $professional->services_count > 0,
             'verification' => $professional->verification_status === ProfessionalVerificationStatus::VERIFIED,
@@ -61,7 +65,6 @@ class ProfileController extends Controller
 
         return view('professional/profile', [
             'professional' => $professional,
-            'address' => $professional->user->addresses->first(),
             'completionItems' => $completionItems,
             'completionPercentage' => (int) round((count(array_filter($completionItems)) / count($completionItems)) * 100),
             'availabilityLabels' => [
@@ -70,6 +73,32 @@ class ProfileController extends Controller
                 ProfessionalAvailabilityStatus::UNAVAILABLE->value => 'Indisponible',
             ],
         ]);
+    }
+
+    public function edit(Request $request): View
+    {
+        $professional = $request->user()->professionalProfile()->firstOrFail();
+
+        return view('professional/profile-edit', [
+            'professional' => $professional,
+        ]);
+    }
+
+    public function update(UpdateProfessionalProfileRequest $request): RedirectResponse
+    {
+        $professional = $request->user()->professionalProfile()->firstOrFail();
+        $professional->fill($request->validated())->save();
+
+        $this->auditLogService->record(
+            'professional_profile_updated',
+            $professional,
+            $request->user(),
+            [],
+            $request,
+        );
+
+        return redirect()->route('professional.profile')
+            ->with('success', 'Votre profil professionnel a été mis à jour.');
     }
 
     public function services(Request $request): View

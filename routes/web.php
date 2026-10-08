@@ -114,6 +114,8 @@ Route::get('/reset-password/{token}', function (Request $request, string $token)
 
 Route::prefix('professional')->name('professional.')->middleware(['auth', 'active.account', 'role:professional'])->group(function (): void {
     Route::get('/', ProfessionalDashboardController::class)->name('dashboard');
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('services', [ProfileController::class, 'services'])->name('services.index');
     Route::get('services/create', [ProfileController::class, 'createService'])->name('services.create');

@@ -83,6 +83,10 @@ class AdminProfessionalService
 
             $target->user->account_status = UserAccountStatus::SUSPENDED->value;
             $target->user->save();
+            $target->forceFill([
+                'status' => ProfessionalProfile::STATUS_SUSPENDED,
+                'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+            ])->save();
             $target->user->tokens()->delete();
             $changed = true;
 
@@ -119,6 +123,12 @@ class AdminProfessionalService
 
             $target->user->account_status = UserAccountStatus::ACTIVE->value;
             $target->user->save();
+            $target->forceFill([
+                'status' => ProfessionalProfile::STATUS_ACTIVE,
+                'visibility' => $target->services()->published()->exists()
+                    ? ProfessionalProfile::VISIBILITY_PUBLIC
+                    : ProfessionalProfile::VISIBILITY_PRIVATE,
+            ])->save();
 
             $this->auditLogService->record(
                 'admin.professional.activated',

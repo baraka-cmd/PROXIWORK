@@ -18,9 +18,30 @@ class ProfessionalProfile extends Model
 {
     use HasFactory;
 
+    public const STATUS_DRAFT = 'draft';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_SUSPENDED = 'suspended';
+
+    public const STATUS_CLOSED = 'closed';
+
+    public const VISIBILITY_PUBLIC = 'public';
+
+    public const VISIBILITY_PRIVATE = 'private';
+
     protected $fillable = [
-        'user_id',
         'professional_title',
+        'description',
+        'years_experience',
+        'starting_price',
+        'currency',
+        'province',
+        'city',
+        'commune',
+        'service_radius_km',
+        'latitude',
+        'longitude',
     ];
 
     protected function casts(): array
@@ -30,6 +51,12 @@ class ProfessionalProfile extends Model
             'availability_status' => ProfessionalAvailabilityStatus::class,
             'rating_average' => 'decimal:2',
             'rating_count' => 'integer',
+            'starting_price' => 'decimal:2',
+            'years_experience' => 'integer',
+            'service_radius_km' => 'integer',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'verified_at' => 'datetime',
         ];
     }
 

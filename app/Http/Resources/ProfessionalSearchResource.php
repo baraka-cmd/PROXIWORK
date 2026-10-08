@@ -13,7 +13,6 @@ class ProfessionalSearchResource extends JsonResource
     public function toArray(Request $request): array
     {
         $profile = $this->user->profile;
-        $address = $this->user->addresses->first();
 
         return [
             'id' => $this->getKey(),
@@ -21,7 +20,10 @@ class ProfessionalSearchResource extends JsonResource
             'name' => $profile !== null
                 ? trim($profile->first_name.' '.$profile->last_name)
                 : $this->user->name,
-            'bio' => $profile?->bio,
+            'bio' => $this->description ?: $profile?->bio,
+            'years_experience' => $this->years_experience,
+            'starting_price' => $this->starting_price === null ? null : (float) $this->starting_price,
+            'currency' => $this->currency,
             'verification' => [
                 'status' => $this->verification_status->value,
                 'verified' => $this->verification_status === ProfessionalVerificationStatus::VERIFIED,
@@ -32,9 +34,11 @@ class ProfessionalSearchResource extends JsonResource
                 'count' => $this->rating_count,
             ],
             'location' => [
-                'city' => $address?->city,
-                'province' => $address?->province,
-                'country_code' => $address?->country_code,
+                'city' => $this->city,
+                'province' => $this->province,
+                'country_code' => config('app.country_code', 'CD'),
+                'commune' => $this->commune,
+                'service_radius_km' => $this->service_radius_km,
             ],
             'skills' => $this->skills->map(fn ($skill) => [
                 'id' => $skill->getKey(),

@@ -7,6 +7,7 @@ namespace App\Services\ProfessionalSearch;
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
+use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,12 +21,23 @@ class ProfessionalSearchService
                 'id',
                 'user_id',
                 'professional_title',
+                'description',
+                'years_experience',
+                'starting_price',
+                'currency',
+                'province',
+                'city',
+                'commune',
+                'service_radius_km',
                 'verification_status',
                 'availability_status',
                 'rating_average',
                 'rating_count',
                 'created_at',
             ])
+            ->where('status', ProfessionalProfile::STATUS_ACTIVE)
+            ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+            ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
             ->whereHas('services', function (Builder $services): void {
                 $services
                     ->published()
@@ -34,15 +46,6 @@ class ProfessionalSearchService
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,bio',
-                'user.addresses' => fn ($addresses) => $addresses
-                    ->where('is_default', true)
-                    ->select([
-                        'id',
-                        'user_id',
-                        'city',
-                        'province',
-                        'country_code',
-                    ]),
                 'skills' => fn ($skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
@@ -94,6 +97,7 @@ class ProfessionalSearchService
         $query->where(function (Builder $query) use ($like): void {
             $query
                 ->where('professional_title', 'like', $like)
+                ->orWhere('description', 'like', $like)
                 ->orWhereHas('user.profile', function (Builder $profile) use ($like): void {
                     $profile
                         ->where('bio', 'like', $like)
@@ -167,11 +171,10 @@ class ProfessionalSearchService
                 continue;
             }
 
-            $value = $filters[$field];
-
-            $query->whereHas('user.addresses', fn (Builder $addresses) => $addresses
-                ->where('is_default', true)
-                ->where($field, $value));
+            $query->whereRaw(
+                'LOWER('.$field.') = ?',
+                [mb_strtolower($filters[$field])],
+            );
         }
     }
 

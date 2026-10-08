@@ -1,6 +1,5 @@
 @php
     $profile = $professional->user->profile;
-    $address = $professional->user->addresses->first();
     $displayName = $profile !== null
         ? trim($profile->first_name.' '.$profile->last_name)
         : $professional->user->name;
@@ -40,15 +39,15 @@
     </div>
 
     <div class="professional-card__body">
-        @if ($profile?->bio)
-            <p class="professional-card__bio">{{ \Illuminate\Support\Str::limit($profile->bio, 150) }}</p>
+        @if ($professional->description || $profile?->bio)
+            <p class="professional-card__bio">{{ \Illuminate\Support\Str::limit($professional->description ?: $profile->bio, 150) }}</p>
         @endif
 
         <dl class="professional-card__meta">
-            @if ($address?->city || $address?->province)
+            @if ($professional->city || $professional->province)
                 <div>
                     <dt><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span class="sr-only">Localisation</span></dt>
-                    <dd>{{ collect([$address?->city, $address?->province])->filter()->join(', ') }}</dd>
+                    <dd>{{ collect([$professional->city, $professional->province])->filter()->join(', ') }}</dd>
                 </div>
             @endif
 
@@ -59,6 +58,20 @@
                     <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span>
                 </dd>
             </div>
+
+            @if ($professional->years_experience !== null)
+                <div>
+                    <dt><i class="fa-solid fa-clock" aria-hidden="true"></i><span class="sr-only">Expérience</span></dt>
+                    <dd>{{ $professional->years_experience }} an(s) d’expérience</dd>
+                </div>
+            @endif
+
+            @if ($professional->starting_price !== null)
+                <div>
+                    <dt><i class="fa-solid fa-tag" aria-hidden="true"></i><span class="sr-only">Prix indicatif</span></dt>
+                    <dd>Dès {{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}</dd>
+                </div>
+            @endif
 
             <div>
                 <dt><i class="fa-solid fa-briefcase" aria-hidden="true"></i><span class="sr-only">Services</span></dt>

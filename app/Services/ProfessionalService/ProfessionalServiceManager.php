@@ -8,6 +8,7 @@ use App\Enums\CategoryStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Enums\SkillStatus;
+use App\Enums\UserAccountStatus;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
@@ -104,6 +105,22 @@ class ProfessionalServiceManager
             $service->forceFill([
                 'status' => ServiceStatus::PUBLISHED,
                 'published_at' => now(),
+            ])->save();
+
+            $professional = ProfessionalProfile::query()
+                ->with('user')
+                ->lockForUpdate()
+                ->findOrFail($service->professional_profile_id);
+
+            if ($professional->user->account_status !== UserAccountStatus::ACTIVE) {
+                throw ValidationException::withMessages([
+                    'professional' => 'Un compte inactif ne peut pas publier de service.',
+                ]);
+            }
+
+            $professional->forceFill([
+                'status' => ProfessionalProfile::STATUS_ACTIVE,
+                'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
             ])->save();
 
             return $service->refresh()->load(['category', 'skills', 'images']);

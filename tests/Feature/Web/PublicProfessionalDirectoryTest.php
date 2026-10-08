@@ -53,12 +53,16 @@ class PublicProfessionalDirectoryTest extends TestCase
             'availability_status' => ProfessionalAvailabilityStatus::AVAILABLE,
             'rating_average' => 4.80,
             'rating_count' => 12,
+            'city' => 'Goma',
+            'province' => 'Nord-Kivu',
+            'description' => 'Développement de solutions professionnelles.',
         ]);
 
         Address::factory()->default()->create([
             'user_id' => $user->id,
-            'city' => 'Goma',
-            'province' => 'Nord-Kivu',
+            'city' => 'Bukavu',
+            'province' => 'Sud-Kivu',
+            'address_line_1' => 'Adresse personnelle privée',
         ]);
 
         $category = Category::factory()->create(['name' => 'Développement web']);
@@ -78,6 +82,7 @@ class PublicProfessionalDirectoryTest extends TestCase
             ->assertSeeText('Baraka Ntwali')
             ->assertSeeText('Développeur Laravel')
             ->assertSeeText('Goma, Nord-Kivu')
+            ->assertDontSeeText('Bukavu, Sud-Kivu')
             ->assertSeeText('Laravel')
             ->assertSeeText('Vérifié')
             ->assertSeeText('Disponible');

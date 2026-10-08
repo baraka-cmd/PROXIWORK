@@ -7,6 +7,7 @@ namespace Tests\Feature\ProfessionalSearch;
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
+use App\Enums\UserAccountStatus;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
@@ -73,15 +74,10 @@ class ProfessionalSearchApiTest extends TestCase
 
         $professional = $this->professional([
             'professional_title' => 'Développeur Web',
-        ]);
-        $professional->skills()->attach($skill->id);
-
-        Address::factory()->create([
-            'user_id' => $professional->user_id,
             'city' => 'Goma',
             'province' => 'Nord-Kivu',
-            'is_default' => true,
         ]);
+        $professional->skills()->attach($skill->id);
 
         $this->publishedService($professional, [
             'category_id' => $category->id,
@@ -98,21 +94,18 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonMissing(['email' => $professional->user->email]);
     }
 
-    public function test_location_filter_uses_the_public_default_address(): void
+    public function test_location_filter_uses_professional_service_area_not_personal_address(): void
     {
-        $professional = $this->professional();
+        $professional = $this->professional([
+            'city' => 'Bukavu',
+            'province' => 'Sud-Kivu',
+        ]);
 
-        Address::factory()->create([
+        Address::factory()->default()->create([
             'user_id' => $professional->user_id,
             'city' => 'Goma',
             'province' => 'Nord-Kivu',
-            'is_default' => false,
-        ]);
-        Address::factory()->create([
-            'user_id' => $professional->user_id,
-            'city' => 'Bukavu',
-            'province' => 'Sud-Kivu',
-            'is_default' => true,
+            'address_line_1' => 'Adresse personnelle privée',
         ]);
 
         $this->publishedService($professional);
@@ -121,11 +114,39 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(0, 'data');
 
-        $this->getJson('/api/v1/professionals?city=Bukavu&province=Sud-Kivu')
+        $this->getJson('/api/v1/professionals?city=bukavu&province=sud-kivu')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.location.city', 'Bukavu')
             ->assertJsonPath('data.0.location.province', 'Sud-Kivu');
+    }
+
+    public function test_draft_private_and_suspended_professionals_are_not_publicly_discoverable(): void
+    {
+        $visible = $this->professional();
+        $this->publishedService($visible);
+
+        $private = $this->professional([
+            'status' => 'draft',
+            'visibility' => 'private',
+        ]);
+        $this->publishedService($private);
+
+        $suspendedUser = User::factory()->create([
+            'account_status' => UserAccountStatus::SUSPENDED,
+        ]);
+        $suspendedUser->assignRole('professional');
+        $suspended = ProfessionalProfile::factory()->create([
+            'user_id' => $suspendedUser->id,
+            'status' => ProfessionalProfile::STATUS_SUSPENDED,
+            'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+        ]);
+        $this->publishedService($suspended);
+
+        $this->getJson('/api/v1/professionals')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $visible->id);
     }
 
     public function test_skill_mode_can_match_any_or_all_skills(): void

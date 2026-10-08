@@ -16,6 +16,8 @@ class ProfessionalProfileFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
         ];
     }
 }
