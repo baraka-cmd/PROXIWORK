@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Web;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class RegisterRequest extends FormRequest
@@ -15,21 +14,11 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $email = $this->input('email');
-
-        if (is_string($email)) {
-            $this->merge(['email' => strtolower(trim($email))]);
-        }
-    }
-
     public function rules(): array
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
-            'account_type' => ['required', 'string', Rule::in(['client', 'professional'])],
             'terms' => ['accepted'],
             'password' => [
                 'required',
@@ -45,7 +34,6 @@ class RegisterRequest extends FormRequest
         return [
             'name' => 'nom complet',
             'email' => 'adresse e-mail',
-            'account_type' => 'type de compte',
             'password' => 'mot de passe',
         ];
     }
@@ -57,8 +45,6 @@ class RegisterRequest extends FormRequest
             'name.min' => 'Votre nom complet doit contenir au moins :min caractères.',
             'email.required' => 'Votre adresse e-mail est obligatoire.',
             'email.unique' => 'Cette adresse e-mail est déjà associée à un compte.',
-            'account_type.required' => 'Choisissez le type de compte à créer.',
-            'account_type.in' => 'Le type de compte sélectionné n’est pas autorisé.',
             'password.confirmed' => 'Les deux mots de passe ne correspondent pas.',
             'terms.accepted' => 'Vous devez accepter les conditions d’utilisation pour créer votre compte.',
         ];
