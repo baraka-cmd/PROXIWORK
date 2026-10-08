@@ -67,7 +67,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
           elif [[ "$GITHUB_REF_NAME" == release/* ]]; then
-            changed_files="$(git ls-files app tests -- '*.php' ':!*.blade.php')"
+            changed_files="$(git ls-files '*.php' ':!*.blade.php')"
           else
             changed_files="$(git diff --name-only HEAD^ HEAD -- '*.php')"
           fi
