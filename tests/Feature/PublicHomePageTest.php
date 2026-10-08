@@ -15,7 +15,7 @@ final class PublicHomePageTest extends TestCase
             ->assertViewIs('public.home')
             ->assertSee('Les bonnes compétences.')
             ->assertSee('Découvrir les professionnels')
-            ->assertSee('Comment ça marche')
+            ->assertSee('COMMENT ÇA MARCHE')
             ->assertSee('name="search"', false)
             ->assertDontSee('Laravel has an incredibly rich ecosystem');
     }
