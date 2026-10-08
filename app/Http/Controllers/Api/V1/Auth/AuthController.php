@@ -188,9 +188,13 @@ class AuthController extends Controller
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
+        $resetUser = null;
+
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password): void {
+            function (User $user, string $password) use (&$resetUser): void {
+                $resetUser = $user;
+
                 $user->forceFill([
                     'password' => Hash::make($password),
                     'remember_token' => Str::random(60),
@@ -202,14 +206,14 @@ class AuthController extends Controller
             }
         );
 
-        if ($status !== Password::PasswordReset) {
+        if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
             throw ValidationException::withMessages([
                 'email' => [__($status)],
             ]);
         }
 
-        $this->auditLogService->record('password_reset', $user, $user, [], $request);
-        $user->notify(new AccountActivityNotification(
+        $this->auditLogService->record('password_reset', $resetUser, $resetUser, [], $request);
+        $resetUser->notify(new AccountActivityNotification(
             'Mot de passe réinitialisé',
             'Votre mot de passe a été réinitialisé avec succès.',
             'password_reset',
