@@ -53,20 +53,6 @@ class PublicSearchController
         ];
     }
 
-    private
-    {
-        return [
-            'categories' => Category::query()
-                ->active()
-                ->orderBy('name')
-                ->get(['id', 'name', 'slug']),
-            'skills' => Skill::query()
-                ->active()
-                ->orderBy('name')
-                ->get(['id', 'name', 'slug']),
-        ];
-    }
-
     private function hasSearchCriteria(array $filters): bool
     {
         foreach (['profession', 'search', 'category', 'skills', 'city', 'province', 'min_price', 'max_price', 'currency', 'rating', 'availability', 'verification'] as $field) {
