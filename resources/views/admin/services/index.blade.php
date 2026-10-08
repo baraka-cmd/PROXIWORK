@@ -2,6 +2,11 @@
 @section('page_eyebrow','PLATEFORME / CATALOGUE')
 @section('page_title','Services')
 @section('page_description','Contrôlez le catalogue publié par les professionnels et son cycle de vie.')
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/services-requests.css', 'resources/js/pages/admin/services-requests.js'])
+    @endunless
+@endpush
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Recherche</span><h3>Filtrer les services</h3></div><a class="admin-link" href="{{ route('admin.services.index') }}">Réinitialiser</a></div>
