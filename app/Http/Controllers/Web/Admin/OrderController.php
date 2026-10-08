@@ -12,19 +12,23 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(private readonly AdminOrderManagementService $orderManager){}
+    public function __construct(
+        private readonly AdminOrderManagementService $orderManager,
+    ) {}
 
     public function index(AdminOrderIndexRequest $request): View
     {
-        return view('admin.orders.index',[
-            'orders'=>$this->orderManager->paginate($request->validated()),
-            'filters'=>$request->validated(),
-            'statuses'=>$this->orderManager->statusOptions(),
+        return view('admin.orders.index', [
+            'orders' => $this->orderManager->paginate($request->validated()),
+            'filters' => $request->validated(),
+            'statuses' => $this->orderManager->statusOptions(),
         ]);
     }
 
     public function show(Order $order): View
     {
-        return view('admin.orders.show',['order'=>$this->orderManager->show($order)]);
+        return view('admin.orders.show', [
+            'order' => $this->orderManager->show($order),
+        ]);
     }
 }
