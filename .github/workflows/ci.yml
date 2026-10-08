@@ -63,7 +63,7 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php')"
+            changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
           else
             changed_files="$(git diff --name-only HEAD^ HEAD -- '*.php')"
           fi
