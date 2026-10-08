@@ -26,7 +26,7 @@
 <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Signalement</th><th>Cible</th><th>Priorité</th><th>Statut</th><th>Assigné</th><th>Date</th><th></th></tr></thead><tbody>
 @forelse($reports as $report)
 <tr>
-<td><strong>{{ $report->reason_code }}</strong><small class="admin-table__muted">{{ IlluminateSupportStr::limit($report->description ?? 'Sans description', 70) }}</small><small class="admin-table__muted">par {{ $report->reporter?->name ?? '—' }}</small></td>
+<td><strong>{{ $report->reason_code }}</strong><small class="admin-table__muted">{{ \Illuminate\Support\Str::limit($report->description ?? 'Sans description', 70) }}</small><small class="admin-table__muted">par {{ $report->reporter?->name ?? '—' }}</small></td>
 <td>{{ class_basename($report->target_type) }} #{{ $report->target_id }}</td>
 <td><span class="admin-status admin-status--{{ $report->priority->value }}">{{ $report->priority->value }}</span></td>
 <td><span class="admin-status admin-status--{{ $report->status->value }}">{{ ['pending'=>'En attente','under_review'=>'En revue','resolved'=>'Résolu','dismissed'=>'Classé sans suite'][$report->status->value] }}</span></td>
