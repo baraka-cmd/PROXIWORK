@@ -118,8 +118,8 @@ class AuthenticationTest extends TestCase
     {
         Notification::fake();
 
-        $oldPassword = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
-        $newPassword = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
+        $oldPassword = 'OldSecurePass1!';
+        $newPassword = 'NewSecurePass2!';
         $user = User::factory()->create(['password' => Hash::make($oldPassword)]);
         $user->createToken('old-device');
         $resetToken = Password::broker()->createToken($user);
@@ -135,6 +135,45 @@ class AuthenticationTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 0);
         $this->assertDatabaseHas('audit_logs', ['user_id' => $user->id, 'action' => 'password_reset']);
         Notification::assertSentTo($user, AccountActivityNotification::class);
+    }
+
+    public function test_password_reset_rejects_an_invalid_token_without_changing_credentials(): void
+    {
+        $oldPassword = 'OldSecurePass1!';
+        $user = User::factory()->create(['password' => Hash::make($oldPassword)]);
+        $user->createToken('existing-device');
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => 'invalid-reset-token',
+            'password' => 'NewSecurePass2!',
+            'password_confirmation' => 'NewSecurePass2!',
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
+
+        $this->assertTrue(Hash::check($oldPassword, $user->fresh()->password));
+        $this->assertDatabaseCount('personal_access_tokens', 1);
+    }
+
+    public function test_password_reset_rejects_a_weak_password_without_consuming_the_token(): void
+    {
+        $oldPassword = 'OldSecurePass1!';
+        $user = User::factory()->create(['password' => Hash::make($oldPassword)]);
+        $resetToken = Password::broker()->createToken($user);
+
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => $resetToken,
+            'password' => 'weak',
+            'password_confirmation' => 'weak',
+        ])->assertUnprocessable()->assertJsonValidationErrors('password');
+
+        $this->assertTrue(Hash::check($oldPassword, $user->fresh()->password));
+
+        // The validation layer rejects the weak password before the broker consumes the token.
+        $this->assertSame(
+            Password::RESET_LINK_SENT,
+            Password::broker()->sendResetLink(['email' => $user->email]),
+        );
     }
 
     public function test_forgot_password_sends_a_reset_notification_to_existing_user(): void
