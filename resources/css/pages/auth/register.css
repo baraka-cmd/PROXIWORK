@@ -108,23 +108,6 @@
 
 .register-input input::placeholder { color: var(--color-text-subtle); }
 
-.register-select select {
-    width: 100%;
-    min-width: 0;
-    min-height: 50px;
-    padding: 0 var(--space-3) 0 0;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--color-text);
-    font: inherit;
-    cursor: pointer;
-}
-
-.register-select select:invalid { color: var(--color-text-subtle); }
-.register-select select option { color: var(--color-text); background: var(--color-surface); }
-.register-select select:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -3px; border-radius: var(--radius-sm); }
-
 .register-password-toggle {
     display: grid;
     width: 46px;
