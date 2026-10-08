@@ -12,6 +12,7 @@ use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
 class ReviewService
@@ -168,6 +169,58 @@ class ReviewService
 
             return $lockedResponse->refresh();
         }, attempts: 3);
+    }
+
+    /**
+     * List all reviews belonging to the given professional.
+     *
+     * The professional scope is enforced at the domain query level. Both
+     * published and hidden reviews remain available to the owner so the
+     * professional can see moderation state; public listings can filter to
+     * published reviews explicitly.
+     */
+    public function listForProfessional(
+        ProfessionalProfile $professional,
+        ?int $rating = null,
+        ?ReviewStatus $status = null,
+        string $sort = 'latest',
+        int $perPage = 15,
+    ): LengthAwarePaginator {
+        if ($rating !== null && ($rating < 1 || $rating > 5)) {
+            throw ValidationException::withMessages([
+                'rating' => 'La note doit être comprise entre 1 et 5.',
+            ]);
+        }
+
+        $perPage = max(1, min($perPage, 100));
+
+        $query = Review::query()
+            ->with([
+                'client:id,name',
+                'response',
+                'order:id,service_request_id',
+            ])
+            ->where('professional_id', $professional->getKey());
+
+        if ($rating !== null) {
+            $query->where('rating', $rating);
+        }
+
+        if ($status !== null) {
+            $query->where('status', $status->value);
+        }
+
+        match ($sort) {
+            'oldest' => $query->orderBy('created_at')->orderBy('id'),
+            'highest' => $query->orderByDesc('rating')->orderByDesc('created_at')->orderByDesc('id'),
+            'lowest' => $query->orderBy('rating')->orderByDesc('created_at')->orderByDesc('id'),
+            'latest' => $query->orderByDesc('created_at')->orderByDesc('id'),
+            default => throw ValidationException::withMessages([
+                'sort' => 'Le tri demandé est invalide.',
+            ]),
+        };
+
+        return $query->paginate($perPage);
     }
 
     public function findForViewer(Review $review, User $viewer): Review
