@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/css/pages/admin/orders.css','resources/css/pages/admin/payments.css',
                 'resources/css/pages/admin/analytics.css','resources/js/pages/admin/analytics.js',
                 'resources/css/pages/client/dashboard.css','resources/js/pages/client/dashboard.js',
+                'resources/css/pages/public/home.css',
                 'resources/css/pages/public/search.css','resources/js/pages/public/search.js',
                 'resources/css/pages/public/professionals.css','resources/js/pages/public/professionals.js',
                 'resources/css/pages/professional/profile.css','resources/css/pages/professional/services.css',
