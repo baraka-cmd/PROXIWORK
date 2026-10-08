@@ -20,7 +20,15 @@
 <body class="@yield('body_class', 'app-shell')">
     <a class="skip-link" href="#main-content">Aller au contenu principal</a>
 
+    @if (session('success'))
+        <div class="page-container" aria-label="Message de réussite">
+            <x-success :message="session('success')" />
+        </div>
+    @endif
+
     @yield('body')
+
+    <x-confirmation />
 
     @stack('scripts')
 </body>
