@@ -102,7 +102,6 @@ Route::middleware(['auth', 'permission:support.manage'])->group(function (): voi
     Route::post('support/{ticket}/close', [SupportController::class, 'close'])->name('support.close');
 });
 
-
 Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
     Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
     Route::get('audit/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
