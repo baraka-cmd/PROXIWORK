@@ -66,6 +66,15 @@ class AdminReportManagementService
             ->withQueryString();
     }
 
+    public function assignableUsers()
+    {
+        return User::query()
+            ->where('account_status', 'active')
+            ->whereHas('roles.permissions', fn ($query) => $query->where('name', 'reports.manage'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+    }
+
     public function show(Report $report): Report
     {
         return $report->load([
