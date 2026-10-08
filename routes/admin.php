@@ -108,7 +108,6 @@ Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
     Route::get('audit/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
 });
 
-
 Route::middleware(['auth', 'permission:admin.dashboard.view'])->group(function (): void {
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 });
