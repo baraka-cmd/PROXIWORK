@@ -141,6 +141,26 @@ class WebRegisterTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_registration_normalizes_email_before_unique_validation(): void
+    {
+        User::factory()->create(['email' => 'baraka@example.com']);
+
+        $this->from(route('register'))
+            ->post(route('register.store'), [
+                'name' => 'Baraka Ntwali',
+                'email' => 'BARAKA@EXAMPLE.COM',
+                'account_type' => 'client',
+                'password' => 'Password123!',
+                'password_confirmation' => 'Password123!',
+                'terms' => '1',
+            ])
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame(1, User::where('email', 'baraka@example.com')->count());
+        $this->assertGuest();
+    }
+
     public function test_registration_requires_strong_password_and_confirmation(): void
     {
         $this->from(route('register'))
