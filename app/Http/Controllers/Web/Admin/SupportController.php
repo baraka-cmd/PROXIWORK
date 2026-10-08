@@ -10,15 +10,17 @@ use App\Http\Requests\Admin\Support\AdminSupportIndexRequest;
 use App\Http\Requests\Admin\Support\AdminSupportMessageRequest;
 use App\Http\Requests\Admin\Support\AdminSupportUpdateRequest;
 use App\Models\SupportTicket;
+use App\Enums\SupportTicketPriority;
+use App\Enums\SupportTicketStatus;
 use App\Models\User;
-use App\Services\Admin\Support\AdminSupportManagementService;
+use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class SupportController extends Controller
 {
     public function __construct(
-        private readonly AdminSupportManagementService $supportService,
+        private readonly SupportTicketService $supportService,
     ) {}
 
     public function index(AdminSupportIndexRequest $request): View
@@ -54,12 +56,23 @@ class SupportController extends Controller
     {
         $this->authorize('update', $ticket);
 
-        $this->supportService->updateTicket(
-            $ticket,
-            $request->validated(),
-            $request->user(),
-            $request,
-        );
+        if ($request->validated('priority') !== null) {
+            $this->supportService->updatePriority(
+                $request->user(),
+                $ticket,
+                SupportTicketPriority::from($request->validated('priority')),
+                $request,
+            );
+        }
+
+        if ($request->validated('status') !== null) {
+            $this->supportService->transition(
+                $request->user(),
+                $ticket,
+                SupportTicketStatus::from($request->validated('status')),
+                $request,
+            );
+        }
 
         return back()->with('success', 'Le ticket a été mis à jour.');
     }
@@ -68,10 +81,10 @@ class SupportController extends Controller
     {
         $this->authorize('message', $ticket);
 
-        $this->supportService->reply(
+        $this->supportService->message(
+            $request->user(),
             $ticket,
             $request->validated('body'),
-            $request->user(),
             $request,
         );
 
@@ -82,7 +95,7 @@ class SupportController extends Controller
     {
         $this->authorize('update', $ticket);
 
-        $this->supportService->resolve($ticket, request()->user(), request());
+        $this->supportService->transition(request()->user(), $ticket, SupportTicketStatus::RESOLVED, request());
 
         return back()->with('success', 'Le ticket a été marqué comme résolu.');
     }
@@ -91,7 +104,7 @@ class SupportController extends Controller
     {
         $this->authorize('update', $ticket);
 
-        $this->supportService->close($ticket, request()->user(), request());
+        $this->supportService->transition(request()->user(), $ticket, SupportTicketStatus::CLOSED, request());
 
         return back()->with('success', 'Le ticket a été clôturé.');
     }
