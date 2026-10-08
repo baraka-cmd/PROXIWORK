@@ -37,6 +37,26 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware('auth')->group(function (): void {
+    Route::get('/dashboard', function (Request $request): RedirectResponse {
+        $user = $request->user();
+
+        abort_unless($user !== null, 403);
+
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->hasRole('professional')) {
+            return redirect()->route('professional.dashboard');
+        }
+
+        if ($user->hasRole('client')) {
+            return redirect()->route('client.dashboard');
+        }
+
+        abort(403, 'Aucun espace de travail n’est associé à ce compte.');
+    })->name('dashboard');
+
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
     Route::prefix('client')->name('client.')->middleware(['active.account', 'role:client'])->group(function (): void {
