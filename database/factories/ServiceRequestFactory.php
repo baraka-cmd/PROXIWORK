@@ -16,12 +16,12 @@ class ServiceRequestFactory extends Factory
 
     public function definition(): array
     {
-        $service = Service::factory();
+        $service = Service::factory()->create();
 
         return [
             'client_id' => User::factory(),
-            'professional_id' => fn (array $attributes) => Service::find($attributes['service_id'])->professional_profile_id,
-            'service_id' => $service,
+            'professional_id' => $service->professional_profile_id,
+            'service_id' => $service->getKey(),
             'address_id' => null,
             'title' => fake()->sentence(5),
             'description' => fake()->paragraph(2),

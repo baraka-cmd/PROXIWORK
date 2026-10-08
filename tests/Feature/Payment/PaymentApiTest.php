@@ -150,6 +150,34 @@ class PaymentApiTest extends TestCase
         $this->assertDatabaseCount('payment_intents', 1);
     }
 
+    public function test_reusing_idempotency_key_on_another_order_does_not_mutate_the_second_order_payment(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::PENDING->value]);
+
+        [$client, $firstOrder] = $this->orderScenario();
+        [, $secondOrder] = $this->orderScenarioForClient($client);
+
+        $payload = [
+            'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+            'payment_provider' => PaymentProvider::FAKE->value,
+        ];
+
+        $first = $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-cross-order-0001')
+            ->postJson('/api/v1/orders/'.$firstOrder->id.'/payments', $payload);
+
+        $first->assertAccepted();
+
+        $second = $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-cross-order-0001')
+            ->postJson('/api/v1/orders/'.$secondOrder->id.'/payments', $payload);
+
+        $second->assertConflict();
+
+        $this->assertDatabaseCount('payment_intents', 1);
+        $this->assertDatabaseMissing('payments', ['order_id' => $secondOrder->id]);
+    }
+
     public function test_second_different_payment_attempt_for_same_order_is_rejected_while_first_is_active(): void
     {
         config(['payment.fake.status' => PaymentStatus::PENDING->value]);
@@ -324,6 +352,48 @@ class PaymentApiTest extends TestCase
         );
 
         return [$client, $order];
+    }
+
+    private function orderScenarioForClient(User $client): array
+    {
+        [$professional, $profile] = $this->professional();
+        $service = $this->publishedService($profile);
+        $address = Address::factory()->default()->create(['user_id' => $client->id]);
+
+        $request = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'address_id' => $address->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'status' => ServiceRequestStatus::ACCEPTED,
+            'requested_at' => now(),
+        ]);
+
+        $quotation = Quotation::query()->forceCreate([
+            'service_request_id' => $request->id,
+            'status' => 'accepted',
+        ]);
+
+        $offer = $quotation->offers()->forceCreate([
+            'created_by' => $professional->id,
+            'actor_type' => 'professional',
+            'version' => 1,
+            'amount' => 500,
+            'currency' => 'USD',
+            'description' => 'Second service professionnel.',
+            'duration_value' => 10,
+            'duration_unit' => 'days',
+            'conditions' => 'Conditions.',
+            'valid_until' => now()->addDays(5),
+        ]);
+
+        $quotation->forceFill([
+            'current_offer_id' => $offer->id,
+            'accepted_offer_id' => $offer->id,
+            'accepted_at' => now(),
+        ])->save();
+
+        return [$client, app(OrderService::class)->createFromAcceptedQuotation($quotation->fresh(), $client)];
     }
 
     private function client(): User
