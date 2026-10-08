@@ -201,6 +201,7 @@ class AdminReportManagementService
             }
 
             $this->assertActionTarget($target, $actionType);
+            $this->assertActionPermission($actor, $actionType);
 
             match ($actionType) {
                 ModerationActionType::WARNING => null,
@@ -265,6 +266,23 @@ class AdminReportManagementService
 
             return $target->fresh(['reporter', 'assignee']);
         });
+    }
+
+    private function assertActionPermission(User $actor, ModerationActionType $actionType): void
+    {
+        $permission = match ($actionType) {
+            ModerationActionType::WARNING => 'reports.manage',
+            ModerationActionType::HIDE_REVIEW => 'reviews.moderate',
+            ModerationActionType::UNPUBLISH_SERVICE => 'services.manage',
+            ModerationActionType::SUSPEND_USER => 'admin.users.suspend',
+            ModerationActionType::SUSPEND_PROFESSIONAL => 'admin.professionals.suspend',
+        };
+
+        if (! $actor->hasPermissionTo($permission)) {
+            throw ValidationException::withMessages([
+                'action_type' => ['Vous ne disposez pas de la permission nécessaire pour cette action.'],
+            ]);
+        }
     }
 
     private function assertActionTarget(Report $report, ModerationActionType $actionType): void
