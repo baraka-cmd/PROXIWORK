@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Messaging;
 
+use App\Enums\ConversationStatus;
+use App\Models\Conversation;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
@@ -176,6 +178,52 @@ class MessagingApiTest extends TestCase
             ->assertJsonCount(2, 'data')
             ->assertJsonStructure(['data', 'meta' => ['per_page', 'next_cursor', 'previous_cursor']]);
     }
+
+    public function test_closed_conversation_is_reopened_when_client_returns(): void
+    {
+        [$client, $professional] = $this->participants();
+
+        $conversationId = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/professionals/'.$professional->id.'/conversations')
+            ->assertCreated()
+            ->json('data.id');
+
+        $conversation = Conversation::query()->findOrFail($conversationId);
+        $conversation->forceFill(['status' => ConversationStatus::CLOSED])->save();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/professionals/'.$professional->id.'/conversations')
+            ->assertCreated();
+
+        $this->assertDatabaseHas('conversations', [
+            'id' => $conversationId,
+            'status' => ConversationStatus::OPEN->value,
+        ]);
+    }
+
+    public function test_blocked_conversation_cannot_be_reopened_by_client(): void
+    {
+        [$client, $professional] = $this->participants();
+
+        $conversationId = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/professionals/'.$professional->id.'/conversations')
+            ->assertCreated()
+            ->json('data.id');
+
+        $conversation = Conversation::query()->findOrFail($conversationId);
+        $conversation->forceFill(['status' => ConversationStatus::BLOCKED])->save();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/professionals/'.$professional->id.'/conversations')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['conversation']);
+
+        $this->assertDatabaseHas('conversations', [
+            'id' => $conversationId,
+            'status' => ConversationStatus::BLOCKED->value,
+        ]);
+    }
+
 
     private function participants(): array
     {
