@@ -20,6 +20,16 @@ class ServicePolicy
             && $user->hasPermissionTo('services.view');
     }
 
+    public function adminView(User $user, Service $service): bool
+    {
+        return $user->hasPermissionTo('services.view');
+    }
+
+    public function adminManage(User $user, Service $service): bool
+    {
+        return $user->hasPermissionTo('services.manage');
+    }
+
     public function create(User $user): bool
     {
         return $user->hasPermissionTo('services.manage');
