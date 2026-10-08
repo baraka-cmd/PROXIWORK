@@ -45,8 +45,6 @@ class WebAdminServicesRequestsTest extends TestCase
     public function test_user_without_service_permission_cannot_browse_admin_services(): void
     {
         $user = User::factory()->create();
-        $user->assignRole('client');
-
         $this->actingAs($user)->get(route('admin.services.index'))->assertForbidden();
     }
 
