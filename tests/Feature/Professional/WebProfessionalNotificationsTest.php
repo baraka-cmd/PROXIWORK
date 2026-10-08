@@ -8,7 +8,6 @@ use App\Models\ProfessionalProfile;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
