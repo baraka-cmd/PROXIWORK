@@ -113,7 +113,7 @@ class AdminServiceManagementService
         array $from,
         ServiceStatus $to,
     ): Service {
-        return DB::transaction(function () use ($service, $actor, $from, $to): Service {
+        return DB::transaction(function () use ($service, $from, $to): Service {
             $locked = Service::query()
                 ->lockForUpdate()
                 ->findOrFail($service->getKey());
