@@ -13,6 +13,7 @@ final class PublicHomePageTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertViewIs('public.home')
+            ->assertSee('Trouvez les bons professionnels')
             ->assertSee('Les bonnes compétences.')
             ->assertSee('Découvrir les professionnels')
             ->assertSee('COMMENT ÇA MARCHE')
