@@ -9,11 +9,20 @@ import {
     Tooltip,
 } from 'chart.js';
 
-Chart.register(CategoryScale, Chart, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip);
+Chart.register(CategoryScale, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip);
 
 document.addEventListener('DOMContentLoaded', () => {
     const root = document.querySelector('[data-analytics]');
     if (!root) return;
+
+    const customButton = document.querySelector('[data-analytics-custom]');
+    const customFields = document.querySelector('[data-analytics-custom-fields]');
+
+    customButton?.addEventListener('click', () => {
+        if (customFields) {
+            customFields.hidden = false;
+        }
+    });
 
     const data = JSON.parse(root.dataset.analytics);
     const labels = data.labels ?? [];
