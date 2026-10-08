@@ -7,6 +7,8 @@ use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\PaymentController;
 use App\Http\Controllers\Web\Admin\PermissionController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
+use App\Http\Controllers\Web\Admin\ReportController;
+use App\Http\Controllers\Web\Admin\VerificationController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
@@ -88,4 +90,20 @@ Route::middleware(['auth', 'permission:orders.view'])->group(function (): void {
 Route::middleware(['auth', 'permission:payments.view'])->group(function (): void {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+});
+
+
+Route::middleware(['auth', 'permission:admin.professionals.view'])->group(function (): void {
+    Route::get('verification', [VerificationController::class, 'index'])->name('verification.index');
+    Route::get('verification/{professional}', [VerificationController::class, 'show'])->name('verification.show');
+});
+
+Route::middleware(['auth', 'permission:reports.manage'])->group(function (): void {
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::post('reports/{report}/assign', [ReportController::class, 'assign'])->name('reports.assign');
+    Route::post('reports/{report}/start-review', [ReportController::class, 'startReview'])->name('reports.start-review');
+    Route::post('reports/{report}/moderate', [ReportController::class, 'moderate'])->name('reports.moderate');
+    Route::post('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::post('reports/{report}/dismiss', [ReportController::class, 'dismiss'])->name('reports.dismiss');
 });
