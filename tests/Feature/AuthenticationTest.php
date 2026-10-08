@@ -169,11 +169,15 @@ class AuthenticationTest extends TestCase
 
         $this->assertTrue(Hash::check($oldPassword, $user->fresh()->password));
 
-        // The validation layer rejects the weak password before the broker consumes the token.
-        $this->assertSame(
-            Password::RESET_LINK_SENT,
-            Password::broker()->sendResetLink(['email' => $user->email]),
-        );
+        // The same token must remain usable because validation failed before the broker ran.
+        $this->postJson('/api/v1/auth/reset-password', [
+            'email' => $user->email,
+            'token' => $resetToken,
+            'password' => 'NewSecurePass2!',
+            'password_confirmation' => 'NewSecurePass2!',
+        ])->assertOk();
+
+        $this->assertTrue(Hash::check('NewSecurePass2!', $user->fresh()->password));
     }
 
     public function test_forgot_password_sends_a_reset_notification_to_existing_user(): void
