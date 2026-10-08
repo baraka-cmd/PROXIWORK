@@ -10,6 +10,7 @@ use App\Enums\SupportTicketStatus;
 use App\Models\SupportTicket;
 use App\Models\TicketMessage;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,61 @@ use Illuminate\Validation\ValidationException;
 class SupportTicketService
 {
     public function __construct(private AuditLogService $audit) {}
+
+    public function paginate(array $filters): LengthAwarePaginator
+    {
+        $query = SupportTicket::query()
+            ->with(['user:id,name,email', 'assignee:id,name'])
+            ->withCount('messages');
+
+        if ($search = trim((string) ($filters['search'] ?? ''))) {
+            $query->where(function ($query) use ($search): void {
+                $query->where('subject', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($user) use ($search): void {
+                        $user->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        foreach (['category', 'priority', 'status', 'assigned_to'] as $filter) {
+            if (($value = $filters[$filter] ?? null) !== null && $value !== '') {
+                $query->where($filter, $value);
+            }
+        }
+
+        $query->when($filters['created_from'] ?? null, fn ($q, $date) => $q->where('created_at', '>=', $date));
+        $query->when($filters['created_to'] ?? null, fn ($q, $date) => $q->where('created_at', '<=', $date));
+
+        $sort = $filters['sort'] ?? '-last_message_at';
+        $column = ltrim($sort, '-');
+        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
+
+        return $query
+            ->orderBy($column, $direction)
+            ->orderByDesc('id')
+            ->paginate((int) ($filters['per_page'] ?? 25))
+            ->withQueryString();
+    }
+
+    public function assignableUsers()
+    {
+        return User::query()
+            ->where('account_status', 'active')
+            ->whereHas('roles.permissions', fn ($query) => $query->where('name', 'support.manage'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+    }
+
+    public function show(SupportTicket $ticket): SupportTicket
+    {
+        return $ticket->load([
+            'user:id,name,email',
+            'assignee:id,name,email',
+            'messages' => fn ($query) => $query->oldest()->with('sender:id,name,email'),
+        ]);
+    }
+
 
     public function create(User $user, array $data, Request $request): SupportTicket
     {
@@ -51,7 +107,7 @@ class SupportTicketService
         string $body,
         Request $request,
     ): TicketMessage {
-        return DB::transaction(function () use ($user, $ticket, $body): TicketMessage {
+        return DB::transaction(function () use ($user, $ticket, $body, $request): TicketMessage {
             $ticket = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
 
             if ($ticket->status === SupportTicketStatus::CLOSED) {
@@ -79,13 +135,55 @@ class SupportTicketService
             $ticket->update([
                 'last_message_at' => $message->created_at,
                 'status' => $next,
+                'resolved_at' => null,
             ]);
+
+            $this->audit->record(
+                'support.ticket_message_sent',
+                $ticket,
+                $user,
+                ['message_id' => $message->id],
+                $request,
+            );
 
             return $message->load('sender');
         });
     }
 
-    public function transition(
+    public function updatePriority(
+        User $actor,
+        SupportTicket $ticket,
+        SupportTicketPriority $priority,
+        Request $request,
+    ): SupportTicket {
+        return DB::transaction(function () use ($actor, $ticket, $priority, $request): SupportTicket {
+            $ticket = SupportTicket::query()->lockForUpdate()->findOrFail($ticket->id);
+
+            if ($ticket->status === SupportTicketStatus::CLOSED) {
+                throw ValidationException::withMessages([
+                    'priority' => 'Un ticket fermé ne peut plus être modifié.',
+                ]);
+            }
+
+            $from = $ticket->priority;
+            if ($from === $priority) {
+                return $ticket->fresh(['user', 'assignee']);
+            }
+
+            $ticket->update(['priority' => $priority]);
+
+            $this->audit->record(
+                'support.ticket_priority_changed',
+                $ticket,
+                $actor,
+                ['from' => $from->value, 'to' => $priority->value],
+                $request,
+            );
+
+            return $ticket->fresh(['user', 'assignee']);
+        });
+    }
+
         User $actor,
         SupportTicket $ticket,
         SupportTicketStatus $to,
