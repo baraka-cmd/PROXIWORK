@@ -1,0 +1,2 @@
+@extends('layouts.admin')@section('page_title','Nouvelle catégorie')@section('page_description','Créer une catégorie dans la taxonomie PROXIWORK.')
+@section('content')<section class="admin-card"><form method="POST" action="{{ route('admin.categories.store') }}" class="admin-form">@csrf @include('admin.categories.partials.form',['category'=>null])<button class="button button--primary">Créer</button></form></section>@endsection
