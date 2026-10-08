@@ -8,8 +8,8 @@ use App\Http\Controllers\Web\Admin\CategoryController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\PaymentController;
 use App\Http\Controllers\Web\Admin\PermissionController;
-use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
+use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
@@ -113,7 +113,6 @@ Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
 Route::middleware(['auth', 'permission:admin.dashboard.view'])->group(function (): void {
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 });
-
 
 Route::middleware(['auth', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('verification', [VerificationController::class, 'index'])->name('verification.index');
