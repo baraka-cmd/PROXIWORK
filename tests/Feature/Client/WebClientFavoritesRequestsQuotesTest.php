@@ -7,6 +7,7 @@ namespace Tests\Feature\Client;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
+use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -114,7 +115,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
         $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
-        $service = \App\Models\Service::factory()->create([
+        $service = Service::factory()->create([
             'professional_profile_id' => $professional->id,
             'status' => 'published',
             'published_at' => now(),
