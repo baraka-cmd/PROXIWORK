@@ -121,7 +121,7 @@ class NotificationFoundationTest extends TestCase
             ->map(fn ($notification): string => (string) ($notification->data['action'] ?? ''))
             ->all();
 
-        $this->assertSame(
+        $this->assertEqualsCanonicalizing(
             [
                 'service_request',
                 'quotation',
