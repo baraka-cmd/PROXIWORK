@@ -108,7 +108,6 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->actingAs($other)->get('/client/quotes/'.$quotation->id)->assertForbidden();
     }
 
-
     public function test_client_can_create_and_edit_a_draft_request(): void
     {
         $client = $this->client();
