@@ -51,6 +51,7 @@ class WebRegisterTest extends TestCase
         $this->assertNotNull($user);
         $this->assertSame('Baraka Ntwali', $user->name);
         $this->assertSame(UserAccountStatus::ACTIVE, $user->account_status);
+        $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => 'baraka@example.com']);
         $this->assertTrue($user->hasRole('client'));
         $this->assertDatabaseMissing('professional_profiles', ['user_id' => $user->id]);
         $this->assertTrue(Hash::check('Password123!', $user->password));
