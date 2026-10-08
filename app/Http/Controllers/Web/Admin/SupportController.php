@@ -47,7 +47,7 @@ class SupportController extends Controller
         $this->authorize('update', $ticket);
 
         $assignee = User::query()->findOrFail($request->validated('assigned_to'));
-        $this->supportService->assign($ticket, $assignee, $request->user(), $request);
+        $this->supportService->assign($request->user(), $ticket, $assignee, $request);
 
         return back()->with('success', 'Le ticket a été assigné.');
     }
