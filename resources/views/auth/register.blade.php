@@ -19,7 +19,7 @@
                 </span>
 
                 <h1 id="register-title">Créez votre compte</h1>
-                <p>Choisissez votre parcours pour accéder à l’espace adapté à vos besoins.</p>
+                <p>Rejoignez PROXIWORK et commencez à développer votre réseau professionnel.</p>
             </div>
 
             @if ($errors->any())
@@ -56,31 +56,6 @@
                     <small id="name-hint" class="register-hint">Utilisez votre vrai nom pour faciliter les échanges professionnels.</small>
                     @error('name')
                         <p id="name-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="account_type">Type de compte</label>
-                    <div class="register-input register-select">
-                        <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
-                        <select
-                            id="account_type"
-                            name="account_type"
-                            autocomplete="off"
-                            aria-describedby="account-type-hint @error('account_type') account-type-error @enderror"
-                            required
-                        >
-                            <option value="" disabled @selected(old('account_type') === null)>Choisissez votre parcours</option>
-                            <option value="client" @selected(old('account_type') === 'client')>Client — je recherche des services</option>
-                            <option value="professional" @selected(old('account_type') === 'professional')>Professionnel — je propose mes services</option>
-                        </select>
-                    </div>
-                    <small id="account-type-hint" class="register-hint">Le choix détermine votre espace. Un compte professionnel démarre avec un profil à compléter et une vérification en attente.</small>
-                    @error('account_type')
-                        <p id="account-type-error" class="register-field-error">
                             <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
                             {{ $message }}
                         </p>
