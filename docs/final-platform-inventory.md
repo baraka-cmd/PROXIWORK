@@ -81,3 +81,26 @@ Ne pas fermer ni supprimer automatiquement les branches historiques : conserver 
 10. Documenter explicitement chaque contrôle réussi, échoué ou non exécuté.
 
 **Statut de ce document :** inventaire de consolidation initial. Il ne remplace pas les résultats effectifs de CI ni une recette manuelle. La branche ne doit être annoncée comme validée qu'après examen des contrôles.
+
+## Résultats de l'audit transversal des branches — 9 octobre 2026
+
+### Couverture du dépôt
+
+- Les arbres de fichiers des 103 branches listées au début de l'audit ont été comparés à la branche de release, avec examen ciblé des branches historiques de recherche, services, profils, administration, authentification, transactions et performance.
+- Aucune fonctionnalité d'exécution unique provenant d'une ancienne branche de fonctionnalité n'a été identifiée comme absente de la release. Les différences restantes concernent surtout des versions antérieures de fichiers, des documents ou des tests historiques. Les tests historiques équivalents ont été comparés à la couverture actuelle avant de ne pas les reprendre.
+- La migration de profil professionnel présente dans l'ancienne branche `feature/professional-profile-design` ne doit pas être fusionnée : la release contient déjà une migration ultérieure pour ces colonnes. Ajouter l'ancienne migration créerait des colonnes en double.
+- Des tests supplémentaires ont été ajoutés sur la branche de contrôle pour la persistance des champs du profil, les en-têtes de sécurité des réponses publiques/privées et la rétention des journaux d'audit.
+
+### Résultat CI de la branche de contrôle
+
+Sur `release/proxiwork-quality-gate`, la dernière exécution complète de GitHub Actions a réussi : build frontend, validation Composer, tests et Pint sur les fichiers PHP de `app` et `tests`. La suite a rapporté **380 tests réussis, 1 364 assertions et 3 tests signalés « risky »**. Ces avertissements ne font pas échouer le job, mais restent à examiner; ils ne doivent pas être décrits comme des tests parfaitement propres.
+
+### Limites confirmées — ne pas les présenter comme terminées
+
+- **Réinitialisation du mot de passe côté navigateur :** l'API possède les endpoints de demande et de réinitialisation, mais la route web `password.reset` est encore un placeholder JSON et aucune route `password.request`/vue de formulaire n'est déclarée. Le parcours de réinitialisation depuis le navigateur n'est donc pas complet.
+- **Vérification d'e-mail côté navigateur :** le modèle et les endpoints API prennent en charge la vérification, mais le contrôleur d'inscription web n'envoie pas la notification de vérification et les routes web ne proposent pas de parcours dédié. Le flux web ne doit pas être considéré comme vérifié.
+- **OAuth Google :** le bouton de connexion est un emplacement préparé; aucune route OAuth Google fonctionnelle n'est définie dans cette release.
+- **Paiements réels :** le contrat et l'abstraction de paiement sont présents, mais le conteneur lie actuellement `PaymentGateway` à `FakePaymentGateway`. Les paiements ne doivent pas être annoncés comme des transactions Mobile Money de production tant qu'un fournisseur réel et ses webhooks/configurations ne sont pas intégrés et testés.
+
+Ces limites ne sont pas des fonctionnalités oubliées lors d'une fusion : elles ne sont pas implémentées complètement dans les branches examinées. Elles doivent rester explicitement listées comme travaux distincts avant de qualifier la plateforme de prête pour une mise en production réelle.
+
