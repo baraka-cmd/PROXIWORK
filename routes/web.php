@@ -22,6 +22,7 @@ use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWi
 use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\ReviewController;
 use App\Http\Controllers\Web\Professional\NotificationController;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
