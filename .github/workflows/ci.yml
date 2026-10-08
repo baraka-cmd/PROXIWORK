@@ -7,12 +7,14 @@ on:
       - phase-3/**
       - develop
       - main
+      - release/**
   push:
     branches:
       - phase-1/foundation
       - phase-3/**
       - develop
       - main
+      - release/**
 
 jobs:
   test:
@@ -58,6 +60,13 @@ jobs:
       - name: Run test suite
         run: php artisan test
 
+      # Temporary release-audit diagnostic: reveal the exact Pint patch before committing formatting fixes.
+      - name: Diagnose Pint formatting differences
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/')
+        run: |
+          ./vendor/bin/pint app tests
+          git diff -- app tests
+
       # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
       - name: Check code style for changed PHP files
         shell: bash
@@ -65,7 +74,11 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
           else
+            if [[ "$GITHUB_REF_NAME" == release/* ]]; then
+            changed_files="$(git ls-files app tests -- '*.php' ':!*.blade.php')"
+          else
             changed_files="$(git diff --name-only HEAD^ HEAD -- '*.php')"
+          fi
           fi
 
           if [[ -z "$changed_files" ]]; then
