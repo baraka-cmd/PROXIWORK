@@ -93,15 +93,15 @@ Ne pas fermer ni supprimer automatiquement les branches historiques : conserver 
 
 ### Dernière validation automatisée réussie
 
-Référence contrôlée : commit `08db1fbab4ffa3a4d1fd94b27c0ea081dc9963ab`.
+Référence contrôlée : commit `9160e7bb7a701d136f6910b42d93177ffa2b0e93` (après intégration des tests de durcissement).
 
 - Build frontend Vite : **réussi**.
 - Validation stricte Composer : **réussie**.
-- Suite Laravel : **378 tests réussis**, **1 329 assertions**.
-- Laravel Pint : **réussi sur 488 fichiers PHP**.
+- Suite Laravel : **382 tests réussis**, **1 368 assertions**.
+- Laravel Pint : **réussi sur 490 fichiers PHP**.
 - La suite signale encore **3 tests risqués** (avertissements PHPUnit, sans échec bloquant). Ils ne sont pas présentés comme des tests parfaitement propres.
 
-Cette validation automatisée ne remplace pas une recette manuelle complète dans un navigateur ni un test avec de véritables fournisseurs de paiement Mobile Money. La branche reste donc proposée pour revue et recette, et la PR vers `main` reste en brouillon tant que ces étapes n’ont pas été approuvées.
+Cette validation automatisée ne remplace pas une recette manuelle complète dans un navigateur ni un test avec de véritables fournisseurs de paiement Mobile Money. La PR vers `main` reste en brouillon; les limites non implémentées dans les branches historiques sont listées ci-dessous et ne doivent pas être annoncées comme des fonctionnalités prêtes pour la production.
 
 ## Fonctionnalités qui restent à compléter avant une mise en production réelle
 
