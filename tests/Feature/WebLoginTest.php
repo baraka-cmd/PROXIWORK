@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Enums\UserAccountStatus;
 use App\Models\User;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
