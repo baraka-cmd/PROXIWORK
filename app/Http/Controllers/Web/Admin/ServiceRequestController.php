@@ -14,7 +14,10 @@ use Illuminate\View\View;
 
 class ServiceRequestController extends Controller
 {
-    public function __construct(private readonly AdminServiceRequestManagementService $requestManager) {}
+    public function __construct(
+        private readonly AdminServiceRequestManagementService $requestManager,
+    ) {
+    }
 
     public function index(AdminServiceRequestIndexRequest $request): View
     {
@@ -27,20 +30,39 @@ class ServiceRequestController extends Controller
     public function show(ServiceRequest $serviceRequest): View
     {
         $this->authorize('adminView', $serviceRequest);
-        return view('admin.service-requests.show', ['request' => $this->requestManager->show($serviceRequest)]);
+
+        return view('admin.service-requests.show', [
+            'request' => $this->requestManager->show($serviceRequest),
+        ]);
     }
 
-    public function cancel(AdminServiceRequestActionRequest $request, ServiceRequest $serviceRequest): RedirectResponse
-    {
+    public function cancel(
+        AdminServiceRequestActionRequest $request,
+        ServiceRequest $serviceRequest,
+    ): RedirectResponse {
         $this->authorize('adminManage', $serviceRequest);
-        $this->requestManager->cancel($serviceRequest, $request->user(), $request->validated('reason'));
+
+        $this->requestManager->cancel(
+            $serviceRequest,
+            $request->user(),
+            $request->validated('reason'),
+        );
+
         return back()->with('success', 'La demande a été annulée administrativement.');
     }
 
-    public function reject(AdminServiceRequestActionRequest $request, ServiceRequest $serviceRequest): RedirectResponse
-    {
+    public function reject(
+        AdminServiceRequestActionRequest $request,
+        ServiceRequest $serviceRequest,
+    ): RedirectResponse {
         $this->authorize('adminManage', $serviceRequest);
-        $this->requestManager->reject($serviceRequest, $request->user(), $request->validated('reason'));
+
+        $this->requestManager->reject(
+            $serviceRequest,
+            $request->user(),
+            $request->validated('reason'),
+        );
+
         return back()->with('success', 'La demande a été rejetée administrativement.');
     }
 }
