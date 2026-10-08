@@ -2,22 +2,24 @@
     'title' => 'Aucun résultat',
     'description' => null,
     'icon' => 'fa-solid fa-inbox',
-    'id' => null,
+    'ariaLabel' => null,
 ])
 
 <section
     {{ $attributes->merge(['class' => 'state-empty']) }}
-    aria-label="{{ $title }}"
+    aria-label="{{ $ariaLabel ?: $title }}"
 >
     <div class="state-empty__icon" aria-hidden="true">
         <i class="{{ $icon }}"></i>
     </div>
 
-    <h2>{{ $title }}</h2>
+    <div class="state-empty__content">
+        <h2>{{ $title }}</h2>
 
-    @if ($description)
-        <p>{{ $description }}</p>
-    @endif
+        @if ($description)
+            <p>{{ $description }}</p>
+        @endif
+    </div>
 
     @if (trim((string) $slot) !== '')
         <div class="state-empty__actions">
