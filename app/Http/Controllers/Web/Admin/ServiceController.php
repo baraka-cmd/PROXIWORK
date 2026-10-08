@@ -18,8 +18,7 @@ class ServiceController extends Controller
 {
     public function __construct(
         private readonly AdminServiceManagementService $serviceManager,
-    ) {
-    }
+    ) {}
 
     public function index(AdminServiceIndexRequest $request): View
     {
