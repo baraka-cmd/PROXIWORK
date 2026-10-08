@@ -80,4 +80,25 @@ Ne pas fermer ni supprimer automatiquement les branches historiques : conserver 
 9. Vérifier le workflow GitHub Actions complet sur cette branche.
 10. Documenter explicitement chaque contrôle réussi, échoué ou non exécuté.
 
-**Statut de ce document :** inventaire de consolidation initial. Il ne remplace pas les résultats effectifs de CI ni une recette manuelle. La branche ne doit être annoncée comme validée qu'après examen des contrôles.
+
+## Résultats de l’audit de consolidation — 9 octobre 2026
+
+### Vérification des branches
+
+- Un contrôle structurel des arbres de fichiers des **103 branches** du dépôt a été effectué.
+- Les modules fonctionnels des branches historiques sont représentés dans la release. Les différences relevées concernaient principalement des variantes historiques, des chemins renommés, des documents ou des tests remplacés par des tests plus récents.
+- Les points de risque ont été comparés séparément : modèle de profil professionnel et migration de schéma, hiérarchie des catégories, idempotence des paiements, notifications et configuration des queues.
+- La release conserve la migration additive du profil professionnel et son backfill d’état, la configuration explicite du hachage des mots de passe, ainsi que les documents d’architecture et d’intégration utiles.
+- Les tests couvrent notamment le schéma du profil professionnel et la rétention des journaux d’audit.
+
+### Dernière validation automatisée réussie
+
+Référence contrôlée : commit `08db1fbab4ffa3a4d1fd94b27c0ea081dc9963ab`.
+
+- Build frontend Vite : **réussi**.
+- Validation stricte Composer : **réussie**.
+- Suite Laravel : **378 tests réussis**, **1 329 assertions**.
+- Laravel Pint : **réussi sur 488 fichiers PHP**.
+- La suite signale encore **3 tests risqués** (avertissements PHPUnit, sans échec bloquant). Ils ne sont pas présentés comme des tests parfaitement propres.
+
+Cette validation automatisée ne remplace pas une recette manuelle complète dans un navigateur ni un test avec de véritables fournisseurs de paiement Mobile Money. La branche reste donc proposée pour revue et recette, et la PR vers `main` reste en brouillon tant que ces étapes n’ont pas été approuvées.
