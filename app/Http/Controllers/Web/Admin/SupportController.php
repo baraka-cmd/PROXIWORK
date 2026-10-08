@@ -9,9 +9,9 @@ use App\Http\Requests\Admin\Support\AdminSupportAssignRequest;
 use App\Http\Requests\Admin\Support\AdminSupportIndexRequest;
 use App\Http\Requests\Admin\Support\AdminSupportMessageRequest;
 use App\Http\Requests\Admin\Support\AdminSupportUpdateRequest;
-use App\Models\SupportTicket;
 use App\Enums\SupportTicketPriority;
 use App\Enums\SupportTicketStatus;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +19,12 @@ use Illuminate\View\View;
 
 class SupportController extends Controller
 {
-    public function __construct(private readonly SupportTicketService $supportService) {}
+    private readonly SupportTicketService $supportService;
+
+    public function __construct(SupportTicketService $supportService)
+    {
+        $this->supportService = $supportService;
+    }
 
     public function index(AdminSupportIndexRequest $request): View
     {
