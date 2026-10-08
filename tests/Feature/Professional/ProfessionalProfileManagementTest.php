@@ -30,7 +30,7 @@ class ProfessionalProfileManagementTest extends TestCase
         $this->actingAs($user)
             ->get(route('professional.profile.edit'))
             ->assertOk()
-            ->assertViewIs('professional/profile-edit');
+            ->assertViewIs('professional.profile-edit');
 
         $this->actingAs($user)
             ->patch(route('professional.profile.update'), [
