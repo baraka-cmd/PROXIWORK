@@ -67,6 +67,31 @@ class ReportControllerTest extends TestCase
         $this->assertSame(ReportStatus::PENDING, $report->refresh()->status);
     }
 
+    public function test_report_moderation_cannot_escalate_beyond_actor_permissions(): void
+    {
+        $moderator = $this->moderator();
+        $reporter = User::factory()->create();
+        $report = Report::query()->create([
+            'reporter_id' => $reporter->id,
+            'target_type' => User::class,
+            'target_id' => $reporter->id,
+            'reason_code' => 'ABUSE',
+        ]);
+
+        $this->actingAs($moderator)
+            ->post(route('admin.reports.start-review', $report))
+            ->assertRedirect();
+
+        $this->actingAs($moderator)
+            ->post(route('admin.reports.moderate', $report), [
+                'action_type' => 'suspend_user',
+            ])
+            ->assertSessionHasErrors('action_type');
+
+        $this->assertSame(ReportStatus::UNDER_REVIEW, $report->refresh()->status);
+        $this->assertSame('active', $reporter->refresh()->account_status->value);
+    }
+
     public function test_non_moderator_cannot_access_reports(): void
     {
         $user = User::factory()->create();
