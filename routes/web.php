@@ -26,6 +26,8 @@ use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWallet
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\RegisterController;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('welcome'));
