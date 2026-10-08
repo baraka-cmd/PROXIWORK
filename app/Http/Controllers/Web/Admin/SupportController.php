@@ -15,7 +15,7 @@ use App\Models\SupportTicket;
 use App\Models\User;
 use App\Services\Admin\Support\SupportTicketService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View
+use Illuminate\View\View;
 
 class SupportController extends Controller
 {
