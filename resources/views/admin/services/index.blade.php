@@ -1,0 +1,20 @@
+@extends('layouts.admin')
+@section('page_eyebrow','PLATEFORME / CATALOGUE')
+@section('page_title','Services')
+@section('page_description','Contrôlez le catalogue publié par les professionnels et son cycle de vie.')
+@section('content')
+@if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
+<section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Recherche</span><h3>Filtrer les services</h3></div><a class="admin-link" href="{{ route('admin.services.index') }}">Réinitialiser</a></div>
+<form method="GET" class="admin-filter-grid">
+<label class="admin-field admin-field--wide"><span>Recherche</span><input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Titre, slug, professionnel ou e-mail"></label>
+<label class="admin-field"><span>État</span><select name="status"><option value="">Tous</option>@foreach(['draft'=>'Brouillon','published'=>'Publié','unpublished'=>'Dépublié','archived'=>'Archivé'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['status']??'')===$v)>{{ $l }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Catégorie</span><select name="category_id"><option value="">Toutes</option>@foreach($categories as $c)<option value="{{ $c->id }}" @selected((string)($filters['category_id']??'')===(string)$c->id)>{{ $c->name }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Tarification</span><select name="pricing_type"><option value="">Toutes</option>@foreach(['fixed'=>'Fixe','from'=>'À partir de','range'=>'Fourchette','quote'=>'Sur devis'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['pricing_type']??'')===$v)>{{ $l }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Professionnel</span><select name="professional_id"><option value="">Tous</option>@foreach($professionals as $p)<option value="{{ $p->id }}" @selected((string)($filters['professional_id']??'')===(string)$p->id)>{{ $p->user->name ?? 'Professionnel #'.$p->id }}</option>@endforeach</select></label>
+<div class="admin-filter-actions"><button class="button button--primary" type="submit"><i class="fa-solid fa-filter"></i> Appliquer</button></div>
+</form></section>
+<section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Catalogue</span><h3>{{ $services->total() }} service{{ $services->total()>1?'s':'' }}</h3></div></div>
+<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Service</th><th>Professionnel</th><th>Catégorie</th><th>État</th><th>Demandes</th><th></th></tr></thead><tbody>
+@forelse($services as $service)<tr><td><a class="admin-user-cell" href="{{ route('admin.services.show',$service) }}"><span class="admin-avatar"><i class="fa-solid fa-briefcase"></i></span><span><strong>{{ $service->title }}</strong><small>{{ $service->pricing_type->value }}</small></span></a></td><td>{{ $service->professionalProfile->user->name ?? '—' }}</td><td>{{ $service->category->name ?? '—' }}</td><td><span class="admin-status admin-status--{{ $service->status->value }}">{{ ['draft'=>'Brouillon','published'=>'Publié','unpublished'=>'Dépublié','archived'=>'Archivé'][$service->status->value] }}</span></td><td>{{ $service->service_requests_count }}</td><td class="admin-table__actions"><a class="admin-icon-button" href="{{ route('admin.services.show',$service) }}" aria-label="Voir le service"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></td></tr>@empty<tr><td colspan="6"><div class="admin-empty"><i class="fa-solid fa-briefcase"></i><strong>Aucun service trouvé</strong><span>Modifiez les filtres.</span></div></td></tr>@endforelse</tbody></table></div>
+@if($services->hasPages())<div class="admin-pagination">{{ $services->links() }}</div>@endif</section>
+@endsection
