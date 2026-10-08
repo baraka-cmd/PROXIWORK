@@ -86,7 +86,7 @@ class SupportControllerTest extends TestCase
 
         $this->actingAs($agent)
             ->post(route('admin.support.message', $ticket), ['body' => 'Impossible'])
-            ->assertSessionHasErrors('body');
+            ->assertSessionHasErrors('status');
 
         $this->actingAs($agent)
             ->post(route('admin.support.assign', $ticket), ['assigned_to' => $otherAgent->id])
