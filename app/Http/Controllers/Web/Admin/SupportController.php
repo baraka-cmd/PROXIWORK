@@ -19,9 +19,7 @@ use Illuminate\View\View;
 
 class SupportController extends Controller
 {
-    public function __construct(
-        private readonly SupportTicketService $supportService,
-    ) {}
+    public function __construct(private readonly SupportTicketService $supportService) {}
 
     public function index(AdminSupportIndexRequest $request): View
     {
