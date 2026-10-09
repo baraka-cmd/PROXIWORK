@@ -123,7 +123,7 @@ Les limites de production (notamment fournisseur de paiement réel, OAuth Google
 
 La revue complémentaire a ajouté et validé les parcours Web Professionnel demandes/devis, la résolution du contrôleur RBAC Web, les contrôles de cohérence des callbacks de paiement et le fingerprint d’idempotence des retraits.
 
-Le workflow CI #793 (`37900990912`) a réussi avec **424 tests, 1 497 assertions et aucun test risqué**, ainsi qu’un build Vite et un contrôle Pint réussis. Le workflow de la branche candidate après fusion doit encore confirmer le dernier commit de livraison.
+Le workflow CI #793 (`37900990912`) a réussi avec **424 tests, 1 497 assertions et aucun test risqué**, ainsi qu’un build Vite et un contrôle Pint réussis. La branche candidate elle-même a ensuite passé le workflow CI #795 (`37901117049`) sur le commit `a2dacd2f862b8ccee4a8ec3f2be89c87fb21ff1f` avec les mêmes résultats. Après la fusion de cette mise à jour documentaire, une nouvelle CI doit confirmer le nouveau commit de livraison.
 
 **Limites de production :** l’abstraction de paiement utilise encore un fournisseur de test; aucune intégration Mobile Money réelle n’est certifiée. La livraison réelle des e-mails, la recette navigateur responsive et l’installation locale Windows/XAMPP nécessitent des essais/configurations dans l’environnement cible.
 
