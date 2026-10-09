@@ -1,5 +1,10 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/orders.css')@endunless@endpush
+
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/orders.css')
+    @endunless
+@endpush
 @section('page_title','Commandes')@section('page_description','Supervisez les commandes sans contourner leur cycle transactionnel.')
 @section('content')
 <section class="admin-card"><div class="admin-card__header"><h3>Filtres</h3><a class="admin-link" href="{{ route('admin.orders.index') }}">Réinitialiser</a></div><form method="GET" class="admin-filter-grid">
