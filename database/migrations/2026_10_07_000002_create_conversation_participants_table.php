@@ -21,7 +21,10 @@ return new class extends Migration
 
             $table->unique(['conversation_id', 'user_id']);
             $table->index(['user_id', 'left_at', 'updated_at']);
-            $table->index(['conversation_id', 'last_read_message_id']);
+            $table->index(
+                ['conversation_id', 'last_read_message_id'],
+                'cp_conversation_last_read_idx'
+            );
         });
     }
 
