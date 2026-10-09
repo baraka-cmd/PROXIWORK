@@ -22,7 +22,7 @@ use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
 use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
 use App\Http\Controllers\Web\Professional\ProfileController;
-use App\Http\Controllers\Web\Professional\RevenueController;
+use App\Http\Controllers\Web\Professional\QuotationController as ProfessionalQuotationController;\nuse App\Http\Controllers\Web\Professional\ServiceRequestController as ProfessionalServiceRequestController;\nuse App\Http\Controllers\Web\Professional\RevenueController;
 use App\Http\Controllers\Web\Professional\ReviewController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
@@ -119,6 +119,13 @@ Route::middleware('guest')->group(function (): void {
 
 Route::prefix('professional')->name('professional.')->middleware(['auth', 'active.account', 'role:professional'])->group(function (): void {
     Route::get('/', ProfessionalDashboardController::class)->name('dashboard');
+    Route::get('requests', [ProfessionalServiceRequestController::class, 'index'])->name('requests.index');
+    Route::get('requests/{serviceRequest}', [ProfessionalServiceRequestController::class, 'show'])->name('requests.show');
+    Route::post('requests/{serviceRequest}/reject', [ProfessionalServiceRequestController::class, 'reject'])->middleware('throttle:10,1')->name('requests.reject');
+    Route::get('quotes', [ProfessionalQuotationController::class, 'index'])->name('quotes.index');
+    Route::get('quotes/create/{serviceRequest}', [ProfessionalQuotationController::class, 'create'])->name('quotes.create');
+    Route::post('quotes/create/{serviceRequest}', [ProfessionalQuotationController::class, 'store'])->middleware('throttle:10,1')->name('quotes.store');
+    Route::get('quotes/{quotation}', [ProfessionalQuotationController::class, 'show'])->name('quotes.show');
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
