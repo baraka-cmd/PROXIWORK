@@ -45,6 +45,8 @@ class AuthenticationTest extends TestCase
         $user = User::where('email', 'jean@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('client'));
         $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
+        $this->assertDatabaseHas('notification_preferences', ['user_id' => $user->id]);
+        $this->assertDatabaseHas('personal_access_tokens', ['tokenable_id' => $user->id]);
     }
 
     public function test_user_can_login_with_valid_credentials(): void
