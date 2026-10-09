@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Profile;
 
+use App\Enums\ProfessionalVerificationStatus;
 use App\Models\ProfessionalProfile;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -12,6 +14,37 @@ use Tests\TestCase;
 class ProfessionalProfileSchemaTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_user_and_sensitive_state_fields_are_not_mass_assignable(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $profile = ProfessionalProfile::factory()->create([
+            'user_id' => $owner->id,
+            'status' => ProfessionalProfile::STATUS_DRAFT,
+            'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
+
+        $profile->fill([
+            'user_id' => $otherUser->id,
+            'professional_title' => 'Titre mis à jour',
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => now(),
+        ])->save();
+
+        $fresh = $profile->fresh();
+
+        $this->assertSame($owner->id, $fresh->user_id);
+        $this->assertSame('Titre mis à jour', $fresh->professional_title);
+        $this->assertSame(ProfessionalProfile::STATUS_DRAFT, $fresh->status);
+        $this->assertSame(ProfessionalProfile::VISIBILITY_PRIVATE, $fresh->visibility);
+        $this->assertSame(ProfessionalVerificationStatus::PENDING, $fresh->verification_status);
+        $this->assertNull($fresh->verified_at);
+    }
 
     public function test_professional_profile_contains_all_fields_used_by_the_model(): void
     {
