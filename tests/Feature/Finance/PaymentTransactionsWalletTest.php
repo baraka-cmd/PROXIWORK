@@ -27,6 +27,7 @@ use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Tests\TestCase;
 
@@ -247,7 +248,7 @@ class PaymentTransactionsWalletTest extends TestCase
                 );
 
                 $this->fail('A final transaction must reject a callback with a mismatched amount or currency.');
-            } catch (\Illuminate\Validation\ValidationException $exception) {
+            } catch (ValidationException $exception) {
                 $this->assertArrayHasKey('payment', $exception->errors());
             }
         }
