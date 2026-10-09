@@ -77,4 +77,48 @@ jobs:
             exit 0
           fi
 
-          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
+          printf '%s\\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
+
+  mysql-migrations:
+    name: Fresh MySQL migration
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: proxiwork_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, pdo_mysql
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --no-scripts
+
+      - name: Prepare application
+        run: cp .env.example .env && php artisan key:generate
+
+      - name: Run all migrations against a fresh MySQL database
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: proxiwork_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan migrate --force
