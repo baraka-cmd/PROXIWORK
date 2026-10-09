@@ -23,18 +23,21 @@ return new class extends Migration
             $table->decimal('rating_average', 3, 2)->default(0)->after('availability_status');
             $table->unsignedInteger('rating_count')->default(0)->after('rating_average');
 
-            $table->index(['verification_status', 'availability_status']);
-            $table->index(['rating_average', 'rating_count']);
-            $table->index('professional_title');
+            $table->index(
+                ['verification_status', 'availability_status'],
+                'prof_profiles_ver_avail_idx'
+            );
+            $table->index(['rating_average', 'rating_count'], 'prof_profiles_rating_idx');
+            $table->index('professional_title', 'prof_profiles_title_idx');
         });
     }
 
     public function down(): void
     {
         Schema::table('professional_profiles', function (Blueprint $table): void {
-            $table->dropIndex('professional_profiles_verification_status_availability_status_index');
-            $table->dropIndex('professional_profiles_rating_average_rating_count_index');
-            $table->dropIndex('professional_profiles_professional_title_index');
+            $table->dropIndex('prof_profiles_ver_avail_idx');
+            $table->dropIndex('prof_profiles_rating_idx');
+            $table->dropIndex('prof_profiles_title_idx');
             $table->dropColumn([
                 'professional_title',
                 'verification_status',
