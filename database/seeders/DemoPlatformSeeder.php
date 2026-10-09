@@ -19,28 +19,20 @@ class DemoPlatformSeeder extends Seeder
 {
     private string $now;
 
-    /** @var array<string, int> */
     private array $users = [];
 
-    /** @var array<string, int> */
     private array $professionals = [];
 
-    /** @var array<string, int> */
     private array $services = [];
 
-    /** @var array<string, int> */
     private array $requests = [];
 
-    /** @var array<string, int> */
     private array $quotations = [];
 
-    /** @var array<string, int> */
     private array $offers = [];
 
-    /** @var array<string, int> */
     private array $orders = [];
 
-    /** @var array<string, int> */
     private array $payments = [];
 
     public function run(): void
@@ -58,13 +50,7 @@ class DemoPlatformSeeder extends Seeder
         $this->seedModerationAndAudit();
     }
 
-    /**
-     * Insert or update by a stable business key, so running db:seed twice
-     * does not create duplicate demo records.
-     *
-     * @param array<string, mixed> $keys
-     * @param array<string, mixed> $values
-     */
+    // Use stable business keys so repeated local seeding updates demo rows.
     private function put(string $table, array $keys, array $values, bool $timestamps = true): void
     {
         if ($timestamps) {
@@ -75,9 +61,6 @@ class DemoPlatformSeeder extends Seeder
         DB::table($table)->updateOrInsert($keys, $values);
     }
 
-    /**
-     * @param array<string, mixed> $keys
-     */
     private function id(string $table, array $keys): int
     {
         return (int) DB::table($table)->where($keys)->value('id');
@@ -314,9 +297,9 @@ class DemoPlatformSeeder extends Seeder
 
             $this->put('service_images', [
                 'service_id' => $this->services[$slug],
-                'path' => 'demo/services/' . $slug . '.jpg',
+                'path' => sprintf('demo/services/%s.jpg', $slug),
             ], [
-                'alt_text' => $title . ' — image de démonstration',
+                'alt_text' => sprintf('%s — image de démonstration', $title),
                 'sort_order' => 0,
                 'is_cover' => true,
             ]);
@@ -472,7 +455,7 @@ class DemoPlatformSeeder extends Seeder
             $offerId = $this->offers[$key];
 
             $this->put('orders', ['service_request_id' => $requestId], [
-                'order_number' => 'PXW-DEMO-' . strtoupper(substr($key, 0, 3)) . '-' . str_pad((string) $requestId, 5, '0', STR_PAD_LEFT),
+                'order_number' => sprintf('PXW-DEMO-%s-%05d', strtoupper(substr($key, 0, 3)), $requestId),
                 'quotation_id' => $quotationId,
                 'accepted_offer_id' => $offerId,
                 'client_id' => $this->users[$clientKey],
@@ -532,7 +515,7 @@ class DemoPlatformSeeder extends Seeder
                 'created_at' => now()->subHours(5)->toDateTimeString(),
             ], false);
 
-            $intentKey = 'demo-intent-' . $key;
+            $intentKey = sprintf('demo-intent-%s', $key);
             $this->put('payment_intents', [
                 'client_id' => $this->users[$clientKey],
                 'idempotency_key' => $intentKey,
@@ -544,7 +527,7 @@ class DemoPlatformSeeder extends Seeder
                 'status' => $paymentStatus,
                 'currency' => 'USD',
                 'amount' => $amount,
-                'provider_reference' => 'DEMO-REF-' . strtoupper($key),
+                'provider_reference' => sprintf('DEMO-REF-%s', strtoupper($key)),
                 'redirect_url' => null,
                 'instructions' => 'Simulation locale uniquement : aucun paiement réel ne sera déclenché.',
                 'failure_code' => null,
@@ -574,12 +557,12 @@ class DemoPlatformSeeder extends Seeder
 
             $this->put('payment_transactions', [
                 'payment_id' => $this->payments[$key],
-                'idempotency_key' => 'demo-tx-' . $key,
+                'idempotency_key' => sprintf('demo-tx-%s', $key),
             ], [
                 'provider' => 'fake',
-                'provider_transaction_id' => 'DEMO-TX-' . strtoupper($key),
-                'provider_reference' => 'DEMO-REF-' . strtoupper($key),
-                'provider_event_id' => 'DEMO-EVENT-' . strtoupper($key),
+                'provider_transaction_id' => sprintf('DEMO-TX-%s', strtoupper($key)),
+                'provider_reference' => sprintf('DEMO-REF-%s', strtoupper($key)),
+                'provider_event_id' => sprintf('DEMO-EVENT-%s', strtoupper($key)),
                 'status' => $paymentStatus,
                 'currency' => 'USD',
                 'amount' => $amount,
