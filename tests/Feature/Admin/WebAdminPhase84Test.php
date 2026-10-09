@@ -86,6 +86,7 @@ class WebAdminPhase84Test extends TestCase
         $this->actingAs($user)->get('/admin/payments')->assertForbidden();
         $this->actingAs($user)->get('/admin/categories')->assertForbidden();
     }
+
     private function adminUser(): User
     {
         $admin = User::factory()->create();
