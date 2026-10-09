@@ -15,6 +15,7 @@ use App\Events\OrderPaid;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Service;
@@ -260,7 +261,7 @@ class PaymentApiTest extends TestCase
         $response->assertUnprocessable()
             ->assertJsonPath('data.status', PaymentStatus::FAILED->value);
 
-        $paymentId = \App\Models\Payment::query()
+        $paymentId = Payment::query()
             ->where('order_id', $order->id)
             ->value('id');
 
