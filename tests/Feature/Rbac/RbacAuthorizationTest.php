@@ -21,6 +21,18 @@ class RbacAuthorizationTest extends TestCase
         $this->seed(RbacSeeder::class);
     }
 
+    public function test_guest_and_client_cannot_view_rbac_catalog(): void
+    {
+        $this->getJson('/api/v1/rbac/roles')->assertUnauthorized();
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/rbac/roles')
+            ->assertForbidden();
+    }
+
     public function test_client_cannot_manage_roles(): void
     {
         $user = User::factory()->create();
