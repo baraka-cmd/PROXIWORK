@@ -24,8 +24,8 @@ use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderCo
 use App\Http\Controllers\Web\Professional\ProfileController;
 use App\Http\Controllers\Web\Professional\QuotationController as ProfessionalQuotationController;
 use App\Http\Controllers\Web\Professional\RevenueController;
-use App\Http\Controllers\Web\Professional\ServiceRequestController as ProfessionalServiceRequestController;
 use App\Http\Controllers\Web\Professional\ReviewController;
+use App\Http\Controllers\Web\Professional\ServiceRequestController as ProfessionalServiceRequestController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\PublicSearchController;
