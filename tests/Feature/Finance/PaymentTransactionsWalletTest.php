@@ -482,6 +482,61 @@ class PaymentTransactionsWalletTest extends TestCase
         $this->assertDatabaseCount('withdrawals', 1);
     }
 
+    public function test_withdrawal_idempotency_key_rejects_changed_provider_or_destination(): void
+    {
+        [, $professional] = $this->professional();
+        $walletService = app(WalletService::class);
+        $withdrawalService = app(WithdrawalService::class);
+
+        $walletService->creditPending(
+            professional: $professional,
+            amount: '500.00',
+            currency: 'USD',
+            type: WalletTransactionType::EARNING,
+            idempotencyKey: 'wallet-credit-fingerprint-0001',
+        );
+        $walletService->releasePending(
+            professional: $professional,
+            amount: '500.00',
+            currency: 'USD',
+            idempotencyKey: 'wallet-release-fingerprint-0001',
+        );
+
+        $withdrawalService->request(
+            professional: $professional,
+            amount: '300.00',
+            currency: 'USD',
+            provider: 'fake',
+            destination: '0000000000',
+            idempotencyKey: 'withdrawal-fingerprint-0001',
+        );
+
+        foreach ([
+            ['provider' => 'fake', 'destination' => '9999999999'],
+            ['provider' => 'another-provider', 'destination' => '0000000000'],
+        ] as $changedRequest) {
+            try {
+                $withdrawalService->request(
+                    professional: $professional,
+                    amount: '300.00',
+                    currency: 'USD',
+                    provider: $changedRequest['provider'],
+                    destination: $changedRequest['destination'],
+                    idempotencyKey: 'withdrawal-fingerprint-0001',
+                );
+
+                $this->fail('An idempotency key must not be reused with a different provider or destination.');
+            } catch (PaymentConflictException $exception) {
+                $this->assertSame(
+                    'La clé d’idempotence est déjà utilisée pour un autre retrait.',
+                    $exception->getMessage(),
+                );
+            }
+        }
+
+        $this->assertDatabaseCount('withdrawals', 1);
+    }
+
     public function test_failed_withdrawal_releases_locked_balance(): void
     {
         [, $professional] = $this->professional();
