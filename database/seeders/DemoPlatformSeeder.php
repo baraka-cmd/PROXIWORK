@@ -773,7 +773,7 @@ class DemoPlatformSeeder extends Seeder
             'subject' => 'Question sur le suivi d’une demande',
         ], [
             'assigned_to' => $this->users['support'],
-            'category' => 'account',
+            'category' => 'ACCOUNT',
             'priority' => 'normal',
             'status' => 'in_progress',
             'last_message_at' => now()->subHours(1)->toDateTimeString(),
@@ -816,6 +816,39 @@ class DemoPlatformSeeder extends Seeder
             'resolved_by' => null,
             'resolved_at' => null,
             'resolution_note' => null,
+        ]);
+
+        $this->put('reports', [
+            'reporter_id' => $this->users['client_a'],
+            'target_type' => 'service',
+            'target_id' => $serviceId,
+            'reason_code' => 'duplicate_listing',
+        ], [
+            'description' => 'Signalement résolu fictif pour vérifier les historiques de modération.',
+            'status' => 'resolved',
+            'priority' => 'low',
+            'assigned_to' => $this->users['moderator'],
+            'resolved_by' => $this->users['moderator'],
+            'resolved_at' => now()->subDays(2)->toDateTimeString(),
+            'resolution_note' => 'Vérification terminée ; le contenu de démonstration est conservé.',
+        ]);
+
+        $resolvedReportId = $this->id('reports', [
+            'reporter_id' => $this->users['client_a'],
+            'target_type' => 'service',
+            'target_id' => $serviceId,
+            'reason_code' => 'duplicate_listing',
+        ]);
+
+        $this->put('moderation_actions', [
+            'report_id' => $resolvedReportId,
+            'action_type' => 'warning',
+        ], [
+            'moderator_id' => $this->users['moderator'],
+            'reason_code' => 'duplicate_listing',
+            'note' => 'Action de démonstration sans effet sur un compte réel.',
+            'target_type' => 'service',
+            'target_id' => $serviceId,
         ]);
 
         $this->put('audit_logs', [
