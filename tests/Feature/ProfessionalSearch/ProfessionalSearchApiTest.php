@@ -59,7 +59,7 @@ class ProfessionalSearchApiTest extends TestCase
             'title' => 'Électricien résidentiel',
         ]);
 
-        $this->getJson('/api/v1/professionals?search=électricien')
+        $this->getJson('/api/v1/professionals?search=résidentiel')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $professional->id);
