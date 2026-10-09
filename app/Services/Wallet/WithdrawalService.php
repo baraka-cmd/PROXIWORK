@@ -43,7 +43,12 @@ class WithdrawalService
                 ->first();
 
             if ($existing !== null) {
-                if ($existing->amount !== $amount || $existing->currency !== strtoupper($currency)) {
+                if (
+                    $existing->amount !== $amount
+                    || $existing->currency !== strtoupper($currency)
+                    || $existing->provider !== $provider
+                    || $existing->destination !== $destination
+                ) {
                     throw new PaymentConflictException('La clé d’idempotence est déjà utilisée pour un autre retrait.');
                 }
 
