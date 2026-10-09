@@ -211,8 +211,8 @@ class DemoPlatformSeeder extends Seeder
                 'professional_title' => $profile['title'],
                 'verification_status' => 'verified',
                 'availability_status' => 'available',
-                'rating_average' => $userKey === 'pro_a' ? 4.90 : 4.70,
-                'rating_count' => $userKey === 'pro_a' ? 12 : 7,
+                'rating_average' => $userKey === 'pro_a' ? 5.00 : 0.00,
+                'rating_count' => $userKey === 'pro_a' ? 1 : 0,
                 'description' => $profile['description'],
                 'years_experience' => $profile['years'],
                 'starting_price' => $profile['price'],
@@ -604,8 +604,8 @@ class DemoPlatformSeeder extends Seeder
             'professional_id' => $professionalId,
             'currency' => 'USD',
         ], [
-            'available_balance' => $net,
-            'pending_balance' => 0,
+            'available_balance' => $net - 50,
+            'pending_balance' => 50,
             'locked_balance' => 0,
             'status' => 'active',
         ]);
@@ -647,6 +647,27 @@ class DemoPlatformSeeder extends Seeder
             'requested_at' => now()->subHours(2)->toDateTimeString(),
             'processing_at' => null,
             'completed_at' => null,
+        ]);
+
+        $withdrawalId = $this->id('withdrawals', [
+            'professional_id' => $professionalId,
+            'idempotency_key' => 'demo-withdrawal-pro-a',
+        ]);
+
+        $this->put('wallet_transactions', [
+            'wallet_id' => $walletId,
+            'idempotency_key' => 'demo-withdrawal-hold-pro-a',
+        ], [
+            'type' => 'withdrawal_hold',
+            'direction' => 'debit',
+            'currency' => 'USD',
+            'amount' => 50,
+            'balance_before' => $net,
+            'balance_after' => $net - 50,
+            'reference_type' => 'withdrawal',
+            'reference_id' => $withdrawalId,
+            'description' => 'Réservation simulée du montant demandé en retrait.',
+            'metadata' => json_encode(['status' => 'requested'], JSON_THROW_ON_ERROR),
         ]);
 
         $this->put('reviews', ['order_id' => $this->orders['web_project']], [
