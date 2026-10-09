@@ -83,34 +83,26 @@ Ne pas fermer ni supprimer automatiquement les branches historiques : conserver 
 
 ## Résultats de l’audit de consolidation — 9 octobre 2026
 
-### Vérification des branches
+### Méthode et périmètre
 
-- Un contrôle structurel des arbres de fichiers des **105 branches** visibles du dépôt a été effectué. Les arbres ont été comparés à celui de la release; les anciens chemins propres aux premières branches de fondation ont été vérifiés comme variantes historiques, et leurs équivalents actuels (contrôleurs, Resources et tests) sont présents.
-- Les modules fonctionnels des branches historiques sont représentés dans la release. Les différences relevées concernaient principalement des variantes historiques, des chemins renommés, des documents ou des tests remplacés par des tests plus récents.
-- Les points de risque ont été comparés séparément au niveau des fichiers et du contenu : modèle/migration du profil professionnel, hiérarchie des catégories, idempotence des paiements, recherche publique, notifications, durcissement HTTP, cache, queues, stockage des fichiers et index de performance. Les variantes historiques de ces branches sont remplacées par des versions présentes dans la release; les tests plus récents du projet couvrent ces invariants.
-- La release conserve la migration additive du profil professionnel et son backfill d’état, la configuration explicite du hachage des mots de passe, ainsi que les documents d’architecture et d’intégration utiles.
-- Les tests couvrent notamment le schéma du profil professionnel et la rétention des journaux d’audit.
+- Les arbres de fichiers des **105 branches visibles** du dépôt ont été comparés récursivement à celui de cette release. Cette comparaison structurelle sert à repérer les fichiers présents dans une branche mais absents de la livraison; elle ne remplace pas une revue ligne par ligne de chaque ancienne implémentation.
+- Les chemins uniques relevés dans les branches historiques ont été examinés. Les anciens contrôleurs/Resources rangés dans des sous-dossiers de la Phase 1 sont remplacés par les contrôleurs/Resources actuels et leurs tests. L’ancienne migration complète du profil professionnel est remplacée par une création minimale, des migrations additives et un test de schéma. Les tests de recherche historiques sont remplacés par une suite plus complète, complétée pendant cet audit.
+- Les PR ouvertes historiques pertinentes (#6, #11, #18, #20, #24, #25 et #38) ont été comparées à la release. Elles ne doivent pas être fusionnées aveuglément : leurs implémentations sont plus anciennes, et les fonctionnalités correspondantes sont représentées dans la branche consolidée. La PR #100 reste une PR de revue en brouillon, non fusionnée dans `main`.
+- Le workflow de bootstrap historique `.github/workflows/bootstrap-laravel.yml` reste volontairement exclu : il ne représente pas une fonctionnalité métier et la branche de livraison dispose déjà de son workflow CI.
 
-### Dernière validation automatisée réussie
+### Corrections et couvertures ajoutées pendant l’audit
 
-Référence contrôlée : commit `122860d416050d16835bd4cdf8c603100be54d68` — [workflow CI #712](https://github.com/baraka-cmd/PROXIWORK/actions/runs/37857101057) — [PR #100](https://github.com/baraka-cmd/PROXIWORK/pull/100).
+- **Réinitialisation du mot de passe web :** le lien de la page de connexion n’était pas opérationnel et la route de réinitialisation renvoyait du JSON de démonstration. La release comprend désormais les routes, contrôleurs et formulaires Blade de demande et de changement du mot de passe, avec le broker Laravel, validation du mot de passe, limitation des requêtes et réponse générique pour ne pas révéler si un e-mail est enregistré.
+- **Profil professionnel :** la migration additive `2026_10_09_000001_add_professional_profile_details_and_visibility.php` ajoute les champs de description, expérience, prix, devise, localisation, rayon de service, visibilité, statut et vérification qui ne figuraient pas dans la migration de création minimale.
+- **Tests supplémentaires :** parcours web de réinitialisation, recherche par titre de service publié, exclusion des compétences archivées et catégories inactives, prix de type fourchette, protection des champs sensibles du profil, contrôle d’accès et isolation des préférences de notification, et assertions d’inscription sur les préférences et le token.
+- **Style PHP :** le contrôle Pint avait signalé un espacement dans `tests/Feature/Messaging/MessagingApiTest.php`; ce point a été corrigé et un workflow CI ultérieur a réussi avant les dernières additions de tests.
 
-- Build frontend Vite : **réussi**.
-- Validation stricte Composer : **réussie**.
-- Suite Laravel : **382 tests réussis**, **1 368 assertions**.
-- Laravel Pint : **réussi sur 490 fichiers PHP**.
-- La suite signale encore **3 tests risqués** (avertissements PHPUnit, sans échec bloquant). Ils ne sont pas présentés comme des tests parfaitement propres.
+### État de validation
 
-Cette validation automatisée ne remplace pas une recette manuelle complète dans un navigateur ni un test avec de véritables fournisseurs de paiement Mobile Money. La PR vers `main` reste en brouillon; les limites non implémentées dans les branches historiques sont listées ci-dessous et ne doivent pas être annoncées comme des fonctionnalités prêtes pour la production.
+- Un workflow CI sur le commit `802d07fa6c0c15349c43f05bab83f2b0df44aa25` a réussi : build Vite, validation Composer, suite Laravel (**397 tests réussis, 1 438 assertions**) et contrôle Pint. Il signalait encore 3 tests risqués.
+- Les tests et vérifications ajoutés après ce commit déclenchent de nouveaux workflows. **Le dernier commit doit être validé par un workflow vert avant de déclarer cette release prête.** Ne pas considérer les résultats d’un commit antérieur comme la validation des modifications plus récentes.
+- La CI ne prouve pas à elle seule la livraison réelle des e-mails, l’intégration d’un fournisseur de paiement en production, le parcours navigateur de bout en bout sur tous les appareils, ni le déploiement sur la machine locale. Ces contrôles restent à effectuer dans l’environnement cible.
 
-## Fonctionnalités qui restent à compléter avant une mise en production réelle
+### Décision de livraison
 
-Cet audit distingue les fonctionnalités effectivement intégrées de celles qui ne sont pas entièrement implémentées dans les branches historiques :
-
-- **Réinitialisation du mot de passe côté navigateur :** l'API dispose des endpoints de demande et de réinitialisation, mais la route web `password.reset` est encore un placeholder JSON et aucune route `password.request` ni vue de formulaire n'est déclarée. Le parcours navigateur n'est pas complet.
-- **Vérification d'e-mail côté navigateur :** les endpoints API existent, mais le contrôleur d'inscription web n'envoie pas de notification de vérification et les routes web ne proposent pas de parcours dédié.
-- **OAuth Google :** le bouton de connexion est un emplacement préparé; aucune route OAuth Google fonctionnelle n'est définie.
-- **Paiements de production :** le contrat et l'abstraction de paiement sont présents, mais le conteneur lie actuellement `PaymentGateway` à `FakePaymentGateway`. Les transactions Mobile Money réelles nécessitent un fournisseur, ses secrets de configuration et des tests de callbacks dans un environnement autorisé.
-
-Ces éléments ne sont pas des fichiers oubliés lors d'une fusion : aucune des branches examinées ne contient une implémentation web complète de ces parcours ni un fournisseur de paiement réel. Ils restent des travaux distincts à planifier; la release ne doit pas être présentée comme prête pour une mise en production réelle tant qu'ils ne sont pas achevés et testés.
-
+Ne pas supprimer l’ancienne copie locale et ne pas fusionner la PR #100 dans `main` avant que le workflow du dernier commit soit vert et que la revue finale des différences soit terminée. La branche de release reste l’artefact à récupérer pour les essais locaux, mais sa validation finale dépend du résultat CI le plus récent.
