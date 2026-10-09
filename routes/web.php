@@ -29,6 +29,7 @@ use App\Http\Controllers\Web\Professional\ServiceRequestController as Profession
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\PublicSearchController;
+use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
