@@ -98,7 +98,7 @@ Le workflow CI #793, run ID `37900990912`, a réussi sur la branche de correctio
 
 Lien du workflow : https://github.com/baraka-cmd/PROXIWORK/actions/runs/37900990912
 
-La CI de la branche candidate après fusion doit également être verte avant livraison définitive. Les résultats d’un commit antérieur ne remplacent jamais ceux du dernier commit.
+La branche candidate elle-même a ensuite passé le workflow CI #795 (run ID `37901117049`) sur le commit `a2dacd2f862b8ccee4a8ec3f2be89c87fb21ff1f`, avec **424 tests, 1 497 assertions et 0 test risqué**; build Vite, Composer et Pint ont également réussi. Après la fusion de cette mise à jour documentaire, une nouvelle CI doit confirmer le nouveau commit de livraison. Les résultats d’un commit antérieur ne remplacent jamais ceux du dernier commit.
 
 ### Revue ciblée des branches historiques
 
