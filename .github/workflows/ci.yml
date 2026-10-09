@@ -121,4 +121,7 @@ jobs:
           DB_DATABASE: proxiwork_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: php artisan migrate --force
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --force
+          php artisan db:seed --force
