@@ -119,3 +119,12 @@ La revue a confirmé que les tests `tests/Feature/Security/SecurityHeadersTest.p
 
 Les limites de production (notamment fournisseur de paiement réel, OAuth Google si retenu, livraison réelle des e-mails et recette navigateur/local) restent documentées dans le rapport d'audit.
 
+## Mise à jour de validation — 9 octobre 2026
+
+La revue complémentaire a ajouté et validé les parcours Web Professionnel demandes/devis, la résolution du contrôleur RBAC Web, les contrôles de cohérence des callbacks de paiement et le fingerprint d’idempotence des retraits.
+
+Le workflow CI #793 (`37900990912`) a réussi avec **424 tests, 1 497 assertions et aucun test risqué**, ainsi qu’un build Vite et un contrôle Pint réussis. Le workflow de la branche candidate après fusion doit encore confirmer le dernier commit de livraison.
+
+**Limites de production :** l’abstraction de paiement utilise encore un fournisseur de test; aucune intégration Mobile Money réelle n’est certifiée. La livraison réelle des e-mails, la recette navigateur responsive et l’installation locale Windows/XAMPP nécessitent des essais/configurations dans l’environnement cible.
+
+La comparaison de branches historiques reste une analyse de divergences et de chemins de fichiers, pas une justification de fusion massive. `main` n’a pas été modifiée.
