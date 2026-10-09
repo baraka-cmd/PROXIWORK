@@ -15,6 +15,8 @@ use App\Http\Controllers\Web\Client\ProfileController as ClientProfileController
 use App\Http\Controllers\Web\Client\QuotationController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
 use App\Http\Controllers\Web\LoginController;
+use App\Http\Controllers\Web\NewPasswordController;
+use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\Professional\DashboardController as ProfessionalDashboardController;
 use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
@@ -108,9 +110,12 @@ Route::middleware('auth')->group(function (): void {
     });
 });
 
-Route::get('/reset-password/{token}', function (Request $request, string $token) {
-    return response()->json(['success' => true, 'message' => 'Password reset link received.', 'data' => ['token' => $token, 'email' => $request->query('email')]]);
-})->middleware('guest')->name('password.reset');
+Route::middleware('guest')->group(function (): void {
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('throttle:5,1')->name('password.update');
+});
 
 Route::prefix('professional')->name('professional.')->middleware(['auth', 'active.account', 'role:professional'])->group(function (): void {
     Route::get('/', ProfessionalDashboardController::class)->name('dashboard');
