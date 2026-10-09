@@ -224,7 +224,6 @@ class MessagingApiTest extends TestCase
         ]);
     }
 
-
     private function participants(): array
     {
         $professionalUser = User::factory()->create();
