@@ -50,6 +50,21 @@ class ProfessionalSearchApiTest extends TestCase
         $this->assertCount(1, $response->json('data'));
     }
 
+    public function test_text_search_matches_published_service_title(): void
+    {
+        $professional = $this->professional([
+            'professional_title' => 'Prestataire local',
+        ]);
+        $this->publishedService($professional, [
+            'title' => 'Électricien résidentiel',
+        ]);
+
+        $this->getJson('/api/v1/professionals?search=électricien')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $professional->id);
+    }
+
     public function test_profession_search_filters_by_title(): void
     {
         $developer = $this->professional([
