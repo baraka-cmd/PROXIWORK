@@ -100,6 +100,40 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame(1, $other->unreadNotifications()->count());
     }
 
+    public function test_guests_cannot_access_notifications_or_preferences(): void
+    {
+        $this->getJson('/api/v1/notifications')->assertUnauthorized();
+        $this->getJson('/api/v1/notifications/preferences')->assertUnauthorized();
+        $this->patchJson('/api/v1/notifications/preferences', [
+            'email_enabled' => false,
+        ])->assertUnauthorized();
+    }
+
+    public function test_notification_preferences_are_isolated_between_users(): void
+    {
+        $first = User::factory()->create();
+        $first->assignRole('client');
+        $first->notificationPreference()->create();
+
+        $second = User::factory()->create();
+        $second->assignRole('client');
+
+        $this->actingAs($first, 'sanctum')
+            ->patchJson('/api/v1/notifications/preferences', [
+                'email_enabled' => false,
+                'push_enabled' => true,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.email_enabled', false)
+            ->assertJsonPath('data.push_enabled', true);
+
+        $this->actingAs($second, 'sanctum')
+            ->getJson('/api/v1/notifications/preferences')
+            ->assertOk()
+            ->assertJsonPath('data.email_enabled', true)
+            ->assertJsonPath('data.push_enabled', false);
+    }
+
     public function test_transactional_notification_service_covers_phase_three_events(): void
     {
         $recipient = User::factory()->create();
