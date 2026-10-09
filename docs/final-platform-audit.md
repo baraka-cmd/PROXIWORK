@@ -73,3 +73,44 @@ Les éléments suivants ne doivent pas être annoncés comme intégrations de pr
 4. Ne jamais publier de secrets, tokens, mots de passe ou données personnelles dans Git.
 5. Ne pas supprimer l'ancienne copie locale avant sauvegarde du projet, du fichier `.env` et des données MySQL.
 6. Ne pas fusionner cette branche dans `main` sans autorisation explicite.
+
+## Revalidation technique après corrections — 9 octobre 2026
+
+### Corrections intégrées à la release candidate
+
+Les corrections suivantes ont été fusionnées dans `release/proxiwork-final-delivery` après validation CI de leurs PR respectives :
+
+- **PR #106 — Parcours Web Professionnel :** ajout des routes, contrôleurs, vues Blade, styles et tests pour les demandes et devis professionnels. L’import manquant du contrôleur du tableau de bord RBAC a également été corrigé.
+- **PR #107 — Intégrité des paiements :** validation du montant et de la devise avant le retour anticipé des callbacks de transactions finales; persistance des réponses fournisseur incohérentes comme échecs, sans confirmer la commande; tests de régression correspondants.
+- **PR #108 — Route RBAC Web :** test de régression de l’accès administrateur au tableau de bord RBAC et de son rendu Blade.
+- **PR #110 — Idempotence des retraits :** une clé réutilisée avec un fournisseur ou une destination différents est désormais rejetée; le retry identique continue de retourner le même retrait.
+- **PR #109 — Qualité des tests et vues Admin :** blocs Blade `@push`/`@unless`/`@vite` reformattés dans Dashboard, Commandes et Paiements; tests des routes Admin séparés pour identifier les fuites de buffers; PHPUnit exécuté directement par la CI pour rendre les diagnostics lisibles.
+
+### Résultat automatisé détaillé
+
+Le workflow CI #793, run ID `37900990912`, a réussi sur la branche de correction d’audit intégrant ces changements :
+
+- build frontend Vite : réussi;
+- validation stricte de Composer : réussie;
+- installation des dépendances et préparation Laravel : réussies;
+- suite PHPUnit : **424 tests, 1 497 assertions, 0 test risqué**;
+- contrôle Pint sur les fichiers PHP modifiés : réussi.
+
+Lien du workflow : https://github.com/baraka-cmd/PROXIWORK/actions/runs/37900990912
+
+La CI de la branche candidate après fusion doit également être verte avant livraison définitive. Les résultats d’un commit antérieur ne remplacent jamais ceux du dernier commit.
+
+### Revue ciblée des branches historiques
+
+Des comparaisons de références ont été effectuées pour les familles Foundation/RBAC/adresses/API, marketplace/recherche/services, transactions/paiements/wallet/retraits, administration/support, performance/stockage/queues et frontend. Les branches historiques examinées incluent notamment `feature/auth-foundation-v2`, `feature/rbac-foundation`, `feature/address-data-model`, `feature/api-foundation-security`, `feature/professional-search`, `feature/professional-services-final`, `phase-3/payment-abstraction`, `phase-3/payment-transactions-wallet`, `feature/professional-wallet-withdrawals`, `feature/admin-web-complete`, `feature/admin-support-audit-analytics-finalize`, `phase-5/db-performance`, `phase-5/queues`, `phase-5/file-storage` et `feature/frontend-ux-responsive-loading-empty-error`.
+
+Les fichiers et responsabilités correspondants existent dans la release candidate; les branches divergentes contiennent également des versions plus anciennes. Elles ne doivent pas être fusionnées en bloc. Cette revue ciblée ne prétend pas être une revue manuelle ligne par ligne de chaque commit de toutes les branches.
+
+### Limites qui restent explicites
+
+- Le fournisseur de paiement présent dans la suite est un fournisseur de test/fake. Aucun paiement Mobile Money réel n’est certifié sans configuration, sandbox autorisé et vérification des callbacks du fournisseur retenu.
+- La livraison effective des e-mails dépend de la configuration du transport dans l’environnement cible.
+- La recette navigateur desktop/mobile et l’installation sur la machine Windows/XAMPP de l’utilisateur n’ont pas été exécutées depuis GitHub Actions.
+- La CI utilise PHP 8.3, Node.js 22 et SQLite en mémoire; elle ne remplace pas les essais avec les versions PHP/MySQL réellement disponibles sur la machine cible.
+
+`main` n’a pas été modifiée. La PR #100 vers `main` reste une PR de revue en brouillon et ne doit pas être fusionnée sans autorisation explicite.
