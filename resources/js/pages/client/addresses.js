@@ -1,0 +1,1 @@
+document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const form=target.closest('form[data-confirm-delete]');if(!form)return;if(!window.confirm('Supprimer cette adresse ? Cette action est définitive.'))event.preventDefault();});

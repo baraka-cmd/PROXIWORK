@@ -1,0 +1,6 @@
+<label class="admin-field"><span>Nom</span><input name="name" required value="{{ old('name',$category?->name) }}"></label>
+<label class="admin-field"><span>Slug</span><input name="slug" value="{{ old('slug',$category?->slug) }}"></label>
+<label class="admin-field"><span>Parent</span><select name="parent_id"><option value="">Aucune — catégorie racine</option>@foreach($parents as $parent)<option value="{{ $parent->id }}" @selected((string)old('parent_id',$category?->parent_id)===(string)$parent->id)>{{ $parent->name }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Description</span><textarea name="description">{{ old('description',$category?->description) }}</textarea></label>
+<label class="admin-field"><span>Statut</span><select name="status">@foreach(['active'=>'Active','inactive'=>'Inactive','archived'=>'Archivée'] as $v=>$l)<option value="{{ $v }}" @selected(old('status',$category?->status?->value)===$v)>{{ $l }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Ordre</span><input type="number" min="0" name="sort_order" value="{{ old('sort_order',$category?->sort_order??0) }}"></label>

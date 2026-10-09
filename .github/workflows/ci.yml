@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - phase-1/foundation
+      - phase-3/**
+      - develop
+      - main
+      - release/**
+  push:
+    branches:
+      - phase-1/foundation
+      - phase-3/**
+      - develop
+      - main
+      - release/**
+
+jobs:
+  test:
+    name: Laravel tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, dom, fileinfo, sqlite3, pdo_sqlite
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Validate Composer configuration
+        run: composer validate --strict
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress --no-scripts
+
+      - name: Prepare application
+        run: cp .env.example .env && php artisan key:generate
+
+      - name: Discover Laravel packages
+        run: php artisan package:discover --ansi
+
+      - name: Run test suite
+        run: php artisan test
+
+      # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
+      - name: Check code style for changed PHP files
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
+          elif [[ "$GITHUB_REF_NAME" == release/* ]]; then
+            changed_files="$(git ls-files '*.php' ':!*.blade.php')"
+          else
+            changed_files="$(git diff --name-only HEAD^ HEAD -- '*.php')"
+          fi
+
+          if [[ -z "$changed_files" ]]; then
+            echo "No changed PHP files to check."
+            exit 0
+          fi
+
+          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test

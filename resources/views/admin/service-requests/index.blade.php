@@ -1,0 +1,15 @@
+@extends('layouts.admin')
+@section('page_eyebrow','PLATEFORME / TRANSACTIONS')
+@section('page_title','Demandes de service')
+@section('page_description','Supervisez les demandes entre clients et professionnels sans contourner le workflow métier.')
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite(['resources/css/pages/admin/services-requests.css', 'resources/js/pages/admin/services-requests.js'])
+    @endunless
+@endpush
+@section('content')
+@if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
+<section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Recherche</span><h3>Filtrer les demandes</h3></div><a class="admin-link" href="{{ route('admin.service-requests.index') }}">Réinitialiser</a></div>
+<form method="GET" class="admin-filter-grid"><label class="admin-field admin-field--wide"><span>Recherche</span><input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Titre, client ou professionnel"></label><label class="admin-field"><span>État</span><select name="status"><option value="">Tous</option>@foreach(['draft'=>'Brouillon','requested'=>'Demandée','quoted'=>'Devis reçu','accepted'=>'Acceptée','cancelled'=>'Annulée','rejected'=>'Rejetée'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['status']??'')===$v)>{{ $l }}</option>@endforeach</select></label><div class="admin-filter-actions"><button class="button button--primary">Filtrer</button></div></form></section>
+<section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Demandes</span><h3>{{ $requests->total() }} demande{{ $requests->total()>1?'s':'' }}</h3></div></div><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Demande</th><th>Client</th><th>Professionnel</th><th>Service</th><th>État</th><th></th></tr></thead><tbody>@forelse($requests as $request)<tr><td><a class="admin-user-cell" href="{{ route('admin.service-requests.show',$request) }}"><span class="admin-avatar"><i class="fa-solid fa-file-lines"></i></span><span><strong>{{ $request->title }}</strong><small>#{{ $request->id }}</small></span></a></td><td>{{ $request->client->name ?? '—' }}</td><td>{{ $request->professional->user->name ?? '—' }}</td><td>{{ $request->service->title ?? '—' }}</td><td><span class="admin-status admin-status--{{ $request->status->value }}">{{ ['draft'=>'Brouillon','requested'=>'Demandée','quoted'=>'Devis reçu','accepted'=>'Acceptée','cancelled'=>'Annulée','rejected'=>'Rejetée'][$request->status->value] }}</span></td><td><a class="admin-icon-button" href="{{ route('admin.service-requests.show',$request) }}" aria-label="Voir la demande"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></td></tr>@empty<tr><td colspan="6"><div class="admin-empty"><i class="fa-solid fa-file-lines"></i><strong>Aucune demande</strong><span>Aucun résultat avec ces filtres.</span></div></td></tr>@endforelse</tbody></table></div>@if($requests->hasPages())<div class="admin-pagination">{{ $requests->links() }}</div>@endif</section>
+@endsection
