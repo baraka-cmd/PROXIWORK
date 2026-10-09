@@ -193,7 +193,7 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
-    public function test_final_transaction_still_rejects_webhook_with_wrong_amount_or_currency(): void
+    public function test_final_transaction_rejects_webhooks_with_mismatched_amount_or_currency(): void
     {
         config(['payment.webhooks.secrets.fake' => 'test-webhook-secret']);
 
@@ -209,7 +209,7 @@ class PaymentTransactionsWalletTest extends TestCase
 
         $transaction = PaymentTransaction::query()->firstOrFail();
         $service = app(PaymentWebhookService::class);
-        $firstRawBody = 'event-final-1|'.$transaction->provider_transaction_id.'|500.00|USD|succeeded';
+        $firstRawBody = 'EVENT-FINAL-1|'.$transaction->provider_transaction_id.'|500.00|USD|succeeded';
 
         $service->handle(
             provider: PaymentProvider::FAKE,
@@ -225,26 +225,31 @@ class PaymentTransactionsWalletTest extends TestCase
             rawBody: $firstRawBody,
         );
 
-        $invalidRawBody = 'event-final-2|'.$transaction->provider_transaction_id.'|1.00|USD|succeeded';
+        foreach ([
+            ['EVENT-FINAL-WRONG-AMOUNT', '1.00', 'USD'],
+            ['EVENT-FINAL-WRONG-CURRENCY', '500.00', 'EUR'],
+        ] as [$eventId, $amount, $currency]) {
+            $invalidRawBody = $eventId.'|'.$transaction->provider_transaction_id.'|'.$amount.'|'.$currency.'|succeeded';
 
-        try {
-            $service->handle(
-                provider: PaymentProvider::FAKE,
-                signature: hash_hmac('sha256', $invalidRawBody, 'test-webhook-secret'),
-                eventId: 'EVENT-FINAL-2',
-                transactionId: $transaction->provider_transaction_id,
-                amount: '1.00',
-                currency: 'USD',
-                status: PaymentStatus::SUCCEEDED,
-                failureCode: null,
-                failureMessage: null,
-                metadata: [],
-                rawBody: $invalidRawBody,
-            );
+            try {
+                $service->handle(
+                    provider: PaymentProvider::FAKE,
+                    signature: hash_hmac('sha256', $invalidRawBody, 'test-webhook-secret'),
+                    eventId: $eventId,
+                    transactionId: $transaction->provider_transaction_id,
+                    amount: $amount,
+                    currency: $currency,
+                    status: PaymentStatus::SUCCEEDED,
+                    failureCode: null,
+                    failureMessage: null,
+                    metadata: [],
+                    rawBody: $invalidRawBody,
+                );
 
-            $this->fail('A final transaction must still reject a mismatched callback amount.');
-        } catch (\Illuminate\Validation\ValidationException $exception) {
-            $this->assertArrayHasKey('payment', $exception->errors());
+                $this->fail('A final transaction must reject a callback with a mismatched amount or currency.');
+            } catch (\Illuminate\Validation\ValidationException $exception) {
+                $this->assertArrayHasKey('payment', $exception->errors());
+            }
         }
 
         $this->assertDatabaseHas('payment_transactions', [
