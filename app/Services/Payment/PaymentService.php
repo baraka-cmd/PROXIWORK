@@ -17,6 +17,7 @@ use App\Models\Payment;
 use App\Models\PaymentIntent;
 use App\Models\User;
 use App\Payments\DTO\PaymentRequest;
+use App\Payments\DTO\PaymentResult;
 use App\Services\Commission\CommissionService;
 use Illuminate\Database\DatabaseManager;
 use Throwable;
@@ -92,6 +93,18 @@ class PaymentService
         }
 
         $transaction = $this->transactionService->applyResult($transaction, $result);
+
+        if ($transaction->failure_code === 'PROVIDER_AMOUNT_MISMATCH') {
+            $result = new PaymentResult(
+                status: PaymentStatus::FAILED,
+                amount: (string) $payment->amount,
+                currency: $payment->currency,
+                providerReference: $transaction->provider_reference,
+                metadata: $transaction->response_metadata ?? [],
+                failureCode: $transaction->failure_code,
+                failureMessage: $transaction->failure_message,
+            );
+        }
 
         return $this->database->transaction(function () use ($payment, $intent, $transaction, $result): Payment {
             $lockedPayment = Payment::query()->lockForUpdate()->findOrFail($payment->getKey());
