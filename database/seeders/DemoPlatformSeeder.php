@@ -373,16 +373,19 @@ class DemoPlatformSeeder extends Seeder
             ]);
 
             $history = $status === 'accepted'
-                ? [['requested', 'Demande créée'], ['quoted', 'Devis transmis'], ['accepted', 'Devis accepté']]
-                : [[null, 'Demande créée']];
+                ? [
+                    [null, 'requested', 'Demande créée'],
+                    ['requested', 'quoted', 'Devis transmis'],
+                    ['quoted', 'accepted', 'Devis accepté'],
+                ]
+                : [[null, 'requested', 'Demande créée']];
 
-            foreach ($history as [$toStatus, $reason]) {
-                $toStatus ??= 'requested';
+            foreach ($history as [$fromStatus, $toStatus, $reason]) {
                 $this->put('service_request_status_histories', [
                     'service_request_id' => $this->requests[$key],
                     'to_status' => $toStatus,
                 ], [
-                    'from_status' => null,
+                    'from_status' => $fromStatus,
                     'changed_by' => $this->users[$clientKey],
                     'reason' => $reason,
                     'created_at' => now()->subDays(4)->toDateTimeString(),
