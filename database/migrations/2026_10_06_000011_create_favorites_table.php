@@ -10,6 +10,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Existing local installations may already have this table from the
+        // historical migration. Keep the migration safe for those databases.
+        if (Schema::hasTable('favorites')) {
+            return;
+        }
+
         Schema::create('favorites', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
