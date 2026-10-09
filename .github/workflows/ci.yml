@@ -58,7 +58,7 @@ jobs:
         run: php artisan package:discover --ansi
 
       - name: Run test suite
-        run: php artisan test --display-risky
+        run: vendor/bin/phpunit --display-risky
 
       # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
       - name: Check code style for changed PHP files
