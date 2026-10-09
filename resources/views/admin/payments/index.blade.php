@@ -1,5 +1,10 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/payments.css')@endunless@endpush
+
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/payments.css')
+    @endunless
+@endpush
 @section('page_title','Paiements')@section('page_description','Supervisez les paiements et leur traçabilité sans exposer les secrets d’idempotence.')
 @section('content')
 <section class="admin-card"><div class="admin-card__header"><h3>Filtres</h3><a class="admin-link" href="{{ route('admin.payments.index') }}">Réinitialiser</a></div><form method="GET" class="admin-filter-grid">
