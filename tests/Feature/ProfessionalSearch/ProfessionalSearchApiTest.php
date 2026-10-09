@@ -209,6 +209,60 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
+    public function test_archived_skills_are_not_used_for_public_discovery(): void
+    {
+        $skill = Skill::factory()->create([
+            'slug' => 'legacy-skill',
+            'status' => 'archived',
+        ]);
+        $professional = $this->professional();
+        $professional->skills()->attach($skill->id);
+        $this->publishedService($professional);
+
+        $this->getJson('/api/v1/professionals?skills[]=legacy-skill')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_professionals_with_inactive_service_categories_are_not_discoverable(): void
+    {
+        $category = Category::factory()->create([
+            'status' => 'inactive',
+        ]);
+        $professional = $this->professional();
+        $this->publishedService($professional, [
+            'category_id' => $category->id,
+        ]);
+
+        $this->getJson('/api/v1/professionals')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_price_filter_matches_overlapping_range_services(): void
+    {
+        $matching = $this->professional();
+        $this->publishedService($matching, [
+            'pricing_type' => 'range',
+            'price_min' => 80,
+            'price_max' => 150,
+            'currency' => 'USD',
+        ]);
+
+        $outside = $this->professional();
+        $this->publishedService($outside, [
+            'pricing_type' => 'range',
+            'price_min' => 250,
+            'price_max' => 350,
+            'currency' => 'USD',
+        ]);
+
+        $this->getJson('/api/v1/professionals?min_price=100&max_price=200&currency=USD')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $matching->id);
+    }
+
     public function test_rating_verification_availability_and_sorting_work(): void
     {
         $verified = $this->professional([
