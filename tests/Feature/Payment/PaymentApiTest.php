@@ -21,13 +21,12 @@ use App\Models\Quotation;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use App\Payments\DTO\PaymentRequest;
-use App\Payments\DTO\PaymentResult;
 use App\Services\Order\OrderService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\FailingPaymentGateway;
+use Tests\Support\MismatchedPaymentGateway;
 use Tests\TestCase;
 
 class PaymentApiTest extends TestCase
@@ -235,20 +234,7 @@ class PaymentApiTest extends TestCase
 
     public function test_provider_amount_mismatch_is_persisted_as_failed_without_confirming_order(): void
     {
-        $this->app->bind(PaymentGateway::class, static function (): PaymentGateway {
-            return new class implements PaymentGateway {
-                public function initiate(PaymentRequest $request): PaymentResult
-                {
-                    return new PaymentResult(
-                        status: PaymentStatus::SUCCEEDED,
-                        amount: '1.00',
-                        currency: $request->currency,
-                        providerReference: 'FAKE-MISMATCHED-AMOUNT',
-                        metadata: ['gateway' => 'mismatch-test'],
-                    );
-                }
-            };
-        });
+        $this->app->bind(PaymentGateway::class, MismatchedPaymentGateway::class);
 
         [$client, $order] = $this->orderScenario();
 
