@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\AdminAuthController;
+use App\Http\Controllers\Web\AccountPasswordController;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\EmailChangeController;
 use App\Http\Controllers\Web\Admin\DashboardController;
@@ -37,8 +38,6 @@ use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\WorkspaceController;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'public.home')->name('home');
@@ -66,6 +65,12 @@ Route::middleware(['auth', 'auth.session', 'session.version'])->group(function (
     Route::post('/account/email', [EmailChangeController::class, 'store'])
         ->middleware(['active.account', 'throttle:auth-sensitive'])
         ->name('account.email.update');
+    Route::get('/account/password', [AccountPasswordController::class, 'edit'])
+        ->middleware('active.account')
+        ->name('account.password.edit');
+    Route::post('/account/password', [AccountPasswordController::class, 'update'])
+        ->middleware(['active.account', 'throttle:auth-sensitive'])
+        ->name('account.password.update');
     Route::get('/account/email/confirm/{id}/{hash}', [EmailChangeController::class, 'confirm'])
         ->middleware(['active.account', 'signed', 'throttle:6,1'])
         ->name('web.email-change.confirm');
