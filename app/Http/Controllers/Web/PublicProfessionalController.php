@@ -115,6 +115,7 @@ class PublicProfessionalController
 
         $publicReviewCount = $professional->reviews()
             ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereNotNull('published_at')
             ->count();
 
         $reviews = $professional->reviews()
