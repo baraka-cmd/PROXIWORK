@@ -120,3 +120,31 @@
         grid-template-columns: 1fr;
     }
 }
+
+.professional-profile-hero__actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+.professional-profile-hero__actions form {
+    margin: 0;
+}
+
+.professional-profile-hero__actions .button {
+    min-height: 44px;
+}
+
+@media (max-width: 575px) {
+    .professional-profile-hero__actions,
+    .professional-profile-hero__actions form,
+    .professional-profile-hero__actions .button {
+        width: 100%;
+    }
+
+    .professional-profile-hero__actions .button {
+        justify-content: center;
+    }
+}
