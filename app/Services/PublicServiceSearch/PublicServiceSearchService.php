@@ -8,6 +8,7 @@ use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Models\Category;
 use App\Models\Service;
+use App\Models\Skill;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -109,11 +110,11 @@ class PublicServiceSearchService
     /**
      * Only offer categories and skills associated with at least one public service.
      *
-     * @return Collection<int, \App\Models\Skill>
+     * @return Collection<int, Skill>
      */
     public function availableSkills(): Collection
     {
-        return \App\Models\Skill::query()
+        return Skill::query()
             ->active()
             ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
             ->orderBy('name')
