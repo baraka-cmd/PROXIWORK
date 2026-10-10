@@ -4,10 +4,8 @@
     $displayName = filled($professional->business_name)
         ? $professional->business_name
         : (filled($profileName) ? $profileName : $professional->user->name);
-    $profileUrl = route('public.professionals.show', [
-        'professionalProfile' => $professional->getKey(),
-        'slug' => \Illuminate\Support\Str::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
-    ]);
+    $profileSlug = \Illuminate\Support\Str::slug($displayName) ?: 'professionnel-'.$professional->getKey();
+    $profileUrl = url('/professionals/'.$professional->getKey().'/'.$profileSlug);
     $initials = collect(preg_split('/\\s+/', trim($displayName)) ?: [])
         ->filter()
         ->take(2)
