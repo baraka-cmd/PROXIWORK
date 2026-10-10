@@ -358,9 +358,14 @@ class PublicServiceSearchTest extends TestCase
         ]);
         $service->professionalProfile->forceFill([
             'professional_title' => 'Plombier professionnel',
+            'business_name' => 'Atelier Plomberie Goma',
         ])->save();
 
         $this->get(route('public.search', ['search' => 'plombier à Goma']))
+            ->assertOk()
+            ->assertSee('Réparation technique');
+
+        $this->get(route('public.search', ['search' => 'Atelier']))
             ->assertOk()
             ->assertSee('Réparation technique');
     }
