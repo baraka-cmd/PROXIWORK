@@ -37,9 +37,8 @@ class ServiceRequestController extends Controller
     public function create(Request $request): View
     {
         $service = Service::query()
+            ->publiclyAvailable()
             ->with(['professionalProfile.user', 'category', 'skills'])
-            ->where('status', 'published')
-            ->whereNotNull('published_at')
             ->findOrFail($request->integer('service'));
 
         $addresses = $request->user()->addresses()->latest('is_default')->latest('id')->get();
