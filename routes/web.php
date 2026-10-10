@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\AdminAuthController;
+use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Client\AddressController as ClientAddressController;
 use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
@@ -49,7 +50,14 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:auth-login')->name('login.store');
 });
 
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'auth.session'])->group(function (): void {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('web.verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
     Route::get('/dashboard', function (Request $request): RedirectResponse {
         $user = $request->user();
 
@@ -174,7 +182,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::get('login', [AdminAuthController::class, 'create'])->name('login');
         Route::post('login', [AdminAuthController::class, 'store'])->middleware('throttle:admin-login')->name('login.store');
     });
-    Route::middleware('auth')->group(function (): void {
+    Route::middleware(['auth', 'auth.session'])->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'index'])->middleware('permission:admin.dashboard.view')->name('dashboard');
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
         Route::middleware('permission:rbac.view')->group(function (): void {
