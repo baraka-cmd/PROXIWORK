@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Auth;
 
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class SessionRevocationService
 {
@@ -26,7 +26,7 @@ class SessionRevocationService
 
         $table = (string) config('session.table', 'sessions');
 
-        if (! Schema::hasTable($table)) {
+        if (Schema::hasTable($table) === false) {
             return;
         }
 
