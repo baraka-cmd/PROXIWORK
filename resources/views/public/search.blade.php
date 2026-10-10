@@ -45,7 +45,7 @@
                     <label class="sr-only" for="search-hero-input">Que recherchez-vous ?</label>
                     <div class="directory-hero__search-field">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <input id="search-hero-input" type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ex. réparation téléphone, plomberie, développeur web…" autocomplete="off">
+                        <input id="search-hero-input" type="search" name="search" value="{{ old('search', $filters['search'] ?? '') }}" placeholder="Ex. réparation téléphone, plomberie, développeur web…" autocomplete="off">
                     </div>
                     @foreach (collect($filters)->except(['search', 'page'])->all() as $filterName => $filterValue)
                         @if (is_array($filterValue))
