@@ -271,6 +271,7 @@ class ProfessionalSearchApiTest extends TestCase
     {
         $verified = $this->professional([
             'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => now(),
             'availability_status' => ProfessionalAvailabilityStatus::AVAILABLE,
             'rating_average' => 4.8,
             'rating_count' => 20,
