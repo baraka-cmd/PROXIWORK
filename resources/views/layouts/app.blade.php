@@ -38,6 +38,7 @@
                 <span>Votre compte reste accessible, mais certaines actions nécessiteront cette vérification.</span>
             </div>
             <a href="{{ route('verification.notice') }}">Vérifier maintenant</a>
+            <a href="{{ route('account.email.edit') }}">Modifier l’adresse</a>
             <form method="POST" action="{{ route('verification.send') }}">
                 @csrf
                 <button type="submit">Renvoyer le lien</button>
