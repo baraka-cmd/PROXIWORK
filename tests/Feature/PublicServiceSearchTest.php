@@ -116,11 +116,13 @@ class PublicServiceSearchTest extends TestCase
             'pricing_type' => ServicePricingType::FIXED,
             'price' => '50.00',
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
         $this->publishedService('Service à 15', [
             'pricing_type' => ServicePricingType::FIXED,
             'price' => '15.00',
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $response = $this->get(route('public.search', ['sort' => 'price_low']));
@@ -134,6 +136,7 @@ class PublicServiceSearchTest extends TestCase
         $sorted = $this->get(route('public.search', [
             'sort' => 'price_low',
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]));
 
         $sorted->assertOk()
@@ -144,6 +147,95 @@ class PublicServiceSearchTest extends TestCase
             strpos($sorted->getContent(), 'Service à 50'),
             strpos($sorted->getContent(), 'Service à 15')
         );
+    }
+
+    public function test_price_sort_never_compares_different_billing_units(): void
+    {
+        $hourly = $this->publishedService('Tarif horaire', [
+            'pricing_type' => ServicePricingType::FIXED,
+            'price' => '15.00',
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+        ]);
+        $this->publishedService('Tarif journalier moins cher en valeur brute', [
+            'pricing_type' => ServicePricingType::FIXED,
+            'price' => '10.00',
+            'currency' => 'USD',
+            'billing_unit' => 'day',
+        ]);
+
+        $response = $this->get(route('public.search', [
+            'sort' => 'price_low',
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+        ]));
+
+        $response->assertOk()
+            ->assertSee('Tarif horaire')
+            ->assertDontSee('Tarif journalier moins cher en valeur brute');
+
+        $this->get(route('public.search', [
+            'sort' => 'price_low',
+            'currency' => 'USD',
+        ]))->assertRedirect(route('public.search'));
+    }
+
+    public function test_filter_options_only_include_categories_and_skills_with_public_services(): void
+    {
+        $publicCategory = Category::factory()->create([
+            'name' => 'Catégorie disponible publique',
+            'slug' => 'categorie-disponible-publique',
+        ]);
+        $unusedCategory = Category::factory()->create([
+            'name' => 'Catégorie sans offre',
+            'slug' => 'categorie-sans-offre',
+        ]);
+        $service = $this->publishedService('Service avec compétence publique', [
+            'category_id' => $publicCategory->getKey(),
+        ]);
+        $publicSkill = Skill::factory()->create([
+            'name' => 'Compétence disponible publique',
+            'slug' => 'competence-disponible-publique',
+        ]);
+        $service->skills()->attach($publicSkill->getKey());
+        Skill::factory()->create([
+            'name' => 'Compétence sans offre',
+            'slug' => 'competence-sans-offre',
+        ]);
+
+        $this->get(route('public.search'))
+            ->assertOk()
+            ->assertSee('Catégorie disponible publique')
+            ->assertDontSee('Catégorie sans offre')
+            ->assertSee('Compétence disponible publique')
+            ->assertDontSee('Compétence sans offre');
+    }
+
+    public function test_hero_search_preserves_selected_filters_but_resets_pagination(): void
+    {
+        $category = Category::factory()->create([
+            'slug' => 'categorie-preservee-test',
+        ]);
+        $this->publishedService('Service pour préserver les filtres', [
+            'category_id' => $category->getKey(),
+            'pricing_type' => ServicePricingType::FIXED,
+            'price' => '25.00',
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+        ]);
+
+        $response = $this->get(route('public.search', [
+            'category' => $category->slug,
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+            'page' => 3,
+        ]));
+
+        $response->assertOk()
+            ->assertSee('type="hidden" name="category" value="'.$category->slug.'"', false)
+            ->assertSee('type="hidden" name="currency" value="USD"', false)
+            ->assertSee('type="hidden" name="billing_unit" value="hour"', false)
+            ->assertDontSee('type="hidden" name="page" value="3"', false);
     }
 
     public function test_pagination_keeps_search_filters_and_catalogue_alias_redirects_to_search(): void
