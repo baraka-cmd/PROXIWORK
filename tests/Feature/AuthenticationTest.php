@@ -34,6 +34,7 @@ class AuthenticationTest extends TestCase
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
             'device_name' => 'android-test',
+            'terms' => '1',
         ]);
 
         $response->assertCreated()
