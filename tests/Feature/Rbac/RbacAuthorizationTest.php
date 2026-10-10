@@ -143,4 +143,90 @@ class RbacAuthorizationTest extends TestCase
 
         $this->assertContains('services.manage', $response->json('data.permissions'));
     }
+
+    public function test_admin_can_assign_and_revoke_roles_and_existing_sessions_are_revoked(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $target = User::factory()->create();
+        $target->assignRole('client');
+        $target->createToken('old-device');
+
+        $professionalRoleId = Role::where('name', 'professional')->value('id');
+
+        $this->actingAs($admin, 'sanctum')
+            ->putJson('/api/v1/rbac/users/'.$target->id.'/roles', [
+                'role_ids' => [$professionalRoleId],
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.roles.0.name', 'professional');
+
+        $target->refresh();
+        $this->assertTrue($target->hasRole('professional'));
+        $this->assertFalse($target->hasRole('client'));
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id' => $target->id,
+            'status' => 'draft',
+            'visibility' => 'private',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $target->id,
+            'action' => 'admin.user.roles_updated',
+        ]);
+    }
+
+    public function test_role_manager_cannot_assign_a_role_with_permissions_they_do_not_have(): void
+    {
+        $limitedRoleManager = Role::create([
+            'name' => 'limited_user_role_manager',
+            'display_name' => 'Gestionnaire limité des rôles utilisateurs',
+            'description' => 'May only assign permissions already granted to them.',
+            'is_system' => false,
+        ]);
+        $limitedRoleManager->permissions()->attach(Permission::where('name', 'rbac.manage')->value('id'));
+
+        $actor = User::factory()->create();
+        $actor->assignRole($limitedRoleManager);
+
+        $target = User::factory()->create();
+        $target->assignRole('client');
+
+        $this->actingAs($actor, 'sanctum')
+            ->putJson('/api/v1/rbac/users/'.$target->id.'/roles', [
+                'role_ids' => [Role::where('name', 'professional')->value('id')],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('role_ids');
+
+        $this->assertTrue($target->fresh()->hasRole('client'));
+        $this->assertFalse($target->fresh()->hasRole('professional'));
+    }
+
+    public function test_last_administrator_cannot_be_stripped_of_the_admin_role(): void
+    {
+        $limitedRoleManager = Role::create([
+            'name' => 'last_admin_guard',
+            'display_name' => 'Gestionnaire RBAC',
+            'description' => 'Can manage roles within granted permissions.',
+            'is_system' => false,
+        ]);
+        $limitedRoleManager->permissions()->attach(Permission::where('name', 'rbac.manage')->value('id'));
+
+        $actor = User::factory()->create();
+        $actor->assignRole($limitedRoleManager);
+
+        $onlyAdmin = User::factory()->create();
+        $onlyAdmin->assignRole('admin');
+
+        $this->actingAs($actor, 'sanctum')
+            ->putJson('/api/v1/rbac/users/'.$onlyAdmin->id.'/roles', [
+                'role_ids' => [$limitedRoleManager->id],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('role_ids');
+
+        $this->assertTrue($onlyAdmin->fresh()->hasRole('admin'));
+    }
 }
