@@ -120,6 +120,7 @@ class ProfessionalProfileActivationRequest extends FormRequest
 
                 if ($serviceSkillIds->isEmpty() || $serviceSkillIds->diff($skillIds)->isNotEmpty()) {
                     $validator->errors()->add("services.$index.skill_ids", 'Les compétences du service doivent être sélectionnées dans votre profil.');
+
                     continue;
                 }
 
