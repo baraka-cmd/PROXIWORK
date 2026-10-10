@@ -54,6 +54,31 @@ class ProfessionalVerificationService
         return $updated;
     }
 
+    public function requestInformation(
+        ProfessionalProfile $professional,
+        User $admin,
+        Request $request,
+        string $note,
+    ): ProfessionalProfile {
+        $updated = $this->transition(
+            $professional,
+            $admin,
+            $request,
+            ProfessionalVerificationStatus::NEEDS_INFORMATION,
+            'PROFILE_INCOMPLETE',
+            $note,
+            'admin.professional.verification.information_requested',
+        );
+
+        $updated->user->notify(new AccountActivityNotification(
+            'Informations complémentaires requises',
+            'L’administration demande des corrections ou des pièces complémentaires. Consultez votre espace professionnel avant de soumettre à nouveau votre dossier.',
+            'professional_information_required',
+        ));
+
+        return $updated;
+    }
+
     public function reject(
         ProfessionalProfile $professional,
         User $admin,
@@ -143,7 +168,9 @@ class ProfessionalVerificationService
             ProfessionalVerificationStatus::UNDER_REVIEW => in_array($to, [
                 ProfessionalVerificationStatus::VERIFIED,
                 ProfessionalVerificationStatus::REJECTED,
+                ProfessionalVerificationStatus::NEEDS_INFORMATION,
             ], true),
+            ProfessionalVerificationStatus::NEEDS_INFORMATION => $to === ProfessionalVerificationStatus::UNDER_REVIEW,
             ProfessionalVerificationStatus::VERIFIED,
             ProfessionalVerificationStatus::REJECTED => false,
         };
