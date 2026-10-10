@@ -19,8 +19,8 @@
     <div class="professional-card__header">
         <a class="professional-card__avatar-link" href="{{ $profileUrl }}" aria-label="Consulter le profil de {{ $displayName }}">
             <div class="avatar avatar--xl professional-card__avatar" aria-hidden="true">
-                @if ($profile?->avatar_path && IlluminateSupportFacadesStorage::disk('public')->exists($profile->avatar_path))
-                    <img src="{{ IlluminateSupportFacadesStorage::disk('public')->url($profile->avatar_path) }}" alt="" loading="lazy" decoding="async">
+                @if ($profile?->avatar_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($profile->avatar_path))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($profile->avatar_path) }}" alt="" loading="lazy" decoding="async">
                 @else
                     {{ $initials ?: 'P' }}
                 @endif
