@@ -5,41 +5,65 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Requests\ProfessionalSearchRequest;
+use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
+use App\Services\PublicServiceSearch\PublicServiceSearchService;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PublicSearchController
 {
     public function __construct(
-        private readonly ProfessionalSearchService $searchService,
+        private readonly ProfessionalSearchService $professionalSearchService,
+        private readonly PublicServiceSearchService $serviceSearchService,
     ) {}
 
-    public function search(ProfessionalSearchRequest $request): View
+    /**
+     * Public service discovery. The catalogue is browsable without an account;
+     * the database query itself enforces service, category, profile and account visibility.
+     */
+    public function search(PublicServiceSearchRequest $request): View
     {
         $filters = $request->validated();
-        $hasCriteria = $this->hasSearchCriteria($filters);
 
         return view('public.search', [
-            'professionals' => $hasCriteria ? $this->searchService->search($filters) : null,
+            'services' => $this->serviceSearchService->search($filters),
             'filters' => $filters,
-            ...$this->filterOptions(),
+            'categories' => $this->serviceSearchService->availableCategories(),
+            'featuredCategories' => $this->serviceSearchService->availableCategories(featuredOnly: true),
+            'skills' => Skill::query()
+                ->active()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug']),
+            'activeFiltersCount' => collect($filters)
+                ->except(['sort', 'per_page', 'skills_mode'])
+                ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [])
+                ->count(),
         ]);
     }
 
+    /**
+     * Keep the existing professional directory separate from service search.
+     */
     public function professionals(ProfessionalSearchRequest $request): View
     {
         $filters = $request->validated();
 
         return view('public.professionals.index', [
-            'professionals' => $this->searchService->search($filters),
+            'professionals' => $this->professionalSearchService->search($filters),
             'filters' => $filters,
-            ...$this->filterOptions(),
+            ...$this->professionalFilterOptions(),
         ]);
     }
 
-    private function filterOptions(): array
+    public function redirectServicesIndex(Request $request)
+    {
+        return redirect()->route('public.search', $request->query());
+    }
+
+    private function professionalFilterOptions(): array
     {
         return [
             'categories' => Category::query()
@@ -51,16 +75,5 @@ class PublicSearchController
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']),
         ];
-    }
-
-    private function hasSearchCriteria(array $filters): bool
-    {
-        foreach (['profession', 'search', 'category', 'skills', 'city', 'province', 'min_price', 'max_price', 'currency', 'rating', 'availability', 'verification'] as $field) {
-            if (array_key_exists($field, $filters) && $filters[$field] !== '' && $filters[$field] !== [] && $filters[$field] !== null) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
