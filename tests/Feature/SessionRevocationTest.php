@@ -14,6 +14,24 @@ class SessionRevocationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_existing_web_session_is_rejected_after_session_version_changes(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->withSession(['auth.session_version' => 0])
+            ->get(route('dashboard'))
+            ->assertRedirect(route('client.dashboard'));
+
+        app(SessionRevocationService::class)->revokeAll($user);
+
+        $this->get(route('dashboard'))
+            ->assertRedirect(route('login'));
+
+        $this->assertGuest();
+    }
+
     public function test_revoke_all_removes_database_sessions_and_sanctum_tokens(): void
     {
         config(['session.driver' => 'database']);
