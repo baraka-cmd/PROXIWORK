@@ -36,6 +36,7 @@ class RoleController extends Controller
             'role' => null,
             'permissions' => $this->service->permissions($request->user()),
             'selectedPermissions' => [],
+            'protectedPermissions' => collect(),
         ]);
     }
 
@@ -60,10 +61,21 @@ class RoleController extends Controller
     {
         $this->authorize('update', $role);
 
+        $role->load('permissions');
+
+        $assignableIds = $request->user()->roles()
+            ->with('permissions:id')
+            ->get()
+            ->flatMap(fn ($assignedRole) => $assignedRole->permissions->pluck('id'))
+            ->unique();
+
         return view('admin.roles.form', [
-            'role' => $role->load('permissions'),
+            'role' => $role,
             'permissions' => $this->service->permissions($request->user()),
             'selectedPermissions' => $role->permissions->pluck('id')->all(),
+            'protectedPermissions' => $role->permissions
+                ->reject(fn ($permission) => $assignableIds->contains($permission->id))
+                ->values(),
         ]);
     }
 
