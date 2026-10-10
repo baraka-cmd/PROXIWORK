@@ -77,14 +77,14 @@ class PublicServiceSearchRequest extends FormRequest
                     );
                 }
 
-                if ($needsComparablePrice && !$this->filled('currency')) {
+                if ($needsComparablePrice && ! $this->filled('currency')) {
                     $validator->errors()->add(
                         'currency',
                         'Choisissez une devise pour filtrer ou comparer les tarifs.'
                     );
                 }
 
-                if ($this->filled('currency') && is_scalar($this->input('currency')) && !Service::query()
+                if ($this->filled('currency') && is_scalar($this->input('currency')) && ! Service::query()
                     ->publiclyVisible()
                     ->where('currency', $this->input('currency'))
                     ->whereIn('pricing_type', [
@@ -99,14 +99,14 @@ class PublicServiceSearchRequest extends FormRequest
                     );
                 }
 
-                if ($needsComparablePrice && !$this->filled('billing_unit')) {
+                if ($needsComparablePrice && ! $this->filled('billing_unit')) {
                     $validator->errors()->add(
                         'billing_unit',
                         'Choisissez une unité de facturation pour comparer des tarifs équivalents.'
                     );
                 }
 
-                if ($this->filled('billing_unit') && is_scalar($this->input('billing_unit')) && !Service::query()
+                if ($this->filled('billing_unit') && is_scalar($this->input('billing_unit')) && ! Service::query()
                     ->publiclyVisible()
                     ->whereNotNull('currency')
                     ->where('currency', '!=', '')
@@ -140,13 +140,13 @@ class PublicServiceSearchRequest extends FormRequest
                 'min_price', 'max_price', 'currency', 'pricing_type', 'billing_unit', 'rating', 'availability',
                 'verified_only', 'sort', 'per_page', 'page',
             ] as $field) {
-                if (isset($input[$field]) && !is_scalar($input[$field])) {
+                if (isset($input[$field]) && ! is_scalar($input[$field])) {
                     unset($input[$field]);
                 }
             }
 
             if (isset($input['skills'])) {
-                if (!is_array($input['skills'])) {
+                if (! is_array($input['skills'])) {
                     unset($input['skills']);
                 } else {
                     $input['skills'] = collect($input['skills'])
