@@ -57,8 +57,8 @@ class RegisterController
                     'email' => $email,
                     'password' => $data['password'],
                     'account_status' => UserAccountStatus::ACTIVE,
-                    'terms_accepted_at' => now(),
                 ]);
+                $user->forceFill(['terms_accepted_at' => now()])->save();
                 $user->assignRole($role);
 
                 $avatarPath = null;
