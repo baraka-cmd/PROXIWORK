@@ -131,6 +131,11 @@ class PublicServiceSearchService
                 ->where('status', 'active')
                 ->where('visibility', 'public')
                 ->whereHas('user', fn (Builder $user) => $user->where('account_status', 'active')))
+            ->whereIn('pricing_type', [
+                ServicePricingType::FIXED->value,
+                ServicePricingType::FROM->value,
+                ServicePricingType::RANGE->value,
+            ])
             ->whereNotNull('currency')
             ->where('currency', '!=', '')
             ->distinct()
