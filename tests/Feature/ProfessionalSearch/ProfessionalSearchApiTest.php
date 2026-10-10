@@ -194,6 +194,7 @@ class ProfessionalSearchApiTest extends TestCase
             'pricing_type' => 'fixed',
             'price' => 50,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $outside = $this->professional();
@@ -201,6 +202,7 @@ class ProfessionalSearchApiTest extends TestCase
             'pricing_type' => 'fixed',
             'price' => 250,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $this->getJson('/api/v1/professionals?min_price=10&max_price=100&currency=USD')
@@ -247,6 +249,7 @@ class ProfessionalSearchApiTest extends TestCase
             'price_min' => 80,
             'price_max' => 150,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $outside = $this->professional();
@@ -255,9 +258,10 @@ class ProfessionalSearchApiTest extends TestCase
             'price_min' => 250,
             'price_max' => 350,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
-        $this->getJson('/api/v1/professionals?min_price=100&max_price=200&currency=USD')
+        $this->getJson('/api/v1/professionals?min_price=100&max_price=200&currency=USD&billing_unit=hour')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $matching->id);
@@ -384,6 +388,7 @@ class ProfessionalSearchApiTest extends TestCase
             'price_min' => 50,
             'price_max' => null,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $outside = $this->professional();
@@ -393,9 +398,10 @@ class ProfessionalSearchApiTest extends TestCase
             'price_min' => 150,
             'price_max' => null,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
-        $this->getJson('/api/v1/professionals?min_price=40&max_price=60&currency=USD')
+        $this->getJson('/api/v1/professionals?min_price=40&max_price=60&currency=USD&billing_unit=hour')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $matching->id);
@@ -405,11 +411,11 @@ class ProfessionalSearchApiTest extends TestCase
     {
         $this->getJson('/api/v1/professionals?min_price=10&max_price=100')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['currency']);
+            ->assertJsonValidationErrors(['currency', 'billing_unit']);
 
         $this->getJson('/api/v1/professionals?sort=price_low')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['sort']);
+            ->assertJsonValidationErrors(['sort', 'billing_unit']);
     }
 
     public function test_minimum_rating_excludes_profiles_without_admissible_reviews(): void
