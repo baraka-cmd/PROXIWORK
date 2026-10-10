@@ -129,7 +129,7 @@ class RegisterRequest extends FormRequest
                 }
 
                 $serviceCategoryId = (int) ($service['category_id'] ?? 0);
-                if (! $categoryIds->contains($serviceCategoryId)) {
+                if (!$categoryIds->contains($serviceCategoryId)) {
                     $validator->errors()->add("services.$index.category_id", 'Le service doit appartenir à une catégorie choisie.');
                 }
 
