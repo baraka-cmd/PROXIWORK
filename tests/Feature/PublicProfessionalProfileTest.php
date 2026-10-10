@@ -96,7 +96,7 @@ class PublicProfessionalProfileTest extends TestCase
 
         $this->get(route('public.search'))
             ->assertOk()
-            ->assertSee($url, false)
+            ->assertSee('Service relié au profil public')
             ->assertSee('Entreprise visible');
     }
 
