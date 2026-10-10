@@ -6,7 +6,7 @@
         : (filled($profileName) ? $profileName : $professional->user->name);
     $profileUrl = route('public.professionals.show', [
         'professionalProfile' => $professional->getKey(),
-        'slug' => IlluminateSupportStr::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
+        'slug' => \Illuminate\Support\Str::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
     ]);
     $initials = collect(preg_split('/\\s+/', trim($displayName)) ?: [])
         ->filter()
