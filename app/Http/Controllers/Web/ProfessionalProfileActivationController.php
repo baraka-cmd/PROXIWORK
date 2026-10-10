@@ -57,7 +57,6 @@ class ProfessionalProfileActivationController extends Controller
 
         try {
             $database->transaction(function () use (
-                $request,
                 $user,
                 $data,
                 &$storedPublicFiles,
