@@ -253,15 +253,20 @@ class AuthenticationTest extends TestCase
     {
         Notification::fake();
 
-        $response = $this->postJson('/api/v1/auth/forgot-password', [
+        $user = User::factory()->create(['email' => 'recovery-existing@example.com']);
+
+        $existingResponse = $this->postJson('/api/v1/auth/forgot-password', [
+            'email' => $user->email,
+        ])->assertOk();
+
+        $unknownResponse = $this->postJson('/api/v1/auth/forgot-password', [
             'email' => 'not-registered@example.com',
         ])->assertOk();
 
-        $this->assertSame(
-            'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
-            $response->json('message')
-        );
-        Notification::assertNothingSent();
+        $expectedMessage = 'Si cette adresse existe, un lien de réinitialisation a été envoyé.';
+        $this->assertSame($expectedMessage, $existingResponse->json('message'));
+        $this->assertSame($expectedMessage, $unknownResponse->json('message'));
+        Notification::assertSentTo($user, ResetPassword::class);
     }
 
     public function test_login_is_rate_limited_after_repeated_failures(): void
