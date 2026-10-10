@@ -34,6 +34,7 @@ use App\Http\Controllers\Web\RegisterController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Web\Client\ServiceCatalogController;
 
 Route::view('/', 'public.home')->name('home');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
@@ -110,6 +111,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('messages/{conversation}', [ClientMessageController::class, 'show'])->name('messages.show');
         Route::post('messages/{conversation}', [ClientMessageController::class, 'store'])->name('messages.store');
         Route::post('messages/{conversation}/read', [ClientMessageController::class, 'read'])->name('messages.read');
+        Route::get('services', [ServiceCatalogController::class, 'index'])
+            ->name('services.index');
     });
 });
 
