@@ -3,10 +3,8 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\AccountPasswordController;
-use App\Http\Controllers\Web\AdminAuthController;
-use App\Http\Controllers\Web\EmailChangeController;
-use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\Admin\DashboardController;
+use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\Client\AddressController as ClientAddressController;
 use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
 use App\Http\Controllers\Web\Client\FavoriteController;
@@ -18,11 +16,12 @@ use App\Http\Controllers\Web\Client\ProfileController as ClientProfileController
 use App\Http\Controllers\Web\Client\QuotationController;
 use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
+use App\Http\Controllers\Web\EmailChangeController;
+use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\Professional\DashboardController as ProfessionalDashboardController;
-use App\Http\Controllers\Web\ProfessionalProfileActivationController;
 use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
 use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
@@ -35,6 +34,7 @@ use App\Http\Controllers\Web\Professional\ServiceRequestController as Profession
 use App\Http\Controllers\Web\Professional\VerificationResubmissionController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
+use App\Http\Controllers\Web\ProfessionalProfileActivationController;
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
