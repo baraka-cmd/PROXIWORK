@@ -47,9 +47,12 @@ Route::view('/', 'public.home')->name('home');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
 Route::get('/services', [PublicSearchController::class, 'redirectServicesIndex'])->name('public.services.index');
 Route::get('/services/{service:slug}', [PublicServiceController::class, 'show'])->name('public.services.show');
-Route::get('/professionals', [PublicSearchController::class, 'professionals'])->name('public.professionals.index');
+Route::get('/professionals', [PublicSearchController::class, 'professionals'])
+    ->middleware('throttle:api')
+    ->name('public.professionals.index');
 Route::get('/professionals/{professionalProfile}/{slug?}', [PublicProfessionalController::class, 'show'])
     ->whereNumber('professionalProfile')
+    ->middleware('throttle:api')
     ->name('public.professionals.show');
 
 Route::middleware('guest')->group(function (): void {
