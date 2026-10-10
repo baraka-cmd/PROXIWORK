@@ -1,11 +1,10 @@
 @php
     $professional = $service->professionalProfile;
     $person = $professional?->user?->profile;
+    $personName = $person !== null ? trim($person->first_name.' '.$person->last_name) : '';
     $displayName = filled($professional?->business_name)
         ? $professional->business_name
-        : ($person !== null
-            ? trim($person->first_name.' '.$person->last_name)
-            : ($professional?->user?->name ?? 'Professionnel PROXIWORK'));
+        : (filled($personName) ? $personName : ($professional?->user?->name ?? 'Professionnel PROXIWORK'));
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
     $coverExists = $cover !== null && \Illuminate\Support\Facades\Storage::disk('public')->exists($cover->path);
     $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
