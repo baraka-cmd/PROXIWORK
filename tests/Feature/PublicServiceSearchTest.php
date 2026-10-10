@@ -361,9 +361,19 @@ class PublicServiceSearchTest extends TestCase
             'business_name' => 'Atelier Plomberie Goma',
         ])->save();
 
-        $this->get(route('public.search', ['search' => 'plombier à Goma']))
-            ->assertOk()
-            ->assertSee('Réparation technique');
+        $this->publishedService('Plombier à domicile', [
+            'service_area' => 'Goma et environs',
+        ]);
+
+        $ranked = $this->get(route('public.search', ['search' => 'plombier à Goma', 'sort' => 'relevance']));
+        $ranked->assertOk()
+            ->assertSee('Réparation technique')
+            ->assertSee('Plombier à domicile');
+
+        $this->assertLessThan(
+            strpos($ranked->getContent(), 'Réparation technique'),
+            strpos($ranked->getContent(), 'Plombier à domicile')
+        );
 
         $this->get(route('public.search', ['search' => 'Atelier']))
             ->assertOk()
