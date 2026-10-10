@@ -93,7 +93,6 @@ class PublicServiceSearchService
     {
         return Category::query()
             ->active()
-            ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
             ->when($featuredOnly, fn (Builder $categories) => $categories->where('is_featured', true))
             ->orderByDesc('is_featured')
             ->orderBy('sort_order')
@@ -111,7 +110,6 @@ class PublicServiceSearchService
     {
         return \App\Models\Skill::query()
             ->active()
-            ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
             ->orderBy('name')
             ->limit(100)
             ->get(['skills.id', 'skills.name', 'skills.slug']);
