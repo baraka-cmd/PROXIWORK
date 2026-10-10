@@ -122,6 +122,7 @@ class ProfessionalSearchService
                 ->orWhereHas('services', function (Builder $service) use ($like): void {
                     $service
                         ->published()
+                        ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
                         ->where(function (Builder $service) use ($like): void {
                             $service
                                 ->where('title', 'like', $like)
@@ -261,10 +262,9 @@ class ProfessionalSearchService
     private function applyVerification(Builder $query, array $filters): void
     {
         if (! empty($filters['verification'])) {
-            $query->where(
-                'verification_status',
-                $filters['verification']
-            );
+            $query
+                ->where('verification_status', $filters['verification'])
+                ->whereNotNull('verified_at');
         }
     }
 
@@ -322,12 +322,12 @@ class ProfessionalSearchService
             );
 
             $query->orderByRaw(
-                'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
+                'CASE WHEN verification_status = ? AND verified_at IS NOT NULL THEN 1 ELSE 0 END DESC',
                 [ProfessionalVerificationStatus::VERIFIED->value]
             );
         } else {
             $query->orderByRaw(
-                'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
+                'CASE WHEN verification_status = ? AND verified_at IS NOT NULL THEN 1 ELSE 0 END DESC',
                 [ProfessionalVerificationStatus::VERIFIED->value]
             );
         }
