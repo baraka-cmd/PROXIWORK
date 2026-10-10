@@ -7,6 +7,7 @@
     @unless (app()->environment('testing'))
         @vite('resources/css/pages/public/search.css')
     @endunless
+    <link rel="canonical" href="{{ route('public.professionals.show', ['professionalProfile' => $professional->getKey(), 'slug' => $profileSlug]) }}">
 @endpush
 
 @section('content')
