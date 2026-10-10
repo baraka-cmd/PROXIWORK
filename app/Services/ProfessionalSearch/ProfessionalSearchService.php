@@ -317,8 +317,17 @@ class ProfessionalSearchService
             );
         }
 
+        if ($term !== '') {
+            $query
+                ->orderByDesc('rating_count')
+                ->orderByDesc('rating_average')
+                ->orderByDesc('published_services_count')
+                ->orderByDesc('id');
+
+            return;
+        }
+
         $query
-            ->orderByDesc('rating_count')
             ->orderByDesc('rating_average')
             ->orderByDesc('published_services_count')
             ->orderByDesc('id');
