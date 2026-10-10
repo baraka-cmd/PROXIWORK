@@ -140,10 +140,14 @@
                                 @default Le prix sera précisé dans le devis.
                             @endswitch
                         </p>
-                        <a class="button button--primary button--lg service-detail-cta" href="{{ route('client.requests.create', ['service' => $service->id]) }}">
-                            <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i> Demander un devis
-                        </a>
-                        <p class="service-detail-private-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> La demande est réservée aux comptes clients. Si vous n’êtes pas connecté, vous serez invité à vous connecter.</p>
+                        @if (auth()->guest() || auth()->user()->hasRole('client'))
+                            <a class="button button--primary button--lg service-detail-cta" href="{{ route('client.requests.create', ['service' => $service->id]) }}">
+                                <i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i> Demander un devis
+                            </a>
+                            <p class="service-detail-private-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> La demande est réservée aux comptes clients. Si vous n’êtes pas connecté, vous serez invité à vous connecter.</p>
+                        @else
+                            <p class="service-detail-private-note"><i class="fa-solid fa-lock" aria-hidden="true"></i> Cette action est disponible dans l’espace client.</p>
+                        @endif
                     </div>
 
                     <div class="service-detail-facts surface-card">
@@ -152,7 +156,7 @@
                             <div><dt>Catégorie</dt><dd>{{ $service->category?->name ?? 'Non renseignée' }}</dd></div>
                             <div><dt>Zone d’intervention</dt><dd>{{ collect([$service->service_area, $professional?->city, $professional?->province])->filter()->unique()->join(', ') ?: 'À confirmer avec le professionnel' }}</dd></div>
                             <div><dt>Durée estimée</dt><dd>{{ $service->estimated_duration_minutes ? $service->estimated_duration_minutes.' min' : 'À définir' }}</dd></div>
-                            <div><dt>Publié le</dt><dd>{{ $service->published_at?->translatedFormat('d F Y') ?? 'Non renseigné' }}</dd></div>
+                            <div><dt>Publié le</dt><dd>{{ $service->published_at?->format('d/m/Y') ?? 'Non renseigné' }}</dd></div>
                         </dl>
                     </div>
                     <a class="service-detail-back" href="{{ route('public.search', request()->query()) }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour aux résultats</a>
