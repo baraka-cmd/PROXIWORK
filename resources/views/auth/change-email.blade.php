@@ -39,6 +39,10 @@
             <button type="submit" class="login-submit">Envoyer le lien de confirmation</button>
         </form>
 
-        <p class="login-register"><a href="{{ route('dashboard') }}">Retour à mon espace</a></p>
+        <p class="login-register">
+            <a href="{{ route('account.password.edit') }}">Modifier mon mot de passe</a>
+            <span aria-hidden="true"> · </span>
+            <a href="{{ route('dashboard') }}">Retour à mon espace</a>
+        </p>
     </section>
 @endsection
