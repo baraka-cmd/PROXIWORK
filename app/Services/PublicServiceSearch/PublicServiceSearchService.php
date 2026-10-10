@@ -449,7 +449,7 @@ class PublicServiceSearchService
             foreach ($terms as $word) {
                 $like = '%'.$word.'%';
 
-                $scoreParts[] = '(CASE WHEN LOWER(services.title) LIKE LOWER(?) THEN 8 ELSE 0 END)';
+                $scoreParts[] = '(CASE WHEN LOWER(services.title) LIKE LOWER(?) THEN 20 ELSE 0 END)';
                 $scoreBindings[] = $like;
 
                 $scoreParts[] = '(CASE WHEN EXISTS (
