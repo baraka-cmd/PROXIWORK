@@ -432,6 +432,22 @@ class PublicServiceSearchTest extends TestCase
             ->assertSee('Certains critères de recherche doivent être corrigés.');
     }
 
+    public function test_pricing_type_filter_distinguishes_fixed_prices_from_quotes(): void
+    {
+        $this->publishedService('Service au prix fixe', [
+            'pricing_type' => ServicePricingType::FIXED,
+            'price' => '30.00',
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+        ]);
+        $this->publishedService('Service disponible sur devis');
+
+        $this->get(route('public.search', ['pricing_type' => ServicePricingType::QUOTE->value]))
+            ->assertOk()
+            ->assertSee('Service disponible sur devis')
+            ->assertDontSee('Service au prix fixe');
+    }
+
     private function publishedService(string $title, array $attributes = []): Service
     {
         $category = isset($attributes['category_id'])
