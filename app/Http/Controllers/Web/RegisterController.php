@@ -179,6 +179,7 @@ class RegisterController
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
+        $request->session()->put('auth.session_version', (int) $user->session_version);
 
         if ($accountType === 'professional') {
             return redirect()->route('professional.dashboard')->with(
