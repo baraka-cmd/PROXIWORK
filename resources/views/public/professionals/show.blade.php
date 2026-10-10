@@ -52,7 +52,7 @@
                         @if ($professional->availability_status?->value === 'available')
                             <span class="badge badge--primary">
                                 <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                                Disponible
+                                Disponible (déclaré)
                             </span>
                         @endif
                     </div>
@@ -70,7 +70,7 @@
                             <span><i class="fa-regular fa-star" aria-hidden="true"></i>Pas encore d’avis publiés</span>
                         @endif
                         @if ($professional->years_experience !== null)
-                            <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i>{{ $professional->years_experience }} {{ $professional->years_experience === 1 ? 'an' : 'ans' }} d’expérience</span>
+                            <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i>Expérience déclarée : {{ $professional->years_experience }} {{ $professional->years_experience === 1 ? 'an' : 'ans' }}</span>
                         @endif
                     </div>
 
