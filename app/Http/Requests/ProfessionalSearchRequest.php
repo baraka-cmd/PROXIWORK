@@ -19,21 +19,22 @@ class ProfessionalSearchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'profession' => ['sometimes', 'string', 'max:120'],
-            'search' => ['sometimes', 'string', 'max:120'],
-            'category' => ['sometimes', 'string', 'max:180', Rule::exists('categories', 'slug')->where('status', 'active')],
+            'profession' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'search' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'category' => ['sometimes', 'nullable', 'string', 'max:180', Rule::exists('categories', 'slug')->where('status', 'active')],
             'skills' => ['sometimes', 'array', 'max:10'],
             'skills.*' => ['string', 'max:180', 'exists:skills,slug'],
             'skills_mode' => ['sometimes', Rule::in(['any', 'all'])],
-            'skill' => ['sometimes', 'string', 'max:180', 'exists:skills,slug'],
-            'city' => ['sometimes', 'string', 'max:120'],
-            'province' => ['sometimes', 'string', 'max:120'],
-            'min_price' => ['sometimes', 'numeric', 'min:0', 'max:9999999999.99'],
-            'max_price' => ['sometimes', 'numeric', 'min:0', 'max:9999999999.99'],
-            'currency' => ['sometimes', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
-            'rating' => ['sometimes', 'numeric', 'min:0', 'max:5'],
-            'availability' => ['sometimes', Rule::enum(ProfessionalAvailabilityStatus::class)],
-            'verification' => ['sometimes', Rule::in(['verified'])],
+            'skill' => ['sometimes', 'nullable', 'string', 'max:180', 'exists:skills,slug'],
+            'city' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'province' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'min_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'max_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'currency' => ['sometimes', 'nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'billing_unit' => ['sometimes', 'nullable', 'string', 'max:50'],
+            'rating' => ['sometimes', 'nullable', 'numeric', 'min:1', 'max:5'],
+            'availability' => ['sometimes', 'nullable', Rule::enum(ProfessionalAvailabilityStatus::class)],
+            'verification' => ['sometimes', 'nullable', Rule::in(['verified'])],
             'sort' => ['sometimes', Rule::in(['relevance', 'rating', 'price_low', 'price_high', 'newest'])],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
@@ -61,10 +62,29 @@ class ProfessionalSearchRequest extends FormRequest
                     );
                 }
 
-                if (in_array($this->input('sort'), ['price_low', 'price_high'], true) && ! $this->filled('currency')) {
+                $needsComparablePrice = $this->filled('min_price')
+                    || $this->filled('max_price')
+                    || in_array($this->input('sort'), ['price_low', 'price_high'], true);
+
+                if ($needsComparablePrice && ! $this->filled('currency')) {
+                    $validator->errors()->add(
+                        'currency',
+                        'Choisissez une devise pour comparer des prix équivalents.'
+                    );
+                }
+
+                if ($needsComparablePrice && ! $this->filled('billing_unit')) {
+                    $validator->errors()->add(
+                        'billing_unit',
+                        'Choisissez une unité de facturation pour comparer des tarifs équivalents.'
+                    );
+                }
+
+                if (in_array($this->input('sort'), ['price_low', 'price_high'], true)
+                    && (! $this->filled('currency') || ! $this->filled('billing_unit'))) {
                     $validator->errors()->add(
                         'sort',
-                        'Choisissez une devise dans le filtre Budget pour trier des prix comparables.'
+                        'Choisissez une devise et une unité de facturation dans le filtre Budget pour trier des prix comparables.'
                     );
                 }
             },
@@ -75,7 +95,7 @@ class ProfessionalSearchRequest extends FormRequest
     {
         $data = [];
 
-        foreach (['profession', 'search', 'category', 'skill', 'city', 'province', 'currency'] as $field) {
+        foreach (['profession', 'search', 'category', 'skill', 'city', 'province', 'currency', 'billing_unit'] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $value = trim((string) $this->input($field));
                 $data[$field] = in_array($field, ['search', 'profession', 'city', 'province'], true)
