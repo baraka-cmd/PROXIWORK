@@ -78,7 +78,7 @@
                             <p>{{ $service->short_description }}</p>
                         @endif
                         <div class="service-detail-trust">
-                            @if ($professional?->verification_status?->value === 'verified')
+                            @if ($professional?->verification_status?->value === 'verified' && $professional?->verified_at !== null)
                                 <span class="badge badge--success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Professionnel vérifié</span>
                             @endif
                             @if (($professional?->rating_count ?? 0) > 0 && $professional?->rating_average !== null)
@@ -149,7 +149,7 @@
                                 @if ($professional?->years_experience !== null)
                                     <p>{{ $professional->years_experience }} an(s) d’expérience</p>
                                 @endif
-                                @if ($professional?->verification_status?->value === 'verified')
+                                @if ($professional?->verification_status?->value === 'verified' && $professional?->verified_at !== null)
                                     <span class="badge badge--success"><i class="fa-solid fa-shield-check" aria-hidden="true"></i> Vérification accordée</span>
                                 @endif
                             </div>
