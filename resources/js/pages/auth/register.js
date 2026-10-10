@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!visible) {
                 if (checkbox) checkbox.checked = false;
             }
-            if (checkbox) checkbox.disabled = !visible || !matches;
+            if (checkbox) checkbox.disabled = !visible;
         });
         form.querySelectorAll('[data-service-card]').forEach((card) => updateServiceSkills(card));
     };
