@@ -173,30 +173,52 @@ class PublicServiceSearchService
             return;
         }
 
-        $like = '%'.$term.'%';
+        // Treat natural-language searches as required terms, so "plombier à Goma"
+        // can match the professional title and service area instead of one literal phrase.
+        $normalized = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $term) ?? $term;
+        $stopWords = [
+            'a', 'à', 'au', 'aux', 'avec', 'chez', 'dans', 'de', 'des', 'du',
+            'en', 'et', 'la', 'le', 'les', 'pour', 'sur', 'un', 'une',
+            'and', 'for', 'in', 'of', 'the', 'to', 'with',
+        ];
+        $terms = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
+            ->map(fn (string $word): string => trim($word))
+            ->filter(fn (string $word): bool => $word !== ''
+                && ! in_array(mb_strtolower($word), $stopWords, true))
+            ->unique(fn (string $word): string => mb_strtolower($word))
+            ->values();
 
-        $query->where(function (Builder $query) use ($like): void {
-            $query
-                ->where('services.title', 'like', $like)
-                ->orWhere('services.short_description', 'like', $like)
-                ->orWhere('services.description', 'like', $like)
-                ->orWhereHas('category', fn (Builder $category) => $category
-                    ->where('status', 'active')
-                    ->where('name', 'like', $like))
-                ->orWhereHas('skills', fn (Builder $skills) => $skills
-                    ->where('status', 'active')
-                    ->where(function (Builder $skills) use ($like): void {
-                        $skills->where('name', 'like', $like)
-                            ->orWhere('slug', 'like', $like);
-                    }))
-                ->orWhereHas('professionalProfile', fn (Builder $professional) => $professional
-                    ->where('professional_title', 'like', $like)
-                    ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $like))
-                    ->orWhereHas('user.profile', fn (Builder $profile) => $profile
-                        ->where('first_name', 'like', $like)
-                        ->orWhere('last_name', 'like', $like)))
-                ->orWhere('services.service_area', 'like', $like);
-        });
+        // A query made only of common words still performs a bounded literal search.
+        if ($terms->isEmpty()) {
+            $terms = collect([$term]);
+        }
+
+        foreach ($terms as $word) {
+            $like = '%'.$word.'%';
+
+            $query->where(function (Builder $query) use ($like): void {
+                $query
+                    ->where('services.title', 'like', $like)
+                    ->orWhere('services.short_description', 'like', $like)
+                    ->orWhere('services.description', 'like', $like)
+                    ->orWhereHas('category', fn (Builder $category) => $category
+                        ->where('status', 'active')
+                        ->where('name', 'like', $like))
+                    ->orWhereHas('skills', fn (Builder $skills) => $skills
+                        ->where('status', 'active')
+                        ->where(function (Builder $skills) use ($like): void {
+                            $skills->where('name', 'like', $like)
+                                ->orWhere('slug', 'like', $like);
+                        }))
+                    ->orWhereHas('professionalProfile', fn (Builder $professional) => $professional
+                        ->where('professional_title', 'like', $like)
+                        ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $like))
+                        ->orWhereHas('user.profile', fn (Builder $profile) => $profile
+                            ->where('first_name', 'like', $like)
+                            ->orWhere('last_name', 'like', $like)))
+                    ->orWhere('services.service_area', 'like', $like);
+            });
+        }
     }
 
     private function applyProfession(Builder $query, array $filters): void
