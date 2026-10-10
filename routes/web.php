@@ -35,6 +35,7 @@ use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWi
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
+use App\Http\Controllers\Web\WorkspaceController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -58,25 +59,10 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
-    Route::get('/dashboard', function (Request $request): RedirectResponse {
-        $user = $request->user();
-
-        abort_unless($user !== null, 403);
-
-        if ($user->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        if ($user->hasRole('professional')) {
-            return redirect()->route('professional.dashboard');
-        }
-
-        if ($user->hasRole('client')) {
-            return redirect()->route('client.dashboard');
-        }
-
-        abort(403, 'Aucun espace de travail n’est associé à ce compte.');
-    })->name('dashboard');
+    Route::get('/dashboard', [WorkspaceController::class, 'dashboard'])
+        ->middleware('active.account')
+        ->name('dashboard');
+    Route::post('/workspace', [WorkspaceController::class, 'switch'])->name('workspace.switch');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
@@ -133,7 +119,7 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('throttle:5,1')->name('password.update');
 });
 
-Route::prefix('professional')->name('professional.')->middleware(['auth', 'active.account', 'role:professional'])->group(function (): void {
+Route::prefix('professional')->name('professional.')->middleware(['auth', 'auth.session', 'active.account', 'role:professional'])->group(function (): void {
     Route::get('/', ProfessionalDashboardController::class)->name('dashboard');
     Route::get('requests', [ProfessionalServiceRequestController::class, 'index'])->name('requests.index');
     Route::get('requests/{serviceRequest}', [ProfessionalServiceRequestController::class, 'show'])->name('requests.show');
@@ -182,7 +168,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::get('login', [AdminAuthController::class, 'create'])->name('login');
         Route::post('login', [AdminAuthController::class, 'store'])->middleware('throttle:admin-login')->name('login.store');
     });
-    Route::middleware(['auth', 'auth.session'])->group(function (): void {
+    Route::middleware(['auth', 'auth.session', 'active.account'])->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'index'])->middleware('permission:admin.dashboard.view')->name('dashboard');
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
         Route::middleware('permission:rbac.view')->group(function (): void {
