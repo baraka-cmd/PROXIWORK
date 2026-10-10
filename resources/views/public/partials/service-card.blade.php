@@ -104,7 +104,7 @@
             </span>
         @endif
 
-        @if ($professional?->verification_status?->value === 'verified')
+        @if ($professional?->verification_status?->value === 'verified' && $professional?->verified_at !== null)
             <span class="service-card__verified">
                 <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                 Professionnel vérifié
