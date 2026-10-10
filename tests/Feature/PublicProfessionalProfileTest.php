@@ -268,6 +268,25 @@ class PublicProfessionalProfileTest extends TestCase
         ]);
     }
 
+    public function test_web_favorites_index_hides_profiles_that_are_no_longer_publicly_discoverable(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $client = User::factory()->create();
+        $client->assignRole('client');
+        $visible = $this->publishedService('Service du favori encore public')->professionalProfile;
+        $hidden = $this->publishedService('Service du favori suspendu')->professionalProfile;
+        $hidden->forceFill(['status' => ProfessionalProfile::STATUS_SUSPENDED])->save();
+
+        Favorite::query()->create(['user_id' => $client->getKey(), 'professional_profile_id' => $visible->getKey()]);
+        Favorite::query()->create(['user_id' => $client->getKey(), 'professional_profile_id' => $hidden->getKey()]);
+
+        $this->actingAs($client)
+            ->get(route('client.favorites.index'))
+            ->assertOk()
+            ->assertSee('Service du favori encore public')
+            ->assertDontSee('Service du favori suspendu');
+    }
+
     private function profileUrl(ProfessionalProfile $professional): string
     {
         $professional->loadMissing(['user', 'user.profile']);
