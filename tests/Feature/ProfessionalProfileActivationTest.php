@@ -80,6 +80,7 @@ class ProfessionalProfileActivationTest extends TestCase
         $this->assertTrue($user->hasRole('client'));
         $this->assertTrue($user->hasRole('professional'));
         $this->assertSame(1, User::query()->where('email', $user->email)->count());
+        $this->assertNotNull($user->professionalProfile->professional_terms_accepted_at);
         $this->assertDatabaseHas('professional_profiles', [
             'user_id' => $user->id,
             'verification_status' => 'pending',
