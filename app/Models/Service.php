@@ -6,6 +6,9 @@ namespace App\Models;
 
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
+use App\Enums\CategoryStatus;
+use App\Enums\UserAccountStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -68,8 +71,28 @@ class Service extends Model
         return $this->hasMany(ServiceRequest::class);
     }
 
-    public function scopePublished($query)
+    public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', ServiceStatus::PUBLISHED->value)->whereNotNull('published_at');
+        return $query
+            ->where('status', ServiceStatus::PUBLISHED->value)
+            ->whereNotNull('published_at');
+    }
+
+    /**
+     * Public catalogue visibility is enforced in the database query so that
+     * unpublished services and services owned by private, suspended, or
+     * inactive accounts cannot leak through alternate public endpoints.
+     */
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query
+            ->published()
+            ->whereHas('category', fn (Builder $category) => $category
+                ->where('status', CategoryStatus::ACTIVE->value))
+            ->whereHas('professionalProfile', fn (Builder $professional) => $professional
+                ->where('status', ProfessionalProfile::STATUS_ACTIVE)
+                ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+                ->whereHas('user', fn (Builder $user) => $user
+                    ->where('account_status', UserAccountStatus::ACTIVE->value)));
     }
 }
