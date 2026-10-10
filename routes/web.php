@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\EmailChangeController;
 use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Client\AddressController as ClientAddressController;
 use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
@@ -59,6 +60,15 @@ Route::middleware(['auth', 'auth.session'])->group(function (): void {
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
         ->middleware(['active.account', 'throttle:6,1'])
         ->name('verification.send');
+    Route::get('/account/email', [EmailChangeController::class, 'edit'])
+        ->middleware('active.account')
+        ->name('account.email.edit');
+    Route::post('/account/email', [EmailChangeController::class, 'store'])
+        ->middleware(['active.account', 'throttle:auth-sensitive'])
+        ->name('account.email.update');
+    Route::get('/account/email/confirm/{id}/{hash}', [EmailChangeController::class, 'confirm'])
+        ->middleware(['active.account', 'signed', 'throttle:6,1'])
+        ->name('web.email-change.confirm');
     Route::get('/dashboard', [WorkspaceController::class, 'dashboard'])
         ->middleware('active.account')
         ->name('dashboard');
