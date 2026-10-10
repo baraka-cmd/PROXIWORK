@@ -34,6 +34,7 @@ class PublicServiceController
                     'commune',
                     'service_radius_km',
                     'verification_status',
+                    'verified_at',
                     'availability_status',
                     'rating_average',
                     'rating_count',
