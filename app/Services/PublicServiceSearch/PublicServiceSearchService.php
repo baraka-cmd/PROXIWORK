@@ -102,6 +102,37 @@ class PublicServiceSearchService
             ->get(['id', 'name', 'slug', 'is_featured']);
     }
 
+    /**
+     * Only offer filters which can produce at least one public result.
+     *
+     * @return Collection<int, \App\Models\Skill>
+     */
+    public function availableSkills(): Collection
+    {
+        return \App\Models\Skill::query()
+            ->active()
+            ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
+            ->orderBy('name')
+            ->limit(100)
+            ->get(['skills.id', 'skills.name', 'skills.slug']);
+    }
+
+    /**
+     * Prices in different currencies are never mixed in a budget filter or price sort.
+     *
+     * @return Collection<int, string>
+     */
+    public function availableCurrencies(): Collection
+    {
+        return Service::query()
+            ->publiclyVisible()
+            ->whereNotNull('currency')
+            ->where('currency', '!=', '')
+            ->distinct()
+            ->orderBy('currency')
+            ->pluck('currency');
+    }
+
     private function applyTextSearch(Builder $query, array $filters): void
     {
         $term = trim((string) ($filters['search'] ?? ''));
