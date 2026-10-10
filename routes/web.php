@@ -52,7 +52,7 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:auth-login')->name('login.store');
 });
 
-Route::middleware(['auth', 'auth.session'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'session.version'])->group(function (): void {
     Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->middleware('active.account')->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
         ->middleware(['active.account', 'signed', 'throttle:6,1'])
@@ -129,7 +129,7 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('throttle:5,1')->name('password.update');
 });
 
-Route::prefix('professional')->name('professional.')->middleware(['auth', 'auth.session', 'active.account', 'role:professional'])->group(function (): void {
+Route::prefix('professional')->name('professional.')->middleware(['auth', 'auth.session', 'session.version', 'active.account', 'role:professional'])->group(function (): void {
     Route::get('/', ProfessionalDashboardController::class)->name('dashboard');
     Route::get('requests', [ProfessionalServiceRequestController::class, 'index'])->name('requests.index');
     Route::get('requests/{serviceRequest}', [ProfessionalServiceRequestController::class, 'show'])->name('requests.show');
