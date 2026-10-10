@@ -75,6 +75,9 @@
                 <input class="form-control" type="number" name="min_price" min="0" step="0.01" value="{{ $filters['min_price'] ?? '' }}" placeholder="Minimum" aria-label="Prix minimum">
                 <input class="form-control" type="number" name="max_price" min="0" step="0.01" value="{{ $filters['max_price'] ?? '' }}" placeholder="Maximum" aria-label="Prix maximum">
             </div>
+            @error('max_price')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
             <div class="directory-filter-grid directory-filter-grid--currency">
                 <select class="form-control form-select" name="currency" aria-label="Devise">
                     <option value="">Choisir une devise</option>
