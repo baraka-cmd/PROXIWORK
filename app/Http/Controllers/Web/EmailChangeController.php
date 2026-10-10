@@ -120,15 +120,15 @@ class EmailChangeController extends Controller
         }
 
         $user->refresh();
-        $auditLogService->record('auth.web.email_changed', $user, $user, [], $request);
-        Notification::route('mail', $oldEmail)->notify(
-            new EmailAddressChangedNotification($user->name, $user->email)
-        );
-
         $sessionRevocationService->revokeAll($user);
         auth('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        $auditLogService->record('auth.web.email_changed', $user, $user, [], $request);
+        Notification::route('mail', $oldEmail)->notify(
+            new EmailAddressChangedNotification($user->name, $user->email)
+        );
 
         return redirect()->route('login')->with(
             'status',
