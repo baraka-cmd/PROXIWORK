@@ -35,16 +35,16 @@ class AccountPasswordController extends Controller
         ])->save();
 
         $sessionRevocationService->revokeAll($user);
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         $auditLogService->record('auth.web.password_changed', $user, $user, [], $request);
         $user->notify(new AccountActivityNotification(
             'Mot de passe modifié',
             'Le mot de passe de votre compte PROXIWORK a été modifié. Si vous n’êtes pas à l’origine de ce changement, contactez immédiatement le support.',
             'password_changed',
         ));
-
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
         return redirect()->route('login')->with(
             'status',
