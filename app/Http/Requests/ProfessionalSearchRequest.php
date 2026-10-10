@@ -23,7 +23,7 @@ class ProfessionalSearchRequest extends FormRequest
             'search' => ['sometimes', 'string', 'max:120'],
             'category' => ['sometimes', 'string', 'max:180', Rule::exists('categories', 'slug')->where('status', 'active')],
             'skills' => ['sometimes', 'array', 'max:10'],
-            'skills.*' => ['string', 'max:180', Rule::exists('skills', 'slug')->where('status', 'active')],
+            'skills.*' => ['string', 'max:180', exists:skills,slug],
             'skills_mode' => ['sometimes', Rule::in(['any', 'all'])],
             'skill' => ['sometimes', 'string', 'max:180', Rule::exists('skills', 'slug')->where('status', 'active')],
             'city' => ['sometimes', 'string', 'max:120'],
