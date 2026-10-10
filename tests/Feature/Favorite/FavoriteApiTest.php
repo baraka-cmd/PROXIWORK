@@ -215,6 +215,24 @@ class FavoriteApiTest extends TestCase
             ->assertJsonPath('meta.per_page', 1);
     }
 
+    public function test_favorites_index_hides_profiles_that_are_no_longer_publicly_discoverable(): void
+    {
+        $user = $this->user();
+        $visible = $this->professional();
+        $suspended = $this->professional();
+        $suspended->forceFill(['status' => ProfessionalProfile::STATUS_SUSPENDED])->save();
+
+        Favorite::create(['user_id' => $user->id, 'professional_profile_id' => $visible->id]);
+        Favorite::create(['user_id' => $user->id, 'professional_profile_id' => $suspended->id]);
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/favorites')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.professional_profile_id', $visible->id)
+            ->assertJsonMissing(['professional_profile_id' => $suspended->id]);
+    }
+
     private function user(): User
     {
         $user = User::factory()->create();
