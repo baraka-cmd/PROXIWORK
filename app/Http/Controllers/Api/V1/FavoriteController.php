@@ -24,6 +24,7 @@ class FavoriteController extends Controller
     {
         $favorites = $request->user()
             ->favorites()
+            ->whereHas('professionalProfile', fn ($profile) => $profile->publiclyDiscoverable())
             ->with(['professionalProfile.user.profile'])
             ->latest('id')
             ->paginate(min(max((int) $request->integer('per_page', 15), 1), 100))
