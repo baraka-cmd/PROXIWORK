@@ -80,6 +80,21 @@ class PublicServiceSearchRequest extends FormRequest
                     );
                 }
 
+                if ($this->filled('currency') && ! Service::query()
+                    ->publiclyVisible()
+                    ->where('currency', $this->input('currency'))
+                    ->whereIn('pricing_type', [
+                        ServicePricingType::FIXED->value,
+                        ServicePricingType::FROM->value,
+                        ServicePricingType::RANGE->value,
+                    ])
+                    ->exists()) {
+                    $validator->errors()->add(
+                        'currency',
+                        'Choisissez une devise réellement proposée par un service public tarifé.'
+                    );
+                }
+
                 if ($needsComparablePrice && ! $this->filled('billing_unit')) {
                     $validator->errors()->add(
                         'billing_unit',
