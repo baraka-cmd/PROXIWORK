@@ -55,9 +55,9 @@ class EmailChangeTest extends TestCase
 
         $user = User::factory()->create([
             'email' => 'old@example.com',
-            'pending_email' => 'new@example.com',
             'password' => 'CurrentPassword123!',
         ]);
+        $user->forceFill(['pending_email' => 'new@example.com'])->save();
         $user->assignRole('client');
 
         $url = URL::temporarySignedRoute(
