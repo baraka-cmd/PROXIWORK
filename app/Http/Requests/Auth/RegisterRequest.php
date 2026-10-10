@@ -18,6 +18,7 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'account_type' => ['required', 'string', Rule::in(['client', 'professional'])],
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'email' => ['required', 'email:rfc', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
