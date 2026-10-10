@@ -244,6 +244,7 @@ class ReviewService
         $summary = Review::query()
             ->where('professional_id', $professional->getKey())
             ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereNotNull('published_at')
             ->selectRaw('COUNT(*) as review_count, COALESCE(AVG(rating), 0) as rating_average')
             ->first();
 
