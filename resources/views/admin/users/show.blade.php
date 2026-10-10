@@ -55,4 +55,39 @@
             @endif
         </section>
     </div>
+
+    @if($canManageRoles && auth()->id() !== $user->id)
+        <section class="admin-card">
+            <div class="admin-card__header">
+                <div><span class="admin-card__eyebrow">RBAC</span><h3>Rôles et autorisations</h3></div>
+            </div>
+            <p class="admin-muted">Sélectionnez les rôles effectifs de ce compte. Toute modification révoque ses anciennes sessions et clés API.</p>
+            <form method="POST" action="{{ route('admin.users.roles.update', $user) }}" class="admin-role-form">
+                @csrf
+                @method('PUT')
+                @error('role_ids')<div class="admin-alert admin-alert--error" role="alert">{{ $message }}</div>@enderror
+                <div class="permission-grid">
+                    @foreach($assignableRoles as $role)
+                        <label class="permission-item">
+                            <input
+                                type="checkbox"
+                                name="role_ids[]"
+                                value="{{ $role->id }}"
+                                @checked(collect(old('role_ids', $user->roles->pluck('id')->all()))->contains(fn ($id) => (int) $id === $role->id))
+                            >
+                            <span>
+                                <strong>{{ $role->display_name }}</strong>
+                                <small>{{ $role->is_system ? 'Rôle système' : 'Rôle personnalisé' }}</small>
+                                <code>{{ $role->name }}</code>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+                <div class="admin-form-actions">
+                    <button class="button button--primary" type="submit"><i class="fa-solid fa-shield-halved"></i> Enregistrer les rôles</button>
+                </div>
+            </form>
+        </section>
+    @endif
+
 @endsection
