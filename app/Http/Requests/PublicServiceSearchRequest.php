@@ -48,6 +48,7 @@ class PublicServiceSearchRequest extends FormRequest
             'verified_only' => ['sometimes', 'boolean'],
             'sort' => ['sometimes', Rule::in(['relevance', 'rating', 'price_low', 'price_high', 'newest'])],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:48'],
+            'page' => ['sometimes', 'integer', 'min:1', 'max:1000000'],
         ];
     }
 
