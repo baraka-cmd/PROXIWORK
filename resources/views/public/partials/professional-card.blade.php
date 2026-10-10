@@ -77,14 +77,20 @@
             @if ($professional->years_experience !== null)
                 <div>
                     <dt><i class="fa-solid fa-clock" aria-hidden="true"></i><span class="sr-only">Expérience</span></dt>
-                    <dd>{{ $professional->years_experience }} an(s) d’expérience</dd>
+                    <dd>{{ $professional->years_experience }} {{ $professional->years_experience === 1 ? 'an' : 'ans' }} d’expérience</dd>
                 </div>
             @endif
 
             @if ($professional->starting_price !== null)
                 <div>
                     <dt><i class="fa-solid fa-tag" aria-hidden="true"></i><span class="sr-only">Prix indicatif</span></dt>
-                    <dd>Dès {{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}</dd>
+                    <dd>
+                        @if (filled($professional->currency))
+                            Dès {{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}
+                        @else
+                            Prix indicatif à confirmer
+                        @endif
+                    </dd>
                 </div>
             @endif
 
