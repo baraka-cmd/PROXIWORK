@@ -266,6 +266,7 @@ class PublicServiceSearchTest extends TestCase
         $verified = $this->publishedService('Service professionnel vérifié');
         $verified->professionalProfile->forceFill([
             'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => now(),
             'rating_average' => '4.80',
             'rating_count' => 5,
         ])->save();
