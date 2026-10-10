@@ -16,6 +16,7 @@ class Profile extends Model
         'first_name',
         'last_name',
         'phone',
+        'avatar_path',
         'bio',
         'locale',
         'timezone',
