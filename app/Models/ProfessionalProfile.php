@@ -19,10 +19,15 @@ class ProfessionalProfile extends Model
     use HasFactory;
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_ACTIVE = 'active';
+
     public const STATUS_SUSPENDED = 'suspended';
+
     public const STATUS_CLOSED = 'closed';
+
     public const VISIBILITY_PUBLIC = 'public';
+
     public const VISIBILITY_PRIVATE = 'private';
 
     protected $attributes = [
