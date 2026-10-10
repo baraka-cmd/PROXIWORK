@@ -58,7 +58,18 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $otherClient = $this->client();
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
-        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $professional = ProfessionalProfile::factory()->create([
+            'user_id' => $professionalUser->id,
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+        ]);
+        $category = Category::factory()->create();
+        Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'category_id' => $category->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
 
         Favorite::create(['user_id' => $client->id, 'professional_profile_id' => $professional->id]);
 
