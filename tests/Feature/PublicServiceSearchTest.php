@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\CategoryStatus;
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
@@ -165,6 +166,39 @@ class PublicServiceSearchTest extends TestCase
 
         $this->get(route('public.services.index', ['search' => 'plomberie']))
             ->assertRedirect(route('public.search', ['search' => 'plomberie']));
+    }
+
+    public function test_verified_only_filter_uses_the_real_verification_status(): void
+    {
+        $verified = $this->publishedService('Service professionnel vérifié');
+        $verified->professionalProfile->forceFill([
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'rating_average' => '4.80',
+            'rating_count' => 5,
+        ])->save();
+
+        $this->publishedService('Service professionnel non vérifié');
+
+        $this->get(route('public.search', ['verified_only' => 1]))
+            ->assertOk()
+            ->assertSee('Service professionnel vérifié')
+            ->assertDontSee('Service professionnel non vérifié');
+    }
+
+    public function test_service_in_an_inactive_category_is_not_publicly_visible(): void
+    {
+        $category = Category::factory()->create();
+        $service = $this->publishedService('Service catégorie inactive', [
+            'category_id' => $category->getKey(),
+        ]);
+
+        $category->forceFill(['status' => CategoryStatus::INACTIVE])->save();
+
+        $this->get(route('public.search'))
+            ->assertOk()
+            ->assertDontSee('Service catégorie inactive');
+
+        $this->get(route('public.services.show', $service->slug))->assertNotFound();
     }
 
     public function test_public_service_detail_shows_real_pricing_and_the_protected_request_entry_point(): void
