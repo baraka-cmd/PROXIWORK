@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Web;
 
+use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,13 +22,13 @@ class AdminAuthController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'email:rfc', 'max:255'],
+            'password' => ['required', 'string', 'max:255'],
         ]);
 
-        $remember = $request->boolean('remember');
+        $credentials['email'] = mb_strtolower(trim($credentials['email']));
 
-        if (! Auth::guard('web')->attempt($credentials, $remember)) {
+        if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => 'Les identifiants fournis sont incorrects.',
             ]);
@@ -33,13 +36,23 @@ class AdminAuthController extends Controller
 
         $user = Auth::guard('web')->user();
 
+        if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            throw ValidationException::withMessages([
+                'email' => 'Impossible de vous connecter avec ce compte.',
+            ]);
+        }
+
         if (! $user->hasRole('admin') && ! $user->hasPermissionTo('rbac.view')) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             throw ValidationException::withMessages([
-                'email' => 'Ce compte n’est pas autorisé à accéder à l’administration.',
+                'email' => 'Les identifiants fournis sont incorrects.',
             ]);
         }
 
@@ -54,6 +67,6 @@ class AdminAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login');
+        return redirect()->route('home')->with('status', 'Vous êtes déconnecté de PROXIWORK.');
     }
 }
