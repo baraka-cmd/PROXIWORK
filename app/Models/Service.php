@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CategoryStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
-use App\Enums\CategoryStatus;
 use App\Enums\UserAccountStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
