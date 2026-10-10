@@ -31,6 +31,9 @@ class UpdateRoleRequest extends FormRequest
                 ->with('permissions:id')
                 ->get()
                 ->flatMap(fn ($role) => $role->permissions->pluck('id'))
+                ->merge($this->route('role') instanceof Role
+                    ? $this->route('role')->permissions()->pluck('permissions.id')
+                    : collect())
                 ->unique();
 
             if ($permissionIds->diff($allowedPermissionIds)->isNotEmpty()) {
