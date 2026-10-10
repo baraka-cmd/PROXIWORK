@@ -236,6 +236,32 @@ class AuthenticationTest extends TestCase
         Notification::assertNothingSent();
     }
 
+    public function test_unverified_client_cannot_create_a_service_request_via_api(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $user->assignRole('client');
+        $token = $user->createToken('unverified-client')->plainTextToken;
+
+        $this->withToken($token)
+            ->postJson('/api/v1/service-requests', [])
+            ->assertForbidden();
+    }
+
+    public function test_password_recovery_response_does_not_reveal_unknown_email(): void
+    {
+        Notification::fake();
+
+        $response = $this->postJson('/api/v1/auth/forgot-password', [
+            'email' => 'not-registered@example.com',
+        ])->assertOk();
+
+        $this->assertSame(
+            'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
+            $response->json('message')
+        );
+        Notification::assertNothingSent();
+    }
+
     public function test_login_is_rate_limited_after_repeated_failures(): void
     {
         $password = fake()->regexify('[A-Za-z0-9]{14}[!@%]');
