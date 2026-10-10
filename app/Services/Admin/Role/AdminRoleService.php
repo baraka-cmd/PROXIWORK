@@ -6,6 +6,7 @@ namespace App\Services\Admin\Role;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,9 +34,16 @@ class AdminRoleService
         ])->loadCount('users');
     }
 
-    public function permissions()
+    public function permissions(User $actor)
     {
+        $allowedPermissionIds = $actor->roles()
+            ->with('permissions:id')
+            ->get()
+            ->flatMap(fn ($role) => $role->permissions->pluck('id'))
+            ->unique();
+
         return Permission::query()
+            ->whereIn('id', $allowedPermissionIds)
             ->orderBy('group')
             ->orderBy('display_name')
             ->get(['id', 'name', 'display_name', 'group', 'description'])
