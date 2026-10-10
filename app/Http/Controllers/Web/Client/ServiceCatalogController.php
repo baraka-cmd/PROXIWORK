@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Client;
 
 use App\Enums\CategoryStatus;
-use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Service;
