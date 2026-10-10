@@ -172,7 +172,7 @@ class RbacAuthorizationTest extends TestCase
             'visibility' => 'private',
         ]);
         $this->assertDatabaseHas('audit_logs', [
-            'user_id' => $target->id,
+            'user_id' => $admin->id,
             'action' => 'admin.user.roles_updated',
         ]);
     }
