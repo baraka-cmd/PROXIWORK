@@ -72,6 +72,7 @@ class PublicServiceSearchService
         $this->applyTextSearch($query, $filters);
         $this->applyProfession($query, $filters);
         $this->applyCategory($query, $filters);
+        $this->applyPricingType($query, $filters);
         $this->applySkills($query, $filters);
         $this->applyLocation($query, $filters);
         $this->applyPrice($query, $filters);
@@ -244,6 +245,15 @@ class PublicServiceSearchService
         $query->whereHas('category', fn (Builder $category) => $category
             ->where('status', 'active')
             ->where('slug', $filters['category']));
+    }
+
+    private function applyPricingType(Builder $query, array $filters): void
+    {
+        if (empty($filters['pricing_type'])) {
+            return;
+        }
+
+        $query->where('services.pricing_type', $filters['pricing_type']);
     }
 
     private function applySkills(Builder $query, array $filters): void
