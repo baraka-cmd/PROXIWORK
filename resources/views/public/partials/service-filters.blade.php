@@ -66,6 +66,20 @@
         </div>
 
         <div class="form-field">
+            <label class="form-label" for="service-filter-pricing-type">Type de tarification</label>
+            <div class="form-select-wrapper">
+                <select id="service-filter-pricing-type" class="form-control form-select" name="pricing_type">
+                    <option value="">Tous les types</option>
+                    <option value="fixed" @selected(old('pricing_type', $filters['pricing_type'] ?? '') === 'fixed')>Prix fixe / forfait</option>
+                    <option value="from" @selected(old('pricing_type', $filters['pricing_type'] ?? '') === 'from')>À partir de</option>
+                    <option value="range" @selected(old('pricing_type', $filters['pricing_type'] ?? '') === 'range')>Fourchette de prix</option>
+                    <option value="quote" @selected(old('pricing_type', $filters['pricing_type'] ?? '') === 'quote')>Sur devis</option>
+                </select>
+                <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
+            </div>
+        </div>
+
+        <div class="form-field">
             <span class="form-label">Budget</span>
             <div class="directory-filter-grid">
                 <input class="form-control" type="number" name="min_price" min="0" step="0.01" value="{{ old('min_price', $filters['min_price'] ?? '') }}" placeholder="Minimum" aria-label="Prix minimum">
