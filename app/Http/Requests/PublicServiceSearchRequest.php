@@ -6,7 +6,9 @@ namespace App\Http\Requests;
 
 use App\Enums\CategoryStatus;
 use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ServicePricingType;
 use App\Enums\SkillStatus;
+use App\Models\Service;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
@@ -43,6 +45,7 @@ class PublicServiceSearchRequest extends FormRequest
             'min_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'max_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'currency' => ['sometimes', 'nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'billing_unit' => ['sometimes', 'nullable', 'string', 'max:50'],
             'rating' => ['sometimes', 'nullable', 'numeric', 'min:1', 'max:5'],
             'availability' => ['sometimes', 'nullable', Rule::enum(ProfessionalAvailabilityStatus::class)],
             'verified_only' => ['sometimes', 'boolean'],
@@ -59,6 +62,9 @@ class PublicServiceSearchRequest extends FormRequest
                 $min = $this->input('min_price');
                 $max = $this->input('max_price');
                 $sort = $this->input('sort', 'relevance');
+                $needsComparablePrice = $min !== null
+                    || $max !== null
+                    || in_array($sort, ['price_low', 'price_high'], true);
 
                 if ($min !== null && $max !== null && (float) $min > (float) $max) {
                     $validator->errors()->add(
@@ -67,11 +73,32 @@ class PublicServiceSearchRequest extends FormRequest
                     );
                 }
 
-                if (($min !== null || $max !== null || in_array($sort, ['price_low', 'price_high'], true))
-                    && ! $this->filled('currency')) {
+                if ($needsComparablePrice && ! $this->filled('currency')) {
                     $validator->errors()->add(
                         'currency',
                         'Choisissez une devise pour filtrer ou comparer les tarifs.'
+                    );
+                }
+
+                if ($needsComparablePrice && ! $this->filled('billing_unit')) {
+                    $validator->errors()->add(
+                        'billing_unit',
+                        'Choisissez une unité de facturation pour comparer des tarifs équivalents.'
+                    );
+                }
+
+                if ($this->filled('billing_unit') && ! Service::query()
+                    ->publiclyVisible()
+                    ->where('billing_unit', $this->input('billing_unit'))
+                    ->whereIn('pricing_type', [
+                        ServicePricingType::FIXED->value,
+                        ServicePricingType::FROM->value,
+                        ServicePricingType::RANGE->value,
+                    ])
+                    ->exists()) {
+                    $validator->errors()->add(
+                        'billing_unit',
+                        'Choisissez une unité de facturation réellement proposée par un service public.'
                     );
                 }
             },
@@ -93,7 +120,7 @@ class PublicServiceSearchRequest extends FormRequest
     {
         $data = [];
 
-        foreach (['search', 'profession', 'category', 'city', 'province', 'currency'] as $field) {
+        foreach (['search', 'profession', 'category', 'city', 'province', 'currency', 'billing_unit'] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $data[$field] = trim((string) $this->input($field));
             }
