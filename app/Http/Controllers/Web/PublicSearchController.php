@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Requests\ProfessionalSearchRequest;
 use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
+use App\Models\Service;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
@@ -30,7 +31,7 @@ class PublicSearchController
         $filters = $request->validated();
 
         return view('public.search', [
-            'services' => $this->serviceSearchService->search($filters),
+            'services' => Service::query()->whereRaw('1 = 0')->paginate(12),
             'filters' => $filters,
             'categories' => $this->serviceSearchService->availableCategories(),
             'featuredCategories' => $this->serviceSearchService->availableCategories(featuredOnly: true),
