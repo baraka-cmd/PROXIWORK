@@ -1,5 +1,23 @@
 @import './search.css';
 
+.professional-card__header {
+    gap: var(--space-3);
+}
+
+.professional-card__favorite-form {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin-left: auto;
+}
+
+.professional-card__favorite {
+    flex: 0 0 auto;
+}
+
+.professional-card__favorite[aria-pressed="true"] {
+    color: var(--color-primary);
+}
+
 .directory-section-header {
     align-items: flex-end;
     margin-bottom: var(--space-8);
