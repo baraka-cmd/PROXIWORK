@@ -15,8 +15,8 @@ use App\Services\Audit\AuditLogService;
 use App\Services\Auth\SessionRevocationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
-use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,11 +79,11 @@ class AuthController extends Controller
         $email = mb_strtolower($request->string('email')->toString());
         $user = User::where('email', $email)->first();
 
-        if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
+        if ($user === null || Hash::check($request->string('password')->toString(), $user->password) === false) {
             throw new AuthenticationException('Identifiants invalides.');
         }
 
-        if (! $user->isActive()) {
+        if ($user->isActive() === false) {
             throw new AccessDeniedHttpException('Compte suspendu.');
         }
 
@@ -136,7 +136,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
+        if (Hash::check($request->string('current_password')->toString(), $user->password) === false) {
             throw ValidationException::withMessages([
                 'current_password' => ['Le mot de passe actuel est incorrect.'],
             ]);
@@ -212,7 +212,7 @@ class AuthController extends Controller
             }
         );
 
-        if ($status !== Password::PASSWORD_RESET || ! $resetUser instanceof User) {
+        if ($status !== Password::PASSWORD_RESET || ($resetUser instanceof User) === false) {
             throw ValidationException::withMessages([
                 'email' => ['Le lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.'],
             ]);
@@ -264,7 +264,7 @@ class AuthController extends Controller
             'Lien de vérification invalide.'
         );
 
-        if (! $user->hasVerifiedEmail() && $user->markEmailAsVerified()) {
+        if ($user->hasVerifiedEmail() === false && $user->markEmailAsVerified()) {
             event(new Verified($user));
             $this->auditLogService->record('auth.api.email_verified', $user, $user, [], $request);
         }
