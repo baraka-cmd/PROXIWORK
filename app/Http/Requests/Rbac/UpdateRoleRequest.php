@@ -19,7 +19,7 @@ class UpdateRoleRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            if (! $this->exists('permission_ids') || $this->user() === null) {
+            if (! $this->has('permission_ids') || $this->user() === null) {
                 return;
             }
 
