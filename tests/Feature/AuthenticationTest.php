@@ -30,6 +30,7 @@ class AuthenticationTest extends TestCase
 
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'Jean Dupont',
+            'account_type' => 'client',
             'email' => 'jean@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
