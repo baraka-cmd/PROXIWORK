@@ -1,12 +1,20 @@
 @php
     $professional = $service->professionalProfile;
     $person = $professional?->user?->profile;
-    $displayName = $person !== null
-        ? trim($person->first_name.' '.$person->last_name)
-        : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
+    $displayName = filled($professional?->business_name)
+        ? $professional->business_name
+        : ($person !== null
+            ? trim($person->first_name.' '.$person->last_name)
+            : ($professional?->user?->name ?? 'Professionnel PROXIWORK'));
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
     $coverExists = $cover !== null && \Illuminate\Support\Facades\Storage::disk('public')->exists($cover->path);
     $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
+    $professionalUrl = $professional
+        ? route('public.professionals.show', [
+            'professionalProfile' => $professional->getKey(),
+            'slug' => IlluminateSupportStr::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
+        ])
+        : null;
     $categoryUrl = $service->category
         ? route('public.search', array_merge(collect($filters ?? [])->except(['page', 'category'])->all(), ['category' => $service->category->slug]))
         : null;
@@ -87,6 +95,9 @@
         @endif
 
         <div class="service-card__professional">
+            @if ($professionalUrl)
+                <a class="service-card__professional-avatar-link" href="{{ $professionalUrl }}" aria-label="Consulter le profil de {{ $displayName }}">
+            @endif
             <span class="service-card__professional-avatar" aria-hidden="true">
                 @if ($person?->avatar_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($person->avatar_path))
                     <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($person->avatar_path) }}" alt="" loading="lazy" decoding="async">
@@ -94,8 +105,11 @@
                     {{ $initials }}
                 @endif
             </span>
+            @if ($professionalUrl)
+                </a>
+            @endif
             <span>
-                <strong>{{ $displayName }}</strong>
+                <strong>@if ($professionalUrl)<a href="{{ $professionalUrl }}">@endif{{ $displayName }}@if ($professionalUrl)</a>@endif</strong>
                 <small>{{ $professional?->professional_title ?: 'Prestataire PROXIWORK' }}</small>
             </span>
         </div>
