@@ -37,8 +37,8 @@ class PublicSearchController
             'skills' => $this->serviceSearchService->availableSkills(),
             'currencies' => $this->serviceSearchService->availableCurrencies(),
             'activeFiltersCount' => collect($filters)
-                ->except(['sort', 'per_page', 'skills_mode'])
-                ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [])
+                ->except(['sort', 'per_page', 'skills_mode', 'page'])
+                ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [] && $value !== false)
                 ->count(),
         ]);
     }
