@@ -7,8 +7,8 @@ use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
-use App\Http\Resources\UserResource;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
@@ -54,12 +54,13 @@ class AuthController extends Controller
             $user->assignRole(Role::query()->where('name', $accountType)->firstOrFail());
 
             if ($accountType === 'professional') {
-                $user->professionalProfile()->create([
+                $professionalProfile = $user->professionalProfile()->create();
+                $professionalProfile->forceFill([
                     'status' => 'draft',
                     'visibility' => 'private',
                     'verification_status' => ProfessionalVerificationStatus::PENDING,
                     'professional_terms_accepted_at' => now(),
-                ]);
+                ])->save();
             }
 
             return $user;
