@@ -34,6 +34,15 @@
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                         <input id="search-hero-input" type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ex. réparation téléphone, plomberie, développeur web…" autocomplete="off">
                     </div>
+                    @foreach (collect($filters)->except(['search', 'page'])->all() as $filterName => $filterValue)
+                        @if (is_array($filterValue))
+                            @foreach ($filterValue as $item)
+                                <input type="hidden" name="{{ $filterName }}[]" value="{{ $item }}">
+                            @endforeach
+                        @elseif ($filterValue !== null && $filterValue !== '')
+                            <input type="hidden" name="{{ $filterName }}" value="{{ is_bool($filterValue) ? (int) $filterValue : $filterValue }}">
+                        @endif
+                    @endforeach
                     <button class="button button--primary button--lg" type="submit">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Rechercher
                     </button>
