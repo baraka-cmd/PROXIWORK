@@ -395,6 +395,28 @@ class PublicServiceSearchTest extends TestCase
         ]);
     }
 
+    public function test_invalid_budget_criteria_are_preserved_for_correction(): void
+    {
+        $this->get(route('public.search', ['min_price' => '20']))
+            ->assertRedirect(route('public.search'));
+
+        $this->get(route('public.search'))
+            ->assertOk()
+            ->assertSee('value="20"', false)
+            ->assertSee('Choisissez une devise pour filtrer ou comparer les tarifs.')
+            ->assertSee('Choisissez une unité de facturation pour comparer des tarifs équivalents.');
+    }
+
+    public function test_array_search_parameter_is_rejected_without_breaking_the_error_page(): void
+    {
+        $this->get('/search?search%5B%5D=plombier')
+            ->assertRedirect(route('public.search'));
+
+        $this->get(route('public.search'))
+            ->assertOk()
+            ->assertSee('Certains critères de recherche doivent être corrigés.');
+    }
+
     private function publishedService(string $title, array $attributes = []): Service
     {
         $category = isset($attributes['category_id'])
