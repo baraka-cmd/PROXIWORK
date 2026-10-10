@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Requests\ProfessionalSearchRequest;
+use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
@@ -24,10 +25,25 @@ class PublicSearchController
      * Public service discovery. The catalogue is browsable without an account;
      * the database query itself enforces service, category, profile and account visibility.
      */
-    public function search(Request $request): Response
+    public function search(PublicServiceSearchRequest $request): View
     {
-        return response('Search route diagnostic');
+        $filters = $request->validated();
+
+        return view('public.search', [
+            'services' => $this->serviceSearchService->search($filters),
+            'filters' => $filters,
+            'categories' => $this->serviceSearchService->availableCategories(),
+            'featuredCategories' => $this->serviceSearchService->availableCategories(featuredOnly: true),
+            'skills' => $this->serviceSearchService->availableSkills(),
+            'currencies' => $this->serviceSearchService->availableCurrencies(),
+            'billingUnits' => $this->serviceSearchService->availableBillingUnits(),
+            'activeFiltersCount' => $this->serviceSearchService->activeFiltersCount($filters),
+        ]);
     }
+
+    /**
+     * Keep the existing professional directory separate from service search.
+     */
     public function professionals(ProfessionalSearchRequest $request): View
     {
         $filters = $request->validated();
