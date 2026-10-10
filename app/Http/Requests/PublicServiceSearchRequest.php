@@ -111,7 +111,7 @@ class PublicServiceSearchRequest extends FormRequest
     {
         if ($this->isMethod('GET')) {
             throw new HttpResponseException(
-                redirect()->route('public.search')->withErrors($validator)
+                redirect()->route('public.search')->withErrors($validator)->withInput($this->query())
             );
         }
 
