@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\AccountPasswordController;
-use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\EmailChangeController;
+use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\Admin\DashboardController;
 use App\Http\Controllers\Web\Client\AddressController as ClientAddressController;
 use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
