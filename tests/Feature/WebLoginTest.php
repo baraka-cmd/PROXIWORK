@@ -28,7 +28,7 @@ class WebLoginTest extends TestCase
             ->assertOk()
             ->assertViewIs('auth.login')
             ->assertSee('Ravi de vous revoir')
-            ->assertSee('Continuer avec Google');
+            ->assertSee('La connexion Google n’est pas encore configurée');
     }
 
     public function test_user_can_login_with_valid_credentials(): void
