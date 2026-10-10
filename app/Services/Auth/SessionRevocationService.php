@@ -14,6 +14,10 @@ class SessionRevocationService
     {
         $user->tokens()->delete();
 
+        $user->forceFill([
+            'session_version' => (int) $user->session_version + 1,
+        ])->save();
+
         if (config('session.driver') !== 'database') {
             return;
         }
