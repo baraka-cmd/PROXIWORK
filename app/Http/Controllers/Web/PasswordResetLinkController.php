@@ -6,7 +6,9 @@ namespace App\Http\Controllers\Web;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
+use Throwable;
 use Illuminate\View\View;
 
 class PasswordResetLinkController
@@ -24,7 +26,15 @@ class PasswordResetLinkController
 
         $email = mb_strtolower(trim($validated['email']));
 
-        $status = Password::sendResetLink(['email' => $email]);
+        try {
+            $status = Password::sendResetLink(['email' => $email]);
+        } catch (Throwable $exception) {
+            Log::warning('Password reset notification could not be dispatched.', [
+                'exception' => $exception::class,
+            ]);
+
+            return back()->with('status', 'Si un compte correspond à cette adresse, un lien de réinitialisation vient d’être envoyé.');
+        }
 
         // Do not reveal whether an email address belongs to a registered user.
         if (in_array($status, [Password::RESET_LINK_SENT, Password::INVALID_USER, Password::RESET_THROTTLED], true)) {
