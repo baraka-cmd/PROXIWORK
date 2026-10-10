@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Enums\CategoryStatus;
-use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
-use App\Enums\UserAccountStatus;
 use App\Enums\ServiceStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,22 +41,6 @@ class Service extends Model
             'sort_order' => 'integer',
             'published_at' => 'datetime',
         ];
-    }
-
-    public function scopePubliclyAvailable($query)
-    {
-        return $query
-            ->published()
-            ->whereHas('category', fn ($category) => $category->where('status', CategoryStatus::ACTIVE->value))
-            ->whereHas('professionalProfile', function ($profile): void {
-                $profile
-                    ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-                    ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-                    ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-                    ->whereHas('user', fn ($user) => $user
-                        ->where('account_status', UserAccountStatus::ACTIVE->value)
-                        ->whereNotNull('email_verified_at'));
-            });
     }
 
     public function professionalProfile(): BelongsTo

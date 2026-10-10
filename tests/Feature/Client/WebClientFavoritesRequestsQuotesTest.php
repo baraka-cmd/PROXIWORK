@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Client;
 
 use App\Models\Favorite;
-use App\Enums\ProfessionalVerificationStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\QuotationOffer;
@@ -58,10 +57,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $otherClient = $this->client();
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
-        $professional = ProfessionalProfile::factory()->create([
-            'user_id' => $professionalUser->id,
-            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
-        ]);
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
 
         Favorite::create(['user_id' => $client->id, 'professional_profile_id' => $professional->id]);
 

@@ -37,11 +37,12 @@ class ProfessionalSearchService
             ])
             ->where('status', ProfessionalProfile::STATUS_ACTIVE)
             ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-            ->whereHas('user', fn (Builder $user) => $user
-                ->where('account_status', UserAccountStatus::ACTIVE->value)
-                ->whereNotNull('email_verified_at'))
-            ->whereHas('services', fn (Builder $services) => $services->publiclyAvailable())
+            ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
+            ->whereHas('services', function (Builder $services): void {
+                $services
+                    ->published()
+                    ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'));
+            })
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,bio',

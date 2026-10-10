@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\ProfessionalService;
 
 use App\Enums\CategoryStatus;
-use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
 use App\Enums\SkillStatus;
 use App\Models\Category;
@@ -182,39 +181,6 @@ class ProfessionalServiceApiTest extends TestCase
         $this->getJson('/api/v1/services?search=Flutter&category_id='.$category->id)
             ->assertOk()
             ->assertJsonPath('data.0.id', $service->id);
-    }
-
-    public function test_public_catalog_hides_services_from_unverified_or_unapproved_profiles(): void
-    {
-        $unverifiedService = Service::factory()->create([
-            'status' => ServiceStatus::PUBLISHED,
-            'published_at' => now(),
-        ]);
-        $unverifiedProfile = $unverifiedService->professionalProfile;
-        $unverifiedProfile->forceFill([
-            'status' => ProfessionalProfile::STATUS_ACTIVE,
-            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
-            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
-        ])->save();
-        $unverifiedProfile->user->forceFill(['email_verified_at' => null])->save();
-
-        $unapprovedService = Service::factory()->create([
-            'status' => ServiceStatus::PUBLISHED,
-            'published_at' => now(),
-        ]);
-        $unapprovedProfile = $unapprovedService->professionalProfile;
-        $unapprovedProfile->forceFill([
-            'status' => ProfessionalProfile::STATUS_ACTIVE,
-            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
-            'verification_status' => ProfessionalVerificationStatus::PENDING,
-        ])->save();
-
-        $this->getJson('/api/v1/services')
-            ->assertOk()
-            ->assertJsonCount(0, 'data');
-
-        $this->getJson('/api/v1/services/'.$unverifiedService->id)->assertNotFound();
-        $this->getJson('/api/v1/services/'.$unapprovedService->id)->assertNotFound();
     }
 
     public function test_publishing_requires_a_cover_image(): void
@@ -394,10 +360,7 @@ class ProfessionalServiceApiTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
-        $profile = ProfessionalProfile::factory()->create([
-            'user_id' => $user->id,
-            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
-        ]);
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
 
         return [$user, $profile];
     }

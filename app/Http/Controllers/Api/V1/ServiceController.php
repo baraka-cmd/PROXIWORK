@@ -35,7 +35,8 @@ class ServiceController extends Controller
                 'sort_order',
                 'published_at',
             ])
-            ->publiclyAvailable()
+            ->published()
+            ->whereHas('category', fn ($category) => $category->where('status', 'active'))
             ->with([
                 'category:id,name,slug',
                 'skills:id,name,slug',
@@ -65,7 +66,12 @@ class ServiceController extends Controller
 
     public function show(Service $service): ServiceResource
     {
-        abort_unless(Service::query()->publiclyAvailable()->whereKey($service->getKey())->exists(), 404);
+        abort_unless(
+            $service->status->value === 'published'
+            && $service->published_at !== null
+            && $service->category->status->value === 'active',
+            404
+        );
 
         return (new ServiceResource(
             $service->load(['category', 'skills', 'images', 'professionalProfile.user'])

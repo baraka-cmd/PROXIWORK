@@ -24,15 +24,6 @@ class FavoriteController extends Controller
     {
         $favorites = $request->user()
             ->favorites()
-            ->whereHas('professionalProfile', function ($profile): void {
-                $profile
-                    ->where('status', \App\Models\ProfessionalProfile::STATUS_ACTIVE)
-                    ->where('visibility', \App\Models\ProfessionalProfile::VISIBILITY_PUBLIC)
-                    ->where('verification_status', \App\Enums\ProfessionalVerificationStatus::VERIFIED->value)
-                    ->whereHas('user', fn ($user) => $user
-                        ->where('account_status', \App\Enums\UserAccountStatus::ACTIVE->value)
-                        ->whereNotNull('email_verified_at'));
-            })
             ->with(['professionalProfile.user.profile'])
             ->latest('id')
             ->paginate(min(max((int) $request->integer('per_page', 15), 1), 100))

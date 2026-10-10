@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\ServiceRequest;
 
 use App\Enums\ServiceRequestStatus;
-use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
@@ -372,10 +371,7 @@ class ServiceRequestApiTest extends TestCase
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
-        $profile = ProfessionalProfile::factory()->create([
-            'user_id' => $user->id,
-            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
-        ]);
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
 
         return [$user, $profile];
     }

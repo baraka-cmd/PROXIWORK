@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\ProfessionalService;
 
 use App\Enums\CategoryStatus;
-use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Enums\SkillStatus;
@@ -116,18 +115,6 @@ class ProfessionalServiceManager
             if ($professional->user->account_status !== UserAccountStatus::ACTIVE) {
                 throw ValidationException::withMessages([
                     'professional' => 'Un compte inactif ne peut pas publier de service.',
-                ]);
-            }
-
-            if ($professional->user->hasVerifiedEmail() === false) {
-                throw ValidationException::withMessages([
-                    'email' => 'Confirmez votre adresse e-mail avant de publier un service.',
-                ]);
-            }
-
-            if ($professional->verification_status !== ProfessionalVerificationStatus::VERIFIED) {
-                throw ValidationException::withMessages([
-                    'verification_status' => 'Votre dossier professionnel doit être approuvé avant de publier un service.',
                 ]);
             }
 

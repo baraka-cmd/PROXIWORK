@@ -50,18 +50,6 @@ class ProfessionalSearchApiTest extends TestCase
         $this->assertCount(1, $response->json('data'));
     }
 
-    public function test_unverified_email_cannot_make_a_professional_public(): void
-    {
-        $professional = $this->professional();
-        $this->publishedService($professional);
-
-        $professional->user->forceFill(['email_verified_at' => null])->save();
-
-        $this->getJson('/api/v1/professionals')
-            ->assertOk()
-            ->assertJsonCount(0, 'data');
-    }
-
     public function test_text_search_matches_published_service_title(): void
     {
         $professional = $this->professional([
@@ -394,7 +382,6 @@ class ProfessionalSearchApiTest extends TestCase
 
         $profile = ProfessionalProfile::factory()->create([
             'user_id' => $user->id,
-            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
         ]);
 
         $profile->forceFill($attributes)->save();

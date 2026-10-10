@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Client;
 
+use App\Enums\CategoryStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Service;
@@ -20,13 +21,21 @@ class ServiceCatalogController extends Controller
         ]);
 
         $services = Service::query()
-            ->publiclyAvailable()
+            ->published()
             ->with([
                 'category',
                 'skills',
                 'images',
                 'professionalProfile.user.profile',
             ])
+            ->whereHas('category', function ($query): void {
+                $query->where('status', CategoryStatus::ACTIVE->value);
+            })
+            ->whereHas('professionalProfile', function ($query): void {
+                $query
+                    ->where('status', 'active')
+                    ->where('visibility', 'public');
+            })
             ->when(
                 $filters['search'] ?? null,
                 function ($query, string $search): void {
