@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Web;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\View\View;
 
 class WorkspaceController
@@ -24,9 +23,7 @@ class WorkspaceController
         abort_if($workspaces === [], 403, 'Aucun espace de travail autorisé n’est associé à ce compte.');
 
         if (count($workspaces) === 1) {
-            return redirect()->route(array_key_first($workspaces) === 'admin'
-                ? $workspaces['admin']
-                : $workspaces[array_key_first($workspaces)]);
+            return redirect()->route(reset($workspaces));
         }
 
         $activeWorkspace = $request->session()->get('active_workspace');
