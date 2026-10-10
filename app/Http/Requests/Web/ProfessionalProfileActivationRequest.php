@@ -20,8 +20,8 @@ class ProfessionalProfileActivationRequest extends FormRequest
 
         return $user instanceof User
             && $user->hasRole('client')
-            && ! $user->hasRole('professional')
-            && ! $user->professionalProfile()->exists();
+            && $user->hasRole('professional') === false
+            && $user->professionalProfile()->exists() === false
     }
 
     public function rules(): array
@@ -103,7 +103,7 @@ class ProfessionalProfileActivationRequest extends FormRequest
                 }
 
                 if ($pricingType === 'range') {
-                    if (! isset($service['price_min']) || $service['price_min'] === '' || ! isset($service['price_max']) || $service['price_max'] === '') {
+                    if (isset($service['price_min']) === false || $service['price_min'] === '' || isset($service['price_max']) === false || $service['price_max'] === '') {
                         $validator->errors()->add("services.$index.price_min", 'Indiquez le tarif minimum et maximum.');
                     } elseif ((float) $service['price_max'] < (float) $service['price_min']) {
                         $validator->errors()->add("services.$index.price_max", 'Le tarif maximum doit être supérieur ou égal au tarif minimum.');
@@ -112,7 +112,7 @@ class ProfessionalProfileActivationRequest extends FormRequest
 
                 $categoryId = (int) ($service['category_id'] ?? 0);
 
-                if (! $categoryIds->contains($categoryId)) {
+                if ($categoryIds->contains($categoryId) === false) {
                     $validator->errors()->add("services.$index.category_id", 'Le service doit appartenir à une catégorie choisie.');
                 }
 
