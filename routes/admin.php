@@ -19,7 +19,7 @@ use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'auth.session', 'active.account', 'permission:admin.users.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'session.version', 'active.account', 'permission:admin.users.view'])->group(function (): void {
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 });
