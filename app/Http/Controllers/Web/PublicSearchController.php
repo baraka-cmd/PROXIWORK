@@ -13,6 +13,7 @@ use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class PublicSearchController
@@ -26,18 +27,9 @@ class PublicSearchController
      * Public service discovery. The catalogue is browsable without an account;
      * the database query itself enforces service, category, profile and account visibility.
      */
-    public function search(PublicServiceSearchRequest $request): View
+    public function search(PublicServiceSearchRequest $request): View|Response
     {
-        return view('public.search', [
-            'services' => Service::query()->whereRaw('1 = 0')->paginate(12),
-            'filters' => [],
-            'categories' => collect(),
-            'featuredCategories' => collect(),
-            'skills' => collect(),
-            'currencies' => collect(),
-            'billingUnits' => collect(),
-            'activeFiltersCount' => 0,
-        ]);
+        return response('Public search route diagnostic');
     }
 
     /**
