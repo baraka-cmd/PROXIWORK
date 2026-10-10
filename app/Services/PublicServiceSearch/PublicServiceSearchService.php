@@ -437,7 +437,8 @@ class PublicServiceSearchService
 
             /*
              * Rank all fields that can satisfy the search, not only the service
-             * title. A query such as "plombier à Goma" should favour a service
+             * title. The service title remains the strongest relevance signal;
+             * profile, skill, category and location matches refine the order. A query such as "plombier à Goma" should favour a service
              * whose professional title and service area both match, even when
              * the service title itself does not contain "plombier".
              *
