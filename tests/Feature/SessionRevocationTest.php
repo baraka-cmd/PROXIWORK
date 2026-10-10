@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Services\Auth\SessionRevocationService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
+
+class SessionRevocationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_revoke_all_removes_database_sessions_and_sanctum_tokens(): void
+    {
+        config(['session.driver' => 'database']);
+
+        $user = User::factory()->create();
+        $user->createToken('test-device');
+
+        DB::table('sessions')->insert([
+            'id' => 'session-to-revoke',
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PROXIWORK test',
+            'payload' => 'test-payload',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        app(SessionRevocationService::class)->revokeAll($user);
+
+        $this->assertDatabaseMissing('sessions', ['id' => 'session-to-revoke']);
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+    }
+}
