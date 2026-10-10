@@ -83,7 +83,7 @@ class AdminRoleService
                 'description' => $data['description'] ?? null,
             ]);
 
-            if (array_key_exists('permission_ids', $data)) {
+            if (array_key_exists('permissions_submitted', $data) || array_key_exists('permission_ids', $data)) {
                 $actorPermissionIds = $request->user()->roles()
                     ->with('permissions:id')
                     ->get()
