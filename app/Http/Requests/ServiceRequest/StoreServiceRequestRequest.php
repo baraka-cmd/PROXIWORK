@@ -56,6 +56,7 @@ class StoreServiceRequestRequest extends FormRequest
                 ->find($this->integer('service_id'));
 
             if ($service === null) {
+                $validator->errors()->add('service_id', 'Le service sélectionné n’est plus disponible.');
                 return;
             }
 
