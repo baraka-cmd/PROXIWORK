@@ -17,10 +17,7 @@
         $professionalSlug = 'professionnel-'.$professional?->getKey();
     }
     $professionalUrl = $professional
-        ? route('public.professionals.show', [
-            'professionalProfile' => $professional->getKey(),
-            'slug' => $professionalSlug,
-        ])
+        ? url('/professionals/'.$professional->getKey().'/'.$professionalSlug)
         : null;
 
     $categoryUrl = $service->category
