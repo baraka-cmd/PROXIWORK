@@ -11,6 +11,8 @@ use App\Enums\UserAccountStatus;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
+use App\Models\User;
+use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -112,6 +114,58 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertOk()
             ->assertSee($url, false)
             ->assertSee('Entreprise annuaire');
+    }
+
+    public function test_guest_favorite_link_preserves_the_public_profile_as_the_login_return_target(): void
+    {
+        $service = $this->publishedService('Service pour retour de connexion');
+        $professional = $service->professionalProfile;
+        $professional->forceFill(['business_name' => 'Atelier retour connexion'])->save();
+        $profilePath = parse_url($this->profileUrl($professional), PHP_URL_PATH);
+        $loginUrl = route('login', ['return_to' => $profilePath]);
+
+        $this->get(route('public.professionals.index'))
+            ->assertOk()
+            ->assertSee($loginUrl, false)
+            ->assertSee('Connectez-vous pour ajouter Atelier retour connexion aux favoris');
+
+        $this->get($loginUrl)->assertOk();
+
+        $this->assertSame($this->profileUrl($professional), session('url.intended'));
+    }
+
+    public function test_login_ignores_external_return_targets(): void
+    {
+        $this->get(route('login', ['return_to' => 'https://example.invalid/']))
+            ->assertOk();
+
+        $this->assertNull(session('url.intended'));
+    }
+
+    public function test_authenticated_client_sees_their_favorite_state_on_directory_cards(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $service = $this->publishedService('Service avec favori personnalisé');
+        $professional = $service->professionalProfile;
+        $professional->forceFill(['business_name' => 'Atelier favori personnalisé'])->save();
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $this->actingAs($client)
+            ->get(route('public.professionals.index'))
+            ->assertOk()
+            ->assertSee('aria-pressed="false"', false);
+
+        \App\Models\Favorite::query()->create([
+            'user_id' => $client->getKey(),
+            'professional_profile_id' => $professional->getKey(),
+        ]);
+
+        $this->actingAs($client)
+            ->get(route('public.professionals.index'))
+            ->assertOk()
+            ->assertSee('aria-pressed="true"', false)
+            ->assertSee('Retirer Atelier favori personnalisé des favoris');
     }
 
     private function profileUrl(ProfessionalProfile $professional): string
