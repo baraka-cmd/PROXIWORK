@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 
 class PublicServiceSearchService
@@ -41,7 +42,7 @@ class PublicServiceSearchService
             ])
             ->with([
                 'category:id,name,slug',
-                'skills' => fn (\\Illuminate\\Database\\Eloquent\\Relations\\BelongsToMany $skills) => $skills
+                'skills' => fn (BelongsToMany $skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
                 'images:id,service_id,path,alt_text,sort_order,is_cover',
