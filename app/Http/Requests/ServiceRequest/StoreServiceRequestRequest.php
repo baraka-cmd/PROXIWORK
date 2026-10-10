@@ -70,7 +70,7 @@ class StoreServiceRequestRequest extends FormRequest
                     ->where('user_id', $this->user()?->getAuthIdentifier())
                     ->exists();
 
-                if (! $owned) {
+                if (!$owned) {
                     $validator->errors()->add('address_id', 'Cette adresse ne vous appartient pas.');
                 }
             }
