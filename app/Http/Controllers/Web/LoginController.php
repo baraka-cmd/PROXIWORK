@@ -15,8 +15,19 @@ use Illuminate\View\View;
 
 class LoginController
 {
-    public function create(): View
+    public function create(Request $request): View
     {
+        $returnTo = $request->query('return_to');
+
+        // This opt-in return path is deliberately limited to public professional
+        // profile URLs; arbitrary hosts and other route families are not accepted.
+        if (
+            is_string($returnTo)
+            && preg_match('#^/professionals/[1-9][0-9]*(?:/[a-zA-Z0-9-]+)?$#D', $returnTo) === 1
+        ) {
+            $request->session()->put('url.intended', url($returnTo));
+        }
+
         return view('auth.login');
     }
 
