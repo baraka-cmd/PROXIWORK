@@ -79,6 +79,7 @@ class ProfessionalProfileActivationTest extends TestCase
         $this->assertDatabaseCount('users', 1);
         $this->assertTrue($user->hasRole('client'));
         $this->assertTrue($user->hasRole('professional'));
+        $this->assertSame(1, User::query()->where('email', $user->email)->count());
         $this->assertDatabaseHas('professional_profiles', [
             'user_id' => $user->id,
             'verification_status' => 'pending',
