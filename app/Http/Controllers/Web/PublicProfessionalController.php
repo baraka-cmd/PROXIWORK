@@ -8,6 +8,7 @@ use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
