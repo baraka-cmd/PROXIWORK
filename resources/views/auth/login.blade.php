@@ -77,10 +77,8 @@
                             type="password"
                             autocomplete="current-password"
                             placeholder="Votre mot de passe"
-                            aria-describedby="password-strength @error('password') password-error @enderror"
+                            aria-describedby="@error('password') password-error @enderror"
                             required
-                            minlength="8"
-                            data-password-strength
                         >
                         <button
                             class="login-password-toggle"
@@ -91,22 +89,6 @@
                         >
                             <i class="fa-regular fa-eye" aria-hidden="true"></i>
                         </button>
-                    </div>
-
-                    <div class="password-strength" id="password-strength" aria-live="polite">
-                        <div class="password-strength__top">
-                            <span>Sécurité du mot de passe</span>
-                            <strong data-strength-label>À saisir</strong>
-                        </div>
-                        <div class="password-strength__bar" aria-hidden="true">
-                            <span data-strength-bar></span>
-                        </div>
-                        <ul class="password-checks" aria-label="Critères du mot de passe">
-                            <li data-check="length"><i class="fa-solid fa-circle" aria-hidden="true"></i> 8 caractères minimum</li>
-                            <li data-check="lower"><i class="fa-solid fa-circle" aria-hidden="true"></i> Une minuscule</li>
-                            <li data-check="upper"><i class="fa-solid fa-circle" aria-hidden="true"></i> Une majuscule</li>
-                            <li data-check="number"><i class="fa-solid fa-circle" aria-hidden="true"></i> Un chiffre</li>
-                        </ul>
                     </div>
 
                     @error('password')
