@@ -26,7 +26,7 @@ class EmailVerificationController
     {
         $user = $request->user();
 
-        if (! $user->hasVerifiedEmail() && $request->fulfill()) {
+        if (! $user->hasVerifiedEmail() && $user->markEmailAsVerified()) {
             $auditLogService->record('auth.web.email_verified', $user, $user, [], $request);
             event(new Verified($user));
         }
