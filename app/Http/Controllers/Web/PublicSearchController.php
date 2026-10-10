@@ -51,6 +51,7 @@ class PublicSearchController
         return view('public.professionals.index', [
             'professionals' => $this->professionalSearchService->search($filters),
             'filters' => $filters,
+            'canFavoriteProfessionals' => auth()->check() && auth()->user()->hasRole('client'),
             ...$this->professionalFilterOptions(),
         ]);
     }
