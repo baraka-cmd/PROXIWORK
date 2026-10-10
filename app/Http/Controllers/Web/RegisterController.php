@@ -57,6 +57,7 @@ class RegisterController
                     'email' => $email,
                     'password' => $data['password'],
                     'account_status' => UserAccountStatus::ACTIVE,
+                    'terms_accepted_at' => now(),
                 ]);
                 $user->assignRole($role);
 
@@ -89,6 +90,7 @@ class RegisterController
                     'city' => trim($data['city']),
                     'province' => $data['province'] ?? null,
                     'commune' => $data['commune'] ?? null,
+                    'professional_terms_accepted_at' => now(),
                 ]);
                 $profile->forceFill([
                     'status' => 'draft',
