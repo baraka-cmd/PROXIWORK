@@ -198,26 +198,21 @@ class ProfessionalSearchService
         $query->whereHas('services', function (Builder $services) use ($min, $max, $currency): void {
             $services
                 ->published()
+                ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
                 ->when($currency, fn (Builder $services) => $services->where('currency', $currency))
                 ->where(function (Builder $services) use ($min, $max): void {
                     $services
                         ->where(function (Builder $services) use ($min, $max): void {
                             $services
-                                ->where(function (Builder $services) use ($min, $max): void {
-                                $services
-                                    ->where(function (Builder $services) use ($min, $max): void {
-                                        $services
-                                            ->where('pricing_type', ServicePricingType::FIXED->value)
-                                            ->when($min !== null, fn (Builder $services) => $services->where('price', '>=', $min))
-                                            ->when($max !== null, fn (Builder $services) => $services->where('price', '<=', $max));
-                                    })
-                                    ->orWhere(function (Builder $services) use ($min, $max): void {
-                                        $services
-                                            ->where('pricing_type', ServicePricingType::FROM->value)
-                                            ->when($min !== null, fn (Builder $services) => $services->where('price_min', '>=', $min))
-                                            ->when($max !== null, fn (Builder $services) => $services->where('price_min', '<=', $max));
-                                    });
-                            });
+                                ->where('pricing_type', ServicePricingType::FIXED->value)
+                                ->when($min !== null, fn (Builder $services) => $services->where('price', '>=', $min))
+                                ->when($max !== null, fn (Builder $services) => $services->where('price', '<=', $max));
+                        })
+                        ->orWhere(function (Builder $services) use ($min, $max): void {
+                            $services
+                                ->where('pricing_type', ServicePricingType::FROM->value)
+                                ->when($min !== null, fn (Builder $services) => $services->where('price_min', '>=', $min))
+                                ->when($max !== null, fn (Builder $services) => $services->where('price_min', '<=', $max));
                         })
                         ->orWhere(function (Builder $services) use ($min, $max): void {
                             $services
