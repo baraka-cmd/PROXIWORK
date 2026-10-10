@@ -69,7 +69,7 @@ class LoginController
 
     private function isSafeInternalRedirect(string $url): bool
     {
-        if (str_starts_with($url, '/') && ($url[1] ?? '') !== '/' && ($url[1] ?? '') !== '\\\\') {
+        if (str_starts_with($url, '/') && ($url[1] ?? '') !== '/' && ($url[1] ?? '') !== chr(92)) {
             return true;
         }
 
