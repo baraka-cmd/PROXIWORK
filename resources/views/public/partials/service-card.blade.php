@@ -7,6 +7,18 @@
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
     $coverExists = $cover !== null && \Illuminate\Support\Facades\Storage::disk('public')->exists($cover->path);
     $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
+    $categoryUrl = $service->category
+        ? route('public.search', array_merge(collect($filters ?? [])->except(['page', 'category'])->all(), ['category' => $service->category->slug]))
+        : null;
+    $serviceAreaLabel = $service->service_area
+        ?: collect([$professional?->city, $professional?->province])->filter()->join(', ');
+    $serviceAreaLabel = $serviceAreaLabel ?: 'Zone à confirmer';
+    $nameParts = preg_split('/\s+/', trim($displayName)) ?: [];
+    $initials = collect($nameParts)
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+        ->implode('') ?: 'P';
     $currency = $service->currency ? ' '.$service->currency : ' (devise à confirmer)';
     $billingUnitLabel = match ($service->billing_unit) {
         'package' => 'prestation',
@@ -63,7 +75,7 @@
 
     <div class="service-card__content">
         @if ($service->category)
-            <a class="service-card__category" href="{{ route('public.search', array_merge(collect($filters ?? [])->except(['page', 'category'])->all(), ['category' => $service->category->slug])) }}">{{ $service->category->name }}</a>
+            <a class="service-card__category" href="{{ $categoryUrl }}">{{ $service->category->name }}</a>
         @endif
         @if ($professional?->availability_status?->value === 'available')
             <span class="service-card__availability"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Disponible</span>
@@ -76,7 +88,7 @@
 
         <div class="service-card__professional">
             <span class="service-card__professional-avatar" aria-hidden="true">
-                {{ collect(preg_split('/\s+/', trim($displayName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P' }}
+                {{ $initials }}
             </span>
             <span>
                 <strong>{{ $displayName }}</strong>
@@ -86,7 +98,7 @@
 
         <div class="service-card__facts">
             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                {{ $service->service_area ?: (collect([$professional?->city, $professional?->province])->filter()->join(', ') ?: 'Zone à confirmer') }}
+                {{ $serviceAreaLabel }}
             </span>
             @if (($professional?->rating_count ?? 0) > 0 && $professional?->rating_average !== null)
                 <span><i class="fa-solid fa-star" aria-hidden="true"></i>
