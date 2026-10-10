@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function (): void {
     Route::post('professionals/{professional}/verification/start', [ProfessionalController::class, 'startReview'])->middleware('permission:admin.professionals.review')->name('professionals.verification.start');
     Route::post('professionals/{professional}/verification/verify', [ProfessionalController::class, 'verify'])->middleware('permission:admin.professionals.verify')->name('professionals.verification.verify');
     Route::post('professionals/{professional}/verification/reject', [ProfessionalController::class, 'reject'])->middleware('permission:admin.professionals.reject')->name('professionals.verification.reject');
+    Route::post('professionals/{professional}/verification/request-information', [ProfessionalController::class, 'requestInformation'])->middleware('permission:admin.professionals.review')->name('professionals.verification.request-information');
 });
 
 Route::middleware(['auth', 'permission:categories.view'])->group(function (): void {
