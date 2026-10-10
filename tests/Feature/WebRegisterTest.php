@@ -33,8 +33,9 @@ class WebRegisterTest extends TestCase
             ->assertSee('Bienvenue sur PROXIWORK')
             ->assertSee('Continuer avec Google')
             ->assertSee('name="account_type"', false)
-            ->assertSee('Client — je recherche des services')
-            ->assertSee('Professionnel — je propose mes services');
+            ->assertSee('Je suis client')
+            ->assertSee('Je suis professionnel')
+            ->assertSee('Identité et coordonnées');
     }
 
     public function test_guest_can_create_an_active_account(): void
