@@ -132,6 +132,12 @@ class ProfessionalVerificationService
             }
 
             $target->verification_status = $to->value;
+            if ($to !== ProfessionalVerificationStatus::VERIFIED) {
+                $target->forceFill([
+                    'status' => ProfessionalProfile::STATUS_DRAFT,
+                    'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+                ]);
+            }
             $target->save();
 
             ProfessionalVerificationReview::create([
