@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
-use App\Enums\ProfessionalVerificationStatus;
-use App\Enums\ServicePricingType;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
-use App\Models\Skill;
 use App\Enums\UserAccountStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
