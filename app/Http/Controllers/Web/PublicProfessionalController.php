@@ -8,6 +8,7 @@ use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
@@ -83,7 +84,7 @@ class PublicProfessionalController
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
                 'images:id,service_id,path,alt_text,sort_order,is_cover',
-                'professionalProfile' => fn (Builder $profile) => $profile->select([
+                'professionalProfile' => fn (BelongsTo $profile) => $profile->select([
                     'id',
                     'user_id',
                     'business_name',
