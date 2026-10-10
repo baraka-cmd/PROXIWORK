@@ -6,13 +6,18 @@ namespace App\Policies;
 
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use App\Models\User;
 
 class FavoritePolicy
 {
     public function create(User $user, ProfessionalProfile $professionalProfile): bool
     {
-        return $professionalProfile->user_id !== $user->getKey();
+        return $professionalProfile->user_id !== $user->getKey()
+            && Service::query()
+                ->publiclyVisible()
+                ->where('professional_profile_id', $professionalProfile->getKey())
+                ->exists();
     }
 
     public function delete(User $user, Favorite $favorite): bool
