@@ -21,40 +21,47 @@ class LoginController
     public function store(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
+            'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'password' => ['required', 'string', 'max:255'],
         ]);
 
+        $credentials['email'] = mb_strtolower(trim($credentials['email']));
         $remember = $request->boolean('remember');
 
-        if (! Auth::attempt($credentials, $remember)) {
+        if (! Auth::guard('web')->attempt($credentials, $remember)) {
             throw ValidationException::withMessages([
                 'email' => 'Les identifiants fournis sont incorrects.',
             ]);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('web')->user();
 
         if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE) {
-            Auth::logout();
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
             throw ValidationException::withMessages([
-                'email' => 'Impossible de vous connecter avec ce compte.',
+                'email' => 'Impossible de vous connecter avec ce compte. Vérifiez son état ou contactez le support.',
             ]);
         }
 
+        // Rotate the session identifier immediately after authentication to prevent fixation.
         $request->session()->regenerate();
 
+        // The destination is resolved from server-side roles/permissions, never from a
+        // role or destination supplied by the browser. Professional verification status
+        // is handled inside the professional workspace, not by granting public visibility.
         return redirect()->intended(route('dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::logout();
+        Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
+        return redirect()->route('home')->with('status', 'Vous êtes déconnecté de PROXIWORK.');
     }
 }
