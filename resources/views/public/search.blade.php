@@ -1,7 +1,20 @@
 @extends('layouts.public')
 
-@section('title', 'Découvrir des services — PROXIWORK')
-@section('meta_description', 'Découvrez et comparez les services publiés sur PROXIWORK par catégorie, compétence, localisation, tarif et disponibilité.')
+@php
+    $searchTitleTerm = trim((string) ($filters['search'] ?? ''));
+    $selectedCategory = $categories->firstWhere('slug', $filters['category'] ?? null);
+    $searchPageTitle = $searchTitleTerm !== ''
+        ? 'Résultats pour « '.e(\\Illuminate\\Support\\Str::limit($searchTitleTerm, 60)).' » — PROXIWORK'
+        : ($selectedCategory
+            ? e($selectedCategory->name).' — Services PROXIWORK'
+            : 'Découvrir des services — PROXIWORK');
+    $searchMetaDescription = $searchTitleTerm !== ''
+        ? 'Résultats de recherche PROXIWORK pour '.$searchTitleTerm.'. Découvrez les services publiés accessibles au public.'
+        : 'Découvrez et comparez les services publiés sur PROXIWORK par catégorie, compétence, localisation, tarif et disponibilité.';
+@endphp
+
+@section('title', $searchPageTitle)
+@section('meta_description', e($searchMetaDescription))
 
 @push('head')
     @unless (app()->environment('testing'))
