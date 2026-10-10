@@ -168,6 +168,49 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertSee('Retirer Atelier favori personnalisé des favoris');
     }
 
+    public function test_favorited_directory_card_submits_delete_for_the_current_users_favorite(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $service = $this->publishedService('Service pour retirer un favori');
+        $professional = $service->professionalProfile;
+        $professional->forceFill(['business_name' => 'Atelier à retirer'])->save();
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $favorite = \\App\\Models\\Favorite::query()->create([
+            'user_id' => $client->getKey(),
+            'professional_profile_id' => $professional->getKey(),
+        ]);
+
+        $this->actingAs($client)
+            ->get(route('public.professionals.index'))
+            ->assertOk()
+            ->assertSee(route('client.favorites.destroy', $favorite->getKey()), false)
+            ->assertSee('name="_method" value="DELETE"', false)
+            ->assertSee('aria-pressed="true"', false);
+
+        $this->actingAs($client)
+            ->delete(route('client.favorites.destroy', $favorite->getKey()))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('favorites', ['id' => $favorite->getKey()]);
+    }
+
+    public function test_verification_badge_requires_an_effective_approval_timestamp(): void
+    {
+        $service = $this->publishedService('Service vérification effective');
+        $professional = $service->professionalProfile;
+        $professional->forceFill([
+            'business_name' => 'Profil sans validation effective',
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => null,
+        ])->save();
+
+        $this->get($this->profileUrl($professional))
+            ->assertOk()
+            ->assertDontSee('Professionnel vérifié');
+    }
+
     private function profileUrl(ProfessionalProfile $professional): string
     {
         $professional->loadMissing(['user', 'user.profile']);
