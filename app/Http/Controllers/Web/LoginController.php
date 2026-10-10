@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Controllers\\Web;
+namespace App\Http\Controllers\Web;
 
-use App\\Enums\\UserAccountStatus;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Support\\Facades\\Auth;
-use Illuminate\\Validation\\ValidationException;
-use Illuminate\\View\\View;
+use App\Enums\UserAccountStatus;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class LoginController
 {
