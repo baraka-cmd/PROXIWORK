@@ -20,6 +20,7 @@ class FavoriteController extends Controller
     {
         $favorites = Favorite::query()
             ->where('user_id', $request->user()->getKey())
+            ->whereHas('professionalProfile', fn ($profile) => $profile->publiclyDiscoverable())
             ->with(['professionalProfile.user.profile'])
             ->latest('id')
             ->paginate(12)
