@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\ProfessionalSearch;
 
 use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\ReviewStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Enums\UserAccountStatus;
@@ -202,12 +203,21 @@ class ProfessionalSearchService
                     $services
                         ->where(function (Builder $services) use ($min, $max): void {
                             $services
-                                ->whereIn('pricing_type', [
-                                    ServicePricingType::FIXED->value,
-                                    ServicePricingType::FROM->value,
-                                ])
-                                ->when($min !== null, fn (Builder $services) => $services->where('price', '>=', $min))
-                                ->when($max !== null, fn (Builder $services) => $services->where('price', '<=', $max));
+                                ->where(function (Builder $services) use ($min, $max): void {
+                                $services
+                                    ->where(function (Builder $services) use ($min, $max): void {
+                                        $services
+                                            ->where('pricing_type', ServicePricingType::FIXED->value)
+                                            ->when($min !== null, fn (Builder $services) => $services->where('price', '>=', $min))
+                                            ->when($max !== null, fn (Builder $services) => $services->where('price', '<=', $max));
+                                    })
+                                    ->orWhere(function (Builder $services) use ($min, $max): void {
+                                        $services
+                                            ->where('pricing_type', ServicePricingType::FROM->value)
+                                            ->when($min !== null, fn (Builder $services) => $services->where('price_min', '>=', $min))
+                                            ->when($max !== null, fn (Builder $services) => $services->where('price_min', '<=', $max));
+                                    });
+                            });
                         })
                         ->orWhere(function (Builder $services) use ($min, $max): void {
                             $services
@@ -222,7 +232,9 @@ class ProfessionalSearchService
     private function applyRating(Builder $query, array $filters): void
     {
         if (array_key_exists('rating', $filters)) {
-            $query->where('rating_average', '>=', $filters['rating']);
+            $query->where('rating_count', '>', 0)
+            ->whereNotNull('rating_average')
+            ->where('rating_average', '>=', $filters['rating']);
         }
     }
 
@@ -252,19 +264,24 @@ class ProfessionalSearchService
 
         match ($sort) {
             'rating' => $query
-                ->orderByDesc('rating_average')
+                // Confidence-weighted average: low-volume ratings move gradually toward the
+                // platform-wide published-review average instead of dominating on one review.
+                ->orderByRaw(
+                    '((COALESCE(rating_average, 0) * rating_count) + (5 * COALESCE((SELECT AVG(rating) FROM reviews WHERE reviews.status = ?), 0))) / (rating_count + 5) DESC',
+                    [ReviewStatus::PUBLISHED->value]
+                )
                 ->orderByDesc('rating_count')
                 ->orderByDesc('id'),
             'price_low' => $query
                 ->orderByRaw(
-                    '(SELECT MIN(COALESCE(price, price_min)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL)',
-                    [ServiceStatus::PUBLISHED->value]
+                    '(SELECT MIN(CASE WHEN services.pricing_type = ? THEN services.price WHEN services.pricing_type IN (?, ?) THEN services.price_min ELSE NULL END) FROM services INNER JOIN categories ON categories.id = services.category_id WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND categories.status = ?)',
+                    [ServicePricingType::FIXED->value, ServicePricingType::FROM->value, ServicePricingType::RANGE->value, ServiceStatus::PUBLISHED->value, $filters['currency'] ?? '', 'active']
                 )
                 ->orderByDesc('id'),
             'price_high' => $query
                 ->orderByRaw(
-                    '(SELECT MAX(COALESCE(price, price_max)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL)',
-                    [ServiceStatus::PUBLISHED->value]
+                    '(SELECT MAX(CASE WHEN services.pricing_type = ? THEN services.price WHEN services.pricing_type = ? THEN services.price_min WHEN services.pricing_type = ? THEN services.price_max ELSE NULL END) FROM services INNER JOIN categories ON categories.id = services.category_id WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND categories.status = ?)',
+                    [ServicePricingType::FIXED->value, ServicePricingType::FROM->value, ServicePricingType::RANGE->value, ServiceStatus::PUBLISHED->value, $filters['currency'] ?? '', 'active']
                 )
                 ->orderByDesc('id'),
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
