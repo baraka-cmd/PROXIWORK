@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuotationController;
 use App\Http\Controllers\Api\V1\QuotationOfferController;
 use App\Http\Controllers\Api\V1\Rbac\RoleController;
+use App\Http\Controllers\Api\V1\Rbac\UserRoleController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\ServiceController;
 use App\Http\Controllers\Api\V1\ServiceRequestController;
@@ -257,5 +258,6 @@ Route::prefix('v1')->group(function (): void {
         Route::post('roles', [RoleController::class, 'store'])->middleware('permission:rbac.manage');
         Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:rbac.manage');
         Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:rbac.manage');
+        Route::put('users/{user}/roles', [UserRoleController::class, 'update'])->middleware('permission:rbac.manage');
     });
 });
