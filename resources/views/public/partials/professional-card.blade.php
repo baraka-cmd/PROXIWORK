@@ -1,10 +1,9 @@
 @php
     $profile = $professional->user->profile;
+    $profileName = $profile !== null ? trim($profile->first_name.' '.$profile->last_name) : '';
     $displayName = filled($professional->business_name)
         ? $professional->business_name
-        : ($profile !== null
-            ? trim($profile->first_name.' '.$profile->last_name)
-            : $professional->user->name);
+        : (filled($profileName) ? $profileName : $professional->user->name);
     $profileUrl = route('public.professionals.show', [
         'professionalProfile' => $professional->getKey(),
         'slug' => IlluminateSupportStr::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
