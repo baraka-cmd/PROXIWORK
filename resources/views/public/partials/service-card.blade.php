@@ -7,6 +7,13 @@
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
     $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
     $currency = $service->currency ? ' '.$service->currency : '';
+    $billingUnitLabel = match ($service->billing_unit) {
+        'package' => 'prestation',
+        'hour' => 'heure',
+        'day' => 'jour',
+        'project' => 'projet',
+        default => $service->billing_unit ? str_replace('_', ' ', $service->billing_unit) : null,
+    };
     $priceLabel = match ($service->pricing_type->value) {
         'fixed' => $service->price !== null
             ? number_format((float) $service->price, 2, ',', ' ').$currency
@@ -20,7 +27,7 @@
         default => 'Sur devis',
     };
     if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
-        $priceLabel .= ' / '.str_replace('_', ' ', $service->billing_unit);
+        $priceLabel .= ' / '.$billingUnitLabel;
     }
 @endphp
 
@@ -68,7 +75,7 @@
 
         <div class="service-card__facts">
             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-                {{ collect([$service->service_area, $professional?->city, $professional?->province])->filter()->unique()->take(2)->join(', ') ?: 'Zone à confirmer' }}
+                {{ $service->service_area ?: (collect([$professional?->city, $professional?->province])->filter()->join(', ') ?: 'Zone à confirmer') }}
             </span>
             @if (($professional?->rating_count ?? 0) > 0)
                 <span><i class="fa-solid fa-star" aria-hidden="true"></i>
