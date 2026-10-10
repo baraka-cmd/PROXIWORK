@@ -53,8 +53,8 @@ class ProfessionalProfileActivationRequest extends FormRequest
             'services.*.images' => ['nullable', 'array', 'max:4'],
             'services.*.images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'documents' => ['nullable', 'array', 'max:8'],
-            'documents.*.type' => ['required_with:documents.*.file', Rule::in(['identity', 'certificate', 'diploma', 'license', 'reference', 'other'])],
-            'documents.*.file' => ['required_with:documents.*.type', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:5120'],
+            'documents.*.type' => ['nullable', 'required_with:documents.*.file', Rule::in(['identity', 'certificate', 'diploma', 'license', 'reference', 'other'])],
+            'documents.*.file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:5120'],
             'terms' => ['accepted'],
         ];
     }
