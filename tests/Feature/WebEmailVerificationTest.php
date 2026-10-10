@@ -86,6 +86,24 @@ class WebEmailVerificationTest extends TestCase
         ]);
     }
 
+    public function test_signed_email_link_verifies_account_without_a_preexisting_browser_session(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $user->assignRole('client');
+
+        $url = URL::temporarySignedRoute(
+            'web.verification.verify',
+            now()->addMinutes(10),
+            ['id' => $user->id, 'hash' => sha1($user->getEmailForVerification())],
+        );
+
+        $this->get($url)
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('status');
+
+        $this->assertNotNull($user->fresh()->email_verified_at);
+    }
+
     public function test_signed_link_with_another_email_hash_is_rejected(): void
     {
         $user = User::factory()->unverified()->create();
