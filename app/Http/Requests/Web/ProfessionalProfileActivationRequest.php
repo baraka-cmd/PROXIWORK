@@ -98,7 +98,7 @@ class ProfessionalProfileActivationRequest extends FormRequest
             foreach ($this->input('services', []) as $index => $service) {
                 $pricingType = $service['pricing_type'] ?? 'quote';
 
-                if (in_array($pricingType, ['fixed', 'from'], true) && (! isset($service['price']) || $service['price'] === '')) {
+                if (in_array($pricingType, ['fixed', 'from'], true) && (isset($service['price']) === false || $service['price'] === '')) {
                     $validator->errors()->add("services.$index.price", 'Indiquez le tarif demandé pour ce mode de tarification.');
                 }
 
