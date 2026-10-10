@@ -45,6 +45,31 @@
             <h3><a href="{{ $profileUrl }}">{{ $displayName }}</a></h3>
             <p class="professional-card__title">{{ $professional->professional_title ?: 'Professionnel PROXIWORK' }}</p>
         </div>
+
+        @if ($canFavoriteProfessionals)
+            <form class="professional-card__favorite-form" method="POST" action="{{ route('client.favorites.store', $professional->getKey()) }}">
+                @csrf
+                @method('PUT')
+                <button
+                    class="icon-button professional-card__favorite"
+                    type="submit"
+                    aria-label="{{ ($professional->is_favorited ?? false) ? 'Retirer '.$displayName.' des favoris' : 'Ajouter '.$displayName.' aux favoris' }}"
+                    aria-pressed="{{ ($professional->is_favorited ?? false) ? 'true' : 'false' }}"
+                    title="{{ ($professional->is_favorited ?? false) ? 'Déjà dans vos favoris' : 'Ajouter aux favoris' }}"
+                >
+                    <i class="{{ ($professional->is_favorited ?? false) ? 'fa-solid' : 'fa-regular' }} fa-heart" aria-hidden="true"></i>
+                </button>
+            </form>
+        @elseif (! auth()->check())
+            <a
+                class="icon-button professional-card__favorite"
+                href="{{ route('login', ['return_to' => '/professionals/'.$professional->getKey().'/'.$profileSlug]) }}"
+                aria-label="Connectez-vous pour ajouter {{ $displayName }} aux favoris"
+                title="Se connecter pour ajouter aux favoris"
+            >
+                <i class="fa-regular fa-heart" aria-hidden="true"></i>
+            </a>
+        @endif
     </div>
 
     <div class="professional-card__body">
