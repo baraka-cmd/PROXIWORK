@@ -65,7 +65,7 @@
                             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ collect([$professional->city, $professional->province])->filter()->join(', ') }}</span>
                         @endif
                         @if (($professional->rating_count ?? 0) > 0 && $professional->rating_average !== null)
-                            <span><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5 ({{ $professional->rating_count }} avis)</span>
+                            <span><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format($publicRatingAverage, 1, ',', ' ') }}/5 ({{ $publicReviewCount }} avis)</span>
                         @else
                             <span><i class="fa-regular fa-star" aria-hidden="true"></i>Pas encore d’avis publiés</span>
                         @endif
@@ -85,6 +85,33 @@
                             @endforeach
                         </div>
                     @endif
+
+                    <div class="professional-profile-hero__actions">
+                        <a class="button button--primary" href="#professional-services">
+                            <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                            Voir les services et demander une prestation
+                        </a>
+
+                        @if ($canFavoriteProfessional)
+                            <form method="POST" action="{{ $favorite ? route('client.favorites.destroy', $favorite->getKey()) : route('client.favorites.store', $professional->getKey()) }}">
+                                @csrf
+                                @if ($favorite)
+                                    @method('DELETE')
+                                @else
+                                    @method('PUT')
+                                @endif
+                                <button class="button button--ghost" type="submit">
+                                    <i class="{{ $favorite ? 'fa-solid' : 'fa-regular' }} fa-heart" aria-hidden="true"></i>
+                                    {{ $favorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+                                </button>
+                            </form>
+                        @elseif (! auth()->check())
+                            <a class="button button--ghost" href="{{ route('login', ['return_to' => parse_url(route('public.professionals.show', ['professionalProfile' => $professional->getKey(), 'slug' => $profileSlug]), PHP_URL_PATH)]) }}">
+                                <i class="fa-regular fa-heart" aria-hidden="true"></i>
+                                Connectez-vous pour ajouter aux favoris
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </header>
 
@@ -94,8 +121,8 @@
                         <span class="eyebrow">RETOURS CLIENTS</span>
                         <h2 id="professional-reviews-title">Avis publiés</h2>
                         <p class="directory-results__summary">
-                            @if ($publicReviewCount > 0 && $professional->rating_average !== null)
-                                {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5 · {{ $publicReviewCount }} avis publié{{ $publicReviewCount === 1 ? '' : 's' }}
+                            @if ($publicReviewCount > 0 && $publicRatingAverage !== null)
+                                {{ number_format($publicRatingAverage, 1, ',', ' ') }}/5 · {{ $publicReviewCount }} avis publié{{ $publicReviewCount === 1 ? '' : 's' }}
                             @else
                                 Aucun avis publié pour le moment
                             @endif
@@ -144,7 +171,7 @@
                 @endif
             </section>
 
-            <section class="professional-profile-services" aria-labelledby="professional-services-title">
+            <section id="professional-services" class="professional-profile-services" aria-labelledby="professional-services-title">
                 <div class="directory-results__header">
                     <div>
                         <span class="eyebrow">OFFRES PUBLIÉES</span>
