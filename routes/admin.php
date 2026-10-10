@@ -28,30 +28,30 @@ Route::middleware(['auth', 'auth.session', 'active.account'])->group(function ()
     Route::post('users/{user}/activate', [UserController::class, 'activate'])->middleware('permission:admin.users.activate')->name('users.activate');
 });
 
-Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:rbac.view'])->group(function (): void {
     Route::get('roles', [RoleController::class, 'index'])->name('roles.index');
     Route::get('permissions', [PermissionController::class, 'index'])->name('permissions.index');
     Route::get('permissions/{permission}', [PermissionController::class, 'show'])->name('permissions.show');
 });
-Route::middleware(['auth', 'permission:rbac.manage'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:rbac.manage'])->group(function (): void {
     Route::get('roles/create', [RoleController::class, 'create'])->name('roles.create');
     Route::post('roles', [RoleController::class, 'store'])->name('roles.store');
     Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
     Route::put('roles/{role}', [RoleController::class, 'update'])->name('roles.update');
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
 });
-Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:rbac.view'])->group(function (): void {
     Route::get('roles/{role}', [RoleController::class, 'show'])->name('roles.show');
 });
 
-Route::middleware(['auth', 'permission:admin.professionals.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
     Route::get('professionals/{professional}', [ProfessionalController::class, 'show'])->name('professionals.show');
     Route::get('professional-documents/{document}/download', [ProfessionalDocumentController::class, 'download'])
         ->middleware('active.account')
         ->name('professional-documents.download');
 });
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account'])->group(function (): void {
     Route::post('professionals/{professional}/suspend', [ProfessionalController::class, 'suspend'])->middleware('permission:admin.professionals.suspend')->name('professionals.suspend');
     Route::post('professionals/{professional}/activate', [ProfessionalController::class, 'activate'])->middleware('permission:admin.professionals.activate')->name('professionals.activate');
     Route::post('professionals/{professional}/verification/start', [ProfessionalController::class, 'startReview'])->middleware('permission:admin.professionals.review')->name('professionals.verification.start');
@@ -60,11 +60,11 @@ Route::middleware('auth')->group(function (): void {
     Route::post('professionals/{professional}/verification/request-information', [ProfessionalController::class, 'requestInformation'])->middleware('permission:admin.professionals.review')->name('professionals.verification.request-information');
 });
 
-Route::middleware(['auth', 'permission:categories.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:categories.view'])->group(function (): void {
     Route::get('categories', [CategoryController::class, 'index'])->name('categories.index');
     Route::get('categories/{category}', [CategoryController::class, 'show'])->name('categories.show');
 });
-Route::middleware(['auth', 'permission:categories.manage'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:categories.manage'])->group(function (): void {
     Route::get('categories/create', [CategoryController::class, 'create'])->name('categories.create');
     Route::post('categories', [CategoryController::class, 'store'])->name('categories.store');
     Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
@@ -72,35 +72,35 @@ Route::middleware(['auth', 'permission:categories.manage'])->group(function (): 
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
 });
 
-Route::middleware(['auth', 'permission:services.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:services.view'])->group(function (): void {
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
 });
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account'])->group(function (): void {
     Route::post('services/{service}/publish', [ServiceController::class, 'publish'])->middleware('permission:services.manage')->name('services.publish');
     Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])->middleware('permission:services.manage')->name('services.unpublish');
     Route::post('services/{service}/archive', [ServiceController::class, 'archive'])->middleware('permission:services.manage')->name('services.archive');
 });
 
-Route::middleware(['auth', 'permission:requests.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:requests.view'])->group(function (): void {
     Route::get('service-requests', [ServiceRequestController::class, 'index'])->name('service-requests.index');
     Route::get('service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
 });
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account'])->group(function (): void {
     Route::post('service-requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('permission:requests.manage')->name('service-requests.cancel');
     Route::post('service-requests/{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])->middleware('permission:requests.manage')->name('service-requests.reject');
 });
 
-Route::middleware(['auth', 'permission:orders.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:orders.view'])->group(function (): void {
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
 });
-Route::middleware(['auth', 'permission:payments.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:payments.view'])->group(function (): void {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
 });
 
-Route::middleware(['auth', 'permission:support.manage'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:support.manage'])->group(function (): void {
     Route::get('support', [SupportController::class, 'index'])->name('support.index');
     Route::get('support/{ticket}', [SupportController::class, 'show'])->name('support.show');
     Route::post('support/{ticket}/assign', [SupportController::class, 'assign'])->name('support.assign');
@@ -110,21 +110,21 @@ Route::middleware(['auth', 'permission:support.manage'])->group(function (): voi
     Route::post('support/{ticket}/close', [SupportController::class, 'close'])->name('support.close');
 });
 
-Route::middleware(['auth', 'permission:audit.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:audit.view'])->group(function (): void {
     Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
     Route::get('audit/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
 });
 
-Route::middleware(['auth', 'permission:admin.dashboard.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:admin.dashboard.view'])->group(function (): void {
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 });
 
-Route::middleware(['auth', 'permission:admin.professionals.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('verification', [VerificationController::class, 'index'])->name('verification.index');
     Route::get('verification/{professional}', [VerificationController::class, 'show'])->name('verification.show');
 });
 
-Route::middleware(['auth', 'permission:reports.manage'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:reports.manage'])->group(function (): void {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::post('reports/{report}/assign', [ReportController::class, 'assign'])->name('reports.assign');
