@@ -8,6 +8,7 @@ use App\Enums\UserAccountStatus;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Auth\SessionRevocationService;
 use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,7 @@ class AdminUserService
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly SessionRevocationService $sessionRevocationService,
     ) {}
 
     public function paginate(array $filters)
@@ -76,7 +78,7 @@ class AdminUserService
             $target->account_status = UserAccountStatus::SUSPENDED->value;
             $target->save();
             $changed = true;
-            $target->tokens()->delete();
+            $this->sessionRevocationService->revokeAll($target);
 
             $this->auditLogService->record(
                 'admin.user.suspended',
