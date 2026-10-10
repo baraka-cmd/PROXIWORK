@@ -88,6 +88,62 @@
                 </div>
             </header>
 
+            <section class="professional-profile-reviews" aria-labelledby="professional-reviews-title">
+                <div class="directory-results__header">
+                    <div>
+                        <span class="eyebrow">RETOURS CLIENTS</span>
+                        <h2 id="professional-reviews-title">Avis publiés</h2>
+                        <p class="directory-results__summary">
+                            @if ($publicReviewCount > 0 && $professional->rating_average !== null)
+                                {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5 · {{ $publicReviewCount }} avis publié{{ $publicReviewCount === 1 ? '' : 's' }}
+                            @else
+                                Aucun avis publié pour le moment
+                            @endif
+                        </p>
+                    </div>
+                </div>
+
+                @if ($reviews->isEmpty())
+                    <div class="state-empty surface-card">
+                        <div>
+                            <div class="state-empty__icon"><i class="fa-regular fa-star" aria-hidden="true"></i></div>
+                            <h3>Pas encore de commentaire public</h3>
+                            <p>Les avis apparaîtront ici après leur publication selon les règles de PROXIWORK.</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="professional-review-list">
+                        @foreach ($reviews as $review)
+                            <article class="professional-review surface-card">
+                                <header class="professional-review__header">
+                                    <div>
+                                        <p class="professional-review__label">Avis client publié</p>
+                                        <time datetime="{{ $review->published_at->toAtomString() }}">{{ $review->published_at->format('d/m/Y') }}</time>
+                                    </div>
+                                    <span class="professional-review__rating" aria-label="Note {{ $review->rating }} sur 5">
+                                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                                        {{ $review->rating }}/5
+                                    </span>
+                                </header>
+
+                                @if (filled($review->comment))
+                                    <p class="professional-review__comment">{{ $review->comment }}</p>
+                                @else
+                                    <p class="professional-review__comment professional-review__comment--empty">Aucun commentaire écrit.</p>
+                                @endif
+
+                                @if ($review->response)
+                                    <div class="professional-review__response">
+                                        <p class="professional-review__label">Réponse du professionnel</p>
+                                        <p>{{ $review->response->response }}</p>
+                                    </div>
+                                @endif
+                            </article>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
             <section class="professional-profile-services" aria-labelledby="professional-services-title">
                 <div class="directory-results__header">
                     <div>
