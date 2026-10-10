@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
-use App\Enums\UserAccountStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Str;
