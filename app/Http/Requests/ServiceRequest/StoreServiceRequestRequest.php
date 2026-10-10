@@ -57,6 +57,7 @@ class StoreServiceRequestRequest extends FormRequest
 
             if ($service === null) {
                 $validator->errors()->add('service_id', 'Le service sélectionné n’est plus disponible.');
+
                 return;
             }
 
