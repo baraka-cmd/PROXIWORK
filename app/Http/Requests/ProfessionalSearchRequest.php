@@ -63,8 +63,8 @@ class ProfessionalSearchRequest extends FormRequest
 
                 if (in_array($this->input('sort'), ['price_low', 'price_high'], true) && ! $this->filled('currency')) {
                     $validator->errors()->add(
-                        'currency',
-                        'Choisissez une devise pour trier des prix comparables.'
+                        'sort',
+                        'Choisissez une devise dans le filtre Budget pour trier des prix comparables.'
                     );
                 }
             },
