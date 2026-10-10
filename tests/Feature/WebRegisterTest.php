@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\UserAccountStatus;
+use App\Models\Category;
 use App\Models\ProfessionalProfile;
+use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,7 +40,8 @@ class WebRegisterTest extends TestCase
     public function test_guest_can_create_an_active_account(): void
     {
         $response = $this->post(route('register.store'), [
-            'first_name' => 'Baraka',\n            'last_name' => 'Ntwali',
+            'first_name' => 'Baraka',
+            'last_name' => 'Ntwali',
             'email' => 'Baraka@Example.com',
             'account_type' => 'client',
             'password' => 'Password123!',
@@ -117,7 +120,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'first_name' => 'Tentative',\n            'last_name' => 'Admin',
+                'first_name' => 'Tentative',
+            'last_name' => 'Admin',
                 'email' => 'attempt@example.com',
                 'account_type' => 'admin',
                 'password' => 'Password123!',
@@ -135,7 +139,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'first_name' => 'Compte',\n            'last_name' => 'Sans type',
+                'first_name' => 'Compte',
+            'last_name' => 'Sans type',
                 'email' => 'missing-type@example.com',
                 'password' => 'Password123!',
                 'password_confirmation' => 'Password123!',
@@ -154,7 +159,8 @@ class WebRegisterTest extends TestCase
 
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'first_name' => 'Baraka',\n            'last_name' => 'Ntwali',
+                'first_name' => 'Baraka',
+            'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'Password123!',
