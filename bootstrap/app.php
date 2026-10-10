@@ -6,6 +6,7 @@ use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureSessionVersionIsCurrent;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => EnsureUserHasPermission::class,
             'security.headers' => AddSecurityHeaders::class,
             'active.account' => EnsureUserIsActive::class,
+            'session.version' => EnsureSessionVersionIsCurrent::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
