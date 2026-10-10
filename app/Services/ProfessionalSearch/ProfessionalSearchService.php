@@ -41,11 +41,7 @@ class ProfessionalSearchService
             ->whereHas('user', fn (Builder $user) => $user
                 ->where('account_status', UserAccountStatus::ACTIVE->value)
                 ->whereNotNull('email_verified_at'))
-            ->whereHas('services', function (Builder $services): void {
-                $services
-                    ->published()
-                    ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'));
-            })
+            ->whereHas('services', fn (Builder $services) => $services->publiclyAvailable())
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,bio',
