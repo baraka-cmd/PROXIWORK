@@ -4,7 +4,7 @@
     $searchTitleTerm = trim((string) ($filters['search'] ?? ''));
     $selectedCategory = $categories->firstWhere('slug', $filters['category'] ?? null);
     $searchPageTitle = $searchTitleTerm !== ''
-        ? 'Résultats pour « '.e(\\Illuminate\\Support\\Str::limit($searchTitleTerm, 60)).' » — PROXIWORK'
+        ? 'Résultats pour « '.e(\Illuminate\Support\Str::limit($searchTitleTerm, 60)).' » — PROXIWORK'
         : ($selectedCategory
             ? e($selectedCategory->name).' — Services PROXIWORK'
             : 'Découvrir des services — PROXIWORK');
