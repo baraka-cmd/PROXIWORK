@@ -89,8 +89,6 @@ class PublicProfessionalProfileTest extends TestCase
 
     public function test_service_search_links_to_public_professional_profiles(): void
     {
-        $this->withoutExceptionHandling();
-
         $service = $this->publishedService('Service relié au profil public');
         $professional = $service->professionalProfile;
         $professional->forceFill(['business_name' => 'Entreprise visible'])->save();
@@ -98,8 +96,9 @@ class PublicProfessionalProfileTest extends TestCase
 
         $this->get(route('public.search'))
             ->assertOk()
-            ->assertSee($url, false)
-            ->assertSee('Entreprise visible');
+            ->assertSee('Service relié au profil public')
+            ->assertSee('Entreprise visible')
+            ->assertSee($url, false);
     }
 
     public function test_professional_directory_links_to_public_professional_profiles(): void
