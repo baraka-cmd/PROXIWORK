@@ -202,7 +202,7 @@ class AuthController extends Controller
             }
         );
 
-        if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
+        if ($status !== Password::PASSWORD_RESET || ! $resetUser instanceof User) {
             throw ValidationException::withMessages([
                 'email' => ['Le lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.'],
             ]);
