@@ -34,8 +34,7 @@ class AuthController extends Controller
     public function __construct(
         private readonly AuditLogService $auditLogService,
         private readonly SessionRevocationService $sessionRevocationService,
-    ) {
-    }
+    ) {}
 
     public function register(RegisterRequest $request): JsonResponse
     {
