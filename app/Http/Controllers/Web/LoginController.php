@@ -52,6 +52,7 @@ class LoginController
         // Rotate the session identifier immediately after authentication to prevent fixation.
         $request->session()->forget('active_workspace');
         $request->session()->regenerate();
+        $request->session()->put('auth.session_version', (int) $user->session_version);
         $auditLogService->record('auth.web.login_succeeded', $user, $user, [], $request);
 
         // The destination is resolved from server-side roles/permissions, never from a
