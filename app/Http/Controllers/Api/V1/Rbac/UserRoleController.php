@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Rbac;
 
+use App\Enums\ProfessionalVerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Rbac\SyncUserRolesRequest;
 use App\Models\Role;
@@ -56,6 +57,16 @@ class UserRoleController extends Controller
             }
 
             $target->roles()->sync($roleIds);
+
+            if ($target->hasRole('professional') && $target->professionalProfile()->exists() === false) {
+                $target->professionalProfile()->create([
+                    'status' => 'draft',
+                    'visibility' => 'private',
+                    'verification_status' => ProfessionalVerificationStatus::PENDING,
+                    'professional_terms_accepted_at' => now(),
+                ]);
+            }
+
             $this->sessionRevocationService->revokeAll($target);
 
             $newRoles = $target->roles()->pluck('name')->sort()->values()->all();
