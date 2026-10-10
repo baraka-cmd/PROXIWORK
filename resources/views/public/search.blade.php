@@ -37,6 +37,17 @@
                 </form>
             </header>
 
+            @if ($errors->any())
+                <div class="search-validation-alert" role="alert">
+                    <strong>Certains critères de recherche doivent être corrigés.</strong>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if ($featuredCategories->isNotEmpty())
                 <nav class="service-category-shortcuts" aria-label="Catégories à découvrir">
                     <span class="eyebrow">CATÉGORIES À DÉCOUVRIR</span>
