@@ -76,10 +76,12 @@ class LoginController
         $targetHost = parse_url($url, PHP_URL_HOST);
         $applicationHost = parse_url((string) config('app.url'), PHP_URL_HOST);
         $scheme = parse_url($url, PHP_URL_SCHEME);
+        $applicationScheme = parse_url((string) config('app.url'), PHP_URL_SCHEME);
 
         return is_string($targetHost)
             && is_string($applicationHost)
-            && in_array($scheme, ['http', 'https'], true)
+            && is_string($scheme)
+            && $scheme === $applicationScheme
             && hash_equals(strtolower($applicationHost), strtolower($targetHost));
     }
 
