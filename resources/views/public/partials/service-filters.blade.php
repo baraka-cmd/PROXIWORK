@@ -86,6 +86,29 @@
             @error('max_price')<small class="field-error" role="alert">{{ $message }}</small>@enderror
         </div>
 
+        <div class="form-field">
+            <label class="form-label" for="service-filter-billing-unit">Unité de facturation</label>
+            <div class="form-select-wrapper">
+                <select id="service-filter-billing-unit" class="form-control form-select" name="billing_unit">
+                    <option value="">Toutes les unités</option>
+                    @foreach ($billingUnits as $billingUnit)
+                        <option value="{{ $billingUnit }}" @selected(($filters['billing_unit'] ?? '') === $billingUnit)>
+                            {{ match ($billingUnit) {
+                                'package' => 'Forfait / prestation',
+                                'hour' => 'Par heure',
+                                'day' => 'Par jour',
+                                'project' => 'Par projet',
+                                default => \Illuminate\Support\Str::headline(str_replace('_', ' ', $billingUnit)),
+                            } }}
+                        </option>
+                    @endforeach
+                </select>
+                <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
+            </div>
+            @error('billing_unit')<small class="field-error" role="alert">{{ $message }}</small>@enderror
+            <small class="form-help">Pour comparer un budget ou trier par prix, choisissez la même unité de facturation.</small>
+        </div>
+
         <div class="directory-filter-grid">
             <div class="form-field">
                 <label class="form-label" for="service-filter-rating">Note minimale</label>
