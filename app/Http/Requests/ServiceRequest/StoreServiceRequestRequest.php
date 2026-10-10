@@ -58,7 +58,7 @@ class StoreServiceRequestRequest extends FormRequest
                 return;
             }
 
-            if ($service->status->value !== 'published' || $service->published_at === null) {
+            if (Service::query()->publiclyAvailable()->whereKey($service->getKey())->exists() === false) {
                 $validator->errors()->add('service_id', 'Le service sélectionné n’est plus disponible.');
             }
 
