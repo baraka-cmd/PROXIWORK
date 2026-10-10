@@ -41,7 +41,7 @@
                 @php($profile = $user->profile)
                 @php($personName = $profile !== null ? trim($profile->first_name.' '.$profile->last_name) : '')
                 @php($displayName = filled($professional->business_name) ? $professional->business_name : (filled($personName) ? $personName : $user->name))
-                @php($profileSlug = \\Illuminate\\Support\\Str::slug($displayName) ?: 'professionnel-'.$professional->getKey())
+                @php($profileSlug = \Illuminate\Support\Str::slug($displayName) ?: 'professionnel-'.$professional->getKey())
                 <article class="client-entity-card">
                     <div class="client-entity-card__top">
                         <div class="client-avatar">
