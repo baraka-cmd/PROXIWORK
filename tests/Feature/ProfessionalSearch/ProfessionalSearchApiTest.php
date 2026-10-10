@@ -478,6 +478,27 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonPath('data.0.id', $established->id);
     }
 
+    public function test_public_verification_requires_an_approval_timestamp_and_hides_internal_states(): void
+    {
+        $professional = $this->professional([
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => null,
+        ]);
+        $this->publishedService($professional);
+
+        $this->getJson('/api/v1/professionals')
+            ->assertOk()
+            ->assertJsonPath('data.0.verification.verified', false)
+            ->assertJsonPath('data.0.verification.status', 'unverified');
+
+        $professional->forceFill(['verified_at' => now()])->save();
+
+        $this->getJson('/api/v1/professionals')
+            ->assertOk()
+            ->assertJsonPath('data.0.verification.verified', true)
+            ->assertJsonPath('data.0.verification.status', 'verified');
+    }
+
     private function professional(array $attributes = []): ProfessionalProfile
     {
         $user = User::factory()->create();
