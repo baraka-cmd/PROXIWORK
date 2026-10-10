@@ -19,15 +19,10 @@ class ProfessionalProfile extends Model
     use HasFactory;
 
     public const STATUS_DRAFT = 'draft';
-
     public const STATUS_ACTIVE = 'active';
-
     public const STATUS_SUSPENDED = 'suspended';
-
     public const STATUS_CLOSED = 'closed';
-
     public const VISIBILITY_PUBLIC = 'public';
-
     public const VISIBILITY_PRIVATE = 'private';
 
     protected $attributes = [
@@ -36,17 +31,9 @@ class ProfessionalProfile extends Model
     ];
 
     protected $fillable = [
-        'professional_title',
-        'description',
-        'years_experience',
-        'starting_price',
-        'currency',
-        'province',
-        'city',
-        'commune',
-        'service_radius_km',
-        'latitude',
-        'longitude',
+        'business_name', 'professional_title', 'description', 'years_experience',
+        'starting_price', 'currency', 'province', 'city', 'commune',
+        'service_radius_km', 'latitude', 'longitude',
     ];
 
     protected function casts(): array
@@ -75,19 +62,25 @@ class ProfessionalProfile extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'professional_categories')->withTimestamps();
+    }
+
     public function skills(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Skill::class,
-            'professional_skills',
-            'professional_profile_id',
-            'skill_id'
-        )->withPivot(['proficiency_level', 'years_experience'])->withTimestamps();
+        return $this->belongsToMany(Skill::class, 'professional_skills', 'professional_profile_id', 'skill_id')
+            ->withPivot(['proficiency_level', 'years_experience'])->withTimestamps();
     }
 
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProfessionalDocument::class);
     }
 
     public function serviceRequests(): HasMany
