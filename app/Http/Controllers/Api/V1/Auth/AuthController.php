@@ -41,6 +41,7 @@ class AuthController extends Controller
                 'name' => $request->string('name')->toString(),
                 'email' => mb_strtolower($request->string('email')->toString()),
                 'password' => $request->string('password')->toString(),
+                'terms_accepted_at' => now(),
             ]);
 
             $user->profile()->create();
