@@ -23,6 +23,7 @@
     $verificationLabels = [
         'pending' => 'En attente',
         'under_review' => 'En cours de vérification',
+        'needs_information' => 'Informations complémentaires requises',
         'verified' => 'Vérifié',
         'rejected' => 'Rejeté',
     ];
@@ -60,6 +61,54 @@
                 </p>
             </div>
         </section>
+
+        @if (in_array($verification, ['pending', 'under_review', 'needs_information', 'rejected'], true))
+            <section class="professional-dashboard-card professional-dashboard-card--verification" aria-labelledby="verification-guidance-title">
+                <div class="professional-dashboard-card__header">
+                    <div>
+                        <span class="professional-dashboard-card__eyebrow">VÉRIFICATION DU DOSSIER</span>
+                        <h3 id="verification-guidance-title">{{ $verificationLabels[$verification] ?? 'Statut du dossier' }}</h3>
+                    </div>
+                </div>
+                @if ($verification === 'needs_information')
+                    <div class="professional-dashboard-card__notice professional-dashboard-card__notice--warning">
+                        <i class="fa-solid fa-clipboard-question" aria-hidden="true"></i>
+                        <p>{{ $profile['verification_note'] ?: 'L’administration demande des informations ou des corrections complémentaires. Consultez les indications et mettez votre dossier à jour.' }}</p>
+                    </div>
+                    <form method="POST" action="{{ route('professional.documents.store') }}" enctype="multipart/form-data" class="professional-verification-upload">
+                        @csrf
+                        <h4>Ajouter un justificatif</h4>
+                        <label for="professional-document-type">Type de document</label>
+                        <select id="professional-document-type" name="type" required>
+                            <option value="identity">Pièce d’identité</option>
+                            <option value="certificate">Certificat</option>
+                            <option value="diploma">Diplôme</option>
+                            <option value="license">Licence / autorisation</option>
+                            <option value="reference">Référence / expérience</option>
+                            <option value="other">Autre</option>
+                        </select>
+                        <label for="professional-document-file">Fichier (PDF ou image, 5 Mo maximum)</label>
+                        <input id="professional-document-file" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" required>
+                        <button class="button button--secondary" type="submit">Ajouter au dossier privé</button>
+                    </form>
+                    <form method="POST" action="{{ route('professional.verification.resubmit') }}" class="professional-verification-resubmit">
+                        @csrf
+                        <label><input type="checkbox" name="confirm" value="1" required> J’ai corrigé les éléments demandés et je souhaite soumettre à nouveau mon dossier.</label>
+                        <button class="button button--primary" type="submit">Soumettre à nouveau</button>
+                    </form>
+                @elseif ($verification === 'rejected')
+                    <div class="professional-dashboard-card__notice professional-dashboard-card__notice--warning">
+                        <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+                        <p>{{ $profile['verification_note'] ?: 'La vérification de votre dossier a été rejetée. Consultez le motif communiqué par l’administration et les possibilités de correction qui vous ont été indiquées.' }}</p>
+                    </div>
+                @else
+                    <div class="professional-dashboard-card__notice professional-dashboard-card__notice--warning">
+                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                        <p>{{ $verification === 'pending' ? 'Votre dossier a été reçu et attend la revue de l’administration.' : 'Votre dossier est en cours de vérification. Vous pouvez continuer à compléter votre profil, mais votre visibilité publique reste désactivée.' }}</p>
+                    </div>
+                @endif
+            </section>
+        @endif
 
         <section class="professional-dashboard__stats" aria-label="Statistiques principales">
             <article class="professional-stat-card">
@@ -136,13 +185,18 @@
                     </div>
                 </div>
 
-                @if ($services['published'] === 0)
+                @if ($verification !== 'verified')
+                    <div class="professional-dashboard-card__notice professional-dashboard-card__notice--warning">
+                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                        <p>Les services restent en brouillon ou non publics tant que la vérification professionnelle n’est pas approuvée.</p>
+                    </div>
+                @elseif ($services['published'] === 0)
                     <div class="professional-dashboard-card__notice professional-dashboard-card__notice--warning">
                         <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
                         <p>
                             {{ $services['total'] === 0
                                 ? 'Créez votre premier service pour commencer à présenter votre expertise.'
-                                : 'Publiez au moins un service pour apparaître dans le catalogue.' }}
+                                : 'Préparez un service et publiez-le lorsque toutes les conditions de publication sont satisfaites.' }}
                         </p>
                     </div>
                 @else
@@ -177,17 +231,19 @@
                                 <span class="professional-action-list__icon" aria-hidden="true">
                                     @if ($action['type'] === 'notifications')
                                         <i class="fa-solid fa-bell"></i>
+                                    @elseif ($action['type'] === 'verification')
+                                        <i class="fa-solid fa-shield-halved"></i>
                                     @else
                                         <i class="fa-solid fa-briefcase"></i>
                                     @endif
                                 </span>
                                 <div>
-                                    <strong>{{ $action['type'] === 'notifications' ? 'Notifications' : 'Services' }}</strong>
+                                    <strong>{{ $action['type'] === 'notifications' ? 'Notifications' : ($action['type'] === 'verification' ? 'Vérification' : 'Services') }}</strong>
                                     <p>{{ $action['message'] }}</p>
                                 </div>
                                 <a
                                     class="professional-action-list__link"
-                                    href="{{ $action['type'] === 'notifications' ? url('/professional/notifications') : url('/professional/services') }}"
+                                    href="{{ $action['type'] === 'notifications' ? url('/professional/notifications') : ($action['type'] === 'verification' ? url('/professional/profile') : url('/professional/services')) }}"
                                     aria-label="{{ $action['message'] }}"
                                 >
                                     <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>

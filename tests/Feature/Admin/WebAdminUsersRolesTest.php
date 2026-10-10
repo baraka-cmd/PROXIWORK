@@ -91,6 +91,39 @@ class WebAdminUsersRolesTest extends TestCase
         $this->actingAs($admin)->delete('/admin/roles/'.$system->id)->assertForbidden();
     }
 
+    public function test_admin_can_assign_and_revoke_user_roles_from_the_web_interface(): void
+    {
+        $admin = $this->admin();
+        $target = User::factory()->create();
+        $target->assignRole('client');
+        $target->createToken('old-device');
+
+        $this->actingAs($admin)
+            ->get('/admin/users/'.$target->id)
+            ->assertOk()
+            ->assertSee('Rôles et autorisations');
+
+        $this->actingAs($admin)
+            ->put('/admin/users/'.$target->id.'/roles', [
+                'role_ids' => [Role::where('name', 'professional')->value('id')],
+            ])
+            ->assertRedirect();
+
+        $target->refresh();
+        $this->assertTrue($target->hasRole('professional'));
+        $this->assertFalse($target->hasRole('client'));
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id' => $target->id,
+            'status' => 'draft',
+            'visibility' => 'private',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $admin->id,
+            'action' => 'admin.user.roles_updated',
+        ]);
+    }
+
     public function test_user_suspend_and_activate_use_existing_domain_service(): void
     {
         $admin = $this->admin();

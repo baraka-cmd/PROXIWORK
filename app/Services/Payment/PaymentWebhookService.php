@@ -58,17 +58,19 @@ class PaymentWebhookService
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($transaction->status->isFinal()) {
-                $transaction->forceFill(['provider_event_id' => $eventId])->save();
-
-                return $transaction->refresh();
-            }
-
             if ($this->money($amount) !== $this->money((string) $transaction->amount)
                 || strtoupper($currency) !== strtoupper($transaction->currency)) {
                 throw ValidationException::withMessages([
                     'payment' => 'Le callback ne correspond pas au montant ou à la devise de la transaction.',
                 ]);
+            }
+
+            // Validate the financial payload even when the transaction is already
+            // final. A repeated callback must never bypass amount/currency checks.
+            if ($transaction->status->isFinal()) {
+                $transaction->forceFill(['provider_event_id' => $eventId])->save();
+
+                return $transaction->refresh();
             }
 
             $newStatus = PaymentTransactionStatus::from($status->value);

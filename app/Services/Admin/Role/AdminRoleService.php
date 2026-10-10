@@ -6,6 +6,7 @@ namespace App\Services\Admin\Role;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,9 +34,16 @@ class AdminRoleService
         ])->loadCount('users');
     }
 
-    public function permissions()
+    public function permissions(User $actor)
     {
+        $allowedPermissionIds = $actor->roles()
+            ->with('permissions:id')
+            ->get()
+            ->flatMap(fn ($role) => $role->permissions->pluck('id'))
+            ->unique();
+
         return Permission::query()
+            ->whereIn('id', $allowedPermissionIds)
             ->orderBy('group')
             ->orderBy('display_name')
             ->get(['id', 'name', 'display_name', 'group', 'description'])
@@ -75,8 +83,24 @@ class AdminRoleService
                 'description' => $data['description'] ?? null,
             ]);
 
-            if (array_key_exists('permission_ids', $data)) {
-                $role->permissions()->sync($data['permission_ids']);
+            if (array_key_exists('permissions_submitted', $data) || array_key_exists('permission_ids', $data)) {
+                $actorPermissionIds = $request->user()->roles()
+                    ->with('permissions:id')
+                    ->get()
+                    ->flatMap(fn ($assignedRole) => $assignedRole->permissions->pluck('id'))
+                    ->unique();
+
+                $protectedExistingIds = $role->permissions()
+                    ->pluck('permissions.id')
+                    ->diff($actorPermissionIds);
+
+                $permissionIds = collect($data['permission_ids'])
+                    ->merge($protectedExistingIds)
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $role->permissions()->sync($permissionIds);
             }
 
             $this->auditLogService->record(

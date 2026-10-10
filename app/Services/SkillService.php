@@ -15,18 +15,30 @@ class SkillService
     public function create(array $attributes): Skill
     {
         return DB::transaction(function () use ($attributes): Skill {
+            $categoryIds = $attributes['category_ids'] ?? null;
+            unset($attributes['category_ids']);
             $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $attributes['name']);
 
-            return Skill::create($attributes);
+            $skill = Skill::create($attributes);
+            if ($categoryIds !== null) {
+                $skill->categories()->sync($categoryIds);
+            }
+
+            return $skill->load('categories');
         });
     }
 
     public function update(Skill $skill, array $attributes): Skill
     {
         return DB::transaction(function () use ($skill, $attributes): Skill {
+            $categoryIds = $attributes['category_ids'] ?? null;
+            unset($attributes['category_ids']);
             $skill->update($attributes);
+            if ($categoryIds !== null) {
+                $skill->categories()->sync($categoryIds);
+            }
 
-            return $skill->refresh();
+            return $skill->refresh()->load('categories');
         });
     }
 

@@ -17,6 +17,12 @@
 @section('page_description', 'Retrouvez en un coup d’œil votre profil, vos favoris, vos adresses et les actions importantes.')
 
 @section('page_actions')
+    @if (! auth()->user()->hasRole('professional'))
+        <a class="button button--secondary" href="{{ route('account.professional-profile.create') }}">
+            <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+            <span>Devenir professionnel</span>
+        </a>
+    @endif
     <a class="button button--primary" href="{{ url('/search') }}">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         <span>Rechercher un professionnel</span>

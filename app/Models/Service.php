@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CategoryStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
+use App\Enums\UserAccountStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,17 +26,9 @@ class Service extends Model
     ];
 
     protected $fillable = [
-        'category_id',
-        'title',
-        'slug',
-        'short_description',
-        'description',
-        'pricing_type',
-        'price',
-        'price_min',
-        'price_max',
-        'currency',
-        'estimated_duration_minutes',
+        'category_id', 'title', 'slug', 'short_description', 'description',
+        'pricing_type', 'price', 'price_min', 'price_max', 'currency',
+        'estimated_duration_minutes', 'billing_unit', 'service_area', 'conditions',
         'sort_order',
     ];
 
@@ -63,19 +58,12 @@ class Service extends Model
 
     public function skills(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Skill::class,
-            'service_skills',
-            'service_id',
-            'skill_id'
-        )->withTimestamps();
+        return $this->belongsToMany(Skill::class, 'service_skills', 'service_id', 'skill_id')->withTimestamps();
     }
 
     public function images(): HasMany
     {
-        return $this->hasMany(ServiceImage::class)
-            ->orderBy('sort_order')
-            ->orderBy('id');
+        return $this->hasMany(ServiceImage::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function serviceRequests(): HasMany
@@ -83,10 +71,28 @@ class Service extends Model
         return $this->hasMany(ServiceRequest::class);
     }
 
-    public function scopePublished($query)
+    public function scopePublished(Builder $query): Builder
     {
         return $query
             ->where('status', ServiceStatus::PUBLISHED->value)
             ->whereNotNull('published_at');
+    }
+
+    /**
+     * Public catalogue visibility is enforced in the database query so that
+     * unpublished services and services owned by private, suspended, or
+     * inactive accounts cannot leak through alternate public endpoints.
+     */
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query
+            ->published()
+            ->whereHas('category', fn (Builder $category) => $category
+                ->where('status', CategoryStatus::ACTIVE->value))
+            ->whereHas('professionalProfile', fn (Builder $professional) => $professional
+                ->where('status', ProfessionalProfile::STATUS_ACTIVE)
+                ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+                ->whereHas('user', fn (Builder $user) => $user
+                    ->where('account_status', UserAccountStatus::ACTIVE->value)));
     }
 }

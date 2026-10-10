@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Enums\UserAccountStatus;
+use App\Models\Category;
 use App\Models\ProfessionalProfile;
+use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,17 +30,20 @@ class WebRegisterTest extends TestCase
         $this->get(route('register'))
             ->assertOk()
             ->assertViewIs('auth.register')
-            ->assertSee('Créez votre compte')
-            ->assertSee('Continuer avec Google')
+            ->assertSee('Bienvenue sur PROXIWORK')
+            ->assertSee('Étapes d’inscription professionnelle')
+            ->assertSee('Ajouter un autre service')
             ->assertSee('name="account_type"', false)
-            ->assertSee('Client — je recherche des services')
-            ->assertSee('Professionnel — je propose mes services');
+            ->assertSee('Je suis client')
+            ->assertSee('Je suis professionnel')
+            ->assertSee('Identité et coordonnées');
     }
 
     public function test_guest_can_create_an_active_account(): void
     {
         $response = $this->post(route('register.store'), [
-            'name' => 'Baraka Ntwali',
+            'first_name' => 'Baraka',
+            'last_name' => 'Ntwali',
             'email' => 'Baraka@Example.com',
             'account_type' => 'client',
             'password' => 'Password123!',
@@ -63,10 +68,35 @@ class WebRegisterTest extends TestCase
 
     public function test_professional_registration_assigns_role_and_creates_pending_profile(): void
     {
+        $category = Category::query()->create([
+            'name' => 'Plomberie',
+            'slug' => 'plomberie-test',
+            'status' => 'active',
+            'sort_order' => 1,
+        ]);
+        $skill = Skill::query()->create([
+            'name' => 'Installation sanitaire',
+            'slug' => 'installation-sanitaire-test',
+            'status' => 'active',
+        ]);
+        $category->skills()->attach($skill->id);
+
         $response = $this->post(route('register.store'), [
-            'name' => 'Professionnel Test',
+            'first_name' => 'Professionnel',
+            'last_name' => 'Test',
             'email' => 'professional@example.com',
             'account_type' => 'professional',
+            'city' => 'Goma',
+            'category_ids' => [$category->id],
+            'skill_ids' => [$skill->id],
+            'services' => [[
+                'category_id' => $category->id,
+                'title' => 'Installation sanitaire',
+                'description' => 'Installation et réparation de sanitaires pour les clients.',
+                'skill_ids' => [$skill->id],
+                'pricing_type' => 'quote',
+                'currency' => 'CDF',
+            ]],
             'password' => 'Password123!',
             'password_confirmation' => 'Password123!',
             'terms' => '1',
@@ -92,7 +122,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Tentative Admin',
+                'first_name' => 'Tentative',
+                'last_name' => 'Admin',
                 'email' => 'attempt@example.com',
                 'account_type' => 'admin',
                 'password' => 'Password123!',
@@ -110,7 +141,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Compte sans type',
+                'first_name' => 'Compte',
+                'last_name' => 'Sans type',
                 'email' => 'missing-type@example.com',
                 'password' => 'Password123!',
                 'password_confirmation' => 'Password123!',
@@ -129,7 +161,8 @@ class WebRegisterTest extends TestCase
 
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'Password123!',
@@ -146,7 +179,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'password',
@@ -163,7 +197,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'Password123!',

@@ -5,45 +5,89 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Contracts\Payments\PaymentGateway;
+use App\Models\Service;
 use App\Payments\Gateways\FakePaymentGateway;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->bind(PaymentGateway::class, FakePaymentGateway::class);
+        $this->app->bind(
+            PaymentGateway::class,
+            FakePaymentGateway::class
+        );
     }
 
     public function boot(): void
     {
+        VerifyEmail::createUrlUsing(function (object $notifiable): string {
+            return URL::temporarySignedRoute(
+                'web.verification.verify',
+                now()->addMinutes((int) config('auth.verification.expire', 60)),
+                [
+                    'id' => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                ],
+            );
+        });
+
+        /*
+         * Relations polymorphes.
+         *
+         * Permet à Laravel de résoudre l'alias "service"
+         * vers le modèle App\Models\Service.
+         */
+        Relation::morphMap([
+            'service' => Service::class,
+        ]);
+
+        /*
+         * Limitation générale des requêtes API.
+         */
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(
                 $request->user()?->getAuthIdentifier() ?? $request->ip()
             );
         });
 
+        /*
+         * Limitation des tentatives de connexion.
+         */
         RateLimiter::for('auth-login', function (Request $request) {
             return [
                 Limit::perMinute(30)->by($request->ip()),
                 Limit::perMinute(5)->by(
-                    'email:'.mb_strtolower((string) $request->input('email'))
+                    'email:'.mb_strtolower(
+                        (string) $request->input('email')
+                    )
                 ),
             ];
         });
 
+        /*
+         * Limitation des tentatives de connexion administrateur.
+         */
         RateLimiter::for('admin-login', function (Request $request) {
             return [
                 Limit::perMinute(10)->by($request->ip()),
                 Limit::perMinute(5)->by(
-                    'admin-email:'.mb_strtolower((string) $request->input('email'))
+                    'admin-email:'.mb_strtolower(
+                        (string) $request->input('email')
+                    )
                 ),
             ];
         });
 
+        /*
+         * Limitation des opérations sensibles.
+         */
         RateLimiter::for('auth-sensitive', function (Request $request) {
             return [
                 Limit::perMinute(10)->by($request->ip()),
@@ -51,11 +95,16 @@ class AppServiceProvider extends ServiceProvider
                     'sensitive-user:'.($request->user()?->getAuthIdentifier() ?? 'guest')
                 ),
                 Limit::perMinute(5)->by(
-                    'sensitive-email:'.mb_strtolower((string) $request->input('email'))
+                    'sensitive-email:'.mb_strtolower(
+                        (string) $request->input('email')
+                    )
                 ),
             ];
         });
 
+        /*
+         * Limitation de l'envoi de messages.
+         */
         RateLimiter::for('message-send', function (Request $request) {
             $conversationKey = (string) $request->route('conversation');
 
@@ -69,8 +118,12 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        /*
+         * Limitation des opérations de paiement.
+         */
         RateLimiter::for('payment', function (Request $request) {
             $userKey = 'payment-user:'.($request->user()?->getAuthIdentifier() ?? $request->ip());
+
             $orderKey = 'payment-order:'.((string) $request->route('order'));
 
             return [

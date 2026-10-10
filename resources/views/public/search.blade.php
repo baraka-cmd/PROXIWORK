@@ -1,12 +1,29 @@
 @extends('layouts.public')
 
-@section('title', 'Rechercher un professionnel — PROXIWORK')
-@section('meta_description', 'Recherchez un professionnel sur PROXIWORK par métier, compétence, localisation, budget, disponibilité et vérification.')
+@php
+    $searchTitleTerm = trim((string) ($filters['search'] ?? ''));
+    $selectedCategory = $categories->firstWhere('slug', $filters['category'] ?? null);
+    $searchPageTitle = $searchTitleTerm !== ''
+        ? 'Résultats pour « '.e(\Illuminate\Support\Str::limit($searchTitleTerm, 60)).' » — PROXIWORK'
+        : ($selectedCategory
+            ? e($selectedCategory->name).' — Services PROXIWORK'
+            : 'Découvrir des services — PROXIWORK');
+    $searchMetaDescription = $searchTitleTerm !== ''
+        ? 'Résultats de recherche PROXIWORK pour '.$searchTitleTerm.'. Découvrez les services publiés accessibles au public.'
+        : 'Découvrez et comparez les services publiés sur PROXIWORK par catégorie, compétence, localisation, tarif et disponibilité.';
+@endphp
+
+@section('title', $searchPageTitle)
+@section('meta_description', e($searchMetaDescription))
 
 @push('head')
     @unless (app()->environment('testing'))
         @vite('resources/css/pages/public/search.css')
     @endunless
+    <link rel="canonical" href="{{ route('public.search') }}">
+    @if (request()->query())
+        <meta name="robots" content="noindex,follow">
+    @endif
 @endpush
 
 @push('scripts')
@@ -20,80 +37,118 @@
         <div class="page-container">
             <header class="directory-hero">
                 <div class="directory-hero__content">
-                    <span class="eyebrow">RECHERCHE PROXIWORK</span>
-                    <h1>Trouvez le bon professionnel pour votre projet.</h1>
-                    <p>Décrivez votre besoin, puis affinez les résultats selon la compétence, la localisation, le budget et la disponibilité.</p>
+                    <span class="eyebrow">DÉCOUVERTE PROXIWORK</span>
+                    <h1>Trouvez le service adapté à votre besoin.</h1>
+                    <p>Explorez les prestations réellement publiées, comparez les tarifs dans une même devise et consultez les informations utiles avant de contacter un professionnel.</p>
                 </div>
 
                 <form class="directory-hero__search" method="GET" action="{{ route('public.search') }}">
                     <label class="sr-only" for="search-hero-input">Que recherchez-vous ?</label>
                     <div class="directory-hero__search-field">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        <input id="search-hero-input" type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Ex. développeur Laravel, graphiste, comptable…" autocomplete="off">
+                        <input id="search-hero-input" type="search" name="search" value="{{ old('search', $filters['search'] ?? '') }}" placeholder="Ex. réparation téléphone, plomberie, développeur web…" autocomplete="off">
                     </div>
+                    @php
+                        $heroFilters = collect($filters)->merge(collect(old())->only([
+                            'profession', 'category', 'skills', 'skills_mode', 'city', 'province',
+                            'min_price', 'max_price', 'currency', 'pricing_type', 'billing_unit', 'rating',
+                            'availability', 'verified_only', 'sort', 'per_page',
+                        ]))->except(['search', 'page']);
+                        if (isset($heroFilters['skills']) && ! is_array($heroFilters['skills'])) {
+                            $heroFilters->forget('skills');
+                        }
+                    @endphp
+                    @foreach ($heroFilters->all() as $filterName => $filterValue)
+                        @if (is_array($filterValue))
+                            @foreach ($filterValue as $item)
+                                <input type="hidden" name="{{ $filterName }}[]" value="{{ $item }}">
+                            @endforeach
+                        @elseif ($filterValue !== null && $filterValue !== '')
+                            <input type="hidden" name="{{ $filterName }}" value="{{ is_bool($filterValue) ? (int) $filterValue : $filterValue }}">
+                        @endif
+                    @endforeach
                     <button class="button button--primary button--lg" type="submit">
-                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                        Rechercher
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Rechercher
                     </button>
                 </form>
             </header>
 
+            @if ($errors->any())
+                <div class="search-validation-alert" role="alert">
+                    <strong>Certains critères de recherche doivent être corrigés.</strong>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            @if ($featuredCategories->isNotEmpty())
+                <nav class="service-category-shortcuts" aria-label="Catégories à découvrir">
+                    <span class="eyebrow">CATÉGORIES À DÉCOUVRIR</span>
+                    <div class="service-category-shortcuts__list">
+                        @foreach ($featuredCategories as $category)
+                            <a class="service-category-chip" href="{{ route('public.search', ['category' => $category->slug]) }}">
+                                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                {{ $category->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </nav>
+            @endif
+
             <div class="directory-layout">
-                <aside class="directory-sidebar" aria-label="Filtres de recherche">
-                    <button class="button button--ghost directory-mobile-filter-toggle" type="button" data-filters-open aria-controls="search-filters">
-                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
-                        Filtres
+                <aside class="directory-sidebar" aria-label="Filtres de recherche des services">
+                    <button class="button button--ghost directory-mobile-filter-toggle" type="button" data-filters-open aria-controls="search-filters" aria-expanded="false">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtres
                     </button>
                     <div id="search-filters" class="directory-filter-panel">
-                        @include('public.partials.professional-filters', ['action' => route('public.search'), 'idPrefix' => 'search-filter'])
+                        @include('public.partials.service-filters')
                     </div>
                 </aside>
 
                 <section class="directory-results" aria-labelledby="search-results-title">
                     <div class="directory-results__header">
                         <div>
-                            <span class="eyebrow">RÉSULTATS</span>
+                            <span class="eyebrow">CATALOGUE PUBLIC</span>
                             <h2 id="search-results-title">
-                                @if ($professionals)
-                                    {{ $professionals->total() }} professionnel{{ $professionals->total() > 1 ? 's' : '' }} trouvé{{ $professionals->total() > 1 ? 's' : '' }}
-                                @else
-                                    Commencez votre recherche
-                                @endif
+                                {{ $services->total() }} service{{ $services->total() === 1 ? '' : 's' }} trouvé{{ $services->total() === 1 ? '' : 's' }}
                             </h2>
+                            <p class="directory-results__summary">
+                                @if ($activeFiltersCount > 0)
+                                    {{ $activeFiltersCount }} filtre{{ $activeFiltersCount > 1 ? 's' : '' }} actif{{ $activeFiltersCount > 1 ? 's' : '' }}.
+                                    <a href="{{ route('public.search') }}">Effacer les filtres</a>
+                                @else
+                                    Services publiés et accessibles au public, sans connexion obligatoire.
+                                @endif
+                            </p>
                         </div>
+                        <span class="directory-results__page">Page {{ $services->currentPage() }} / {{ $services->lastPage() }}</span>
                     </div>
 
-                    @if (!$professionals)
-                        <div class="state-empty surface-card">
-                            <div>
-                                <div class="state-empty__icon"><i class="fa-solid fa-compass" aria-hidden="true"></i></div>
-                                <h2>Quel professionnel recherchez-vous ?</h2>
-                                <p>Utilisez la barre de recherche ou les filtres pour trouver des profils correspondant réellement à votre besoin.</p>
-                            </div>
-                        </div>
-                    @elseif ($professionals->isEmpty())
+                    @if ($services->isEmpty())
                         <div class="state-empty surface-card">
                             <div>
                                 <div class="state-empty__icon"><i class="fa-solid fa-magnifying-glass-minus" aria-hidden="true"></i></div>
-                                <h2>Aucun professionnel trouvé</h2>
-                                <p>Essayez un autre métier, une autre compétence, une localisation plus large ou retirez quelques filtres.</p>
+                                <h2>Aucun service ne correspond à ces critères</h2>
+                                <p>Essayez un terme plus général, une autre catégorie ou une zone plus large. Les tarifs ne sont comparés qu'entre services utilisant la même devise.</p>
                                 <div class="state-empty__actions">
                                     <a class="button button--ghost" href="{{ route('public.search') }}">
-                                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
-                                        Réinitialiser la recherche
+                                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Réinitialiser la recherche
                                     </a>
                                 </div>
                             </div>
                         </div>
                     @else
-                        <div class="professional-grid">
-                            @foreach ($professionals as $professional)
-                                @include('public.partials.professional-card', ['professional' => $professional])
+                        <div class="service-grid">
+                            @foreach ($services as $service)
+                                @include('public.partials.service-card', ['service' => $service, 'filters' => $filters])
                             @endforeach
                         </div>
 
-                        <div class="directory-pagination">
-                            {{ $professionals->onEachSide(1)->links() }}
+                        <div class="directory-pagination" aria-label="Pagination des services">
+                            {{ $services->onEachSide(1)->links() }}
                         </div>
                     @endif
                 </section>

@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // Existing local installations may already have this table from the
+        // historical migration. Keep the migration safe for those databases.
+        if (Schema::hasTable('favorites')) {
+            return;
+        }
+
+        Schema::create('favorites', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('professional_profile_id')
+                ->constrained('professional_profiles')
+                ->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'professional_profile_id']);
+            $table->index('professional_profile_id');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('favorites');
+    }
+};

@@ -148,6 +148,9 @@ class AdminProfessionalService
             'user.roles',
             'user.profile',
             'skills',
+            'categories',
+            'services.skills',
+            'documents' => fn ($query) => $query->latest(),
             'verificationReviews' => fn ($q) => $q->latest()->with('admin:id,name'),
         ])->loadCount(['services', 'reviews', 'serviceRequests']);
     }

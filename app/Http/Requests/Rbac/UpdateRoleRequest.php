@@ -5,6 +5,7 @@ namespace App\Http\Requests\Rbac;
 use App\Models\Role;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateRoleRequest extends FormRequest
 {
@@ -15,6 +16,35 @@ class UpdateRoleRequest extends FormRequest
         return $role instanceof Role && $this->user()?->can('update', $role);
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ((! $this->has('permission_ids') && ! $this->has('permissions_submitted')) || $this->user() === null) {
+                return;
+            }
+
+            $permissionIds = collect($this->input('permission_ids', []))
+                ->map(fn ($id) => (int) $id)
+                ->unique();
+
+            $allowedPermissionIds = $this->user()->roles()
+                ->with('permissions:id')
+                ->get()
+                ->flatMap(fn ($role) => $role->permissions->pluck('id'))
+                ->merge($this->route('role') instanceof Role
+                    ? $this->route('role')->permissions()->pluck('permissions.id')
+                    : collect())
+                ->unique();
+
+            if ($permissionIds->diff($allowedPermissionIds)->isNotEmpty()) {
+                $validator->errors()->add(
+                    'permission_ids',
+                    'Vous ne pouvez attribuer que des permissions que vous possédez déjà.'
+                );
+            }
+        });
+    }
+
     public function rules(): array
     {
         $role = $this->route('role');
@@ -22,6 +52,7 @@ class UpdateRoleRequest extends FormRequest
         return [
             'display_name' => ['sometimes', 'required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'permissions_submitted' => ['sometimes', 'accepted'],
             'permission_ids' => ['sometimes', 'array'],
             'permission_ids.*' => ['integer', 'distinct', 'exists:permissions,id'],
             'name' => [

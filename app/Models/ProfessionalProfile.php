@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CategoryStatus;
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\UserAccountStatus;
 use Database\Factories\ProfessionalProfileFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,23 +39,16 @@ class ProfessionalProfile extends Model
     ];
 
     protected $fillable = [
-        'professional_title',
-        'description',
-        'years_experience',
-        'starting_price',
-        'currency',
-        'province',
-        'city',
-        'commune',
-        'service_radius_km',
-        'latitude',
-        'longitude',
+        'business_name', 'professional_title', 'description', 'years_experience',
+        'starting_price', 'currency', 'province', 'city', 'commune',
+        'service_radius_km', 'latitude', 'longitude',
     ];
 
     protected function casts(): array
     {
         return [
             'verification_status' => ProfessionalVerificationStatus::class,
+            'professional_terms_accepted_at' => 'datetime',
             'availability_status' => ProfessionalAvailabilityStatus::class,
             'rating_average' => 'decimal:2',
             'rating_count' => 'integer',
@@ -70,24 +66,47 @@ class ProfessionalProfile extends Model
         return ProfessionalProfileFactory::new();
     }
 
+    /**
+     * Restrict discovery to profiles that are eligible for public presentation.
+     * Paid features, if introduced later, must never override these safety rules.
+     */
+    public function scopePubliclyDiscoverable(Builder $query): Builder
+    {
+        return $query
+            ->where('status', self::STATUS_ACTIVE)
+            ->where('visibility', self::VISIBILITY_PUBLIC)
+            ->whereHas('user', fn (Builder $user) => $user
+                ->where('account_status', UserAccountStatus::ACTIVE->value))
+            ->whereHas('services', fn (Builder $services) => $services
+                ->published()
+                ->whereHas('category', fn (Builder $category) => $category
+                    ->where('status', CategoryStatus::ACTIVE->value)));
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'professional_categories')->withTimestamps();
+    }
+
     public function skills(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Skill::class,
-            'professional_skills',
-            'professional_profile_id',
-            'skill_id'
-        )->withPivot(['proficiency_level', 'years_experience'])->withTimestamps();
+        return $this->belongsToMany(Skill::class, 'professional_skills', 'professional_profile_id', 'skill_id')
+            ->withPivot(['proficiency_level', 'years_experience'])->withTimestamps();
     }
 
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProfessionalDocument::class);
     }
 
     public function serviceRequests(): HasMany

@@ -72,6 +72,7 @@ class SkillController extends Controller
         $validated = $request->validated();
 
         $skills = Skill::query()
+            ->with('categories')
             ->when(array_key_exists('status', $validated), fn ($query) => $query->where('status', SkillStatus::from($validated['status'])->value))
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
@@ -94,7 +95,7 @@ class SkillController extends Controller
     {
         $this->authorize('view', $skill);
 
-        return (new SkillAdminResource($skill))->additional([
+        return (new SkillAdminResource($skill->load('categories')))->additional([
             'message' => 'Compétence administrative récupérée avec succès.',
             'meta' => [],
         ]);

@@ -30,16 +30,17 @@ class ServiceController extends Controller
                 'price_min',
                 'price_max',
                 'currency',
+                'billing_unit',
+                'service_area',
                 'estimated_duration_minutes',
                 'status',
                 'sort_order',
                 'published_at',
             ])
-            ->published()
-            ->whereHas('category', fn ($category) => $category->where('status', 'active'))
+            ->publiclyVisible()
             ->with([
                 'category:id,name,slug',
-                'skills:id,name,slug',
+                'skills' => fn ($skills) => $skills->where('status', 'active')->select(['skills.id', 'skills.name', 'skills.slug']),
                 'images:id,service_id,path,alt_text,sort_order,is_cover',
                 'professionalProfile:id,user_id',
                 'professionalProfile.user:id,name',
@@ -52,7 +53,7 @@ class ServiceController extends Controller
                 });
             })
             ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
-            ->when($validated['skill_id'] ?? null, fn ($query, int $skillId) => $query->whereHas('skills', fn ($skills) => $skills->whereKey($skillId)))
+            ->when($validated['skill_id'] ?? null, fn ($query, int $skillId) => $query->whereHas('skills', fn ($skills) => $skills->where('status', 'active')->whereKey($skillId)))
             ->orderBy('sort_order')
             ->orderByDesc('published_at')
             ->paginate($validated['per_page'] ?? 15)
@@ -66,16 +67,18 @@ class ServiceController extends Controller
 
     public function show(Service $service): ServiceResource
     {
-        abort_unless(
-            $service->status->value === 'published'
-            && $service->published_at !== null
-            && $service->category->status->value === 'active',
-            404
-        );
+        $service = Service::query()
+            ->publiclyVisible()
+            ->whereKey($service->getKey())
+            ->with([
+                'category',
+                'skills' => fn ($skills) => $skills->where('status', 'active'),
+                'images',
+                'professionalProfile.user',
+            ])
+            ->firstOrFail();
 
-        return (new ServiceResource(
-            $service->load(['category', 'skills', 'images', 'professionalProfile.user'])
-        ))->additional([
+        return (new ServiceResource($service))->additional([
             'message' => 'Service publié récupéré avec succès.',
             'meta' => ['scope' => 'public'],
         ]);

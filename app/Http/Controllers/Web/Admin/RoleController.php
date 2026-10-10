@@ -28,14 +28,15 @@ class RoleController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorize('create', Role::class);
 
         return view('admin.roles.form', [
             'role' => null,
-            'permissions' => $this->service->permissions(),
+            'permissions' => $this->service->permissions($request->user()),
             'selectedPermissions' => [],
+            'protectedPermissions' => collect(),
         ]);
     }
 
@@ -56,14 +57,25 @@ class RoleController extends Controller
         ]);
     }
 
-    public function edit(Role $role): View
+    public function edit(Role $role, Request $request): View
     {
         $this->authorize('update', $role);
 
+        $role->load('permissions');
+
+        $assignableIds = $request->user()->roles()
+            ->with('permissions:id')
+            ->get()
+            ->flatMap(fn ($assignedRole) => $assignedRole->permissions->pluck('id'))
+            ->unique();
+
         return view('admin.roles.form', [
-            'role' => $role->load('permissions'),
-            'permissions' => $this->service->permissions(),
+            'role' => $role,
+            'permissions' => $this->service->permissions($request->user()),
             'selectedPermissions' => $role->permissions->pluck('id')->all(),
+            'protectedPermissions' => $role->permissions
+                ->reject(fn ($permission) => $assignableIds->contains($permission->id))
+                ->values(),
         ]);
     }
 

@@ -61,6 +61,36 @@ class ProfessionalVerificationTest extends TestCase
         ]);
     }
 
+    public function test_under_review_can_request_additional_information(): void
+    {
+        $admin = $this->admin();
+        $professional = ProfessionalProfile::factory()->create();
+
+        $this->actingAs($admin)
+            ->post(route('admin.professionals.verification.start', $professional), [
+                'note' => 'Le dossier a été reçu.',
+            ])
+            ->assertRedirect();
+
+        $this->actingAs($admin)
+            ->post(route('admin.professionals.verification.request-information', $professional), [
+                'note' => 'Veuillez ajouter une preuve de qualification lisible.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('professional_profiles', [
+            'id' => $professional->id,
+            'verification_status' => 'needs_information',
+        ]);
+        $this->assertDatabaseHas('professional_verification_reviews', [
+            'professional_profile_id' => $professional->id,
+            'from_status' => 'under_review',
+            'to_status' => 'needs_information',
+            'reason_code' => 'PROFILE_INCOMPLETE',
+        ]);
+    }
+
     public function test_pending_cannot_be_verified_directly(): void
     {
         $admin = $this->admin();

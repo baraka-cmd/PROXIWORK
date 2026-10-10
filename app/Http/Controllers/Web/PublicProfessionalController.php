@@ -1,0 +1,149 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Web;
+
+use App\Enums\ReviewStatus;
+use App\Models\ProfessionalProfile;
+use App\Models\Service;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
+
+class PublicProfessionalController
+{
+    public function show(ProfessionalProfile $professionalProfile, ?string $slug = null): View|RedirectResponse
+    {
+        $professional = ProfessionalProfile::query()
+            ->whereKey($professionalProfile->getKey())
+            ->publiclyDiscoverable()
+            ->with([
+                'user:id,name',
+                'user.profile:id,user_id,first_name,last_name,avatar_path,bio',
+                'skills' => fn (BelongsToMany $skills) => $skills
+                    ->where('status', 'active')
+                    ->select(['skills.id', 'skills.name', 'skills.slug']),
+            ])
+            ->firstOrFail();
+
+        $person = $professional->user->profile;
+        $personName = $person !== null
+            ? trim($person->first_name.' '.$person->last_name)
+            : '';
+        $displayName = filled($professional->business_name)
+            ? $professional->business_name
+            : (filled($personName) ? $personName : $professional->user->name);
+
+        $profileSlug = Str::slug($displayName);
+        if ($profileSlug === '') {
+            $profileSlug = 'professionnel-'.$professional->getKey();
+        }
+
+        if ($slug !== $profileSlug) {
+            return redirect()->route('public.professionals.show', [
+                'professionalProfile' => $professional->getKey(),
+                'slug' => $profileSlug,
+            ], 301);
+        }
+
+        $services = Service::query()
+            ->publiclyVisible()
+            ->where('professional_profile_id', $professional->getKey())
+            ->select([
+                'id',
+                'professional_profile_id',
+                'category_id',
+                'title',
+                'slug',
+                'short_description',
+                'description',
+                'pricing_type',
+                'price',
+                'price_min',
+                'price_max',
+                'currency',
+                'billing_unit',
+                'service_area',
+                'estimated_duration_minutes',
+                'status',
+                'sort_order',
+                'published_at',
+                'created_at',
+            ])
+            ->with([
+                'category:id,name,slug',
+                'skills' => fn (BelongsToMany $skills) => $skills
+                    ->where('status', 'active')
+                    ->select(['skills.id', 'skills.name', 'skills.slug']),
+                'images:id,service_id,path,alt_text,sort_order,is_cover',
+                'professionalProfile' => fn (BelongsTo $profile) => $profile->select([
+                    'id',
+                    'user_id',
+                    'business_name',
+                    'professional_title',
+                    'description',
+                    'years_experience',
+                    'starting_price',
+                    'currency',
+                    'province',
+                    'city',
+                    'commune',
+                    'service_radius_km',
+                    'verification_status',
+                    'availability_status',
+                    'rating_average',
+                    'rating_count',
+                    'status',
+                    'visibility',
+                ]),
+                'professionalProfile.user:id,name',
+                'professionalProfile.user.profile:id,user_id,first_name,last_name,avatar_path',
+            ])
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->paginate(12)
+            ->withQueryString();
+
+        $publicRatingSummary = $professional->reviews()
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereNotNull('published_at')
+            ->selectRaw('COUNT(*) as review_count, AVG(rating) as rating_average')
+            ->first();
+        $publicReviewCount = (int) ($publicRatingSummary?->review_count ?? 0);
+        $publicRatingAverage = $publicReviewCount > 0
+            ? (float) $publicRatingSummary->rating_average
+            : null;
+
+        $canFavoriteProfessional = auth()->check() && auth()->user()->hasRole('client');
+        $favorite = $canFavoriteProfessional
+            ? $professional->favorites()->where('user_id', auth()->id())->first()
+            : null;
+
+        $reviews = $professional->reviews()
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereNotNull('published_at')
+            ->with([
+                'response' => fn ($response) => $response->where('status', ReviewStatus::PUBLISHED->value),
+            ])
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get(['id', 'client_id', 'professional_id', 'rating', 'comment', 'published_at']);
+
+        return view('public.professionals.show', [
+            'professional' => $professional,
+            'person' => $person,
+            'displayName' => $displayName,
+            'profileSlug' => $profileSlug,
+            'services' => $services,
+            'reviews' => $reviews,
+            'publicReviewCount' => $publicReviewCount,
+            'publicRatingAverage' => $publicRatingAverage,
+            'canFavoriteProfessional' => $canFavoriteProfessional,
+            'favorite' => $favorite,
+        ]);
+    }
+}

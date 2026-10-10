@@ -1,0 +1,523 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\PublicServiceSearch;
+
+use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\ServicePricingType;
+use App\Models\Category;
+use App\Models\Service;
+use App\Models\Skill;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Collection;
+
+class PublicServiceSearchService
+{
+    public function search(array $filters): LengthAwarePaginator
+    {
+        $query = Service::query()
+            ->publiclyVisible()
+            ->select([
+                'id',
+                'professional_profile_id',
+                'category_id',
+                'title',
+                'slug',
+                'short_description',
+                'description',
+                'pricing_type',
+                'price',
+                'price_min',
+                'price_max',
+                'currency',
+                'billing_unit',
+                'service_area',
+                'estimated_duration_minutes',
+                'status',
+                'sort_order',
+                'published_at',
+                'created_at',
+            ])
+            ->with([
+                'category:id,name,slug',
+                'skills' => fn (BelongsToMany $skills) => $skills
+                    ->where('status', 'active')
+                    ->select(['skills.id', 'skills.name', 'skills.slug']),
+                'images:id,service_id,path,alt_text,sort_order,is_cover',
+                'professionalProfile' => fn (BelongsTo $professional) => $professional->select([
+                    'id',
+                    'user_id',
+                    'business_name',
+                    'professional_title',
+                    'description',
+                    'years_experience',
+                    'starting_price',
+                    'currency',
+                    'province',
+                    'city',
+                    'commune',
+                    'service_radius_km',
+                    'verification_status',
+                    'verified_at',
+                    'availability_status',
+                    'rating_average',
+                    'rating_count',
+                    'status',
+                    'visibility',
+                ]),
+                'professionalProfile.user:id,name',
+                'professionalProfile.user.profile:id,user_id,first_name,last_name,avatar_path',
+            ]);
+
+        $this->applyTextSearch($query, $filters);
+        $this->applyProfession($query, $filters);
+        $this->applyCategory($query, $filters);
+        $this->applyPricingType($query, $filters);
+        $this->applySkills($query, $filters);
+        $this->applyLocation($query, $filters);
+        $this->applyPrice($query, $filters);
+        $this->applyRating($query, $filters);
+        $this->applyAvailability($query, $filters);
+        $this->applyVerification($query, $filters);
+        $this->applySort($query, $filters);
+
+        return $query
+            ->paginate($filters['per_page'] ?? 12)
+            ->appends(collect($filters)->except('page')->all());
+    }
+
+    /**
+     * Return active categories which actually have at least one public service.
+     *
+     * @return Collection<int, Category>
+     */
+    public function availableCategories(bool $featuredOnly = false): Collection
+    {
+        return Category::query()
+            ->active()
+            ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
+            ->when($featuredOnly, fn (Builder $categories) => $categories->where('is_featured', true))
+            ->orderByDesc('is_featured')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->limit($featuredOnly ? 8 : 100)
+            ->get(['id', 'name', 'slug', 'is_featured']);
+    }
+
+    /**
+     * Only offer categories and skills associated with at least one public service.
+     *
+     * @return Collection<int, Skill>
+     */
+    public function availableSkills(): Collection
+    {
+        return Skill::query()
+            ->active()
+            ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
+            ->orderBy('name')
+            ->limit(100)
+            ->get(['skills.id', 'skills.name', 'skills.slug']);
+    }
+
+    /**
+     * Prices in different currencies are never mixed in a budget filter or price sort.
+     *
+     * @return Collection<int, string>
+     */
+    public function availableCurrencies(): Collection
+    {
+        return Service::query()
+            ->publiclyVisible()
+            ->whereIn('pricing_type', [
+                ServicePricingType::FIXED->value,
+                ServicePricingType::FROM->value,
+                ServicePricingType::RANGE->value,
+            ])
+            ->whereNotNull('currency')
+            ->where('currency', '!=', '')
+            ->distinct()
+            ->orderBy('currency')
+            ->pluck('currency');
+    }
+
+    /**
+     * Return billing units which are actually used by public, priced services.
+     * This prevents price comparisons between incomparable units such as hours and days.
+     *
+     * @return Collection<int, string>
+     */
+    public function availableBillingUnits(): Collection
+    {
+        return Service::query()
+            ->publiclyVisible()
+            ->whereIn('pricing_type', [
+                ServicePricingType::FIXED->value,
+                ServicePricingType::FROM->value,
+                ServicePricingType::RANGE->value,
+            ])
+            ->whereNotNull('currency')
+            ->where('currency', '!=', '')
+            ->whereNotNull('billing_unit')
+            ->where('billing_unit', '!=', '')
+            ->distinct()
+            ->orderBy('billing_unit')
+            ->pluck('billing_unit');
+    }
+
+    public function activeFiltersCount(array $filters): int
+    {
+        $filters = collect($filters)->except(['search', 'sort', 'per_page', 'page']);
+
+        if (empty($filters->get('skills'))) {
+            $filters->forget('skills_mode');
+        }
+
+        return $filters->filter(function (mixed $value, string $key): bool {
+            if ($key === 'verified_only') {
+                return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            }
+
+            if (is_array($value)) {
+                return $value !== [];
+            }
+
+            return $value !== null && $value !== '';
+        })->count();
+    }
+
+    private function applyTextSearch(Builder $query, array $filters): void
+    {
+        $term = trim((string) ($filters['search'] ?? ''));
+
+        if ($term === '') {
+            return;
+        }
+
+        // Treat natural-language searches as required terms, so "plombier à Goma"
+        // can match the professional title and service area instead of one literal phrase.
+        $normalized = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $term) ?? $term;
+        $stopWords = [
+            'a', 'à', 'au', 'aux', 'avec', 'chez', 'dans', 'de', 'des', 'du',
+            'en', 'et', 'la', 'le', 'les', 'pour', 'sur', 'un', 'une',
+            'and', 'for', 'in', 'of', 'the', 'to', 'with',
+        ];
+        $terms = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
+            ->map(fn (string $word): string => trim($word))
+            ->filter(fn (string $word): bool => $word !== ''
+                && ! in_array(mb_strtolower($word), $stopWords, true))
+            ->unique(fn (string $word): string => mb_strtolower($word))
+            ->values();
+
+        // A query made only of common words still performs a bounded literal search.
+        if ($terms->isEmpty()) {
+            $terms = collect([$term]);
+        }
+
+        foreach ($terms as $word) {
+            $like = '%'.$word.'%';
+
+            $query->where(function (Builder $query) use ($like): void {
+                $query
+                    ->where('services.title', 'like', $like)
+                    ->orWhere('services.short_description', 'like', $like)
+                    ->orWhere('services.description', 'like', $like)
+                    ->orWhereHas('category', fn (Builder $category) => $category
+                        ->where('status', 'active')
+                        ->where('name', 'like', $like))
+                    ->orWhereHas('skills', fn (Builder $skills) => $skills
+                        ->where('status', 'active')
+                        ->where(function (Builder $skills) use ($like): void {
+                            $skills->where('name', 'like', $like)
+                                ->orWhere('slug', 'like', $like);
+                        }))
+                    ->orWhereHas('professionalProfile', fn (Builder $professional) => $professional
+                        ->where('professional_title', 'like', $like)
+                        ->orWhere('business_name', 'like', $like)
+                        ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $like))
+                        ->orWhereHas('user.profile', fn (Builder $profile) => $profile
+                            ->where('first_name', 'like', $like)
+                            ->orWhere('last_name', 'like', $like)))
+                    ->orWhere('services.service_area', 'like', $like);
+            });
+        }
+    }
+
+    private function applyProfession(Builder $query, array $filters): void
+    {
+        if (empty($filters['profession'])) {
+            return;
+        }
+
+        $like = '%'.$filters['profession'].'%';
+        $query->whereHas('professionalProfile', fn (Builder $professional) => $professional
+            ->where('professional_title', 'like', $like));
+    }
+
+    private function applyCategory(Builder $query, array $filters): void
+    {
+        if (empty($filters['category'])) {
+            return;
+        }
+
+        $query->whereHas('category', fn (Builder $category) => $category
+            ->where('status', 'active')
+            ->where('slug', $filters['category']));
+    }
+
+    private function applyPricingType(Builder $query, array $filters): void
+    {
+        if (empty($filters['pricing_type'])) {
+            return;
+        }
+
+        $query->where('services.pricing_type', $filters['pricing_type']);
+    }
+
+    private function applySkills(Builder $query, array $filters): void
+    {
+        $skillSlugs = collect($filters['skills'] ?? [])->filter()->unique()->values();
+
+        if ($skillSlugs->isEmpty()) {
+            return;
+        }
+
+        if (($filters['skills_mode'] ?? 'any') === 'all') {
+            foreach ($skillSlugs as $skillSlug) {
+                $query->whereHas('skills', fn (Builder $skills) => $skills
+                    ->where('status', 'active')
+                    ->where('slug', $skillSlug));
+            }
+
+            return;
+        }
+
+        $query->whereHas('skills', fn (Builder $skills) => $skills
+            ->where('status', 'active')
+            ->whereIn('slug', $skillSlugs->all()));
+    }
+
+    private function applyLocation(Builder $query, array $filters): void
+    {
+        foreach (['city', 'province'] as $field) {
+            $value = trim((string) ($filters[$field] ?? ''));
+
+            if ($value === '') {
+                continue;
+            }
+
+            $like = '%'.$value.'%';
+
+            $query->where(function (Builder $query) use ($field, $value, $like): void {
+                $query
+                    ->whereHas('professionalProfile', fn (Builder $professional) => $professional
+                        ->whereRaw('LOWER('.$field.') = ?', [mb_strtolower($value)])
+                        ->orWhere($field, 'like', $like))
+                    ->orWhere('services.service_area', 'like', $like);
+            });
+        }
+    }
+
+    private function applyPrice(Builder $query, array $filters): void
+    {
+        $min = $filters['min_price'] ?? null;
+        $max = $filters['max_price'] ?? null;
+        $currency = $filters['currency'] ?? null;
+        $billingUnit = $filters['billing_unit'] ?? null;
+
+        if ($min === null && $max === null && empty($currency) && empty($billingUnit)) {
+            return;
+        }
+
+        $query
+            ->whereNotNull('services.currency')
+            ->where('services.currency', '!=', '')
+            ->when($currency, fn (Builder $query) => $query->where('services.currency', $currency))
+            ->when($billingUnit, fn (Builder $query) => $query->where('services.billing_unit', $billingUnit))
+            ->where(function (Builder $query) use ($min, $max): void {
+                $query
+                    ->where(function (Builder $query) use ($min, $max): void {
+                        $query
+                            ->whereIn('services.pricing_type', [
+                                ServicePricingType::FIXED->value,
+                                ServicePricingType::FROM->value,
+                            ])
+                            ->when($min !== null, fn (Builder $query) => $query->where('services.price', '>=', $min))
+                            ->when($max !== null, fn (Builder $query) => $query->where('services.price', '<=', $max));
+                    })
+                    ->orWhere(function (Builder $query) use ($min, $max): void {
+                        $query
+                            ->where('services.pricing_type', ServicePricingType::RANGE->value)
+                            ->when($min !== null, fn (Builder $query) => $query->where('services.price_max', '>=', $min))
+                            ->when($max !== null, fn (Builder $query) => $query->where('services.price_min', '<=', $max));
+                    });
+            });
+    }
+
+    private function applyRating(Builder $query, array $filters): void
+    {
+        if (! isset($filters['rating']) || $filters['rating'] === '') {
+            return;
+        }
+
+        $query->whereHas('professionalProfile', fn (Builder $professional) => $professional
+            ->where('rating_count', '>', 0)
+            ->where('rating_average', '>=', $filters['rating']));
+    }
+
+    private function applyAvailability(Builder $query, array $filters): void
+    {
+        if (! empty($filters['availability'])) {
+            $query->whereHas('professionalProfile', fn (Builder $professional) => $professional
+                ->where('availability_status', $filters['availability']));
+        }
+    }
+
+    private function applyVerification(Builder $query, array $filters): void
+    {
+        if (filter_var($filters['verified_only'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            $query->whereHas('professionalProfile', fn (Builder $professional) => $professional
+                ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
+                ->whereNotNull('verified_at'));
+        }
+    }
+
+    private function applySort(Builder $query, array $filters): void
+    {
+        $sort = $filters['sort'] ?? 'relevance';
+        $term = trim((string) ($filters['search'] ?? ''));
+
+        match ($sort) {
+            'rating' => $query
+                // Require a small review history before ranking a profile as highly rated.
+                ->orderByRaw('(SELECT CASE WHEN rating_count >= 3 THEN 0 ELSE 1 END FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) ASC')
+                ->orderByRaw('(SELECT rating_average FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) DESC')
+                ->orderByRaw('(SELECT rating_count FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) DESC')
+                ->orderByDesc('services.published_at')
+                ->orderByDesc('services.id'),
+            'price_low' => $query
+                ->orderByRaw('CASE WHEN COALESCE(services.price, services.price_min) IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderByRaw('COALESCE(services.price, services.price_min) ASC')
+                ->orderByDesc('services.published_at')
+                ->orderByDesc('services.id'),
+            'price_high' => $query
+                ->orderByRaw('CASE WHEN COALESCE(services.price, services.price_max) IS NULL THEN 1 ELSE 0 END ASC')
+                ->orderByRaw('COALESCE(services.price, services.price_max) DESC')
+                ->orderByDesc('services.published_at')
+                ->orderByDesc('services.id'),
+            'newest' => $query->orderByDesc('services.published_at')->orderByDesc('services.id'),
+            default => $this->applyRelevanceSort($query, $term),
+        };
+    }
+
+    private function applyRelevanceSort(Builder $query, string $term): void
+    {
+        if ($term !== '') {
+            $normalized = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $term) ?? $term;
+            $stopWords = [
+                'a', 'à', 'au', 'aux', 'avec', 'chez', 'dans', 'de', 'des', 'du',
+                'en', 'et', 'la', 'le', 'les', 'pour', 'sur', 'un', 'une',
+                'and', 'for', 'in', 'of', 'the', 'to', 'with',
+            ];
+            $terms = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
+                ->map(fn (string $word): string => trim($word))
+                ->filter(fn (string $word): bool => $word !== ''
+                    && ! in_array(mb_strtolower($word), $stopWords, true))
+                ->unique(fn (string $word): string => mb_strtolower($word))
+                ->take(12)
+                ->values();
+
+            $query->orderByRaw(
+                'CASE WHEN LOWER(services.title) = LOWER(?) THEN 0 '
+                .'WHEN LOWER(services.title) LIKE LOWER(?) THEN 1 '
+                .'WHEN LOWER(services.title) LIKE LOWER(?) THEN 2 ELSE 3 END ASC',
+                [$term, $term.'%', '%'.$term.'%']
+            );
+
+            /*
+             * Rank all fields that can satisfy the search, not only the service
+             * title. The service title remains the strongest relevance signal;
+             * profile, skill, category and location matches refine the order. A query such as "plombier à Goma" should favour a service
+             * whose professional title and service area both match, even when
+             * the service title itself does not contain "plombier".
+             *
+             * Every user-supplied term remains a bound parameter. Table and
+             * column names in these expressions are fixed application code.
+             */
+            $scoreParts = [];
+            $scoreBindings = [];
+
+            foreach ($terms as $word) {
+                $like = '%'.$word.'%';
+
+                $scoreParts[] = '(CASE WHEN LOWER(services.title) LIKE LOWER(?) THEN 20 ELSE 0 END)';
+                $scoreBindings[] = $like;
+
+                $scoreParts[] = '(CASE WHEN EXISTS (
+                    SELECT 1 FROM professional_profiles AS search_professionals
+                    LEFT JOIN users AS search_users ON search_users.id = search_professionals.user_id
+                    LEFT JOIN profiles AS search_profiles ON search_profiles.user_id = search_professionals.user_id
+                    WHERE search_professionals.id = services.professional_profile_id
+                    AND (
+                        LOWER(search_professionals.professional_title) LIKE LOWER(?)
+                        OR LOWER(search_professionals.business_name) LIKE LOWER(?)
+                        OR LOWER(search_users.name) LIKE LOWER(?)
+                        OR LOWER(search_profiles.first_name) LIKE LOWER(?)
+                        OR LOWER(search_profiles.last_name) LIKE LOWER(?)
+                    )
+                ) THEN 7 ELSE 0 END)';
+                array_push($scoreBindings, $like, $like, $like, $like, $like);
+
+                $scoreParts[] = '(CASE WHEN (
+                    LOWER(services.service_area) LIKE LOWER(?)
+                    OR EXISTS (
+                        SELECT 1 FROM professional_profiles AS location_professionals
+                        WHERE location_professionals.id = services.professional_profile_id
+                        AND (
+                            LOWER(location_professionals.city) LIKE LOWER(?)
+                            OR LOWER(location_professionals.province) LIKE LOWER(?)
+                            OR LOWER(location_professionals.commune) LIKE LOWER(?)
+                        )
+                    )
+                ) THEN 6 ELSE 0 END)';
+                array_push($scoreBindings, $like, $like, $like, $like);
+
+                $scoreParts[] = '(CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM service_skills AS search_service_skills
+                    INNER JOIN skills AS search_skills ON search_skills.id = search_service_skills.skill_id
+                    WHERE search_service_skills.service_id = services.id
+                    AND search_skills.status = ?
+                    AND (
+                        LOWER(search_skills.name) LIKE LOWER(?)
+                        OR LOWER(search_skills.slug) LIKE LOWER(?)
+                    )
+                ) THEN 5 ELSE 0 END)';
+                array_push($scoreBindings, 'active', $like, $like);
+
+                $scoreParts[] = '(CASE WHEN EXISTS (
+                    SELECT 1 FROM categories AS search_categories
+                    WHERE search_categories.id = services.category_id
+                    AND search_categories.status = ?
+                    AND LOWER(search_categories.name) LIKE LOWER(?)
+                ) THEN 5 ELSE 0 END)';
+                array_push($scoreBindings, 'active', $like);
+
+                $scoreParts[] = '(CASE WHEN LOWER(services.short_description) LIKE LOWER(?) THEN 4 ELSE 0 END)';
+                $scoreBindings[] = $like;
+
+                $scoreParts[] = '(CASE WHEN LOWER(services.description) LIKE LOWER(?) THEN 1 ELSE 0 END)';
+                $scoreBindings[] = $like;
+            }
+
+            if ($scoreParts !== []) {
+                $query->orderByRaw('('.implode(' + ', $scoreParts).') DESC', $scoreBindings);
+            }
+        }
+
+        $query->orderByDesc('services.published_at')->orderByDesc('services.id');
+    }
+}

@@ -88,4 +88,13 @@
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         <span>Espace sécurisé</span>
     </div>
+
+    <form method="POST" action="{{ route('admin.logout') }}" class="admin-logout-form">
+        @csrf
+
+        <button type="submit" class="admin-logout-button">
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            <span>Déconnexion</span>
+        </button>
+    </form>
 @endsection

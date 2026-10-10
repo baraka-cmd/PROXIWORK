@@ -30,10 +30,12 @@ class AuthenticationTest extends TestCase
 
         $response = $this->postJson('/api/v1/auth/register', [
             'name' => 'Jean Dupont',
+            'account_type' => 'client',
             'email' => 'jean@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
             'device_name' => 'android-test',
+            'terms' => '1',
         ]);
 
         $response->assertCreated()
@@ -42,11 +44,54 @@ class AuthenticationTest extends TestCase
             ->assertJsonMissingPath('success');
 
         $this->assertDatabaseHas('users', ['email' => 'jean@example.com']);
+        $this->assertNotNull(User::where('email', 'jean@example.com')->firstOrFail()->terms_accepted_at);
         $user = User::where('email', 'jean@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('client'));
         $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
         $this->assertDatabaseHas('notification_preferences', ['user_id' => $user->id]);
         $this->assertDatabaseHas('personal_access_tokens', ['tokenable_id' => $user->id]);
+    }
+
+    public function test_api_registration_requires_an_explicit_supported_account_type(): void
+    {
+        $response = $this->postJson('/api/v1/auth/register', [
+            'name' => 'Marie Client',
+            'email' => 'marie@example.com',
+            'password' => 'SecurePass1!',
+            'password_confirmation' => 'SecurePass1!',
+            'device_name' => 'android-test',
+            'terms' => '1',
+        ]);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('account_type');
+    }
+
+    public function test_api_registration_creates_a_private_professional_account_when_selected(): void
+    {
+        Notification::fake();
+
+        $response = $this->postJson('/api/v1/auth/register', [
+            'name' => 'Paul Professionnel',
+            'account_type' => 'professional',
+            'email' => 'paul.pro@example.com',
+            'password' => 'SecurePass1!',
+            'password_confirmation' => 'SecurePass1!',
+            'device_name' => 'android-test',
+            'terms' => '1',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.account_type', 'professional')
+            ->assertJsonPath('data.user.roles.0', 'professional');
+
+        $user = User::where('email', 'paul.pro@example.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('professional'));
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id' => $user->id,
+            'status' => 'draft',
+            'visibility' => 'private',
+            'verification_status' => 'pending',
+        ]);
     }
 
     public function test_user_can_login_with_valid_credentials(): void
@@ -234,6 +279,37 @@ class AuthenticationTest extends TestCase
             ->assertOk();
 
         Notification::assertNothingSent();
+    }
+
+    public function test_unverified_client_cannot_create_a_service_request_via_api(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $user->assignRole('client');
+        $token = $user->createToken('unverified-client')->plainTextToken;
+
+        $this->withToken($token)
+            ->postJson('/api/v1/service-requests', [])
+            ->assertForbidden();
+    }
+
+    public function test_password_recovery_response_does_not_reveal_unknown_email(): void
+    {
+        Notification::fake();
+
+        $user = User::factory()->create(['email' => 'recovery-existing@example.com']);
+
+        $existingResponse = $this->postJson('/api/v1/auth/forgot-password', [
+            'email' => $user->email,
+        ])->assertOk();
+
+        $unknownResponse = $this->postJson('/api/v1/auth/forgot-password', [
+            'email' => 'not-registered@example.com',
+        ])->assertOk();
+
+        $expectedMessage = 'Si cette adresse existe, un lien de réinitialisation a été envoyé.';
+        $this->assertSame($expectedMessage, $existingResponse->json('message'));
+        $this->assertSame($expectedMessage, $unknownResponse->json('message'));
+        Notification::assertSentTo($user, ResetPassword::class);
     }
 
     public function test_login_is_rate_limited_after_repeated_failures(): void

@@ -40,7 +40,7 @@ class ModerationTest extends TestCase
         $this->assertDatabaseHas('reports', [
             'reporter_id' => $client->id,
             'target_id' => $service->id,
-            'target_type' => 'App\\Models\\Service',
+            'target_type' => 'service',
         ]);
     }
 

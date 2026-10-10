@@ -27,6 +27,7 @@ use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Tests\TestCase;
 
@@ -190,6 +191,72 @@ class PaymentTransactionsWalletTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,
             'status' => OrderStatus::CONFIRMED->value,
+        ]);
+    }
+
+    public function test_final_transaction_rejects_webhooks_with_mismatched_amount_or_currency(): void
+    {
+        config(['payment.webhooks.secrets.fake' => 'test-webhook-secret']);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'finance-webhook-final-amount-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertAccepted();
+
+        $transaction = PaymentTransaction::query()->firstOrFail();
+        $service = app(PaymentWebhookService::class);
+        $firstRawBody = 'EVENT-FINAL-1|'.$transaction->provider_transaction_id.'|500.00|USD|succeeded';
+
+        $service->handle(
+            provider: PaymentProvider::FAKE,
+            signature: hash_hmac('sha256', $firstRawBody, 'test-webhook-secret'),
+            eventId: 'EVENT-FINAL-1',
+            transactionId: $transaction->provider_transaction_id,
+            amount: '500.00',
+            currency: 'USD',
+            status: PaymentStatus::SUCCEEDED,
+            failureCode: null,
+            failureMessage: null,
+            metadata: [],
+            rawBody: $firstRawBody,
+        );
+
+        foreach ([
+            ['EVENT-FINAL-WRONG-AMOUNT', '1.00', 'USD'],
+            ['EVENT-FINAL-WRONG-CURRENCY', '500.00', 'EUR'],
+        ] as [$eventId, $amount, $currency]) {
+            $invalidRawBody = $eventId.'|'.$transaction->provider_transaction_id.'|'.$amount.'|'.$currency.'|succeeded';
+
+            try {
+                $service->handle(
+                    provider: PaymentProvider::FAKE,
+                    signature: hash_hmac('sha256', $invalidRawBody, 'test-webhook-secret'),
+                    eventId: $eventId,
+                    transactionId: $transaction->provider_transaction_id,
+                    amount: $amount,
+                    currency: $currency,
+                    status: PaymentStatus::SUCCEEDED,
+                    failureCode: null,
+                    failureMessage: null,
+                    metadata: [],
+                    rawBody: $invalidRawBody,
+                );
+
+                $this->fail('A final transaction must reject a callback with a mismatched amount or currency.');
+            } catch (ValidationException $exception) {
+                $this->assertArrayHasKey('payment', $exception->errors());
+            }
+        }
+
+        $this->assertDatabaseHas('payment_transactions', [
+            'id' => $transaction->id,
+            'provider_event_id' => 'EVENT-FINAL-1',
+            'status' => 'succeeded',
         ]);
     }
 
@@ -412,6 +479,61 @@ class PaymentTransactionsWalletTest extends TestCase
         );
 
         $this->assertSame($first->id, $second->id);
+        $this->assertDatabaseCount('withdrawals', 1);
+    }
+
+    public function test_withdrawal_idempotency_key_rejects_changed_provider_or_destination(): void
+    {
+        [, $professional] = $this->professional();
+        $walletService = app(WalletService::class);
+        $withdrawalService = app(WithdrawalService::class);
+
+        $walletService->creditPending(
+            professional: $professional,
+            amount: '500.00',
+            currency: 'USD',
+            type: WalletTransactionType::EARNING,
+            idempotencyKey: 'wallet-credit-fingerprint-0001',
+        );
+        $walletService->releasePending(
+            professional: $professional,
+            amount: '500.00',
+            currency: 'USD',
+            idempotencyKey: 'wallet-release-fingerprint-0001',
+        );
+
+        $withdrawalService->request(
+            professional: $professional,
+            amount: '300.00',
+            currency: 'USD',
+            provider: 'fake',
+            destination: '0000000000',
+            idempotencyKey: 'withdrawal-fingerprint-0001',
+        );
+
+        foreach ([
+            ['provider' => 'fake', 'destination' => '9999999999'],
+            ['provider' => 'another-provider', 'destination' => '0000000000'],
+        ] as $changedRequest) {
+            try {
+                $withdrawalService->request(
+                    professional: $professional,
+                    amount: '300.00',
+                    currency: 'USD',
+                    provider: $changedRequest['provider'],
+                    destination: $changedRequest['destination'],
+                    idempotencyKey: 'withdrawal-fingerprint-0001',
+                );
+
+                $this->fail('An idempotency key must not be reused with a different provider or destination.');
+            } catch (PaymentConflictException $exception) {
+                $this->assertSame(
+                    'La clé d’idempotence est déjà utilisée pour un autre retrait.',
+                    $exception->getMessage(),
+                );
+            }
+        }
+
         $this->assertDatabaseCount('withdrawals', 1);
     }
 

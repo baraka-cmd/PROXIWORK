@@ -15,6 +15,7 @@ use App\Events\OrderPaid;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Service;
@@ -25,6 +26,7 @@ use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Tests\Support\FailingPaymentGateway;
+use Tests\Support\MismatchedPaymentGateway;
 use Tests\TestCase;
 
 class PaymentApiTest extends TestCase
@@ -223,6 +225,46 @@ class PaymentApiTest extends TestCase
             'order_id' => $order->id,
             'status' => PaymentStatus::FAILED->value,
             'failure_code' => 'FAKE_PAYMENT_FAILED',
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::PENDING_PAYMENT->value,
+        ]);
+    }
+
+    public function test_provider_amount_mismatch_is_persisted_as_failed_without_confirming_order(): void
+    {
+        $this->app->bind(PaymentGateway::class, MismatchedPaymentGateway::class);
+
+        [$client, $order] = $this->orderScenario();
+
+        $response = $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-provider-mismatch-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('data.status', PaymentStatus::FAILED->value);
+
+        $paymentId = Payment::query()
+            ->where('order_id', $order->id)
+            ->value('id');
+
+        $this->assertDatabaseHas('payment_transactions', [
+            'payment_id' => $paymentId,
+            'status' => 'failed',
+            'failure_code' => 'PROVIDER_AMOUNT_MISMATCH',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'id' => $paymentId,
+            'status' => PaymentStatus::FAILED->value,
+        ]);
+        $this->assertDatabaseHas('payment_intents', [
+            'order_id' => $order->id,
+            'status' => PaymentStatus::FAILED->value,
+            'failure_code' => 'PROVIDER_AMOUNT_MISMATCH',
         ]);
         $this->assertDatabaseHas('orders', [
             'id' => $order->id,

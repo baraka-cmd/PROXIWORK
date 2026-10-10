@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RbacSeeder::class,
             CategorySeeder::class,
+            DemoPlatformSeeder::class,
+            CategorySkillSeeder::class,
         ]);
     }
 }

@@ -47,6 +47,18 @@ class WebAdminDashboardTest extends TestCase
             ->assertSee('Finances');
     }
 
+    public function test_admin_with_rbac_permission_can_view_web_rbac_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole(Role::query()->where('name', 'admin')->firstOrFail());
+
+        $response = $this->actingAs($user)->get('/admin/rbac');
+
+        $response->assertOk()
+            ->assertViewIs('admin.rbac.index')
+            ->assertViewHas('metrics');
+    }
+
     public function test_period_filters_are_passed_to_the_dashboard(): void
     {
         $user = User::factory()->create();

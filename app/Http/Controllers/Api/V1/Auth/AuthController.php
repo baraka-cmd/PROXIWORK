@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
-use App\Enums\UserAccountStatus;
+use App\Enums\ProfessionalVerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -13,22 +13,27 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Auth\SessionRevocationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Throwable;
 
 class AuthController extends Controller
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly SessionRevocationService $sessionRevocationService,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -40,16 +45,30 @@ class AuthController extends Controller
                 'password' => $request->string('password')->toString(),
             ]);
 
+            $user->forceFill(['terms_accepted_at' => now()])->save();
+
             $user->profile()->create();
             $user->notificationPreference()->create();
-            $user->assignRole(Role::where('name', 'client')->firstOrFail());
+
+            $accountType = $request->string('account_type')->toString();
+            $user->assignRole(Role::query()->where('name', $accountType)->firstOrFail());
+
+            if ($accountType === 'professional') {
+                $professionalProfile = $user->professionalProfile()->create();
+                $professionalProfile->forceFill([
+                    'status' => 'draft',
+                    'visibility' => 'private',
+                    'verification_status' => ProfessionalVerificationStatus::PENDING,
+                    'professional_terms_accepted_at' => now(),
+                ])->save();
+            }
 
             return $user;
         });
 
         event(new Registered($user));
         $this->auditLogService->record('register', $user, $user, [], $request);
-        $this->auditLogService->record('role_assigned', $user, $user, ['role' => 'client'], $request);
+        $this->auditLogService->record('role_assigned', $user, $user, ['role' => $request->string('account_type')->toString()], $request);
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
@@ -60,7 +79,8 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Compte créé. Vérifiez votre adresse e-mail.',
             'data' => [
-                'user' => new UserResource($user),
+                'account_type' => $request->string('account_type')->toString(),
+                'user' => new UserResource($user->load('roles')),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
@@ -73,11 +93,11 @@ class AuthController extends Controller
         $email = mb_strtolower($request->string('email')->toString());
         $user = User::where('email', $email)->first();
 
-        if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
+        if ($user === null || Hash::check($request->string('password')->toString(), $user->password) === false) {
             throw new AuthenticationException('Identifiants invalides.');
         }
 
-        if ($user->account_status === UserAccountStatus::SUSPENDED) {
+        if ($user->isActive() === false) {
             throw new AccessDeniedHttpException('Compte suspendu.');
         }
 
@@ -92,7 +112,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Connexion réussie.',
             'data' => [
-                'user' => new UserResource($user),
+                'user' => new UserResource($user->load('roles')),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
@@ -130,7 +150,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
+        if (Hash::check($request->string('current_password')->toString(), $user->password) === false) {
             throw ValidationException::withMessages([
                 'current_password' => ['Le mot de passe actuel est incorrect.'],
             ]);
@@ -140,7 +160,7 @@ class AuthController extends Controller
             'password' => $request->string('password')->toString(),
         ]);
 
-        $user->tokens()->delete();
+        $this->sessionRevocationService->revokeAll($user);
 
         $this->auditLogService->record('password_changed', $user, $user, [], $request);
         $user->notify(new AccountActivityNotification(
@@ -169,13 +189,13 @@ class AuthController extends Controller
     {
         $request->validate(['email' => ['required', 'email:rfc']]);
 
-        $status = Password::sendResetLink([
-            'email' => mb_strtolower($request->string('email')->toString()),
-        ]);
-
-        if ($status !== Password::ResetLinkSent) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
+        try {
+            Password::sendResetLink([
+                'email' => mb_strtolower($request->string('email')->toString()),
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('API password reset notification could not be dispatched.', [
+                'exception' => $exception::class,
             ]);
         }
 
@@ -200,15 +220,15 @@ class AuthController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                $user->tokens()->delete();
+                $this->sessionRevocationService->revokeAll($user);
 
                 event(new PasswordReset($user));
             }
         );
 
-        if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
+        if ($status !== Password::PASSWORD_RESET || ($resetUser instanceof User) === false) {
             throw ValidationException::withMessages([
-                'email' => [__($status)],
+                'email' => ['Le lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.'],
             ]);
         }
 
@@ -237,6 +257,7 @@ class AuthController extends Controller
         }
 
         $request->user()->sendEmailVerificationNotification();
+        $this->auditLogService->record('auth.api.email_verification_requested', $request->user(), $request->user(), [], $request);
 
         return response()->json([
             'message' => 'Un nouveau lien de vérification a été envoyé.',
@@ -249,14 +270,17 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
 
+        abort_unless($user->isActive(), 403, 'Compte suspendu.');
+
         abort_unless(
             hash_equals(sha1($user->getEmailForVerification()), $hash),
             403,
             'Lien de vérification invalide.'
         );
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
+        if ($user->hasVerifiedEmail() === false && $user->markEmailAsVerified()) {
+            event(new Verified($user));
+            $this->auditLogService->record('auth.api.email_verified', $user, $user, [], $request);
         }
 
         return response()->json([

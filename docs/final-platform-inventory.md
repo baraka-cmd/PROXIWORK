@@ -106,3 +106,25 @@ Ne pas fermer ni supprimer automatiquement les branches historiques : conserver 
 ### Décision de livraison
 
 Ne pas supprimer l’ancienne copie locale et ne pas fusionner la PR #100 dans `main` avant que le workflow du dernier commit soit vert et que la revue finale des différences soit terminée. La branche de release reste l’artefact à récupérer pour les essais locaux, mais sa validation finale dépend du résultat CI le plus récent.
+
+## Livraison finale candidate — 9 octobre 2026
+
+La branche `release/proxiwork-final-delivery` est créée à partir de `release/proxiwork-full-platform` pour isoler la livraison candidate sans toucher à `main` ni aux branches historiques.
+
+Le rapport complémentaire `docs/final-platform-audit.md` consigne la méthode, les références comparées, les tests de sécurité présents, le résultat CI du commit source et les limites à ne pas présenter comme des intégrations de production.
+
+Le commit source `f095926ce233a9c2e6c0f21113b4c2e1fad2cac5` a un workflow CI réussi (run 758, ID `37896656382`), comprenant le build Vite, Composer, les tests Laravel et Pint. Ce résultat est une preuve pour le commit source uniquement. La livraison candidate doit être considérée validée seulement après un résultat vert du workflow exécuté sur son dernier commit.
+
+La revue a confirmé que les tests `tests/Feature/Security/SecurityHeadersTest.php` et `tests/Feature/Audit/AuditRetentionTest.php` existent déjà dans l'arbre de release, ainsi que l'ajout global du middleware `AddSecurityHeaders` dans `bootstrap/app.php`. Les branches de hardening plus anciennes ne doivent donc pas être fusionnées en bloc : elles divergent de la release et certaines modifications pertinentes sont déjà présentes.
+
+Les limites de production (notamment fournisseur de paiement réel, OAuth Google si retenu, livraison réelle des e-mails et recette navigateur/local) restent documentées dans le rapport d'audit.
+
+## Mise à jour de validation — 9 octobre 2026
+
+La revue complémentaire a ajouté et validé les parcours Web Professionnel demandes/devis, la résolution du contrôleur RBAC Web, les contrôles de cohérence des callbacks de paiement et le fingerprint d’idempotence des retraits.
+
+Le workflow CI #793 (`37900990912`) a réussi avec **424 tests, 1 497 assertions et aucun test risqué**, ainsi qu’un build Vite et un contrôle Pint réussis. La branche candidate elle-même a ensuite passé le workflow CI #795 (`37901117049`) sur le commit `a2dacd2f862b8ccee4a8ec3f2be89c87fb21ff1f` avec les mêmes résultats. Après la fusion de cette mise à jour documentaire, une nouvelle CI doit confirmer le nouveau commit de livraison.
+
+**Limites de production :** l’abstraction de paiement utilise encore un fournisseur de test; aucune intégration Mobile Money réelle n’est certifiée. La livraison réelle des e-mails, la recette navigateur responsive et l’installation locale Windows/XAMPP nécessitent des essais/configurations dans l’environnement cible.
+
+La comparaison de branches historiques reste une analyse de divergences et de chemins de fichiers, pas une justification de fusion massive. `main` n’a pas été modifiée.

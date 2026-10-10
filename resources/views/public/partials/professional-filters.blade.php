@@ -75,14 +75,29 @@
                 <input class="form-control" type="number" name="min_price" min="0" step="0.01" value="{{ $filters['min_price'] ?? '' }}" placeholder="Minimum" aria-label="Prix minimum">
                 <input class="form-control" type="number" name="max_price" min="0" step="0.01" value="{{ $filters['max_price'] ?? '' }}" placeholder="Maximum" aria-label="Prix maximum">
             </div>
+            @error('max_price')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
             <div class="directory-filter-grid directory-filter-grid--currency">
                 <select class="form-control form-select" name="currency" aria-label="Devise">
-                    <option value="">Toutes devises</option>
-                    @foreach (['USD' => 'USD — Dollar', 'CDF' => 'CDF — Franc congolais', 'EUR' => 'EUR — Euro'] as $code => $label)
-                        <option value="{{ $code }}" @selected(($filters['currency'] ?? '') === $code)>{{ $label }}</option>
+                    <option value="">Choisir une devise</option>
+                    @foreach ($currencies as $currency)
+                        <option value="{{ $currency }}" @selected(($filters['currency'] ?? '') === $currency)>{{ $currency }}</option>
+                    @endforeach
+                </select>
+                <select class="form-control form-select" name="billing_unit" aria-label="Unité de facturation">
+                    <option value="">Unité</option>
+                    @foreach ($billingUnits as $billingUnit)
+                        <option value="{{ $billingUnit }}" @selected(($filters['billing_unit'] ?? '') === $billingUnit)>{{ \Illuminate\Support\Str::headline($billingUnit) }}</option>
                     @endforeach
                 </select>
             </div>
+            @error('currency')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
+            @error('billing_unit')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="directory-filter-grid">
@@ -100,12 +115,12 @@
             </div>
 
             <div class="form-field">
-                <label class="form-label" for="{{ $idPrefix }}-availability">Disponibilité</label>
+                <label class="form-label" for="{{ $idPrefix }}-availability">Disponibilité déclarée</label>
                 <div class="form-select-wrapper">
                     <select id="{{ $idPrefix }}-availability" class="form-control form-select" name="availability">
                         <option value="">Toutes</option>
-                        <option value="available" @selected(($filters['availability'] ?? '') === 'available')>Disponible</option>
-                        <option value="unavailable" @selected(($filters['availability'] ?? '') === 'unavailable')>Indisponible</option>
+                        <option value="available" @selected(($filters['availability'] ?? '') === 'available')>Disponible (déclaré)</option>
+                        <option value="unavailable" @selected(($filters['availability'] ?? '') === 'unavailable')>Indisponible (déclaré)</option>
                         <option value="unknown" @selected(($filters['availability'] ?? '') === 'unknown')>Non renseignée</option>
                     </select>
                     <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
@@ -117,10 +132,8 @@
             <label class="form-label" for="{{ $idPrefix }}-verification">Vérification</label>
             <div class="form-select-wrapper">
                 <select id="{{ $idPrefix }}-verification" class="form-control form-select" name="verification">
-                    <option value="">Tous les profils</option>
-                    <option value="verified" @selected(($filters['verification'] ?? '') === 'verified')>Vérifiés</option>
-                    <option value="pending" @selected(($filters['verification'] ?? '') === 'pending')>En attente</option>
-                    <option value="under_review" @selected(($filters['verification'] ?? '') === 'under_review')>En vérification</option>
+                    <option value="">Tous les profils publiables</option>
+                    <option value="verified" @selected(($filters['verification'] ?? '') === 'verified')>Vérifiés uniquement</option>
                 </select>
                 <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
             </div>
@@ -138,6 +151,9 @@
                 </select>
                 <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
             </div>
+            @error('sort')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="directory-filter-actions">

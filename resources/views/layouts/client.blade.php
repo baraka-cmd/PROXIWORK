@@ -23,7 +23,11 @@
                 <span>Professionnels</span>
             </a>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/services') }}">
+            <a
+                class="dashboard-nav-link"
+                data-nav-link
+                href="{{ route('client.services.index') }}"
+            >
                 <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
                 <span>Services</span>
             </a>
@@ -89,4 +93,13 @@
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         <span>Espace sécurisé</span>
     </div>
+
+    <form method="POST" action="{{ route('admin.logout') }}" class="admin-logout-form">
+        @csrf
+
+        <button type="submit" class="admin-logout-button">
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            <span>Déconnexion</span>
+        </button>
+    </form>
 @endsection

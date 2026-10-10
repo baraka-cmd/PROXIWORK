@@ -19,6 +19,11 @@ class SkillAdminResource extends JsonResource
             'icon' => $this->icon,
             'status' => $this->status->value,
             'sort_order' => $this->sort_order,
+            'categories' => $this->whenLoaded('categories', fn () => $this->categories->map(fn ($category) => [
+                'id' => $category->getKey(),
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ])->values()),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

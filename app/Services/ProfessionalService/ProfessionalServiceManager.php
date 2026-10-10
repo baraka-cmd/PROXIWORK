@@ -252,6 +252,8 @@ class ProfessionalServiceManager
                 'price_min',
                 'price_max',
                 'currency',
+                'billing_unit',
+                'service_area',
                 'estimated_duration_minutes',
                 'sort_order',
             ])

@@ -11,6 +11,11 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
 
+    <link
+        rel="stylesheet"
+        href="{{ asset('assets/fontawesome/css/all.min.css') }}"
+    >
+    
     @fonts
     @unless (app()->environment('testing'))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -24,6 +29,22 @@
         <div class="page-container" aria-label="Message de réussite">
             <x-success :message="session('success')" />
         </div>
+    @endif
+
+    @if (auth()->check() && ! auth()->user()->hasVerifiedEmail() && ! request()->routeIs('verification.notice', 'web.verification.verify'))
+        <aside class="email-verification-banner" role="status" aria-label="Vérification de l’adresse e-mail">
+            <div class="email-verification-banner__copy">
+                <strong>Confirmez votre adresse e-mail</strong>
+                <span>Votre compte reste accessible, mais certaines actions nécessiteront cette vérification.</span>
+            </div>
+            <a href="{{ route('verification.notice') }}">Vérifier maintenant</a>
+            <a href="{{ route('account.email.edit') }}">Modifier l’adresse</a>
+            <a href="{{ route('account.password.edit') }}">Sécuriser le mot de passe</a>
+            <form method="POST" action="{{ route('verification.send') }}">
+                @csrf
+                <button type="submit">Renvoyer le lien</button>
+            </form>
+        </aside>
     @endif
 
     @yield('body')

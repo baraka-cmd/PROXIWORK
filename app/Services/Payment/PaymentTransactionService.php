@@ -11,7 +11,6 @@ use App\Models\Payment;
 use App\Models\PaymentTransaction;
 use App\Payments\DTO\PaymentResult;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class PaymentTransactionService
 {
@@ -74,15 +73,17 @@ class PaymentTransactionService
                 || strtoupper($result->currency) !== strtoupper($locked->currency)) {
                 $locked->forceFill([
                     'status' => PaymentTransactionStatus::FAILED,
+                    'provider_transaction_id' => $result->providerReference,
+                    'provider_reference' => $result->providerReference,
                     'failure_code' => 'PROVIDER_AMOUNT_MISMATCH',
                     'failure_message' => 'Le fournisseur a retourné un montant ou une devise incohérente.',
                     'failed_at' => now(),
                     'response_metadata' => $result->metadata,
                 ])->save();
 
-                throw ValidationException::withMessages([
-                    'payment' => 'La réponse du fournisseur de paiement est incohérente.',
-                ]);
+                // Return normally so the failure is committed instead of rolled back
+                // by the surrounding transaction.
+                return $locked->refresh();
             }
 
             $locked->forceFill([

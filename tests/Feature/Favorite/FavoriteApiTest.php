@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Favorite;
 
+use App\Enums\ServiceStatus;
+use App\Models\Category;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -121,6 +124,25 @@ class FavoriteApiTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_user_cannot_favorite_a_private_professional_profile(): void
+    {
+        $user = $this->user();
+        $professional = $this->professional();
+        $professional->forceFill([
+            'status' => ProfessionalProfile::STATUS_DRAFT,
+            'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+        ])->save();
+
+        $this->actingAs($user, 'sanctum')
+            ->putJson('/api/v1/favorites/'.$professional->id)
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('favorites', [
+            'user_id' => $user->id,
+            'professional_profile_id' => $professional->id,
+        ]);
+    }
+
     public function test_user_cannot_delete_another_users_favorite(): void
     {
         $user = $this->user();
@@ -193,6 +215,43 @@ class FavoriteApiTest extends TestCase
             ->assertJsonPath('meta.per_page', 1);
     }
 
+    public function test_professionals_cannot_use_client_favorite_endpoints(): void
+    {
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = $this->professional();
+
+        $this->actingAs($professionalUser, 'sanctum')
+            ->getJson('/api/v1/favorites')
+            ->assertForbidden();
+
+        $this->actingAs($professionalUser, 'sanctum')
+            ->putJson('/api/v1/favorites/'.$professional->id)
+            ->assertForbidden();
+
+        $this->actingAs($professionalUser, 'sanctum')
+            ->deleteJson('/api/v1/favorites/'.$professional->id)
+            ->assertForbidden();
+    }
+
+    public function test_favorites_index_hides_profiles_that_are_no_longer_publicly_discoverable(): void
+    {
+        $user = $this->user();
+        $visible = $this->professional();
+        $suspended = $this->professional();
+        $suspended->forceFill(['status' => ProfessionalProfile::STATUS_SUSPENDED])->save();
+
+        Favorite::create(['user_id' => $user->id, 'professional_profile_id' => $visible->id]);
+        Favorite::create(['user_id' => $user->id, 'professional_profile_id' => $suspended->id]);
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/favorites')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.professional_profile_id', $visible->id)
+            ->assertJsonMissing(['professional_profile_id' => $suspended->id]);
+    }
+
     private function user(): User
     {
         $user = User::factory()->create();
@@ -206,8 +265,18 @@ class FavoriteApiTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('professional');
 
-        return ProfessionalProfile::factory()->create([
+        $professional = ProfessionalProfile::factory()->create([
             'user_id' => $user->id,
         ]);
+
+        $category = Category::factory()->create();
+        Service::factory()->create([
+            'professional_profile_id' => $professional->getKey(),
+            'category_id' => $category->getKey(),
+            'status' => ServiceStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        return $professional;
     }
 }

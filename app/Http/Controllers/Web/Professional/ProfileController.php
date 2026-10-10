@@ -40,8 +40,7 @@ class ProfileController extends Controller
                 'services' => fn ($query) => $query
                     ->with(['category', 'skills', 'images'])
                     ->orderBy('sort_order')
-                    ->orderByDesc('id')
-                    ->limit(6),
+                    ->orderByDesc('id'),
             ])
             ->withCount([
                 'skills',
@@ -51,6 +50,13 @@ class ProfileController extends Controller
                     ->whereNotNull('published_at'),
             ])
             ->firstOrFail();
+
+        // Limiter l'affichage aux six premiers services après leur chargement.
+        // Cela évite la requête ROW_NUMBER() générée par Laravel.
+        $professional->setRelation(
+            'services',
+            $professional->services->take(6)->values()
+        );
 
         $completionItems = [
             'personal' => $professional->user->profile !== null,

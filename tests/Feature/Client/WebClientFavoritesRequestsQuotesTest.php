@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Client;
 
+use App\Models\Category;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
@@ -57,7 +58,18 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $otherClient = $this->client();
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
-        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $professional = ProfessionalProfile::factory()->create([
+            'user_id' => $professionalUser->id,
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+        ]);
+        $category = Category::factory()->create();
+        Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'category_id' => $category->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
 
         Favorite::create(['user_id' => $client->id, 'professional_profile_id' => $professional->id]);
 
@@ -75,6 +87,13 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
         $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $category = Category::factory()->create();
+        Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'category_id' => $category->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
 
         $this->actingAs($client)
             ->put('/client/favorites/'.$professional->id)

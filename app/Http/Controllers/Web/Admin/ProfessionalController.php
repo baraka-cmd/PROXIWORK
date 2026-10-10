@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Professional\AdminProfessionalIndexRequest;
 use App\Http\Requests\Admin\Verification\RejectProfessionalVerificationRequest;
+use App\Http\Requests\Admin\Verification\RequestProfessionalInformationRequest;
 use App\Http\Requests\Admin\Verification\StartProfessionalVerificationRequest;
 use App\Http\Requests\Admin\Verification\VerifyProfessionalVerificationRequest;
 use App\Models\ProfessionalProfile;
@@ -66,6 +67,20 @@ class ProfessionalController extends Controller
         );
 
         return back()->with('success', 'Le profil professionnel a été vérifié.');
+    }
+
+    public function requestInformation(
+        RequestProfessionalInformationRequest $request,
+        ProfessionalProfile $professional,
+    ): RedirectResponse {
+        $this->verificationService->requestInformation(
+            $professional,
+            $request->user(),
+            $request,
+            $request->validated('note'),
+        );
+
+        return back()->with('success', 'Une demande de complément a été envoyée au professionnel.');
     }
 
     public function reject(

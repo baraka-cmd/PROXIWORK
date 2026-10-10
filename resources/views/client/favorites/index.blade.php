@@ -38,6 +38,10 @@
             @foreach($favorites as $favorite)
                 @php($professional = $favorite->professionalProfile)
                 @php($user = $professional->user)
+                @php($profile = $user->profile)
+                @php($personName = $profile !== null ? trim($profile->first_name.' '.$profile->last_name) : '')
+                @php($displayName = filled($professional->business_name) ? $professional->business_name : (filled($personName) ? $personName : $user->name))
+                @php($profileSlug = \Illuminate\Support\Str::slug($displayName) ?: 'professionnel-'.$professional->getKey())
                 <article class="client-entity-card">
                     <div class="client-entity-card__top">
                         <div class="client-avatar">
@@ -48,7 +52,7 @@
                         </span>
                     </div>
                     <div>
-                        <h2>{{ $user->name }}</h2>
+                        <h2>{{ $displayName }}</h2>
                         <p class="client-entity-card__subtitle">{{ $professional->professional_title ?: 'Professionnel' }}</p>
                     </div>
                     <dl class="client-entity-card__meta">
@@ -56,8 +60,12 @@
                             <dt>Évaluation</dt>
                             <dd>
                                 <i class="fa-solid fa-star" aria-hidden="true"></i>
-                                {{ number_format((float) $professional->rating_average, 1) }}
-                                ({{ $professional->rating_count }})
+                                @if (($professional->rating_count ?? 0) > 0 && $professional->rating_average !== null)
+                                    {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5
+                                    ({{ $professional->rating_count }} avis)
+                                @else
+                                    Aucun avis publié
+                                @endif
                             </dd>
                         </div>
                         <div>
@@ -66,7 +74,7 @@
                         </div>
                     </dl>
                     <div class="client-entity-card__actions">
-                        <a class="btn btn-secondary" href="{{ url('/professionals') }}">Voir le profil</a>
+                        <a class="btn btn-secondary" href="{{ route('public.professionals.show', ['professionalProfile' => $professional->getKey(), 'slug' => $profileSlug]) }}">Voir le profil</a>
                         <form method="POST" action="{{ route('client.favorites.destroy', $favorite) }}">
                             @csrf
                             @method('DELETE')

@@ -471,3 +471,32 @@
         gap: var(--space-2);
     }
 }
+
+
+/* Verification guidance and private evidence upload */
+.professional-dashboard-card--verification { margin-bottom: var(--space-5); }
+.professional-verification-upload,
+.professional-verification-resubmit {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+.professional-verification-upload h4 { margin: 0; color: var(--color-text); }
+.professional-verification-upload label { color: var(--color-text); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.professional-verification-upload select,
+.professional-verification-upload input[type="file"] {
+    width: 100%;
+    min-height: 44px;
+    padding: .65rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+}
+.professional-verification-resubmit label { display: flex; align-items: flex-start; gap: var(--space-2); color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: 1.5; }
+.professional-verification-resubmit input[type="checkbox"] { flex: 0 0 auto; margin-top: .2rem; accent-color: var(--color-primary); }

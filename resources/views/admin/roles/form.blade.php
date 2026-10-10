@@ -12,6 +12,7 @@
     <form method="POST" action="{{ $role ? route('admin.roles.update', $role) : route('admin.roles.store') }}" class="admin-role-form">
         @csrf
         @if($role) @method('PUT') @endif
+        <input type="hidden" name="permissions_submitted" value="1">
         <section class="admin-card">
             <div class="admin-card__header"><div><span class="admin-card__eyebrow">Identité</span><h3>Informations du rôle</h3></div></div>
             <div class="admin-form-grid">
@@ -38,6 +39,21 @@
                     </fieldset>
                 @endforeach
             </div>
+            @if (isset($protectedPermissions) && $protectedPermissions->isNotEmpty())
+                <fieldset class="permission-group permission-group--protected">
+                    <legend>Permissions protégées</legend>
+                    <p>Ces permissions existent déjà sur ce rôle, mais votre compte ne peut pas les modifier. Elles seront conservées lors de l’enregistrement.</p>
+                    <div class="permission-grid">
+                        @foreach ($protectedPermissions as $permission)
+                            <label class="permission-item">
+                                <input type="checkbox" checked disabled aria-label="{{ $permission->display_name }} — protégée">
+                                <input type="hidden" name="permission_ids[]" value="{{ $permission->id }}">
+                                <span><strong>{{ $permission->display_name }}</strong><small>{{ $permission->description }}</small><code>{{ $permission->name }}</code></span>
+                            </label>
+                        @endforeach
+                    </div>
+                </fieldset>
+            @endif
         </section>
         <div class="admin-form-actions"><a class="button button--secondary" href="{{ $role ? route('admin.roles.show', $role) : route('admin.roles.index') }}">Annuler</a><button class="button button--primary" type="submit"><i class="fa-solid fa-floppy-disk"></i> {{ $role ? 'Enregistrer' : 'Créer le rôle' }}</button></div>
     </form>

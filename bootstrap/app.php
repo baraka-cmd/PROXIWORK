@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\EnsureSessionVersionIsCurrent;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -38,6 +39,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => EnsureUserHasPermission::class,
             'security.headers' => AddSecurityHeaders::class,
             'active.account' => EnsureUserIsActive::class,
+            'session.version' => EnsureSessionVersionIsCurrent::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -48,7 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if ($isApi($request) === false) {
                 return null;
             }
 

@@ -28,7 +28,7 @@ class WebLoginTest extends TestCase
             ->assertOk()
             ->assertViewIs('auth.login')
             ->assertSee('Ravi de vous revoir')
-            ->assertSee('Continuer avec Google');
+            ->assertSee('La connexion Google n’est pas encore configurée');
     }
 
     public function test_user_can_login_with_valid_credentials(): void
@@ -70,6 +70,66 @@ class WebLoginTest extends TestCase
             ->assertRedirect(route('professional.dashboard'));
     }
 
+    public function test_user_with_client_and_professional_roles_can_choose_workspace(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client', 'professional');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertViewIs('auth.choose-workspace')
+            ->assertSee('Ouvrir mon espace client')
+            ->assertSee('Ouvrir mon espace professionnel');
+
+        $this->post(route('workspace.switch'), ['workspace' => 'professional'])
+            ->assertRedirect(route('professional.dashboard'));
+
+        $this->get(route('dashboard'))->assertRedirect(route('professional.dashboard'));
+    }
+
+    public function test_user_cannot_switch_to_a_workspace_without_the_required_role(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->post(route('workspace.switch'), ['workspace' => 'professional'])
+            ->assertForbidden();
+    }
+
+    public function test_login_does_not_follow_an_external_intended_redirect(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'safe-redirect@example.com',
+            'password' => Hash::make('Password123!'),
+        ]);
+        $user->assignRole('client');
+
+        $this->withSession(['url.intended' => 'https://evil.example/collect'])
+            ->post(route('login.store'), [
+                'email' => $user->email,
+                'password' => 'Password123!',
+            ])
+            ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_login_does_not_redirect_client_to_a_professional_intended_url(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'client-safe-redirect@example.com',
+            'password' => Hash::make('Password123!'),
+        ]);
+        $user->assignRole('client');
+
+        $this->withSession(['url.intended' => route('professional.dashboard')])
+            ->post(route('login.store'), [
+                'email' => $user->email,
+                'password' => 'Password123!',
+            ])
+            ->assertRedirect(route('dashboard'));
+    }
+
     public function test_dashboard_rejects_accounts_without_a_workspace_role(): void
     {
         $user = User::factory()->create();
@@ -77,6 +137,21 @@ class WebLoginTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertForbidden();
+    }
+
+    public function test_user_can_logout_and_the_session_is_invalidated(): void
+    {
+        $user = User::factory()->create(['account_status' => UserAccountStatus::ACTIVE]);
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->withSession(['private_test_value' => 'must-not-survive'])
+            ->post(route('logout'))
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('status')
+            ->assertSessionMissing('private_test_value');
+
+        $this->assertGuest();
     }
 
     public function test_invalid_credentials_are_rejected(): void

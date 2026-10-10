@@ -19,21 +19,11 @@ class Skill extends Model
         'sort_order' => 0,
     ];
 
-    protected $fillable = [
-        'name',
-        'slug',
-        'description',
-        'icon',
-        'status',
-        'sort_order',
-    ];
+    protected $fillable = ['name', 'slug', 'description', 'icon', 'status', 'sort_order'];
 
     protected function casts(): array
     {
-        return [
-            'status' => SkillStatus::class,
-            'sort_order' => 'integer',
-        ];
+        return ['status' => SkillStatus::class, 'sort_order' => 'integer'];
     }
 
     protected static function newFactory(): SkillFactory
@@ -53,12 +43,12 @@ class Skill extends Model
 
     public function services(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Service::class,
-            'service_skills',
-            'skill_id',
-            'service_id'
-        )->withTimestamps();
+        return $this->belongsToMany(Service::class, 'service_skills', 'skill_id', 'service_id')->withTimestamps();
+    }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_skill')->withTimestamps();
     }
 
     public function scopeActive($query)

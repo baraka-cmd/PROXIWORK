@@ -8,6 +8,7 @@ use App\Enums\CategoryStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Category extends Model
@@ -21,15 +22,8 @@ class Category extends Model
     ];
 
     protected $fillable = [
-        'parent_id',
-        'name',
-        'slug',
-        'description',
-        'icon',
-        'image_path',
-        'status',
-        'is_featured',
-        'sort_order',
+        'parent_id', 'name', 'slug', 'description', 'icon', 'image_path',
+        'status', 'is_featured', 'sort_order',
     ];
 
     protected function casts(): array
@@ -48,14 +42,22 @@ class Category extends Model
 
     public function children(): HasMany
     {
-        return $this->hasMany(self::class, 'parent_id')
-            ->orderBy('sort_order')
-            ->orderBy('name');
+        return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('name');
     }
 
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
+    }
+
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class, 'category_skill')->withTimestamps();
+    }
+
+    public function professionalProfiles(): BelongsToMany
+    {
+        return $this->belongsToMany(ProfessionalProfile::class, 'professional_categories')->withTimestamps();
     }
 
     public function scopeActive($query)

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -53,6 +54,7 @@ class PasswordResetTest extends TestCase
             'email' => 'client@example.com',
             'password' => 'OldPassword123!',
         ]);
+        $user->createToken('existing-device');
 
         $this->post(route('password.email'), ['email' => $user->email])->assertRedirect();
 
@@ -77,6 +79,12 @@ class PasswordResetTest extends TestCase
             ->assertSessionHas('status');
 
         $this->assertTrue(Hash::check('NewPassword456!', $user->fresh()->password));
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $user->id,
+            'action' => 'auth.web.password_reset',
+        ]);
+        Notification::assertSentTo($user, AccountActivityNotification::class);
 
         $this->from(route('password.request'))
             ->post(route('password.update'), [

@@ -194,6 +194,7 @@ class ProfessionalSearchApiTest extends TestCase
             'pricing_type' => 'fixed',
             'price' => 50,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $outside = $this->professional();
@@ -201,9 +202,10 @@ class ProfessionalSearchApiTest extends TestCase
             'pricing_type' => 'fixed',
             'price' => 250,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
-        $this->getJson('/api/v1/professionals?min_price=10&max_price=100&currency=USD')
+        $this->getJson('/api/v1/professionals?min_price=10&max_price=100&currency=USD&billing_unit=hour')
             ->assertOk()
             ->assertJsonPath('data.0.id', $matching->id)
             ->assertJsonCount(1, 'data');
@@ -247,6 +249,7 @@ class ProfessionalSearchApiTest extends TestCase
             'price_min' => 80,
             'price_max' => 150,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
         $outside = $this->professional();
@@ -255,9 +258,10 @@ class ProfessionalSearchApiTest extends TestCase
             'price_min' => 250,
             'price_max' => 350,
             'currency' => 'USD',
+            'billing_unit' => 'hour',
         ]);
 
-        $this->getJson('/api/v1/professionals?min_price=100&max_price=200&currency=USD')
+        $this->getJson('/api/v1/professionals?min_price=100&max_price=200&currency=USD&billing_unit=hour')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $matching->id);
@@ -267,6 +271,7 @@ class ProfessionalSearchApiTest extends TestCase
     {
         $verified = $this->professional([
             'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => now(),
             'availability_status' => ProfessionalAvailabilityStatus::AVAILABLE,
             'rating_average' => 4.8,
             'rating_count' => 20,
@@ -286,6 +291,25 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.id', $verified->id)
             ->assertJsonPath('data.0.rating.average', 4.8);
+    }
+
+    public function test_default_relevance_sort_dampens_ratings_from_very_small_samples(): void
+    {
+        $singleReview = $this->professional([
+            'rating_average' => 5.0,
+            'rating_count' => 1,
+        ]);
+        $this->publishedService($singleReview);
+
+        $establishedRating = $this->professional([
+            'rating_average' => 4.8,
+            'rating_count' => 20,
+        ]);
+        $this->publishedService($establishedRating);
+
+        $this->getJson('/api/v1/professionals?sort=relevance')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $establishedRating->id);
     }
 
     public function test_pagination_is_bounded_and_preserves_filters(): void
@@ -373,6 +397,126 @@ class ProfessionalSearchApiTest extends TestCase
         DB::disableQueryLog();
 
         $this->assertLessThanOrEqual(15, $queryCount);
+    }
+
+    public function test_from_price_filters_use_the_declared_starting_price(): void
+    {
+        $matching = $this->professional();
+        $this->publishedService($matching, [
+            'pricing_type' => 'from',
+            'price' => null,
+            'price_min' => 50,
+            'price_max' => null,
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+        ]);
+
+        $outside = $this->professional();
+        $this->publishedService($outside, [
+            'pricing_type' => 'from',
+            'price' => null,
+            'price_min' => 150,
+            'price_max' => null,
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+        ]);
+
+        $this->getJson('/api/v1/professionals?min_price=40&max_price=60&currency=USD&billing_unit=hour')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $matching->id);
+    }
+
+    public function test_price_comparison_requires_a_currency(): void
+    {
+        $this->getJson('/api/v1/professionals?min_price=10&max_price=100')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['currency', 'billing_unit']);
+
+        $this->getJson('/api/v1/professionals?sort=price_low')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['sort', 'billing_unit']);
+    }
+
+    public function test_minimum_rating_excludes_profiles_without_admissible_reviews(): void
+    {
+        $staleRating = $this->professional([
+            'rating_average' => 5,
+            'rating_count' => 0,
+        ]);
+        $this->publishedService($staleRating);
+
+        $rated = $this->professional([
+            'rating_average' => 4.2,
+            'rating_count' => 2,
+        ]);
+        $this->publishedService($rated);
+
+        $this->getJson('/api/v1/professionals?rating=4')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $rated->id);
+    }
+
+    public function test_relevance_sort_prioritizes_exact_professional_title_matches(): void
+    {
+        $exact = $this->professional([
+            'professional_title' => 'Laravel',
+            'business_name' => 'Atelier technique',
+        ]);
+        $this->publishedService($exact);
+
+        $partial = $this->professional([
+            'professional_title' => 'Développeur Laravel',
+            'business_name' => 'Développement local',
+        ]);
+        $this->publishedService($partial);
+
+        $this->getJson('/api/v1/professionals?search=Laravel&sort=relevance')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $exact->id);
+    }
+
+    public function test_rating_sort_does_not_let_one_five_star_review_automatically_out_rank_many_good_reviews(): void
+    {
+        $singleReview = $this->professional([
+            'rating_average' => 5,
+            'rating_count' => 1,
+        ]);
+        $this->publishedService($singleReview);
+
+        $established = $this->professional([
+            'rating_average' => 4.8,
+            'rating_count' => 100,
+        ]);
+        $this->publishedService($established);
+
+        $this->getJson('/api/v1/professionals?sort=rating')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $established->id);
+    }
+
+    public function test_public_verification_requires_an_approval_timestamp_and_hides_internal_states(): void
+    {
+        $professional = $this->professional([
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => null,
+        ]);
+        $this->publishedService($professional);
+
+        $this->getJson('/api/v1/professionals')
+            ->assertOk()
+            ->assertJsonPath('data.0.verification.verified', false)
+            ->assertJsonPath('data.0.verification.status', 'unverified');
+
+        $professional->forceFill(['verified_at' => now()])->save();
+
+        $this->getJson('/api/v1/professionals')
+            ->assertOk()
+            ->assertJsonPath('data.0.verification.verified', true)
+            ->assertJsonPath('data.0.verification.status', 'verified');
     }
 
     private function professional(array $attributes = []): ProfessionalProfile

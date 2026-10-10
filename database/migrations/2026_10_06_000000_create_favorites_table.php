@@ -3,24 +3,22 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/*
+ * Compatibility placeholder.
+ *
+ * This migration originally created favorites before professional_profiles,
+ * which fails on a fresh MySQL database. Keep the filename so databases that
+ * already recorded the historical migration can upgrade safely. The table is
+ * now created by 2026_10_06_000011_create_favorites_table.php, after its
+ * referenced table exists.
+ */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('favorites', function (Blueprint $table): void {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('professional_profile_id')
-                ->constrained('professional_profiles')
-                ->cascadeOnDelete();
-            $table->timestamps();
-
-            $table->unique(['user_id', 'professional_profile_id']);
-            $table->index('professional_profile_id');
-        });
+        // Intentionally empty; see the later, correctly ordered migration.
     }
 
     public function down(): void

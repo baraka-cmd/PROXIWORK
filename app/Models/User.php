@@ -18,14 +18,16 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = ['name', 'email', 'password', 'account_status'];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'pending_email'];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'password' => 'hashed',
             'account_status' => UserAccountStatus::class,
+            'session_version' => 'integer',
         ];
     }
 

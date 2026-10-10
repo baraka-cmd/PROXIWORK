@@ -701,3 +701,97 @@
         animation: none;
     }
 }
+
+
+.email-verification-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.85rem 1.25rem;
+    color: #173a2b;
+    background: #f0f8f2;
+    border-bottom: 1px solid #cfe5d4;
+    font-size: 0.92rem;
+}
+
+.email-verification-banner__copy {
+    display: grid;
+    gap: 0.15rem;
+}
+
+.email-verification-banner__copy span {
+    color: #426252;
+}
+
+.email-verification-banner a,
+.email-verification-banner button {
+    color: #14532d;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.email-verification-banner form {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .email-verification-banner {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+}
+
+
+.dashboard-workspace-switcher {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.dashboard-workspace-switcher form {
+    margin: 0;
+}
+
+.dashboard-workspace-switcher button {
+    padding: 0.45rem 0.7rem;
+    color: var(--color-primary, #245b45);
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #d8e2dc);
+    border-radius: 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-workspace-switcher button:hover,
+.dashboard-workspace-switcher button:focus-visible {
+    background: var(--color-surface-muted, #f1f5f2);
+    outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+    .dashboard-workspace-switcher {
+        width: 100%;
+    }
+}
+
+
+.dashboard-user__security {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.dashboard-user__security a {
+    color: var(--color-primary, #245b45);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}

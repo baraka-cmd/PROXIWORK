@@ -24,8 +24,14 @@ return new class extends Migration
             $table->string('reason', 500)->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index(['service_request_id', 'created_at']);
-            $table->index(['changed_by', 'created_at']);
+            $table->index(
+                ['service_request_id', 'created_at'],
+                'srsh_request_created_idx'
+            );
+            $table->index(
+                ['changed_by', 'created_at'],
+                'srsh_actor_created_idx'
+            );
         });
     }
 
