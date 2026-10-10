@@ -293,6 +293,25 @@ class ProfessionalSearchApiTest extends TestCase
             ->assertJsonPath('data.0.rating.average', 4.8);
     }
 
+    public function test_default_relevance_sort_dampens_ratings_from_very_small_samples(): void
+    {
+        $singleReview = $this->professional([
+            'rating_average' => 5.0,
+            'rating_count' => 1,
+        ]);
+        $this->publishedService($singleReview);
+
+        $establishedRating = $this->professional([
+            'rating_average' => 4.8,
+            'rating_count' => 20,
+        ]);
+        $this->publishedService($establishedRating);
+
+        $this->getJson('/api/v1/professionals?sort=relevance')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $establishedRating->id);
+    }
+
     public function test_pagination_is_bounded_and_preserves_filters(): void
     {
         $category = Category::factory()->create(['slug' => 'design']);
