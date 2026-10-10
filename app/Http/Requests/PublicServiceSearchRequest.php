@@ -58,71 +58,7 @@ class PublicServiceSearchRequest extends FormRequest
 
     public function after(): array
     {
-        return [
-            function (Validator $validator): void {
-                $min = $this->input('min_price');
-                $max = $this->input('max_price');
-                $sort = $this->input('sort', 'relevance');
-                $hasMin = is_scalar($min) && $min !== '';
-                $hasMax = is_scalar($max) && $max !== '';
-                $needsComparablePrice = $hasMin
-                    || $hasMax
-                    || in_array($sort, ['price_low', 'price_high'], true);
-
-                if ($hasMin && $hasMax && is_numeric($min) && is_numeric($max) && (float) $min > (float) $max) {
-                    $validator->errors()->add(
-                        'max_price',
-                        'Le prix maximum doit être supérieur ou égal au prix minimum.'
-                    );
-                }
-
-                if ($needsComparablePrice && ! $this->filled('currency')) {
-                    $validator->errors()->add(
-                        'currency',
-                        'Choisissez une devise pour filtrer ou comparer les tarifs.'
-                    );
-                }
-
-                if ($this->filled('currency') && is_scalar($this->input('currency')) && ! Service::query()
-                    ->publiclyVisible()
-                    ->where('currency', $this->input('currency'))
-                    ->whereIn('pricing_type', [
-                        ServicePricingType::FIXED->value,
-                        ServicePricingType::FROM->value,
-                        ServicePricingType::RANGE->value,
-                    ])
-                    ->exists()) {
-                    $validator->errors()->add(
-                        'currency',
-                        'Choisissez une devise réellement proposée par un service public tarifé.'
-                    );
-                }
-
-                if ($needsComparablePrice && ! $this->filled('billing_unit')) {
-                    $validator->errors()->add(
-                        'billing_unit',
-                        'Choisissez une unité de facturation pour comparer des tarifs équivalents.'
-                    );
-                }
-
-                if ($this->filled('billing_unit') && is_scalar($this->input('billing_unit')) && ! Service::query()
-                    ->publiclyVisible()
-                    ->whereNotNull('currency')
-                    ->where('currency', '!=', '')
-                    ->where('billing_unit', $this->input('billing_unit'))
-                    ->whereIn('pricing_type', [
-                        ServicePricingType::FIXED->value,
-                        ServicePricingType::FROM->value,
-                        ServicePricingType::RANGE->value,
-                    ])
-                    ->exists()) {
-                    $validator->errors()->add(
-                        'billing_unit',
-                        'Choisissez une unité de facturation réellement proposée par un service public.'
-                    );
-                }
-            },
-        ];
+        return [];
     }
 
     protected function failedValidation(Validator $validator)
