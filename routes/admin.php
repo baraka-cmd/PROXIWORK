@@ -26,6 +26,7 @@ Route::middleware(['auth', 'auth.session', 'session.version', 'active.account', 
 Route::middleware(['auth', 'auth.session', 'session.version', 'active.account'])->group(function (): void {
     Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->middleware('permission:admin.users.suspend')->name('users.suspend');
     Route::post('users/{user}/activate', [UserController::class, 'activate'])->middleware('permission:admin.users.activate')->name('users.activate');
+    Route::put('users/{user}/roles', [UserController::class, 'updateRoles'])->middleware('permission:rbac.manage')->name('users.roles.update');
 });
 
 Route::middleware(['auth', 'auth.session', 'session.version', 'active.account', 'permission:rbac.view'])->group(function (): void {
