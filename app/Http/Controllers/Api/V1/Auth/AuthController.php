@@ -41,8 +41,9 @@ class AuthController extends Controller
                 'name' => $request->string('name')->toString(),
                 'email' => mb_strtolower($request->string('email')->toString()),
                 'password' => $request->string('password')->toString(),
-                'terms_accepted_at' => now(),
             ]);
+
+            $user->forceFill(['terms_accepted_at' => now()])->save();
 
             $user->profile()->create();
             $user->notificationPreference()->create();
