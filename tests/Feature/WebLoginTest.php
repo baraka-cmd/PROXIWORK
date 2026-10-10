@@ -79,6 +79,21 @@ class WebLoginTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_user_can_logout_and_the_session_is_invalidated(): void
+    {
+        $user = User::factory()->create(['account_status' => UserAccountStatus::ACTIVE]);
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->withSession(['private_test_value' => 'must-not-survive'])
+            ->post(route('logout'))
+            ->assertRedirect(route('home'))
+            ->assertSessionHas('status')
+            ->assertSessionMissing('private_test_value');
+
+        $this->assertGuest();
+    }
+
     public function test_invalid_credentials_are_rejected(): void
     {
         User::factory()->create([
