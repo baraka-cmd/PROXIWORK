@@ -32,8 +32,12 @@ class ProfessionalSearchResource extends JsonResource
             'starting_price' => $this->starting_price === null ? null : (float) $this->starting_price,
             'currency' => $this->currency,
             'verification' => [
-                'status' => $this->verification_status->value,
-                'verified' => $this->verification_status === ProfessionalVerificationStatus::VERIFIED,
+                // Do not expose internal review states (under review, rejected,
+                // needs information). A public badge requires an effective approval.
+                'status' => $this->verification_status === ProfessionalVerificationStatus::VERIFIED && $this->verified_at !== null
+                    ? 'verified'
+                    : 'unverified',
+                'verified' => $this->verification_status === ProfessionalVerificationStatus::VERIFIED && $this->verified_at !== null,
             ],
             'availability' => $this->availability_status->value,
             'rating' => [
