@@ -113,10 +113,20 @@ class PublicProfessionalController
             ->paginate(12)
             ->withQueryString();
 
-        $publicReviewCount = $professional->reviews()
+        $publicRatingSummary = $professional->reviews()
             ->where('status', ReviewStatus::PUBLISHED->value)
             ->whereNotNull('published_at')
-            ->count();
+            ->selectRaw('COUNT(*) as review_count, AVG(rating) as rating_average')
+            ->first();
+        $publicReviewCount = (int) ($publicRatingSummary?->review_count ?? 0);
+        $publicRatingAverage = $publicReviewCount > 0
+            ? (float) $publicRatingSummary->rating_average
+            : null;
+
+        $canFavoriteProfessional = auth()->check() && auth()->user()->hasRole('client');
+        $favorite = $canFavoriteProfessional
+            ? $professional->favorites()->where('user_id', auth()->id())->first()
+            : null;
 
         $reviews = $professional->reviews()
             ->where('status', ReviewStatus::PUBLISHED->value)
@@ -137,6 +147,9 @@ class PublicProfessionalController
             'services' => $services,
             'reviews' => $reviews,
             'publicReviewCount' => $publicReviewCount,
+            'publicRatingAverage' => $publicRatingAverage,
+            'canFavoriteProfessional' => $canFavoriteProfessional,
+            'favorite' => $favorite,
         ]);
     }
 }
