@@ -52,6 +52,48 @@ class AuthenticationTest extends TestCase
         $this->assertDatabaseHas('personal_access_tokens', ['tokenable_id' => $user->id]);
     }
 
+    public function test_api_registration_requires_an_explicit_supported_account_type(): void
+    {
+        $response = $this->postJson('/api/v1/auth/register', [
+            'name' => 'Marie Client',
+            'email' => 'marie@example.com',
+            'password' => 'SecurePass1!',
+            'password_confirmation' => 'SecurePass1!',
+            'device_name' => 'android-test',
+            'terms' => '1',
+        ]);
+
+        $response->assertUnprocessable()->assertJsonValidationErrors('account_type');
+    }
+
+    public function test_api_registration_creates_a_private_professional_account_when_selected(): void
+    {
+        Notification::fake();
+
+        $response = $this->postJson('/api/v1/auth/register', [
+            'name' => 'Paul Professionnel',
+            'account_type' => 'professional',
+            'email' => 'paul.pro@example.com',
+            'password' => 'SecurePass1!',
+            'password_confirmation' => 'SecurePass1!',
+            'device_name' => 'android-test',
+            'terms' => '1',
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.account_type', 'professional')
+            ->assertJsonPath('data.user.roles.0', 'professional');
+
+        $user = User::where('email', 'paul.pro@example.com')->firstOrFail();
+        $this->assertTrue($user->hasRole('professional'));
+        $this->assertDatabaseHas('professional_profiles', [
+            'user_id' => $user->id,
+            'status' => 'draft',
+            'visibility' => 'private',
+            'verification_status' => 'pending',
+        ]);
+    }
+
     public function test_user_can_login_with_valid_credentials(): void
     {
         $user = User::factory()->create([
