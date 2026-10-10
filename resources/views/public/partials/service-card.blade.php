@@ -7,7 +7,7 @@
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
     $coverExists = $cover !== null && \Illuminate\Support\Facades\Storage::disk('public')->exists($cover->path);
     $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
-    $currency = $service->currency ? ' '.$service->currency : '';
+    $currency = $service->currency ? ' '.$service->currency : ' (devise à confirmer)';
     $billingUnitLabel = match ($service->billing_unit) {
         'package' => 'prestation',
         'hour' => 'heure',
@@ -24,7 +24,11 @@
             : 'Sur devis',
         'range' => $service->price_min !== null && $service->price_max !== null
             ? number_format((float) $service->price_min, 2, ',', ' ').' – '.number_format((float) $service->price_max, 2, ',', ' ').$currency
-            : 'Sur devis',
+            : ($service->price_min !== null
+                ? 'À partir de '.number_format((float) $service->price_min, 2, ',', ' ').$currency
+                : ($service->price_max !== null
+                    ? 'Jusqu’à '.number_format((float) $service->price_max, 2, ',', ' ').$currency
+                    : 'Sur devis')),
         default => 'Sur devis',
     };
     if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
