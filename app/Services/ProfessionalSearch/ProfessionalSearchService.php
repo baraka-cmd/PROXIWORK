@@ -11,6 +11,7 @@ use App\Enums\ServiceStatus;
 use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 
 class ProfessionalSearchService
@@ -67,6 +68,12 @@ class ProfessionalSearchService
         $this->applyRating($query, $filters);
         $this->applyAvailability($query, $filters);
         $this->applyVerification($query, $filters);
+
+        if (Auth::check() && Auth::user()?->hasRole('client')) {
+            $query->withExists([
+                'favorites as is_favorited' => fn (Builder $favorites) => $favorites->where('user_id', Auth::id()),
+            ]);
+        }
 
         $this->applySort($query, $filters);
 
