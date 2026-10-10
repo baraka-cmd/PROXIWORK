@@ -72,6 +72,8 @@ class PublicSearchController
                 ->active()
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']),
+            'currencies' => $this->serviceSearchService->availableCurrencies(),
+            'billingUnits' => $this->serviceSearchService->availableBillingUnits(),
         ];
     }
 }
