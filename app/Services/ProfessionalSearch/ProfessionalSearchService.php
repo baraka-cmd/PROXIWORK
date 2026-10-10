@@ -191,8 +191,8 @@ class ProfessionalSearchService
     private function applyPrice(Builder $query, array $filters): void
     {
         if (
-            ! array_key_exists('min_price', $filters)
-            && ! array_key_exists('max_price', $filters)
+            ! isset($filters['min_price'])
+            && ! isset($filters['max_price'])
             && empty($filters['currency'])
         ) {
             return;
@@ -201,12 +201,14 @@ class ProfessionalSearchService
         $min = $filters['min_price'] ?? null;
         $max = $filters['max_price'] ?? null;
         $currency = $filters['currency'] ?? null;
+        $billingUnit = $filters['billing_unit'] ?? null;
 
-        $query->whereHas('services', function (Builder $services) use ($min, $max, $currency): void {
+        $query->whereHas('services', function (Builder $services) use ($min, $max, $currency, $billingUnit): void {
             $services
                 ->published()
                 ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
                 ->when($currency, fn (Builder $services) => $services->where('currency', $currency))
+                ->when($billingUnit, fn (Builder $services) => $services->where('billing_unit', $billingUnit))
                 ->where(function (Builder $services) use ($min, $max): void {
                     $services
                         ->where(function (Builder $services) use ($min, $max): void {
@@ -233,10 +235,11 @@ class ProfessionalSearchService
 
     private function applyRating(Builder $query, array $filters): void
     {
-        if (array_key_exists('rating', $filters)) {
-            $query->where('rating_count', '>', 0)
-            ->whereNotNull('rating_average')
-            ->where('rating_average', '>=', $filters['rating']);
+        if (isset($filters['rating'])) {
+            $query
+                ->where('rating_count', '>', 0)
+                ->whereNotNull('rating_average')
+                ->where('rating_average', '>=', $filters['rating']);
         }
     }
 
@@ -276,14 +279,14 @@ class ProfessionalSearchService
                 ->orderByDesc('id'),
             'price_low' => $query
                 ->orderByRaw(
-                    '(SELECT MIN(CASE WHEN services.pricing_type = ? THEN services.price WHEN services.pricing_type IN (?, ?) THEN services.price_min ELSE NULL END) FROM services INNER JOIN categories ON categories.id = services.category_id WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND categories.status = ?)',
-                    [ServicePricingType::FIXED->value, ServicePricingType::FROM->value, ServicePricingType::RANGE->value, ServiceStatus::PUBLISHED->value, $filters['currency'] ?? '', 'active']
+                    '(SELECT MIN(CASE WHEN services.pricing_type = ? THEN services.price WHEN services.pricing_type IN (?, ?) THEN services.price_min ELSE NULL END) FROM services INNER JOIN categories ON categories.id = services.category_id WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND services.billing_unit = ? AND categories.status = ?)',
+                    [ServicePricingType::FIXED->value, ServicePricingType::FROM->value, ServicePricingType::RANGE->value, ServiceStatus::PUBLISHED->value, $filters['currency'] ?? '', $filters['billing_unit'] ?? '', 'active']
                 )
                 ->orderByDesc('id'),
             'price_high' => $query
                 ->orderByRaw(
-                    '(SELECT MAX(CASE WHEN services.pricing_type = ? THEN services.price WHEN services.pricing_type = ? THEN services.price_min WHEN services.pricing_type = ? THEN services.price_max ELSE NULL END) FROM services INNER JOIN categories ON categories.id = services.category_id WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND categories.status = ?)',
-                    [ServicePricingType::FIXED->value, ServicePricingType::FROM->value, ServicePricingType::RANGE->value, ServiceStatus::PUBLISHED->value, $filters['currency'] ?? '', 'active']
+                    '(SELECT MAX(CASE WHEN services.pricing_type = ? THEN services.price WHEN services.pricing_type = ? THEN services.price_min WHEN services.pricing_type = ? THEN services.price_max ELSE NULL END) FROM services INNER JOIN categories ON categories.id = services.category_id WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND services.billing_unit = ? AND categories.status = ?)',
+                    [ServicePricingType::FIXED->value, ServicePricingType::FROM->value, ServicePricingType::RANGE->value, ServiceStatus::PUBLISHED->value, $filters['currency'] ?? '', $filters['billing_unit'] ?? '', 'active']
                 )
                 ->orderByDesc('id'),
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
