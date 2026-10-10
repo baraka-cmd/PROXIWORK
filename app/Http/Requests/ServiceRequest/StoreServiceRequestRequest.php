@@ -51,6 +51,7 @@ class StoreServiceRequestRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             $service = Service::query()
+                ->publiclyVisible()
                 ->with('professionalProfile')
                 ->find($this->integer('service_id'));
 
