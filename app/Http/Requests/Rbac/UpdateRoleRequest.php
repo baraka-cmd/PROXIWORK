@@ -19,7 +19,7 @@ class UpdateRoleRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            if (! $this->has('permission_ids') || $this->user() === null) {
+            if ((! $this->has('permission_ids') && ! $this->has('permissions_submitted')) || $this->user() === null) {
                 return;
             }
 
@@ -52,6 +52,7 @@ class UpdateRoleRequest extends FormRequest
         return [
             'display_name' => ['sometimes', 'required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'permissions_submitted' => ['sometimes', 'accepted'],
             'permission_ids' => ['sometimes', 'array'],
             'permission_ids.*' => ['integer', 'distinct', 'exists:permissions,id'],
             'name' => [
