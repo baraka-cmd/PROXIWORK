@@ -96,6 +96,10 @@
                                 <strong>{{ auth()->user()->name }}</strong>
                                 <small>{{ auth()->user()->email }}</small>
                             </div>
+                            <div class="dashboard-user__security">
+                                <a href="{{ route('account.email.edit') }}">E-mail</a>
+                                <a href="{{ route('account.password.edit') }}">Mot de passe</a>
+                            </div>
                         </div>
                     @endauth
                 </div>
