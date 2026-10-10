@@ -207,7 +207,7 @@ class PublicServiceSearchService
         $terms = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
             ->map(fn (string $word): string => trim($word))
             ->filter(fn (string $word): bool => $word !== ''
-                && !in_array(mb_strtolower($word), $stopWords, true))
+                && ! in_array(mb_strtolower($word), $stopWords, true))
             ->unique(fn (string $word): string => mb_strtolower($word))
             ->values();
 
@@ -358,7 +358,7 @@ class PublicServiceSearchService
 
     private function applyRating(Builder $query, array $filters): void
     {
-        if (!isset($filters['rating']) || $filters['rating'] === '') {
+        if (! isset($filters['rating']) || $filters['rating'] === '') {
             return;
         }
 
@@ -369,7 +369,7 @@ class PublicServiceSearchService
 
     private function applyAvailability(Builder $query, array $filters): void
     {
-        if (!empty($filters['availability'])) {
+        if (! empty($filters['availability'])) {
             $query->whereHas('professionalProfile', fn (Builder $professional) => $professional
                 ->where('availability_status', $filters['availability']));
         }
@@ -423,7 +423,7 @@ class PublicServiceSearchService
             $terms = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
                 ->map(fn (string $word): string => trim($word))
                 ->filter(fn (string $word): bool => $word !== ''
-                    && !in_array(mb_strtolower($word), $stopWords, true))
+                    && ! in_array(mb_strtolower($word), $stopWords, true))
                 ->unique(fn (string $word): string => mb_strtolower($word))
                 ->take(12)
                 ->values();
