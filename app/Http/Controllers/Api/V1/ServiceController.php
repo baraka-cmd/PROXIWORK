@@ -30,6 +30,8 @@ class ServiceController extends Controller
                 'price_min',
                 'price_max',
                 'currency',
+                'billing_unit',
+                'service_area',
                 'estimated_duration_minutes',
                 'status',
                 'sort_order',
