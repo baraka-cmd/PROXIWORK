@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Skill;
 
+use App\Enums\CategoryStatus;
 use App\Enums\SkillStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,6 +27,8 @@ class UpdateSkillRequest extends FormRequest
             'icon' => ['sometimes', 'nullable', 'string', 'max:100'],
             'status' => ['sometimes', Rule::enum(SkillStatus::class)],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
+            'category_ids' => ['sometimes', 'array', 'min:1', 'max:20'],
+            'category_ids.*' => ['required', 'integer', 'distinct', Rule::exists('categories', 'id')->where('status', CategoryStatus::ACTIVE->value)],
         ];
     }
 
