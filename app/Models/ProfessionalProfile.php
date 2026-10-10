@@ -45,6 +45,7 @@ class ProfessionalProfile extends Model
     {
         return [
             'verification_status' => ProfessionalVerificationStatus::class,
+            'professional_terms_accepted_at' => 'datetime',
             'availability_status' => ProfessionalAvailabilityStatus::class,
             'rating_average' => 'decimal:2',
             'rating_count' => 'integer',
