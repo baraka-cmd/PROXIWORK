@@ -45,6 +45,7 @@ class PublicServiceSearchRequest extends FormRequest
             'min_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'max_price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'currency' => ['sometimes', 'nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'pricing_type' => ['sometimes', 'nullable', Rule::enum(ServicePricingType::class)],
             'billing_unit' => ['sometimes', 'nullable', 'string', 'max:50'],
             'rating' => ['sometimes', 'nullable', 'numeric', 'min:1', 'max:5'],
             'availability' => ['sometimes', 'nullable', Rule::enum(ProfessionalAvailabilityStatus::class)],
@@ -127,13 +128,13 @@ class PublicServiceSearchRequest extends FormRequest
         if ($this->isMethod('GET')) {
             $input = collect($this->query())->only([
                 'search', 'profession', 'category', 'skills', 'skills_mode', 'city', 'province',
-                'min_price', 'max_price', 'currency', 'billing_unit', 'rating', 'availability',
+                'min_price', 'max_price', 'currency', 'pricing_type', 'billing_unit', 'rating', 'availability',
                 'verified_only', 'sort', 'per_page', 'page',
             ])->all();
 
             foreach ([
                 'search', 'profession', 'category', 'skills_mode', 'city', 'province',
-                'min_price', 'max_price', 'currency', 'billing_unit', 'rating', 'availability',
+                'min_price', 'max_price', 'currency', 'pricing_type', 'billing_unit', 'rating', 'availability',
                 'verified_only', 'sort', 'per_page', 'page',
             ] as $field) {
                 if (isset($input[$field]) && ! is_scalar($input[$field])) {
