@@ -31,7 +31,8 @@ class WebRegisterTest extends TestCase
             ->assertOk()
             ->assertViewIs('auth.register')
             ->assertSee('Bienvenue sur PROXIWORK')
-            ->assertSee('Continuer avec Google')
+            ->assertSee('Étapes d’inscription professionnelle')
+            ->assertSee('Ajouter un autre service')
             ->assertSee('name="account_type"', false)
             ->assertSee('Je suis client')
             ->assertSee('Je suis professionnel')
@@ -122,7 +123,7 @@ class WebRegisterTest extends TestCase
         $this->from(route('register'))
             ->post(route('register.store'), [
                 'first_name' => 'Tentative',
-            'last_name' => 'Admin',
+                'last_name' => 'Admin',
                 'email' => 'attempt@example.com',
                 'account_type' => 'admin',
                 'password' => 'Password123!',
@@ -141,7 +142,7 @@ class WebRegisterTest extends TestCase
         $this->from(route('register'))
             ->post(route('register.store'), [
                 'first_name' => 'Compte',
-            'last_name' => 'Sans type',
+                'last_name' => 'Sans type',
                 'email' => 'missing-type@example.com',
                 'password' => 'Password123!',
                 'password_confirmation' => 'Password123!',
@@ -161,7 +162,7 @@ class WebRegisterTest extends TestCase
         $this->from(route('register'))
             ->post(route('register.store'), [
                 'first_name' => 'Baraka',
-            'last_name' => 'Ntwali',
+                'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'Password123!',
