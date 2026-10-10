@@ -13,9 +13,17 @@
     @php
         $professional = $service->professionalProfile;
         $person = $professional?->user?->profile;
-        $displayName = $person !== null
-            ? trim($person->first_name.' '.$person->last_name)
-            : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
+        $displayName = filled($professional?->business_name)
+            ? $professional->business_name
+            : ($person !== null
+                ? trim($person->first_name.' '.$person->last_name)
+                : ($professional?->user?->name ?? 'Professionnel PROXIWORK'));
+        $professionalUrl = $professional
+            ? route('public.professionals.show', [
+                'professionalProfile' => $professional->getKey(),
+                'slug' => IlluminateSupportStr::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
+            ])
+            : null;
         $currency = $service->currency ? ' '.$service->currency : ' (devise à confirmer)';
     $billingUnitLabel = match ($service->billing_unit) {
         'package' => 'prestation',
@@ -127,7 +135,7 @@
                                 @endif
                             </span>
                             <div>
-                                <h3>{{ $displayName }}</h3>
+                                <h3>@if ($professionalUrl)<a href="{{ $professionalUrl }}">{{ $displayName }}</a>@else{{ $displayName }}@endif</h3>
                                 <p>{{ $professional?->professional_title ?: 'Prestataire PROXIWORK' }}</p>
                                 @if ($professional?->description)
                                     <p>{{ \Illuminate\Support\Str::limit($professional->description, 240) }}</p>
