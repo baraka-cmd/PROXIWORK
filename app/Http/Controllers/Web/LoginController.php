@@ -56,7 +56,7 @@ class LoginController
         // The destination is resolved from server-side roles/permissions, never from a
         // role or destination supplied by the browser. Professional verification status
         // is handled inside the professional workspace, not by granting public visibility.
-        return redirect()->intended(route('dashboard'));
+        return redirect()->route('dashboard');
     }
 
     public function destroy(Request $request, AuditLogService $auditLogService): RedirectResponse
