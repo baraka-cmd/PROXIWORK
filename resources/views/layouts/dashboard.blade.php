@@ -60,6 +60,34 @@
                     @yield('dashboard_topbar_actions')
 
                     @auth
+                        @php
+                            $currentUser = auth()->user();
+                            $availableWorkspaceLabels = [
+                                'client' => 'Espace client',
+                                'professional' => 'Espace professionnel',
+                                'admin' => 'Administration',
+                            ];
+                        @endphp
+                        <div class="dashboard-workspace-switcher" aria-label="Changer d’espace">
+                            @foreach ($availableWorkspaceLabels as $workspaceKey => $workspaceLabel)
+                                @php
+                                    $workspaceAllowed = match ($workspaceKey) {
+                                        'client' => $currentUser->hasRole('client'),
+                                        'professional' => $currentUser->hasRole('professional'),
+                                        'admin' => $currentUser->hasPermissionTo('admin.dashboard.view') || $currentUser->hasPermissionTo('rbac.view'),
+                                        default => false,
+                                    };
+                                @endphp
+                                @if ($workspaceAllowed && session('active_workspace') !== $workspaceKey)
+                                    <form method="POST" action="{{ route('workspace.switch') }}">
+                                        @csrf
+                                        <input type="hidden" name="workspace" value="{{ $workspaceKey }}">
+                                        <button type="submit">{{ $workspaceLabel }}</button>
+                                    </form>
+                                @endif
+                            @endforeach
+                        </div>
+
                         <div class="dashboard-user">
                             <span class="avatar" aria-hidden="true">
                                 <i class="fa-solid fa-user"></i>
