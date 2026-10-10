@@ -92,14 +92,17 @@
                 <select id="service-filter-billing-unit" class="form-control form-select" name="billing_unit">
                     <option value="">Toutes les unités</option>
                     @foreach ($billingUnits as $billingUnit)
-                        <option value="{{ $billingUnit }}" @selected(old('billing_unit', $filters['billing_unit'] ?? '') === $billingUnit)>
-                            {{ match ($billingUnit) {
+                        @php
+                            $billingUnitLabel = match ($billingUnit) {
                                 'package' => 'Forfait / prestation',
                                 'hour' => 'Par heure',
                                 'day' => 'Par jour',
                                 'project' => 'Par projet',
                                 default => \Illuminate\Support\Str::headline(str_replace('_', ' ', $billingUnit)),
-                            } }}
+                            };
+                        @endphp
+                        <option value="{{ $billingUnit }}" @selected(old('billing_unit', $filters['billing_unit'] ?? '') === $billingUnit)>
+                            {{ $billingUnitLabel }}
                         </option>
                     @endforeach
                 </select>
