@@ -36,6 +36,7 @@ use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWallet
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\ProfessionalProfileActivationController;
 use App\Http\Controllers\Web\PublicSearchController;
+use App\Http\Controllers\Web\PublicServiceController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\WorkspaceController;
@@ -43,6 +44,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'public.home')->name('home');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
+Route::get('/services', [PublicSearchController::class, 'redirectServicesIndex'])->name('public.services.index');
+Route::get('/services/{service:slug}', [PublicServiceController::class, 'show'])->name('public.services.show');
 Route::get('/professionals', [PublicSearchController::class, 'professionals'])->name('public.professionals.index');
 
 Route::middleware('guest')->group(function (): void {
