@@ -54,8 +54,7 @@ class ServiceCatalogController extends Controller
             )
             ->when(
                 $filters['category'] ?? null,
-                fn ($query, int $categoryId) =>
-                    $query->where('category_id', $categoryId)
+                fn ($query, int $categoryId) => $query->where('category_id', $categoryId)
             )
             ->orderByDesc('published_at')
             ->orderByDesc('id')
