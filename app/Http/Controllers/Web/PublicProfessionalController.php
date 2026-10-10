@@ -84,6 +84,7 @@ class PublicProfessionalController
                 'professionalProfile' => fn (Builder $profile) => $profile->select([
                     'id',
                     'user_id',
+                    'business_name',
                     'professional_title',
                     'description',
                     'years_experience',
