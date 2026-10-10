@@ -38,7 +38,7 @@ class PublicServiceController
                     'rating_count',
                 ]),
                 'professionalProfile.user:id,name',
-                'professionalProfile.user.profile:id,user_id,first_name,last_name,bio',
+                'professionalProfile.user.profile:id,user_id,first_name,last_name,avatar_path,bio',
             ])
             ->firstOrFail();
 
