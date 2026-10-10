@@ -28,20 +28,15 @@ class PublicSearchController
      */
     public function search(PublicServiceSearchRequest $request): View
     {
-        $filters = $request->validated();
-
         return view('public.search', [
             'services' => Service::query()->whereRaw('1 = 0')->paginate(12),
-            'filters' => $filters,
-            'categories' => $this->serviceSearchService->availableCategories(),
-            'featuredCategories' => $this->serviceSearchService->availableCategories(featuredOnly: true),
-            'skills' => $this->serviceSearchService->availableSkills(),
-            'currencies' => $this->serviceSearchService->availableCurrencies(),
-            'billingUnits' => $this->serviceSearchService->availableBillingUnits(),
-            'activeFiltersCount' => collect($filters)
-                ->except(['sort', 'per_page', 'skills_mode', 'page'])
-                ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [] && $value !== false)
-                ->count(),
+            'filters' => [],
+            'categories' => collect(),
+            'featuredCategories' => collect(),
+            'skills' => collect(),
+            'currencies' => collect(),
+            'billingUnits' => collect(),
+            'activeFiltersCount' => 0,
         ]);
     }
 
