@@ -351,6 +351,50 @@ class PublicServiceSearchTest extends TestCase
         ]);
     }
 
+    public function test_natural_language_search_matches_terms_across_profession_and_service_area(): void
+    {
+        $service = $this->publishedService('Réparation technique', [
+            'service_area' => 'Goma et environs',
+        ]);
+        $service->professionalProfile->forceFill([
+            'professional_title' => 'Plombier professionnel',
+        ])->save();
+
+        $this->get(route('public.search', ['search' => 'plombier à Goma']))
+            ->assertOk()
+            ->assertSee('Réparation technique');
+    }
+
+    public function test_search_normalizes_repeated_whitespace(): void
+    {
+        $this->publishedService('Installation electrique');
+
+        $this->get(route('public.search', ['search' => '  Installation    electrique  ']))
+            ->assertOk()
+            ->assertSee('Installation electrique');
+    }
+
+    public function test_empty_search_results_show_a_helpful_state(): void
+    {
+        $this->get(route('public.search', ['search' => 'service inexistant xyz']))
+            ->assertOk()
+            ->assertSee('Aucun service ne correspond à ces critères')
+            ->assertSee('Réinitialiser la recherche');
+    }
+
+    public function test_unapproved_sort_values_are_rejected_without_affecting_database_queries(): void
+    {
+        $service = $this->publishedService('Service de sécurité SQL');
+
+        $this->get(route('public.search', ['sort' => 'price_low desc; DROP TABLE services']))
+            ->assertRedirect(route('public.search'));
+
+        $this->assertDatabaseHas('services', [
+            'id' => $service->getKey(),
+            'title' => 'Service de sécurité SQL',
+        ]);
+    }
+
     private function publishedService(string $title, array $attributes = []): Service
     {
         $category = isset($attributes['category_id'])
