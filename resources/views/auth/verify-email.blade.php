@@ -35,6 +35,8 @@
         <p class="login-register">
             <a href="{{ route('account.email.edit') }}">Modifier mon adresse e-mail</a>
             <span aria-hidden="true"> · </span>
+            <a href="{{ route('account.password.edit') }}">Modifier mon mot de passe</a>
+            <span aria-hidden="true"> · </span>
             <a href="{{ route('dashboard') }}">Continuer vers mon espace</a>
         </p>
 
