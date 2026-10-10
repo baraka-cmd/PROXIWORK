@@ -23,6 +23,7 @@ class PublicServiceController
                 'professionalProfile' => fn ($professional) => $professional->select([
                     'id',
                     'user_id',
+                    'business_name',
                     'professional_title',
                     'description',
                     'years_experience',
