@@ -51,7 +51,7 @@
             <span class="service-card__availability"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Disponible</span>
         @endif
 
-        <h3><a href="{{ route('public.services.show', $service->slug) }}">{{ $service->title }}</a></h3>
+        <h3><a href="{{ $detailUrl }}">{{ $service->title }}</a></h3>
         @if ($service->short_description)
             <p class="service-card__description">{{ \Illuminate\Support\Str::limit($service->short_description, 145) }}</p>
         @endif
