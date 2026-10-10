@@ -16,7 +16,7 @@
         $displayName = $person !== null
             ? trim($person->first_name.' '.$person->last_name)
             : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
-        $currency = $service->currency ? ' '.$service->currency : '';
+        $currency = $service->currency ? ' '.$service->currency : ' (devise à confirmer)';
     $billingUnitLabel = match ($service->billing_unit) {
         'package' => 'prestation',
         'hour' => 'heure',
@@ -33,7 +33,11 @@
                 : 'Sur devis',
             'range' => $service->price_min !== null && $service->price_max !== null
                 ? number_format((float) $service->price_min, 2, ',', ' ').' – '.number_format((float) $service->price_max, 2, ',', ' ').$currency
-                : 'Sur devis',
+                : ($service->price_min !== null
+                    ? 'À partir de '.number_format((float) $service->price_min, 2, ',', ' ').$currency
+                    : ($service->price_max !== null
+                        ? 'Jusqu’à '.number_format((float) $service->price_max, 2, ',', ' ').$currency
+                        : 'Sur devis')),
             default => 'Sur devis',
         };
         if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
