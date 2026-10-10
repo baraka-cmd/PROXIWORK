@@ -32,8 +32,11 @@ class VerificationResubmissionController extends Controller
                 ]);
             }
 
-            $locked->verification_status = ProfessionalVerificationStatus::PENDING;
-            $locked->save();
+            $locked->forceFill([
+                'verification_status' => ProfessionalVerificationStatus::PENDING,
+                'status' => ProfessionalProfile::STATUS_DRAFT,
+                'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+            ])->save();
 
             $auditLogService->record(
                 'professional.verification.resubmitted',
