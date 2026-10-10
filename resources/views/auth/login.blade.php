@@ -79,7 +79,6 @@
                             placeholder="Votre mot de passe"
                             aria-describedby="password-strength @error('password') password-error @enderror"
                             required
-                            minlength="8"
                             data-password-strength
                         >
                         <button
@@ -138,13 +137,9 @@
                     <span>Continuer avec Google</span>
                 </a>
             @else
-                <button class="google-login google-login--prepared" type="button" data-google-login aria-describedby="google-login-note">
-                    <span class="google-login__icon" aria-hidden="true">G</span>
-                    <span>Continuer avec Google</span>
-                </button>
                 <p id="google-login-note" class="google-login-note">
                     <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    La connexion Google sera activée avec la configuration OAuth de PROXIWORK.
+                    La connexion Google n’est pas encore configurée sur cette version de PROXIWORK.
                 </p>
             @endif
 
