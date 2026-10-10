@@ -143,9 +143,7 @@
                     @else
                         <div class="service-grid">
                             @foreach ($services as $service)
-                                <article class="service-card surface-card">
-                                    <h3><a href="{{ route('public.services.show', $service->slug) }}">{{ $service->title }}</a></h3>
-                                </article>
+                                @include('public.partials.service-card', ['service' => $service, 'filters' => $filters])
                             @endforeach
                         </div>
 
