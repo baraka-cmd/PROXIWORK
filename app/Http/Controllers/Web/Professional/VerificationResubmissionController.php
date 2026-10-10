@@ -50,7 +50,7 @@ class VerificationResubmissionController extends Controller
             );
         });
 
-        return redirect()->route('professional.dashboard' )->with(
+        return redirect()->route('professional.dashboard')->with(
             'status',
             'Votre dossier a été soumis à nouveau et attend une nouvelle revue. Votre profil reste privé pendant cette période.'
         );
