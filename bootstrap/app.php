@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\EnsureSessionVersionIsCurrent;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
-use App\Http\Middleware\EnsureSessionVersionIsCurrent;
 use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -50,7 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if ($isApi($request) === false) {
                 return null;
             }
 
