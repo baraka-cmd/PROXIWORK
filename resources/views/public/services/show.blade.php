@@ -14,11 +14,10 @@
     @php
         $professional = $service->professionalProfile;
         $person = $professional?->user?->profile;
+        $personName = $person !== null ? trim($person->first_name.' '.$person->last_name) : '';
         $displayName = filled($professional?->business_name)
             ? $professional->business_name
-            : ($person !== null
-                ? trim($person->first_name.' '.$person->last_name)
-                : ($professional?->user?->name ?? 'Professionnel PROXIWORK'));
+            : (filled($personName) ? $personName : ($professional?->user?->name ?? 'Professionnel PROXIWORK'));
         $professionalUrl = $professional
             ? route('public.professionals.show', [
                 'professionalProfile' => $professional->getKey(),
