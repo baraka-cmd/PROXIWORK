@@ -375,6 +375,103 @@ class ProfessionalSearchApiTest extends TestCase
         $this->assertLessThanOrEqual(15, $queryCount);
     }
 
+    public function test_from_price_filters_use_the_declared_starting_price(): void
+    {
+        $matching = $this->professional();
+        $this->publishedService($matching, [
+            'pricing_type' => 'from',
+            'price' => null,
+            'price_min' => 50,
+            'price_max' => null,
+            'currency' => 'USD',
+        ]);
+
+        $outside = $this->professional();
+        $this->publishedService($outside, [
+            'pricing_type' => 'from',
+            'price' => null,
+            'price_min' => 150,
+            'price_max' => null,
+            'currency' => 'USD',
+        ]);
+
+        $this->getJson('/api/v1/professionals?min_price=40&max_price=60&currency=USD')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $matching->id);
+    }
+
+    public function test_price_comparison_requires_a_currency(): void
+    {
+        $this->getJson('/api/v1/professionals?min_price=10&max_price=100')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['currency']);
+
+        $this->getJson('/api/v1/professionals?sort=price_low')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['currency']);
+    }
+
+    public function test_minimum_rating_excludes_profiles_without_admissible_reviews(): void
+    {
+        $staleRating = $this->professional([
+            'rating_average' => 5,
+            'rating_count' => 0,
+        ]);
+        $this->publishedService($staleRating);
+
+        $rated = $this->professional([
+            'rating_average' => 4.2,
+            'rating_count' => 2,
+        ]);
+        $this->publishedService($rated);
+
+        $this->getJson('/api/v1/professionals?rating=4')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $rated->id);
+    }
+
+    public function test_relevance_sort_prioritizes_exact_professional_title_matches(): void
+    {
+        $exact = $this->professional([
+            'professional_title' => 'Laravel',
+            'business_name' => 'Atelier technique',
+        ]);
+        $this->publishedService($exact);
+
+        $partial = $this->professional([
+            'professional_title' => 'Développeur Laravel',
+            'business_name' => 'Développement local',
+        ]);
+        $this->publishedService($partial);
+
+        $this->getJson('/api/v1/professionals?search=Laravel&sort=relevance')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $exact->id);
+    }
+
+    public function test_rating_sort_does_not_let_one_five_star_review_automatically_out_rank_many_good_reviews(): void
+    {
+        $singleReview = $this->professional([
+            'rating_average' => 5,
+            'rating_count' => 1,
+        ]);
+        $this->publishedService($singleReview);
+
+        $established = $this->professional([
+            'rating_average' => 4.8,
+            'rating_count' => 100,
+        ]);
+        $this->publishedService($established);
+
+        $this->getJson('/api/v1/professionals?sort=rating')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonPath('data.0.id', $established->id);
+    }
+
     private function professional(array $attributes = []): ProfessionalProfile
     {
         $user = User::factory()->create();
