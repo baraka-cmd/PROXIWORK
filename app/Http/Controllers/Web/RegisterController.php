@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Controllers\\Web;
+namespace App\Http\Controllers\Web;
 
-use App\\Enums\\ProfessionalVerificationStatus;
-use App\\Enums\\UserAccountStatus;
-use App\\Http\\Requests\\Web\\RegisterRequest;
-use App\\Models\\Role;
-use App\\Models\\User;
-use Illuminate\\Database\\DatabaseManager;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Support\\Facades\\Auth;
-use Illuminate\\View\\View;
+use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\UserAccountStatus;
+use App\Http\Requests\Web\RegisterRequest;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Database\DatabaseManager;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class RegisterController
 {
