@@ -30,6 +30,7 @@ class LoginController
         $remember = $request->boolean('remember');
 
         if (! Auth::guard('web')->attempt($credentials, $remember)) {
+            $auditLogService->record('auth.web.login_failed', null, null, [], $request);
             throw ValidationException::withMessages([
                 'email' => 'Les identifiants fournis sont incorrects.',
             ]);
@@ -38,6 +39,7 @@ class LoginController
         $user = Auth::guard('web')->user();
 
         if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE) {
+            $auditLogService->record('auth.web.login_blocked', $user, $user, ['reason' => 'inactive_account'], $request);
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
@@ -49,6 +51,7 @@ class LoginController
 
         // Rotate the session identifier immediately after authentication to prevent fixation.
         $request->session()->regenerate();
+        $auditLogService->record('auth.web.login_succeeded', $user, $user, [], $request);
 
         // The destination is resolved from server-side roles/permissions, never from a
         // role or destination supplied by the browser. Professional verification status
@@ -56,8 +59,12 @@ class LoginController
         return redirect()->intended(route('dashboard'));
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, AuditLogService $auditLogService): RedirectResponse
     {
+        $user = $request->user();
+        if ($user !== null) {
+            $auditLogService->record('auth.web.logout', $user, $user, [], $request);
+        }
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
