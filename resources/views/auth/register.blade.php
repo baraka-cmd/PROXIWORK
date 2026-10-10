@@ -101,7 +101,7 @@
                         <p class="register-match" data-register-match aria-live="polite"></p>
                     </div>
                     <div class="register-field register-field--full register-terms">
-                        <label><input type="checkbox" name="terms" value="1" @checked(old('terms')) required> J’accepte les <a href="{{ url('/legal/terms') }}">conditions d’utilisation</a> et la <a href="{{ url('/legal/privacy') }}">politique de confidentialité</a>.</label>
+                        <label><input type="checkbox" name="terms" value="1" @checked(old('terms')) required> J’accepte les conditions d’utilisation et la politique de confidentialité de PROXIWORK.</label>
                         @error('terms')<p class="register-field-error">{{ $message }}</p>@enderror
                     </div>
                 </div>
