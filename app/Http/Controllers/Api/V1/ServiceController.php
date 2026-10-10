@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalService\IndexServiceRequest;
@@ -44,6 +45,7 @@ class ServiceController extends Controller
                 $profile
                     ->where('status', ProfessionalProfile::STATUS_ACTIVE)
                     ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+                    ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
                     ->whereHas('user', fn (Builder $user) => $user
                         ->where('account_status', UserAccountStatus::ACTIVE->value)
                         ->whereNotNull('email_verified_at'));
@@ -83,6 +85,7 @@ class ServiceController extends Controller
             && $service->category->status->value === 'active'
             && $service->professionalProfile->status === ProfessionalProfile::STATUS_ACTIVE
             && $service->professionalProfile->visibility === ProfessionalProfile::VISIBILITY_PUBLIC
+            && $service->professionalProfile->verification_status === ProfessionalVerificationStatus::VERIFIED
             && $service->professionalProfile->user->isActive()
             && $service->professionalProfile->user->hasVerifiedEmail(),
             404
