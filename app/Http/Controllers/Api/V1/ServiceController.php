@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Enums\ProfessionalVerificationStatus;
-use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalService\IndexServiceRequest;
 use App\Http\Resources\ProfessionalService\ServiceResource;
-use App\Models\ProfessionalProfile;
 use App\Models\Service;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ServiceController extends Controller
@@ -39,17 +35,7 @@ class ServiceController extends Controller
                 'sort_order',
                 'published_at',
             ])
-            ->published()
-            ->whereHas('category', fn ($category) => $category->where('status', 'active'))
-            ->whereHas('professionalProfile', function (Builder $profile): void {
-                $profile
-                    ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-                    ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-                    ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-                    ->whereHas('user', fn (Builder $user) => $user
-                        ->where('account_status', UserAccountStatus::ACTIVE->value)
-                        ->whereNotNull('email_verified_at'));
-            })
+            ->publiclyAvailable()
             ->with([
                 'category:id,name,slug',
                 'skills:id,name,slug',
@@ -79,17 +65,7 @@ class ServiceController extends Controller
 
     public function show(Service $service): ServiceResource
     {
-        abort_unless(
-            $service->status->value === 'published'
-            && $service->published_at !== null
-            && $service->category->status->value === 'active'
-            && $service->professionalProfile->status === ProfessionalProfile::STATUS_ACTIVE
-            && $service->professionalProfile->visibility === ProfessionalProfile::VISIBILITY_PUBLIC
-            && $service->professionalProfile->verification_status === ProfessionalVerificationStatus::VERIFIED
-            && $service->professionalProfile->user->isActive()
-            && $service->professionalProfile->user->hasVerifiedEmail(),
-            404
-        );
+        abort_unless(Service::query()->publiclyAvailable()->whereKey($service->getKey())->exists(), 404);
 
         return (new ServiceResource(
             $service->load(['category', 'skills', 'images', 'professionalProfile.user'])
