@@ -76,6 +76,7 @@ class ProfessionalProfileActivationController extends Controller
                     'city' => trim($data['city']),
                     'province' => $data['province'] ?? null,
                     'commune' => $data['commune'] ?? null,
+                    'professional_terms_accepted_at' => now(),
                 ]);
                 $profile->forceFill([
                     'status' => 'draft',
