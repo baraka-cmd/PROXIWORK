@@ -205,7 +205,7 @@ class ProfessionalSearchApiTest extends TestCase
             'billing_unit' => 'hour',
         ]);
 
-        $this->getJson('/api/v1/professionals?min_price=10&max_price=100&currency=USD')
+        $this->getJson('/api/v1/professionals?min_price=10&max_price=100&currency=USD&billing_unit=hour')
             ->assertOk()
             ->assertJsonPath('data.0.id', $matching->id)
             ->assertJsonCount(1, 'data');
