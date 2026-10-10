@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Enums\ReviewStatus;
-use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Http\RedirectResponse;
@@ -21,11 +19,7 @@ class PublicProfessionalController
     {
         $professional = ProfessionalProfile::query()
             ->whereKey($professionalProfile->getKey())
-            ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-            ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-            ->whereHas('user', fn (Builder $user) => $user
-                ->where('account_status', UserAccountStatus::ACTIVE->value))
-            ->whereHas('services', fn (Builder $services) => $services->publiclyVisible())
+            ->publiclyDiscoverable()
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,avatar_path,bio',
