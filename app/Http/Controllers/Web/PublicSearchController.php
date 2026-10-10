@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Requests\ProfessionalSearchRequest;
 use App\Http\Requests\PublicServiceSearchRequest;
-use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
@@ -41,6 +40,7 @@ class PublicSearchController
             'activeFiltersCount' => $this->serviceSearchService->activeFiltersCount($filters),
         ]);
     }
+
     public function professionals(ProfessionalSearchRequest $request): View
     {
         $filters = $request->validated();
