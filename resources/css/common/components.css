@@ -779,3 +779,19 @@
         width: 100%;
     }
 }
+
+
+.dashboard-user__security {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.dashboard-user__security a {
+    color: var(--color-primary, #245b45);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
