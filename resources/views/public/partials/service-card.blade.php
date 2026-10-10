@@ -27,6 +27,7 @@
         ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
         ->implode('') ?: 'P';
     $currency = $service->currency ? ' '.$service->currency : ' (devise à confirmer)';
+    $pricingType = $service->pricing_type?->value ?? 'quote';
     $billingUnitLabel = match ($service->billing_unit) {
         'package' => 'prestation',
         'hour' => 'heure',
@@ -34,7 +35,7 @@
         'project' => 'projet',
         default => $service->billing_unit ? str_replace('_', ' ', $service->billing_unit) : null,
     };
-    $priceLabel = match ($service->pricing_type->value) {
+    $priceLabel = match ($pricingType) {
         'fixed' => $service->price !== null
             ? number_format((float) $service->price, 2, ',', ' ').$currency
             : 'Sur devis',
@@ -53,7 +54,7 @@
     if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
         $priceLabel .= ' / '.$billingUnitLabel;
     }
-    $pricingTypeLabel = match ($service->pricing_type->value) {
+    $pricingTypeLabel = match ($pricingType) {
         'fixed' => 'Tarif fixe',
         'from' => 'À partir de',
         'range' => 'Fourchette indicative',
@@ -108,7 +109,13 @@
                 </a>
             @endif
             <span>
-                <strong>@if ($professionalUrl)<a href="{{ $professionalUrl }}">@endif{{ $displayName }}@if ($professionalUrl)</a>@endif</strong>
+                <strong>
+                    @if ($professionalUrl)
+                        <a href="{{ $professionalUrl }}">{{ $displayName }}</a>
+                    @else
+                        {{ $displayName }}
+                    @endif
+                </strong>
                 <small>{{ $professional?->professional_title ?: 'Prestataire PROXIWORK' }}</small>
             </span>
         </div>
