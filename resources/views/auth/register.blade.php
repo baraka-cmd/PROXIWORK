@@ -36,54 +36,36 @@
                 @csrf
 
                 <div class="register-field">
-                    <label for="name">Nom complet</label>
+                    <label for="first_name">Prénom</label>
                     <div class="register-input">
                         <i class="fa-regular fa-user" aria-hidden="true"></i>
-                        <input
-                            id="name"
-                            name="name"
-                            type="text"
-                            value="{{ old('name') }}"
-                            autocomplete="name"
-                            placeholder="Votre nom complet"
-                            minlength="2"
-                            maxlength="100"
-                            aria-describedby="name-hint @error('name') name-error @enderror"
-                            required
-                            autofocus
-                        >
+                        <input id="first_name" name="first_name" type="text" value="{{ old('first_name') }}" autocomplete="given-name" placeholder="Votre prénom" minlength="2" maxlength="100" required autofocus>
                     </div>
-                    <small id="name-hint" class="register-hint">Utilisez votre vrai nom pour faciliter les échanges professionnels.</small>
-                    @error('name')
-                        <p id="name-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
+                    @error('first_name')
+                        <p class="register-field-error" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="register-field">
-                    <label for="account_type">Type de compte</label>
-                    <div class="register-input register-select">
-                        <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
-                        <select
-                            id="account_type"
-                            name="account_type"
-                            autocomplete="off"
-                            aria-describedby="account-type-hint @error('account_type') account-type-error @enderror"
-                            required
-                        >
-                            <option value="" disabled @selected(old('account_type') === null)>Choisissez votre parcours</option>
-                            <option value="client" @selected(old('account_type') === 'client')>Client — je recherche des services</option>
-                            <option value="professional" @selected(old('account_type') === 'professional')>Professionnel — je propose mes services</option>
-                        </select>
+                    <label for="last_name">Nom</label>
+                    <div class="register-input">
+                        <i class="fa-regular fa-user" aria-hidden="true"></i>
+                        <input id="last_name" name="last_name" type="text" value="{{ old('last_name') }}" autocomplete="family-name" placeholder="Votre nom" minlength="2" maxlength="100" required>
                     </div>
-                    <small id="account-type-hint" class="register-hint">Le choix détermine votre espace. Un compte professionnel démarre avec un profil à compléter et une vérification en attente.</small>
-                    @error('account_type')
-                        <p id="account-type-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
+                    @error('last_name')
+                        <p class="register-field-error" role="alert">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="register-field">
+                    <label for="phone">Téléphone <span class="register-hint">(facultatif)</span></label>
+                    <div class="register-input">
+                        <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                        <input id="phone" name="phone" type="tel" value="{{ old('phone') }}" autocomplete="tel" inputmode="tel" maxlength="30" placeholder="Ex. +243…">
+                    </div>
+                    <small class="register-hint">Vous pourrez compléter ou modifier ce numéro dans votre profil.</small>
+                    @error('phone')
+                        <p class="register-field-error" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
 
