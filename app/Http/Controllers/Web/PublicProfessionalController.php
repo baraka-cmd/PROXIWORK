@@ -26,7 +26,7 @@ class PublicProfessionalController
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,avatar_path,bio',
-                'skills' => fn (Builder $skills) => $skills
+                'skills' => fn (BelongsToMany $skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
             ])
@@ -78,7 +78,7 @@ class PublicProfessionalController
             ])
             ->with([
                 'category:id,name,slug',
-                'skills' => fn (Builder $skills) => $skills
+                'skills' => fn (BelongsToMany $skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
                 'images:id,service_id,path,alt_text,sort_order,is_cover',
