@@ -11,8 +11,8 @@ use App\Enums\ServiceStatus;
 use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ProfessionalSearchService
 {
