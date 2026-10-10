@@ -93,8 +93,13 @@ class PublicServiceSearchService
      */
     public function availableCategories(bool $featuredOnly = false): Collection
     {
+        $publicCategoryIds = Service::query()
+            ->publiclyVisible()
+            ->select('services.category_id');
+
         return Category::query()
             ->active()
+            ->whereIn('categories.id', $publicCategoryIds)
             ->when($featuredOnly, fn (Builder $categories) => $categories->where('is_featured', true))
             ->orderByDesc('is_featured')
             ->orderBy('sort_order')
@@ -110,8 +115,14 @@ class PublicServiceSearchService
      */
     public function availableSkills(): Collection
     {
+        $publicServiceIds = Service::query()
+            ->publiclyVisible()
+            ->select('services.id');
+
         return \App\Models\Skill::query()
             ->active()
+            ->whereHas('services', fn (Builder $services) => $services
+                ->whereIn('services.id', $publicServiceIds))
             ->orderBy('name')
             ->limit(100)
             ->get(['skills.id', 'skills.name', 'skills.slug']);
@@ -125,13 +136,7 @@ class PublicServiceSearchService
     public function availableCurrencies(): Collection
     {
         return Service::query()
-            ->where('status', 'published')
-            ->whereNotNull('published_at')
-            ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
-            ->whereHas('professionalProfile', fn (Builder $professional) => $professional
-                ->where('status', 'active')
-                ->where('visibility', 'public')
-                ->whereHas('user', fn (Builder $user) => $user->where('account_status', 'active')))
+            ->publiclyVisible()
             ->whereIn('pricing_type', [
                 ServicePricingType::FIXED->value,
                 ServicePricingType::FROM->value,
@@ -166,6 +171,27 @@ class PublicServiceSearchService
             ->distinct()
             ->orderBy('billing_unit')
             ->pluck('billing_unit');
+    }
+
+    public function activeFiltersCount(array $filters): int
+    {
+        $filters = collect($filters)->except(['search', 'sort', 'per_page', 'page']);
+
+        if (empty($filters->get('skills'))) {
+            $filters->forget('skills_mode');
+        }
+
+        return $filters->filter(function (mixed $value, string $key): bool {
+            if ($key === 'verified_only') {
+                return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+            }
+
+            if (is_array($value)) {
+                return $value !== [];
+            }
+
+            return $value !== null && $value !== '';
+        })->count();
     }
 
     private function applyTextSearch(Builder $query, array $filters): void
