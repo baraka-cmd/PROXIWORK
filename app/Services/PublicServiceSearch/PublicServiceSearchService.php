@@ -156,6 +156,8 @@ class PublicServiceSearchService
                 ServicePricingType::FROM->value,
                 ServicePricingType::RANGE->value,
             ])
+            ->whereNotNull('currency')
+            ->where('currency', '!=', '')
             ->whereNotNull('billing_unit')
             ->where('billing_unit', '!=', '')
             ->distinct()
