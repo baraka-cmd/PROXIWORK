@@ -65,7 +65,7 @@ class PublicServiceSearchService
                     'visibility',
                 ]),
                 'professionalProfile.user:id,name',
-                'professionalProfile.user.profile:id,user_id,first_name,last_name',
+                'professionalProfile.user.profile:id,user_id,first_name,last_name,avatar_path',
             ]);
 
         $this->applyTextSearch($query, $filters);
