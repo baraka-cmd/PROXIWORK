@@ -12,6 +12,7 @@
     <form method="POST" action="{{ $role ? route('admin.roles.update', $role) : route('admin.roles.store') }}" class="admin-role-form">
         @csrf
         @if($role) @method('PUT') @endif
+        <input type="hidden" name="permissions_submitted" value="1">
         <section class="admin-card">
             <div class="admin-card__header"><div><span class="admin-card__eyebrow">Identité</span><h3>Informations du rôle</h3></div></div>
             <div class="admin-form-grid">
