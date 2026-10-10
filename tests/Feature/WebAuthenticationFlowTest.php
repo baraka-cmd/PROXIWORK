@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Enums\\ProfessionalVerificationStatus;
-use App\\Enums\\UserAccountStatus;
-use App\\Models\\User;
-use Database\\Seeders\\RbacSeeder;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Illuminate\\Support\\Facades\\Hash;
-use Tests\\TestCase;
+use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\UserAccountStatus;
+use App\Models\User;
+use Database\Seeders\RbacSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 class WebAuthenticationFlowTest extends TestCase
 {
