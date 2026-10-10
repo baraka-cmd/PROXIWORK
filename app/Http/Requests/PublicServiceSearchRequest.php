@@ -89,6 +89,8 @@ class PublicServiceSearchRequest extends FormRequest
 
                 if ($this->filled('billing_unit') && ! Service::query()
                     ->publiclyVisible()
+                    ->whereNotNull('currency')
+                    ->where('currency', '!=', '')
                     ->where('billing_unit', $this->input('billing_unit'))
                     ->whereIn('pricing_type', [
                         ServicePricingType::FIXED->value,
@@ -123,6 +125,12 @@ class PublicServiceSearchRequest extends FormRequest
         foreach (['search', 'profession', 'category', 'city', 'province', 'currency', 'billing_unit'] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $data[$field] = trim((string) $this->input($field));
+            }
+        }
+
+        foreach (['search', 'profession'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = preg_replace('/\s+/u', ' ', $data[$field]) ?? $data[$field];
             }
         }
 
