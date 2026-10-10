@@ -63,11 +63,13 @@ class PublicServiceSearchRequest extends FormRequest
                 $min = $this->input('min_price');
                 $max = $this->input('max_price');
                 $sort = $this->input('sort', 'relevance');
-                $needsComparablePrice = $min !== null
-                    || $max !== null
+                $hasMin = is_scalar($min) && $min !== '';
+                $hasMax = is_scalar($max) && $max !== '';
+                $needsComparablePrice = $hasMin
+                    || $hasMax
                     || in_array($sort, ['price_low', 'price_high'], true);
 
-                if ($min !== null && $max !== null && (float) $min > (float) $max) {
+                if ($hasMin && $hasMax && is_numeric($min) && is_numeric($max) && (float) $min > (float) $max) {
                     $validator->errors()->add(
                         'max_price',
                         'Le prix maximum doit être supérieur ou égal au prix minimum.'
@@ -81,7 +83,7 @@ class PublicServiceSearchRequest extends FormRequest
                     );
                 }
 
-                if ($this->filled('currency') && ! Service::query()
+                if ($this->filled('currency') && is_scalar($this->input('currency')) && ! Service::query()
                     ->publiclyVisible()
                     ->where('currency', $this->input('currency'))
                     ->whereIn('pricing_type', [
@@ -103,7 +105,7 @@ class PublicServiceSearchRequest extends FormRequest
                     );
                 }
 
-                if ($this->filled('billing_unit') && ! Service::query()
+                if ($this->filled('billing_unit') && is_scalar($this->input('billing_unit')) && ! Service::query()
                     ->publiclyVisible()
                     ->whereNotNull('currency')
                     ->where('currency', '!=', '')
