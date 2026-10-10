@@ -48,6 +48,7 @@ class PublicServiceSearchService
                 'professionalProfile' => fn (Builder $professional) => $professional->select([
                     'id',
                     'user_id',
+                    'business_name',
                     'professional_title',
                     'description',
                     'years_experience',
