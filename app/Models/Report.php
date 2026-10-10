@@ -54,7 +54,6 @@ class Report extends Model
         return $this->belongsTo(User::class, 'resolved_by');
     }
 
-
     public function target(): MorphTo
     {
         return $this->morphTo();
