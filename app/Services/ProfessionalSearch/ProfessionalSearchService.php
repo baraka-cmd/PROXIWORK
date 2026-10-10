@@ -98,6 +98,7 @@ class ProfessionalSearchService
         $query->where(function (Builder $query) use ($like): void {
             $query
                 ->where('professional_title', 'like', $like)
+                ->orWhere('business_name', 'like', $like)
                 ->orWhere('description', 'like', $like)
                 ->orWhereHas('user.profile', function (Builder $profile) use ($like): void {
                     $profile
