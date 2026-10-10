@@ -37,6 +37,7 @@ class ProfessionalSearchService
             ])
             ->where('status', ProfessionalProfile::STATUS_ACTIVE)
             ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
             ->whereHas('user', fn (Builder $user) => $user
                 ->where('account_status', UserAccountStatus::ACTIVE->value)
                 ->whereNotNull('email_verified_at'))
