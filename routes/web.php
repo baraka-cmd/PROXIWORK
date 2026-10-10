@@ -36,6 +36,7 @@ use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWallet
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\ProfessionalProfileActivationController;
 use App\Http\Controllers\Web\PublicSearchController;
+use App\Http\Controllers\Web\PublicProfessionalController;
 use App\Http\Controllers\Web\PublicServiceController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
@@ -47,6 +48,9 @@ Route::get('/search', [PublicSearchController::class, 'search'])->name('public.s
 Route::get('/services', [PublicSearchController::class, 'redirectServicesIndex'])->name('public.services.index');
 Route::get('/services/{service:slug}', [PublicServiceController::class, 'show'])->name('public.services.show');
 Route::get('/professionals', [PublicSearchController::class, 'professionals'])->name('public.professionals.index');
+Route::get('/professionals/{professionalProfile}/{slug?}', [PublicProfessionalController::class, 'show'])
+    ->whereNumber('professionalProfile')
+    ->name('public.professionals.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
