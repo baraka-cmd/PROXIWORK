@@ -23,17 +23,9 @@ class Service extends Model
     ];
 
     protected $fillable = [
-        'category_id',
-        'title',
-        'slug',
-        'short_description',
-        'description',
-        'pricing_type',
-        'price',
-        'price_min',
-        'price_max',
-        'currency',
-        'estimated_duration_minutes',
+        'category_id', 'title', 'slug', 'short_description', 'description',
+        'pricing_type', 'price', 'price_min', 'price_max', 'currency',
+        'estimated_duration_minutes', 'billing_unit', 'service_area', 'conditions',
         'sort_order',
     ];
 
@@ -63,19 +55,12 @@ class Service extends Model
 
     public function skills(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Skill::class,
-            'service_skills',
-            'service_id',
-            'skill_id'
-        )->withTimestamps();
+        return $this->belongsToMany(Skill::class, 'service_skills', 'service_id', 'skill_id')->withTimestamps();
     }
 
     public function images(): HasMany
     {
-        return $this->hasMany(ServiceImage::class)
-            ->orderBy('sort_order')
-            ->orderBy('id');
+        return $this->hasMany(ServiceImage::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function serviceRequests(): HasMany
@@ -85,8 +70,6 @@ class Service extends Model
 
     public function scopePublished($query)
     {
-        return $query
-            ->where('status', ServiceStatus::PUBLISHED->value)
-            ->whereNotNull('published_at');
+        return $query->where('status', ServiceStatus::PUBLISHED->value)->whereNotNull('published_at');
     }
 }
