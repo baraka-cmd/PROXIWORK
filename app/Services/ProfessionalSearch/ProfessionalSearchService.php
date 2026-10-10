@@ -324,10 +324,12 @@ class ProfessionalSearchService
             );
         }
 
+        $confidenceWeightedRating = '((COALESCE(rating_average, 0) * COALESCE(rating_count, 0)) + (5 * COALESCE((SELECT AVG(rating) FROM reviews WHERE reviews.status = ? AND reviews.published_at IS NOT NULL), 0))) / (COALESCE(rating_count, 0) + 5) DESC';
+
         if ($term !== '') {
             $query
+                ->orderByRaw($confidenceWeightedRating, [ReviewStatus::PUBLISHED->value])
                 ->orderByDesc('rating_count')
-                ->orderByDesc('rating_average')
                 ->orderByDesc('published_services_count')
                 ->orderByDesc('id');
 
@@ -335,8 +337,9 @@ class ProfessionalSearchService
         }
 
         $query
-            ->orderByDesc('rating_average')
+            ->orderByRaw($confidenceWeightedRating, [ReviewStatus::PUBLISHED->value])
             ->orderByDesc('published_services_count')
+            ->orderByDesc('rating_count')
             ->orderByDesc('id');
     }
 }
