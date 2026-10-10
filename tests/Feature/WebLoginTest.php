@@ -114,6 +114,22 @@ class WebLoginTest extends TestCase
             ->assertRedirect(route('dashboard'));
     }
 
+    public function test_login_does_not_redirect_client_to_a_professional_intended_url(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'client-safe-redirect@example.com',
+            'password' => Hash::make('Password123!'),
+        ]);
+        $user->assignRole('client');
+
+        $this->withSession(['url.intended' => route('professional.dashboard')])
+            ->post(route('login.store'), [
+                'email' => $user->email,
+                'password' => 'Password123!',
+            ])
+            ->assertRedirect(route('dashboard'));
+    }
+
     public function test_dashboard_rejects_accounts_without_a_workspace_role(): void
     {
         $user = User::factory()->create();
