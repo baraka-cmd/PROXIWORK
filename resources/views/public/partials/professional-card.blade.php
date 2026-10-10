@@ -1,8 +1,14 @@
 @php
     $profile = $professional->user->profile;
-    $displayName = $profile !== null
-        ? trim($profile->first_name.' '.$profile->last_name)
-        : $professional->user->name;
+    $displayName = filled($professional->business_name)
+        ? $professional->business_name
+        : ($profile !== null
+            ? trim($profile->first_name.' '.$profile->last_name)
+            : $professional->user->name);
+    $profileUrl = route('public.professionals.show', [
+        'professionalProfile' => $professional->getKey(),
+        'slug' => IlluminateSupportStr::slug($displayName) ?: 'professionnel-'.$professional->getKey(),
+    ]);
     $initials = collect(preg_split('/\\s+/', trim($displayName)) ?: [])
         ->filter()
         ->take(2)
@@ -12,9 +18,15 @@
 
 <article class="professional-card surface-card surface-card--interactive">
     <div class="professional-card__header">
-        <div class="avatar avatar--xl professional-card__avatar" aria-hidden="true">
-            {{ $initials ?: 'P' }}
-        </div>
+        <a class="professional-card__avatar-link" href="{{ $profileUrl }}" aria-label="Consulter le profil de {{ $displayName }}">
+            <div class="avatar avatar--xl professional-card__avatar" aria-hidden="true">
+                @if ($profile?->avatar_path && IlluminateSupportFacadesStorage::disk('public')->exists($profile->avatar_path))
+                    <img src="{{ IlluminateSupportFacadesStorage::disk('public')->url($profile->avatar_path) }}" alt="" loading="lazy" decoding="async">
+                @else
+                    {{ $initials ?: 'P' }}
+                @endif
+            </div>
+        </a>
 
         <div class="professional-card__identity">
             <div class="professional-card__badges">
@@ -33,7 +45,7 @@
                 @endif
             </div>
 
-            <h3>{{ $displayName }}</h3>
+            <h3><a href="{{ $profileUrl }}">{{ $displayName }}</a></h3>
             <p class="professional-card__title">{{ $professional->professional_title ?: 'Professionnel PROXIWORK' }}</p>
         </div>
     </div>
@@ -54,8 +66,12 @@
             <div>
                 <dt><i class="fa-solid fa-star" aria-hidden="true"></i><span class="sr-only">Note</span></dt>
                 <dd>
-                    {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5
-                    <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span>
+                    @if (($professional->rating_count ?? 0) > 0 && $professional->rating_average !== null)
+                        {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5
+                        <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span>
+                    @else
+                        Pas encore d’avis publiés
+                    @endif
                 </dd>
             </div>
 
@@ -90,5 +106,10 @@
                 @endif
             </div>
         @endif
+
+        <a class="button button--primary professional-card__profile-link" href="{{ $profileUrl }}">
+            Voir le profil
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        </a>
     </div>
 </article>
