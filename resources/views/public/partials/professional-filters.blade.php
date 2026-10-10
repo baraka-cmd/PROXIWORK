@@ -81,12 +81,21 @@
             <div class="directory-filter-grid directory-filter-grid--currency">
                 <select class="form-control form-select" name="currency" aria-label="Devise">
                     <option value="">Choisir une devise</option>
-                    @foreach (['USD' => 'USD — Dollar', 'CDF' => 'CDF — Franc congolais', 'EUR' => 'EUR — Euro'] as $code => $label)
-                        <option value="{{ $code }}" @selected(($filters['currency'] ?? '') === $code)>{{ $label }}</option>
+                    @foreach ($currencies as $currency)
+                        <option value="{{ $currency }}" @selected(($filters['currency'] ?? '') === $currency)>{{ $currency }}</option>
+                    @endforeach
+                </select>
+                <select class="form-control form-select" name="billing_unit" aria-label="Unité de facturation">
+                    <option value="">Unité</option>
+                    @foreach ($billingUnits as $billingUnit)
+                        <option value="{{ $billingUnit }}" @selected(($filters['billing_unit'] ?? '') === $billingUnit)>{{ \Illuminate\Support\Str::headline($billingUnit) }}</option>
                     @endforeach
                 </select>
             </div>
             @error('currency')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
+            @error('billing_unit')
                 <p class="form-error" role="alert">{{ $message }}</p>
             @enderror
         </div>
