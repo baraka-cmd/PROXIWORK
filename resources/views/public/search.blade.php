@@ -51,7 +51,7 @@
                     @php
                         $heroFilters = collect($filters)->merge(collect(old())->only([
                             'profession', 'category', 'skills', 'skills_mode', 'city', 'province',
-                            'min_price', 'max_price', 'currency', 'billing_unit', 'rating',
+                            'min_price', 'max_price', 'currency', 'pricing_type', 'billing_unit', 'rating',
                             'availability', 'verified_only', 'sort', 'per_page',
                         ]))->except(['search', 'page']);
                         if (isset($heroFilters['skills']) && ! is_array($heroFilters['skills'])) {
