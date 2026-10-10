@@ -135,7 +135,13 @@
                                 @endif
                             </span>
                             <div>
-                                <h3>@if ($professionalUrl)<a href="{{ $professionalUrl }}">{{ $displayName }}</a>@else{{ $displayName }}@endif</h3>
+                                <h3>
+    @if ($professionalUrl)
+        <a href="{{ $professionalUrl }}">{{ $displayName }}</a>
+    @else
+        {{ $displayName }}
+    @endif
+</h3>
                                 <p>{{ $professional?->professional_title ?: 'Prestataire PROXIWORK' }}</p>
                                 @if ($professional?->description)
                                     <p>{{ \Illuminate\Support\Str::limit($professional->description, 240) }}</p>
