@@ -81,7 +81,7 @@ class PublicServiceSearchService
 
         return $query
             ->paginate($filters['per_page'] ?? 12)
-            ->withQueryString();
+            ->appends(collect($filters)->except('page')->all());
     }
 
     /**
