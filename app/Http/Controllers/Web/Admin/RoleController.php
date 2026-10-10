@@ -28,13 +28,13 @@ class RoleController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorize('create', Role::class);
 
         return view('admin.roles.form', [
             'role' => null,
-            'permissions' => $this->service->permissions(),
+            'permissions' => $this->service->permissions($request->user()),
             'selectedPermissions' => [],
         ]);
     }
@@ -56,7 +56,7 @@ class RoleController extends Controller
         ]);
     }
 
-    public function edit(Role $role): View
+    public function edit(Role $role, Request $request): View
     {
         $this->authorize('update', $role);
 
