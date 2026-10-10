@@ -118,7 +118,7 @@
                 <div class="form-select-wrapper">
                     <select id="service-filter-rating" class="form-control form-select" name="rating">
                         <option value="">Toutes les notes</option>
-                        @foreach ([5, 4, 3, 2, 1] as $rating)
+                        @foreach ([5, 4.5, 4, 3, 2, 1] as $rating)
                             <option value="{{ $rating }}" @selected((string) old('rating', $filters['rating'] ?? '') === (string) $rating)>{{ $rating }}+ étoiles</option>
                         @endforeach
                     </select>
