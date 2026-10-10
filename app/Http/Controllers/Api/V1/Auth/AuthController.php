@@ -8,6 +8,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
+use App\Enums\ProfessionalVerificationStatus;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
@@ -48,14 +49,25 @@ class AuthController extends Controller
 
             $user->profile()->create();
             $user->notificationPreference()->create();
-            $user->assignRole(Role::where('name', 'client')->firstOrFail());
+
+            $accountType = $request->string('account_type')->toString();
+            $user->assignRole(Role::query()->where('name', $accountType)->firstOrFail());
+
+            if ($accountType === 'professional') {
+                $user->professionalProfile()->create([
+                    'status' => 'draft',
+                    'visibility' => 'private',
+                    'verification_status' => ProfessionalVerificationStatus::PENDING,
+                    'professional_terms_accepted_at' => now(),
+                ]);
+            }
 
             return $user;
         });
 
         event(new Registered($user));
         $this->auditLogService->record('register', $user, $user, [], $request);
-        $this->auditLogService->record('role_assigned', $user, $user, ['role' => 'client'], $request);
+        $this->auditLogService->record('role_assigned', $user, $user, ['role' => $request->string('account_type')->toString()], $request);
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
@@ -66,7 +78,8 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Compte créé. Vérifiez votre adresse e-mail.',
             'data' => [
-                'user' => new UserResource($user),
+                'account_type' => $request->string('account_type')->toString(),
+                'user' => new UserResource($user->load('roles')),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
@@ -98,7 +111,7 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Connexion réussie.',
             'data' => [
-                'user' => new UserResource($user),
+                'user' => new UserResource($user->load('roles')),
                 'token' => $token,
                 'token_type' => 'Bearer',
             ],
