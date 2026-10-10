@@ -46,7 +46,7 @@ class ProfessionalSearchService
             })
             ->with([
                 'user:id,name',
-                'user.profile:id,user_id,first_name,last_name,bio',
+                'user.profile:id,user_id,first_name,last_name,avatar_path,bio',
                 'skills' => fn ($skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
