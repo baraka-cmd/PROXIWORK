@@ -177,7 +177,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'password',
@@ -194,7 +195,8 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'Password123!',
