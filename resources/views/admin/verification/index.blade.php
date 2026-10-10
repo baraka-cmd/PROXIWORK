@@ -9,7 +9,7 @@
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">File de vérification</span><h3>{{ $professionals->total() }} dossier{{ $professionals->total() > 1 ? 's' : '' }}</h3></div></div>
 <form method="GET" class="admin-filter-grid">
 <label class="admin-field admin-field--wide"><span>Recherche</span><input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nom, e-mail ou titre"></label>
-<label class="admin-field"><span>Statut</span><select name="verification_status"><option value="">Tous</option>@foreach(['pending'=>'En attente','under_review'=>'En revue','verified'=>'Vérifié','rejected'=>'Rejeté'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['verification_status'] ?? '') === $v)>{{ $l }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Statut</span><select name="verification_status"><option value="">Tous</option>@foreach(['pending'=>'En attente','under_review'=>'En revue','needs_information'=>'Informations requises','verified'=>'Vérifié','rejected'=>'Rejeté'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['verification_status'] ?? '') === $v)>{{ $l }}</option>@endforeach</select></label>
 <label class="admin-field"><span>Compte</span><select name="account_status"><option value="">Tous</option><option value="active">Actif</option><option value="suspended">Suspendu</option></select></label>
 <div class="admin-filter-actions"><button class="button button--primary" type="submit"><i class="fa-solid fa-filter"></i> Filtrer</button></div>
 </form></section>
