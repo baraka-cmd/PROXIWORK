@@ -19,6 +19,8 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\Professional\DashboardController as ProfessionalDashboardController;
+use App\Http\Controllers\Web\Professional\ProfessionalDocumentController as ProfessionalDocumentUploadController;
+use App\Http\Controllers\Web\Professional\VerificationResubmissionController;
 use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
 use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
@@ -133,6 +135,8 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('quotes/create/{serviceRequest}', [ProfessionalQuotationController::class, 'store'])->middleware('throttle:10,1')->name('quotes.store');
     Route::get('quotes/{quotation}', [ProfessionalQuotationController::class, 'show'])->name('quotes.show');
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('documents', [ProfessionalDocumentUploadController::class, 'store'])->middleware('throttle:10,1')->name('documents.store');
+    Route::post('verification/resubmit', [VerificationResubmissionController::class, 'store'])->middleware('throttle:5,1')->name('verification.resubmit');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('services', [ProfileController::class, 'services'])->name('services.index');
