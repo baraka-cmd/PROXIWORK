@@ -171,17 +171,9 @@ class AuthController extends Controller
     {
         $request->validate(['email' => ['required', 'email:rfc']]);
 
-        $status = Password::sendResetLink([
+        Password::sendResetLink([
             'email' => mb_strtolower($request->string('email')->toString()),
         ]);
-
-        if (! in_array($status, [Password::RESET_LINK_SENT, Password::INVALID_USER, Password::RESET_THROTTLED], true)) {
-            return response()->json([
-                'message' => 'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
-                'data' => null,
-                'meta' => [],
-            ]);
-        }
 
         return response()->json([
             'message' => 'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
