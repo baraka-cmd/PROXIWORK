@@ -214,6 +214,7 @@ class PublicServiceSearchService
                         }))
                     ->orWhereHas('professionalProfile', fn (Builder $professional) => $professional
                         ->where('professional_title', 'like', $like)
+                        ->orWhere('business_name', 'like', $like)
                         ->orWhereHas('user', fn (Builder $user) => $user->where('name', 'like', $like))
                         ->orWhereHas('user.profile', fn (Builder $profile) => $profile
                             ->where('first_name', 'like', $like)
