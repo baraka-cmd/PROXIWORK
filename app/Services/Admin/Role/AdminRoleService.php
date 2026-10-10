@@ -84,7 +84,23 @@ class AdminRoleService
             ]);
 
             if (array_key_exists('permission_ids', $data)) {
-                $role->permissions()->sync($data['permission_ids']);
+                $actorPermissionIds = $request->user()->roles()
+                    ->with('permissions:id')
+                    ->get()
+                    ->flatMap(fn ($assignedRole) => $assignedRole->permissions->pluck('id'))
+                    ->unique();
+
+                $protectedExistingIds = $role->permissions()
+                    ->pluck('permissions.id')
+                    ->diff($actorPermissionIds);
+
+                $permissionIds = collect($data['permission_ids'])
+                    ->merge($protectedExistingIds)
+                    ->unique()
+                    ->values()
+                    ->all();
+
+                $role->permissions()->sync($permissionIds);
             }
 
             $this->auditLogService->record(
