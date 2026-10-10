@@ -90,12 +90,12 @@ class RegisterController
                     'city' => trim($data['city']),
                     'province' => $data['province'] ?? null,
                     'commune' => $data['commune'] ?? null,
-                    'professional_terms_accepted_at' => now(),
                 ]);
                 $profile->forceFill([
                     'status' => 'draft',
                     'visibility' => 'private',
                     'verification_status' => ProfessionalVerificationStatus::PENDING,
+                    'professional_terms_accepted_at' => now(),
                 ])->save();
 
                 $profile->categories()->sync($data['category_ids']);
