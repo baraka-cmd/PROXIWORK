@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\ReviewStatus;
 use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
@@ -112,12 +113,29 @@ class PublicProfessionalController
             ->paginate(12)
             ->withQueryString();
 
+        $publicReviewCount = $professional->reviews()
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->count();
+
+        $reviews = $professional->reviews()
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereNotNull('published_at')
+            ->with([
+                'response' => fn ($response) => $response->where('status', ReviewStatus::PUBLISHED->value),
+            ])
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get(['id', 'client_id', 'professional_id', 'rating', 'comment', 'published_at']);
+
         return view('public.professionals.show', [
             'professional' => $professional,
             'person' => $person,
             'displayName' => $displayName,
             'profileSlug' => $profileSlug,
             'services' => $services,
+            'reviews' => $reviews,
+            'publicReviewCount' => $publicReviewCount,
         ]);
     }
 }
