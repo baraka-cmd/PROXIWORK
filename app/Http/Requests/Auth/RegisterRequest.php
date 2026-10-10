@@ -22,6 +22,7 @@ class RegisterRequest extends FormRequest
             'email' => ['required', 'email:rfc', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
             'device_name' => ['required', 'string', 'max:100'],
+            'terms' => ['accepted'],
         ];
     }
 
