@@ -47,12 +47,13 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('signed')
             ->name('verification.verify');
 
-        Route::middleware('auth:sanctum')->group(function (): void {
+        Route::middleware(['auth:sanctum', 'active.account'])->group(function (): void {
             Route::get('me', [AuthController::class, 'me']);
-            Route::post('logout', [AuthController::class, 'logout']);
             Route::post('change-password', [AuthController::class, 'changePassword'])->middleware('throttle:auth-sensitive');
             Route::post('email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:auth-sensitive');
         });
+
+        Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
     });
 
     Route::prefix('skills')->middleware(['throttle:api'])->group(function (): void {
