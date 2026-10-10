@@ -70,29 +70,29 @@ class LoginController
 
     private function isSafeInternalRedirect(string $url, User $user): bool
     {
-        if (str_starts_with($url, '/') && ($url[1] ?? '') !== '/' && ($url[1] ?? '') !== chr(92)) {
-            return true;
-        }
-
-        $targetHost = parse_url($url, PHP_URL_HOST);
-        $applicationHost = parse_url((string) config('app.url'), PHP_URL_HOST);
-        $scheme = parse_url($url, PHP_URL_SCHEME);
-        $applicationScheme = parse_url((string) config('app.url'), PHP_URL_SCHEME);
-
-        $isSameOrigin = is_string($targetHost)
-            && is_string($applicationHost)
-            && is_string($scheme)
-            && $scheme === $applicationScheme
-            && hash_equals(strtolower($applicationHost), strtolower($targetHost));
-
-        if (! $isSameOrigin) {
-            return false;
-        }
-
         $path = parse_url($url, PHP_URL_PATH);
 
-        if (! is_string($path)) {
+        if (! is_string($path) || $path === '') {
             return false;
+        }
+
+        if (str_starts_with($url, '/')) {
+            if (($url[1] ?? '') === '/' || ($url[1] ?? '') === chr(92)) {
+                return false;
+            }
+        } else {
+            $targetHost = parse_url($url, PHP_URL_HOST);
+            $applicationHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+            $scheme = parse_url($url, PHP_URL_SCHEME);
+            $applicationScheme = parse_url((string) config('app.url'), PHP_URL_SCHEME);
+
+            if (! is_string($targetHost)
+                || ! is_string($applicationHost)
+                || ! is_string($scheme)
+                || $scheme !== $applicationScheme
+                || ! hash_equals(strtolower($applicationHost), strtolower($targetHost))) {
+                return false;
+            }
         }
 
         if (str_starts_with($path, '/client/') || $path === '/client') {
