@@ -174,7 +174,10 @@ class RegisterController
             throw $exception;
         }
 
-        event(new Registered($user));\n        $auditLogService->record('auth.web.registered', $user, $user, ['account_type' => $accountType], $request);\n\n        Auth::guard('web')->login($user);
+        event(new Registered($user));
+        $auditLogService->record('auth.web.registered', $user, $user, ['account_type' => $accountType], $request);
+
+        Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
         if ($accountType === 'professional') {
