@@ -38,7 +38,7 @@
                 @if ($professional->availability_status?->value === 'available')
                     <span class="badge badge--primary">
                         <span class="badge__dot" aria-hidden="true"></span>
-                        Disponible
+                        Disponible (déclaré)
                     </span>
                 @endif
             </div>
@@ -109,7 +109,7 @@
             @if ($professional->years_experience !== null)
                 <div>
                     <dt><i class="fa-solid fa-clock" aria-hidden="true"></i><span class="sr-only">Expérience</span></dt>
-                    <dd>{{ $professional->years_experience }} {{ $professional->years_experience === 1 ? 'an' : 'ans' }} d’expérience</dd>
+                    <dd>Expérience déclarée : {{ $professional->years_experience }} {{ $professional->years_experience === 1 ? 'an' : 'ans' }}</dd>
                 </div>
             @endif
 
