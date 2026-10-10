@@ -16,6 +16,7 @@ use App\Services\Audit\AuditLogService;
 use App\Services\Auth\SessionRevocationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -233,6 +234,7 @@ class AuthController extends Controller
         }
 
         $request->user()->sendEmailVerificationNotification();
+        $this->auditLogService->record('auth.api.email_verification_requested', $request->user(), $request->user(), [], $request);
 
         return response()->json([
             'message' => 'Un nouveau lien de vérification a été envoyé.',
@@ -251,8 +253,9 @@ class AuthController extends Controller
             'Lien de vérification invalide.'
         );
 
-        if (! $user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
+        if (! $user->hasVerifiedEmail() && $user->markEmailAsVerified()) {
+            event(new Verified($user));
+            $this->auditLogService->record('auth.api.email_verified', $user, $user, [], $request);
         }
 
         return response()->json([
