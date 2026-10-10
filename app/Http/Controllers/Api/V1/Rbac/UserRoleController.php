@@ -59,12 +59,13 @@ class UserRoleController extends Controller
             $target->roles()->sync($roleIds);
 
             if ($target->hasRole('professional') && $target->professionalProfile()->exists() === false) {
-                $target->professionalProfile()->create([
+                $professionalProfile = $target->professionalProfile()->create();
+                $professionalProfile->forceFill([
                     'status' => 'draft',
                     'visibility' => 'private',
                     'verification_status' => ProfessionalVerificationStatus::PENDING,
                     'professional_terms_accepted_at' => now(),
-                ]);
+                ])->save();
             }
 
             $this->sessionRevocationService->revokeAll($target);
