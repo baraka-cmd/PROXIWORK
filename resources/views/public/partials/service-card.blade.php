@@ -5,6 +5,7 @@
         ? trim($person->first_name.' '.$person->last_name)
         : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
+    $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
     $currency = $service->currency ? ' '.$service->currency : '';
     $priceLabel = match ($service->pricing_type->value) {
         'fixed' => $service->price !== null
@@ -24,7 +25,7 @@
 @endphp
 
 <article class="service-card surface-card surface-card--interactive">
-    <a class="service-card__media" href="{{ route('public.services.show', $service->slug) }}" aria-label="Consulter le service {{ $service->title }}">
+    <a class="service-card__media" href="{{ $detailUrl }}" aria-label="Consulter le service {{ $service->title }}">
         @if ($cover)
             <img
                 src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($cover->path) }}"
@@ -44,7 +45,10 @@
 
     <div class="service-card__content">
         @if ($service->category)
-            <a class="service-card__category" href="{{ route('public.search', ['category' => $service->category->slug]) }}">{{ $service->category->name }}</a>
+            <a class="service-card__category" href="{{ route('public.search', array_merge(collect($filters ?? [])->except(['page', 'category'])->all(), ['category' => $service->category->slug])) }}">{{ $service->category->name }}</a>
+        @endif
+        @if ($professional?->availability_status?->value === 'available')
+            <span class="service-card__availability"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Disponible</span>
         @endif
 
         <h3><a href="{{ route('public.services.show', $service->slug) }}">{{ $service->title }}</a></h3>
