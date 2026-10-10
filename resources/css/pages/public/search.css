@@ -1154,3 +1154,29 @@
         font-size: 1.4rem;
     }
 }
+
+
+.professional-card__avatar-link {
+    display: inline-flex;
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
+.professional-card__avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}
+
+.professional-card__identity h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.professional-card__identity h3 a:hover,
+.professional-card__identity h3 a:focus-visible {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
