@@ -19,11 +19,11 @@ use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'permission:admin.users.view'])->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account', 'permission:admin.users.view'])->group(function (): void {
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 });
-Route::middleware('auth')->group(function (): void {
+Route::middleware(['auth', 'auth.session', 'active.account'])->group(function (): void {
     Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->middleware('permission:admin.users.suspend')->name('users.suspend');
     Route::post('users/{user}/activate', [UserController::class, 'activate'])->middleware('permission:admin.users.activate')->name('users.activate');
 });
