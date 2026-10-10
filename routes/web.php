@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\Client\PaymentController;
 use App\Http\Controllers\Web\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Web\Client\QuotationController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
+use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\PasswordResetLinkController;
@@ -34,7 +35,6 @@ use App\Http\Controllers\Web\RegisterController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\Client\ServiceCatalogController;
 
 Route::view('/', 'public.home')->name('home');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
