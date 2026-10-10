@@ -86,7 +86,7 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertRedirect($canonicalUrl);
     }
 
-    public function test_service_search_and_professional_directory_link_to_public_profiles(): void
+    public function test_service_search_links_to_public_professional_profiles(): void
     {
         $service = $this->publishedService('Service relié au profil public');
         $professional = $service->professionalProfile;
@@ -97,11 +97,19 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertOk()
             ->assertSee($url, false)
             ->assertSee('Entreprise visible');
+    }
+
+    public function test_professional_directory_links_to_public_professional_profiles(): void
+    {
+        $service = $this->publishedService('Service de l’annuaire public');
+        $professional = $service->professionalProfile;
+        $professional->forceFill(['business_name' => 'Entreprise annuaire'])->save();
+        $url = $this->profileUrl($professional);
 
         $this->get(route('public.professionals.index'))
             ->assertOk()
             ->assertSee($url, false)
-            ->assertSee('Entreprise visible');
+            ->assertSee('Entreprise annuaire');
     }
 
     private function profileUrl(ProfessionalProfile $professional): string
