@@ -76,6 +76,7 @@ class EmailChangeTest extends TestCase
         $this->assertNull($user->pending_email);
         $this->assertNotNull($user->email_verified_at);
         $this->assertGuest();
+        $this->assertDatabaseMissing('sessions', ['user_id' => $user->id]);
 
         Notification::assertSentOnDemand(EmailAddressChangedNotification::class);
         $this->assertDatabaseHas('audit_logs', [
