@@ -280,14 +280,47 @@ class ProfessionalSearchService
                 )
                 ->orderByDesc('id'),
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
-            default => $query
-                ->orderByRaw(
-                    'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
-                    [ProfessionalVerificationStatus::VERIFIED->value]
-                )
-                ->orderByDesc('rating_average')
-                ->orderByDesc('published_services_count')
-                ->orderByDesc('id'),
+            default => $this->applyRelevanceSort($query, $filters),
         };
+    }
+
+    private function applyRelevanceSort(Builder $query, array $filters): void
+    {
+        $term = trim((string) ($filters['search'] ?? ''));
+
+        if ($term !== '') {
+            $exact = $term;
+            $prefix = $term.'%';
+            $contains = '%'.$term.'%';
+
+            $query->orderByRaw(
+                'CASE
+                    WHEN professional_title = ? THEN 100
+                    WHEN business_name = ? THEN 95
+                    WHEN professional_title LIKE ? THEN 85
+                    WHEN business_name LIKE ? THEN 80
+                    WHEN professional_title LIKE ? THEN 70
+                    WHEN business_name LIKE ? THEN 65
+                    ELSE 0
+                END DESC',
+                [$exact, $exact, $prefix, $prefix, $contains, $contains]
+            );
+
+            $query->orderByRaw(
+                'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
+                [ProfessionalVerificationStatus::VERIFIED->value]
+            );
+        } else {
+            $query->orderByRaw(
+                'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
+                [ProfessionalVerificationStatus::VERIFIED->value]
+            );
+        }
+
+        $query
+            ->orderByDesc('rating_count')
+            ->orderByDesc('rating_average')
+            ->orderByDesc('published_services_count')
+            ->orderByDesc('id');
     }
 }
