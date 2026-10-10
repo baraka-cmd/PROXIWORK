@@ -21,7 +21,7 @@ class ProfessionalProfileActivationRequest extends FormRequest
         return $user instanceof User
             && $user->hasRole('client')
             && $user->hasRole('professional') === false
-            && $user->professionalProfile()->exists() === false
+            && $user->professionalProfile()->exists() === false;
     }
 
     public function rules(): array
