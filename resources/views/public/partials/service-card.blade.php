@@ -5,6 +5,7 @@
         ? trim($person->first_name.' '.$person->last_name)
         : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
     $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
+    $coverExists = $cover !== null && \Illuminate\Support\Facades\Storage::disk('public')->exists($cover->path);
     $detailUrl = route('public.services.show', array_merge(['service' => $service->slug], collect($filters ?? [])->except('page')->all()));
     $currency = $service->currency ? ' '.$service->currency : '';
     $billingUnitLabel = match ($service->billing_unit) {
@@ -33,7 +34,7 @@
 
 <article class="service-card surface-card surface-card--interactive">
     <a class="service-card__media" href="{{ $detailUrl }}" aria-label="Consulter le service {{ $service->title }}">
-        @if ($cover)
+        @if ($coverExists)
             <img
                 src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($cover->path) }}"
                 alt="{{ $cover->alt_text ?: $service->title }}"
@@ -77,7 +78,7 @@
             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
                 {{ $service->service_area ?: (collect([$professional?->city, $professional?->province])->filter()->join(', ') ?: 'Zone à confirmer') }}
             </span>
-            @if (($professional?->rating_count ?? 0) > 0)
+            @if (($professional?->rating_count ?? 0) > 0 && $professional?->rating_average !== null)
                 <span><i class="fa-solid fa-star" aria-hidden="true"></i>
                     {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5
                     <small>({{ $professional->rating_count }} avis)</small>
@@ -89,7 +90,7 @@
 
         <div class="service-card__footer">
             <div class="service-card__price">
-                <small>Tarif indicatif</small>
+                <small>{{ match ($service->pricing_type->value) { 'fixed' => 'Tarif fixe', 'from' => 'À partir de', 'range' => 'Fourchette indicative', default => 'Tarification' } }}</small>
                 <strong>{{ $priceLabel }}</strong>
             </div>
             <a class="button button--primary" href="{{ route('public.services.show', $service->slug) }}">Voir le service</a>
