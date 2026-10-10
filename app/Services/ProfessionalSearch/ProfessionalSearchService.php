@@ -74,7 +74,7 @@ class ProfessionalSearchService
             // Load only this client's favorite record. The identifier is needed by
             // the directory card to submit a real DELETE request when already saved.
             $query->with([
-                'favorites' => fn (Builder $favorites) => $favorites
+                'favorites' => fn ($favorites) => $favorites
                     ->where('user_id', Auth::id())
                     ->select(['favorites.id', 'favorites.user_id', 'favorites.professional_profile_id']),
             ]);
