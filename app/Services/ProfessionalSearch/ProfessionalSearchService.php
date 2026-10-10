@@ -33,6 +33,7 @@ class ProfessionalSearchService
                 'commune',
                 'service_radius_km',
                 'verification_status',
+                'verified_at',
                 'availability_status',
                 'rating_average',
                 'rating_count',
@@ -70,8 +71,12 @@ class ProfessionalSearchService
         $this->applyVerification($query, $filters);
 
         if (Auth::check() && Auth::user()?->hasRole('client')) {
-            $query->withExists([
-                'favorites as is_favorited' => fn (Builder $favorites) => $favorites->where('user_id', Auth::id()),
+            // Load only this client's favorite record. The identifier is needed by
+            // the directory card to submit a real DELETE request when already saved.
+            $query->with([
+                'favorites' => fn (Builder $favorites) => $favorites
+                    ->where('user_id', Auth::id())
+                    ->select(['favorites.id', 'favorites.user_id', 'favorites.professional_profile_id']),
             ]);
         }
 
@@ -272,7 +277,7 @@ class ProfessionalSearchService
                 // Confidence-weighted average: low-volume ratings move gradually toward the
                 // platform-wide published-review average instead of dominating on one review.
                 ->orderByRaw(
-                    '((COALESCE(rating_average, 0) * rating_count) + (5 * COALESCE((SELECT AVG(rating) FROM reviews WHERE reviews.status = ?), 0))) / (rating_count + 5) DESC',
+                    '((COALESCE(rating_average, 0) * rating_count) + (5 * COALESCE((SELECT AVG(rating) FROM reviews WHERE reviews.status = ? AND reviews.published_at IS NOT NULL), 0))) / (rating_count + 5) DESC',
                     [ReviewStatus::PUBLISHED->value]
                 )
                 ->orderByDesc('rating_count')
