@@ -275,6 +275,8 @@ class PublicProfessionalProfileTest extends TestCase
         $client->assignRole('client');
         $visible = $this->publishedService('Service du favori encore public')->professionalProfile;
         $hidden = $this->publishedService('Service du favori suspendu')->professionalProfile;
+        $visible->user->forceFill(['name' => 'Professionnel favori visible'])->save();
+        $hidden->user->forceFill(['name' => 'Professionnel favori suspendu'])->save();
         $hidden->forceFill(['status' => ProfessionalProfile::STATUS_SUSPENDED])->save();
 
         Favorite::query()->create(['user_id' => $client->getKey(), 'professional_profile_id' => $visible->getKey()]);
@@ -283,8 +285,8 @@ class PublicProfessionalProfileTest extends TestCase
         $this->actingAs($client)
             ->get(route('client.favorites.index'))
             ->assertOk()
-            ->assertSee('Service du favori encore public')
-            ->assertDontSee('Service du favori suspendu');
+            ->assertSee('Professionnel favori visible')
+            ->assertDontSee('Professionnel favori suspendu');
     }
 
     private function profileUrl(ProfessionalProfile $professional): string
