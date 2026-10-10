@@ -33,7 +33,7 @@ class ProfessionalProfileActivationController extends Controller
         $categories = Category::query()
             ->active()
             ->root()
-            ->with(['skills' => fn ($query) => $query->active()->orderBy('name')])
+            ->with(['skills' => static fn ($query) => $query->active()->orderBy('name')])
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
@@ -86,7 +86,7 @@ class ProfessionalProfileActivationController extends Controller
 
                 $profile->categories()->sync($data['category_ids']);
                 $profile->skills()->sync(collect($data['skill_ids'])->mapWithKeys(
-                    fn ($skillId) => [(int) $skillId => ['proficiency_level' => 'self_declared']]
+                    static fn ($skillId) => [(int) $skillId => ['proficiency_level' => 'self_declared']]
                 )->all());
 
                 foreach ($data['services'] as $serviceData) {
