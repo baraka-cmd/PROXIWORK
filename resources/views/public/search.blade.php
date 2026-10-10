@@ -7,6 +7,9 @@
     @unless (app()->environment('testing'))
         @vite('resources/css/pages/public/search.css')
     @endunless
+    @if (request()->query())
+        <meta name="robots" content="noindex,follow">
+    @endif
 @endpush
 
 @push('scripts')
