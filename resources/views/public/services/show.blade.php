@@ -17,6 +17,13 @@
             ? trim($person->first_name.' '.$person->last_name)
             : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
         $currency = $service->currency ? ' '.$service->currency : '';
+    $billingUnitLabel = match ($service->billing_unit) {
+        'package' => 'prestation',
+        'hour' => 'heure',
+        'day' => 'jour',
+        'project' => 'projet',
+        default => $service->billing_unit ? str_replace('_', ' ', $service->billing_unit) : null,
+    };
         $priceLabel = match ($service->pricing_type->value) {
             'fixed' => $service->price !== null
                 ? number_format((float) $service->price, 2, ',', ' ').$currency
@@ -30,7 +37,7 @@
             default => 'Sur devis',
         };
         if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
-            $priceLabel .= ' / '.str_replace('_', ' ', $service->billing_unit);
+            $priceLabel .= ' / '.$billingUnitLabel;
         }
     @endphp
 
@@ -154,7 +161,7 @@
                         <h2>Informations utiles</h2>
                         <dl>
                             <div><dt>Catégorie</dt><dd>{{ $service->category?->name ?? 'Non renseignée' }}</dd></div>
-                            <div><dt>Zone d’intervention</dt><dd>{{ collect([$service->service_area, $professional?->city, $professional?->province])->filter()->unique()->join(', ') ?: 'À confirmer avec le professionnel' }}</dd></div>
+                            <div><dt>Zone d’intervention</dt><dd>{{ $service->service_area ?: (collect([$professional?->city, $professional?->province])->filter()->join(', ') ?: 'À confirmer avec le professionnel') }}</dd></div>
                             <div><dt>Durée estimée</dt><dd>{{ $service->estimated_duration_minutes ? $service->estimated_duration_minutes.' min' : 'À définir' }}</dd></div>
                             <div><dt>Publié le</dt><dd>{{ $service->published_at?->format('d/m/Y') ?? 'Non renseigné' }}</dd></div>
                         </dl>
