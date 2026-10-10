@@ -88,6 +88,8 @@ class PublicProfessionalProfileTest extends TestCase
 
     public function test_service_search_links_to_public_professional_profiles(): void
     {
+        $this->withoutExceptionHandling();
+
         $service = $this->publishedService('Service relié au profil public');
         $professional = $service->professionalProfile;
         $professional->forceFill(['business_name' => 'Entreprise visible'])->save();
