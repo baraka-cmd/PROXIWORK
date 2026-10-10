@@ -14,6 +14,11 @@ class FavoritePolicy
     public function create(User $user, ProfessionalProfile $professionalProfile): bool
     {
         return $professionalProfile->user_id !== $user->getKey()
+            && $professionalProfile->status === ProfessionalProfile::STATUS_ACTIVE
+            && $professionalProfile->visibility === ProfessionalProfile::VISIBILITY_PUBLIC
+            && $professionalProfile->user()
+                ->where('account_status', UserAccountStatus::ACTIVE->value)
+                ->exists()
             && Service::query()
                 ->publiclyVisible()
                 ->where('professional_profile_id', $professionalProfile->getKey())
