@@ -12,7 +12,8 @@ class FavoritePolicy
 {
     public function create(User $user, ProfessionalProfile $professionalProfile): bool
     {
-        return $professionalProfile->user_id !== $user->getKey()
+        return $user->hasRole('client')
+            && $professionalProfile->user_id !== $user->getKey()
             && ProfessionalProfile::query()
                 ->publiclyDiscoverable()
                 ->whereKey($professionalProfile->getKey())
@@ -21,6 +22,7 @@ class FavoritePolicy
 
     public function delete(User $user, Favorite $favorite): bool
     {
-        return $favorite->user_id === $user->getKey();
+        return $user->hasRole('client')
+            && $favorite->user_id === $user->getKey();
     }
 }
