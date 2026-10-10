@@ -89,10 +89,10 @@ class RegisterController
                     'city' => trim($data['city']),
                     'province' => $data['province'] ?? null,
                     'commune' => $data['commune'] ?? null,
-                    'status' => 'draft',
-                    'visibility' => 'private',
                 ]);
                 $profile->forceFill([
+                    'status' => 'draft',
+                    'visibility' => 'private',
                     'verification_status' => ProfessionalVerificationStatus::PENDING,
                 ])->save();
 
