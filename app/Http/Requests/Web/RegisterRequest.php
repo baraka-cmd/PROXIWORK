@@ -117,9 +117,11 @@ class RegisterRequest extends FormRequest
 
             foreach ($this->input('services', []) as $index => $service) {
                 $pricingType = $service['pricing_type'] ?? 'quote';
+
                 if (in_array($pricingType, ['fixed', 'from'], true) && (isset($service['price']) === false || $service['price'] === '')) {
                     $validator->errors()->add("services.$index.price", 'Indiquez le tarif demandé pour ce mode de tarification.');
                 }
+
                 if ($pricingType === 'range') {
                     if (isset($service['price_min']) === false || $service['price_min'] === '' || isset($service['price_max']) === false || $service['price_max'] === '') {
                         $validator->errors()->add("services.$index.price_min", 'Indiquez le tarif minimum et maximum.');
@@ -129,11 +131,13 @@ class RegisterRequest extends FormRequest
                 }
 
                 $serviceCategoryId = (int) ($service['category_id'] ?? 0);
+
                 if ($categoryIds->contains($serviceCategoryId) === false) {
                     $validator->errors()->add("services.$index.category_id", 'Le service doit appartenir à une catégorie choisie.');
                 }
 
                 $serviceSkillIds = collect($service['skill_ids'] ?? [])->map(fn ($id) => (int) $id)->unique();
+
                 if ($serviceSkillIds->isEmpty() || $serviceSkillIds->diff($skillIds)->isNotEmpty()) {
                     $validator->errors()->add("services.$index.skill_ids", 'Les compétences du service doivent être sélectionnées dans votre profil.');
                     continue;
