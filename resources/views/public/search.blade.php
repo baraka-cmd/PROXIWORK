@@ -20,6 +20,7 @@
     @unless (app()->environment('testing'))
         @vite('resources/css/pages/public/search.css')
     @endunless
+    <link rel="canonical" href="{{ route('public.search') }}">
     @if (request()->query())
         <meta name="robots" content="noindex,follow">
     @endif
@@ -47,7 +48,17 @@
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                         <input id="search-hero-input" type="search" name="search" value="{{ old('search', $filters['search'] ?? '') }}" placeholder="Ex. réparation téléphone, plomberie, développeur web…" autocomplete="off">
                     </div>
-                    @foreach (collect($filters)->except(['search', 'page'])->all() as $filterName => $filterValue)
+                    @php
+                        $heroFilters = collect($filters)->merge(collect(old())->only([
+                            'profession', 'category', 'skills', 'skills_mode', 'city', 'province',
+                            'min_price', 'max_price', 'currency', 'billing_unit', 'rating',
+                            'availability', 'verified_only', 'sort', 'per_page',
+                        ]))->except(['search', 'page']);
+                        if (isset($heroFilters['skills']) && ! is_array($heroFilters['skills'])) {
+                            $heroFilters->forget('skills');
+                        }
+                    @endphp
+                    @foreach ($heroFilters->all() as $filterName => $filterValue)
                         @if (is_array($filterValue))
                             @foreach ($filterValue as $item)
                                 <input type="hidden" name="{{ $filterName }}[]" value="{{ $item }}">
