@@ -15,6 +15,7 @@ use App\Models\Service;
 use App\Models\Skill;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class PublicServiceSearchTest extends TestCase
@@ -458,7 +459,7 @@ class PublicServiceSearchTest extends TestCase
         $service = Service::factory()->create(array_merge([
             'category_id' => $category->getKey(),
             'title' => $title,
-            'slug' => \Illuminate\Support\Str::slug($title).'-'.uniqid(),
+            'slug' => Str::slug($title) . '-' . uniqid(),
             'pricing_type' => ServicePricingType::QUOTE,
             'price' => null,
             'price_min' => null,
