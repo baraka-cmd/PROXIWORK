@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CategoryStatus;
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\UserAccountStatus;
 use Database\Factories\ProfessionalProfileFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -61,6 +64,23 @@ class ProfessionalProfile extends Model
     protected static function newFactory(): ProfessionalProfileFactory
     {
         return ProfessionalProfileFactory::new();
+    }
+
+    /**
+     * Restrict discovery to profiles that are eligible for public presentation.
+     * Paid features, if introduced later, must never override these safety rules.
+     */
+    public function scopePubliclyDiscoverable(Builder $query): Builder
+    {
+        return $query
+            ->where('status', self::STATUS_ACTIVE)
+            ->where('visibility', self::VISIBILITY_PUBLIC)
+            ->whereHas('user', fn (Builder $user) => $user
+                ->where('account_status', UserAccountStatus::ACTIVE->value))
+            ->whereHas('services', fn (Builder $services) => $services
+                ->published()
+                ->whereHas('category', fn (Builder $category) => $category
+                    ->where('status', CategoryStatus::ACTIVE->value)));
     }
 
     public function user(): BelongsTo
