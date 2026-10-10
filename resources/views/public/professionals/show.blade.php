@@ -5,7 +5,7 @@
 
 @push('head')
     @unless (app()->environment('testing'))
-        @vite('resources/css/pages/public/search.css')
+        @vite('resources/css/pages/public/professionals.css')
     @endunless
     <link rel="canonical" href="{{ route('public.professionals.show', ['professionalProfile' => $professional->getKey(), 'slug' => $profileSlug]) }}">
 @endpush
@@ -64,7 +64,7 @@
                         @if ($professional->city || $professional->province)
                             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>{{ collect([$professional->city, $professional->province])->filter()->join(', ') }}</span>
                         @endif
-                        @if (($professional->rating_count ?? 0) > 0 && $professional->rating_average !== null)
+                        @if ($publicReviewCount > 0 && $publicRatingAverage !== null)
                             <span><i class="fa-solid fa-star" aria-hidden="true"></i>{{ number_format($publicRatingAverage, 1, ',', ' ') }}/5 ({{ $publicReviewCount }} avis)</span>
                         @else
                             <span><i class="fa-regular fa-star" aria-hidden="true"></i>Pas encore d’avis publiés</span>
