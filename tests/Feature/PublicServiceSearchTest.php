@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\Skill;
+use App\Services\ProfessionalService\ProfessionalServiceManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -52,7 +53,7 @@ class PublicServiceSearchTest extends TestCase
         ]);
         $service->skills()->attach($skill->getKey());
 
-        $other = $this->publishedService('Développement logiciel');
+        $this->publishedService('Développement logiciel');
 
         $response = $this->get(route('public.search', [
             'search' => 'plomberie',
@@ -164,6 +165,64 @@ class PublicServiceSearchTest extends TestCase
 
         $this->get(route('public.services.index', ['search' => 'plomberie']))
             ->assertRedirect(route('public.search', ['search' => 'plomberie']));
+    }
+
+    public function test_public_service_detail_shows_real_pricing_and_the_protected_request_entry_point(): void
+    {
+        $service = $this->publishedService('Installation électrique', [
+            'pricing_type' => ServicePricingType::FIXED,
+            'price' => '35.00',
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+            'service_area' => 'Goma et environs',
+        ]);
+
+        $response = $this->get(route('public.services.show', $service->slug));
+
+        $response->assertOk()
+            ->assertSee('Installation électrique')
+            ->assertSee('35,00 USD / heure')
+            ->assertSee('Goma et environs')
+            ->assertSee('Demander un devis')
+            ->assertSee(route('client.requests.create', ['service' => $service->id]));
+    }
+
+    public function test_guest_request_action_redirects_to_login_and_keeps_the_intended_destination(): void
+    {
+        $service = $this->publishedService('Réparation de téléphone');
+        $requestUrl = route('client.requests.create', ['service' => $service->id]);
+
+        $this->get($requestUrl)
+            ->assertRedirect(route('login'));
+
+        $this->assertStringContainsString('/client/requests/create?service='.$service->id, (string) session('url.intended'));
+    }
+
+    public function test_professional_service_manager_persists_billing_unit_and_service_area(): void
+    {
+        $professional = ProfessionalProfile::factory()->create();
+        $category = Category::factory()->create();
+
+        $service = app(ProfessionalServiceManager::class)->create($professional, [
+            'category_id' => $category->getKey(),
+            'title' => 'Maintenance informatique',
+            'short_description' => 'Maintenance et dépannage informatique.',
+            'description' => 'Maintenance et dépannage informatique pour particuliers et petites entreprises.',
+            'pricing_type' => ServicePricingType::FIXED->value,
+            'price' => '40.00',
+            'currency' => 'USD',
+            'billing_unit' => 'hour',
+            'service_area' => 'Goma et environs',
+            'skill_ids' => [],
+        ]);
+
+        $this->assertSame('hour', $service->billing_unit);
+        $this->assertSame('Goma et environs', $service->service_area);
+        $this->assertDatabaseHas('services', [
+            'id' => $service->getKey(),
+            'billing_unit' => 'hour',
+            'service_area' => 'Goma et environs',
+        ]);
     }
 
     private function publishedService(string $title, array $attributes = []): Service
