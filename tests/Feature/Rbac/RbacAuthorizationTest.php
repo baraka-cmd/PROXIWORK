@@ -89,6 +89,35 @@ class RbacAuthorizationTest extends TestCase
         ]);
     }
 
+    public function test_role_manager_cannot_grant_a_permission_they_do_not_have(): void
+    {
+        $roleManager = Role::create([
+            'name' => 'limited_role_manager',
+            'display_name' => 'Gestionnaire RBAC limité',
+            'description' => 'Can manage only permissions already assigned to this role.',
+            'is_system' => false,
+        ]);
+        $roleManager->permissions()->attach(Permission::where('name', 'rbac.manage')->value('id'));
+
+        $user = User::factory()->create();
+        $user->assignRole($roleManager);
+
+        $response = $this->actingAs($user, 'sanctum')
+            ->postJson('/api/v1/rbac/roles', [
+                'name' => 'elevated_role',
+                'display_name' => 'Rôle privilégié',
+                'permission_ids' => [
+                    Permission::where('name', 'rbac.manage')->value('id'),
+                    Permission::where('name', 'admin.users.suspend')->value('id'),
+                ],
+            ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors('permission_ids');
+
+        $this->assertDatabaseMissing('roles', ['name' => 'elevated_role']);
+    }
+
     public function test_system_role_cannot_be_deleted_even_by_admin(): void
     {
         $admin = User::factory()->create();
