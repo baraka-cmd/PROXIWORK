@@ -24,6 +24,7 @@ class PublicProfessionalProfileTest extends TestCase
         $visibleService = $this->publishedService('Service public du professionnel');
         $professional = $visibleService->professionalProfile;
         $professional->forceFill(['business_name' => 'Atelier Goma'])->save();
+        $professional->user->forceFill(['email' => 'private-professional@example.test'])->save();
 
         Service::factory()->create([
             'professional_profile_id' => $professional->getKey(),
@@ -38,7 +39,7 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertSee('Atelier Goma')
             ->assertSee('Service public du professionnel')
             ->assertDontSee('Brouillon privé du profil')
-            ->assertDontSee($professional->user->email);
+            ->assertDontSee('private-professional@example.test');
     }
 
     public function test_private_suspended_or_inactive_professional_profiles_are_not_public(): void
