@@ -38,7 +38,7 @@ class RegisterController
         return view('auth.register', compact('categories'));
     }
 
-    public function store(RegisterRequest $request, DatabaseManager $database): RedirectResponse
+    public function store(RegisterRequest $request, DatabaseManager $database, AuditLogService $auditLogService): RedirectResponse
     {
         $data = $request->validated();
         $accountType = $data['account_type'];
@@ -177,7 +177,7 @@ class RegisterController
             throw $exception;
         }
 
-        Auth::guard('web')->login($user);
+        event(new Registered($user));\n        $auditLogService->record('auth.web.registered', $user, $user, ['account_type' => $accountType], $request);\n\n        Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
         if ($accountType === 'professional') {
