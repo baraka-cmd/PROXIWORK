@@ -22,6 +22,26 @@ class WebEmailVerificationTest extends TestCase
         $this->seed(RbacSeeder::class);
     }
 
+    public function test_web_registration_sends_email_verification_notification(): void
+    {
+        Notification::fake();
+
+        $this->post(route('register.store'), [
+            'first_name' => 'Client',
+            'last_name' => 'Verification',
+            'email' => 'verification@example.com',
+            'account_type' => 'client',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'terms' => '1',
+        ])->assertRedirect(route('client.dashboard'));
+
+        $user = User::query()->where('email', 'verification@example.com')->firstOrFail();
+
+        Notification::assertSentTo($user, VerifyEmail::class);
+        $this->assertNull($user->email_verified_at);
+    }
+
     public function test_unverified_user_can_view_notice_and_request_another_link(): void
     {
         Notification::fake();
