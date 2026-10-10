@@ -8,7 +8,6 @@ use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ReviewStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
-use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -39,14 +38,7 @@ class ProfessionalSearchService
                 'rating_count',
                 'created_at',
             ])
-            ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-            ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-            ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
-            ->whereHas('services', function (Builder $services): void {
-                $services
-                    ->published()
-                    ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'));
-            })
+            ->publiclyDiscoverable()
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,avatar_path,bio',
