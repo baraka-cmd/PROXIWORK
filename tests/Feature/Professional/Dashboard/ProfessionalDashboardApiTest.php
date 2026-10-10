@@ -168,7 +168,7 @@ class ProfessionalDashboardApiTest extends TestCase
         $this->actingAs($professional, 'sanctum')
             ->getJson('/api/v1/professional/dashboard')
             ->assertOk()
-            ->assertJsonPath('data.pending_actions.0.type', 'services');
+            ->assertJsonPath('data.pending_actions.0.type', 'verification');
     }
 
     private function professional(): array
