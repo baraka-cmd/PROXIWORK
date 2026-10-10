@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Client;
 
-use App\Enums\CategoryStatus;
-use App\Enums\ProfessionalVerificationStatus;
-use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
-use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,25 +20,13 @@ class ServiceCatalogController extends Controller
         ]);
 
         $services = Service::query()
-            ->published()
+            ->publiclyAvailable()
             ->with([
                 'category',
                 'skills',
                 'images',
                 'professionalProfile.user.profile',
             ])
-            ->whereHas('category', function ($query): void {
-                $query->where('status', CategoryStatus::ACTIVE->value);
-            })
-            ->whereHas('professionalProfile', function ($query): void {
-                $query
-                    ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-                    ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-                    ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-                    ->whereHas('user', fn ($user) => $user
-                        ->where('account_status', UserAccountStatus::ACTIVE->value)
-                        ->whereNotNull('email_verified_at'));
-            })
             ->when(
                 $filters['search'] ?? null,
                 function ($query, string $search): void {
