@@ -35,6 +35,8 @@ class UpdateServiceRequest extends FormRequest
             'price_min' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_max' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'currency' => ['sometimes', 'nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'billing_unit' => ['sometimes', 'nullable', Rule::in(['package', 'hour', 'day', 'project'])],
+            'service_area' => ['sometimes', 'nullable', 'string', 'max:255'],
             'estimated_duration_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:525600'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
             'skill_ids' => ['sometimes', 'array', 'max:10'],
@@ -71,7 +73,7 @@ class UpdateServiceRequest extends FormRequest
     {
         $data = [];
 
-        foreach (['title', 'short_description', 'description', 'currency'] as $field) {
+        foreach (['title', 'short_description', 'description', 'currency', 'service_area'] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $data[$field] = trim((string) $this->input($field));
             }
@@ -79,6 +81,12 @@ class UpdateServiceRequest extends FormRequest
 
         if (array_key_exists('currency', $data)) {
             $data['currency'] = strtoupper($data['currency']);
+        }
+
+        $service = $this->route('service');
+        $pricingType = $this->input('pricing_type', $service->pricing_type->value);
+        if (! $this->filled('billing_unit') && $pricingType !== ServicePricingType::QUOTE->value && $service->billing_unit === null) {
+            $data['billing_unit'] = 'package';
         }
 
         $this->merge($data);
