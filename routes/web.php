@@ -22,6 +22,7 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\Professional\DashboardController as ProfessionalDashboardController;
+use App\Http\Controllers\Web\ProfessionalProfileActivationController;
 use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
 use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
@@ -68,6 +69,12 @@ Route::middleware(['auth', 'auth.session', 'session.version'])->group(function (
     Route::get('/account/password', [AccountPasswordController::class, 'edit'])
         ->middleware('active.account')
         ->name('account.password.edit');
+    Route::get('/account/professional-profile', [ProfessionalProfileActivationController::class, 'create'])
+        ->middleware(['active.account', 'role:client'])
+        ->name('account.professional-profile.create');
+    Route::post('/account/professional-profile', [ProfessionalProfileActivationController::class, 'store'])
+        ->middleware(['active.account', 'role:client', 'throttle:5,1'])
+        ->name('account.professional-profile.store');
     Route::post('/account/password', [AccountPasswordController::class, 'update'])
         ->middleware(['active.account', 'throttle:auth-sensitive'])
         ->name('account.password.update');
