@@ -300,7 +300,8 @@ class PublicServiceSearchService
 
         match ($sort) {
             'rating' => $query
-                ->orderByRaw('(SELECT CASE WHEN rating_count > 0 THEN 0 ELSE 1 END FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) ASC')
+                // Require a small review history before ranking a profile as highly rated.
+                ->orderByRaw('(SELECT CASE WHEN rating_count >= 3 THEN 0 ELSE 1 END FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) ASC')
                 ->orderByRaw('(SELECT rating_average FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) DESC')
                 ->orderByRaw('(SELECT rating_count FROM professional_profiles WHERE professional_profiles.id = services.professional_profile_id) DESC')
                 ->orderByDesc('services.published_at')
