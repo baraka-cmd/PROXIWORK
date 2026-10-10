@@ -177,7 +177,7 @@ class PublicProfessionalProfileTest extends TestCase
         $client = User::factory()->create();
         $client->assignRole('client');
 
-        $favorite = \\App\\Models\\Favorite::query()->create([
+        $favorite = \App\Models\Favorite::query()->create([
             'user_id' => $client->getKey(),
             'professional_profile_id' => $professional->getKey(),
         ]);
@@ -230,7 +230,7 @@ class PublicProfessionalProfileTest extends TestCase
             ->put(route('client.favorites.store', $professional->getKey()))
             ->assertRedirect();
 
-        $favorite = \\App\\Models\\Favorite::query()
+        $favorite = \App\Models\Favorite::query()
             ->where('user_id', $client->getKey())
             ->where('professional_profile_id', $professional->getKey())
             ->firstOrFail();
