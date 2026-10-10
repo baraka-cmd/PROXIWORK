@@ -50,13 +50,36 @@ class LoginController
         }
 
         // Rotate the session identifier immediately after authentication to prevent fixation.
+        $request->session()->forget('active_workspace');
         $request->session()->regenerate();
         $auditLogService->record('auth.web.login_succeeded', $user, $user, [], $request);
 
         // The destination is resolved from server-side roles/permissions, never from a
         // role or destination supplied by the browser. Professional verification status
         // is handled inside the professional workspace, not by granting public visibility.
+        $intended = $request->session()->pull('url.intended');
+
+        if (is_string($intended) && $this->isSafeInternalRedirect($intended)) {
+            return redirect()->to($intended);
+        }
+
         return redirect()->route('dashboard');
+    }
+
+    private function isSafeInternalRedirect(string $url): bool
+    {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_starts_with($url, '/\\\\')) {
+            return true;
+        }
+
+        $targetHost = parse_url($url, PHP_URL_HOST);
+        $applicationHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+
+        return is_string($targetHost)
+            && is_string($applicationHost)
+            && in_array($scheme, ['http', 'https'], true)
+            && hash_equals(strtolower($applicationHost), strtolower($targetHost));
     }
 
     public function destroy(Request $request, AuditLogService $auditLogService): RedirectResponse
