@@ -34,6 +34,12 @@
     if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
         $priceLabel .= ' / '.$billingUnitLabel;
     }
+    $pricingTypeLabel = match ($service->pricing_type->value) {
+        'fixed' => 'Tarif fixe',
+        'from' => 'À partir de',
+        'range' => 'Fourchette indicative',
+        default => 'Tarification',
+    };
 @endphp
 
 <article class="service-card surface-card surface-card--interactive">
@@ -94,10 +100,10 @@
 
         <div class="service-card__footer">
             <div class="service-card__price">
-                <small>{{ match ($service->pricing_type->value) { 'fixed' => 'Tarif fixe', 'from' => 'À partir de', 'range' => 'Fourchette indicative', default => 'Tarification' } }}</small>
+                <small>{{ $pricingTypeLabel }}</small>
                 <strong>{{ $priceLabel }}</strong>
             </div>
-            <a class="button button--primary" href="{{ route('public.services.show', $service->slug) }}">Voir le service</a>
+            <a class="button button--primary" href="{{ $detailUrl }}">Voir le service</a>
         </div>
     </div>
 </article>
