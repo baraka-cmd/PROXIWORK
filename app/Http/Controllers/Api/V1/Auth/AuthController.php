@@ -80,7 +80,7 @@ class AuthController extends Controller
             throw new AuthenticationException('Identifiants invalides.');
         }
 
-        if ($user->account_status === UserAccountStatus::SUSPENDED) {
+        if (! $user->isActive()) {
             throw new AccessDeniedHttpException('Compte suspendu.');
         }
 
