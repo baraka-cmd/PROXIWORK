@@ -52,12 +52,12 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware(['auth', 'auth.session'])->group(function (): void {
-    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->middleware('active.account')->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware(['active.account', 'signed', 'throttle:6,1'])
         ->name('web.verification.verify');
     Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
-        ->middleware('throttle:6,1')
+        ->middleware(['active.account', 'throttle:6,1'])
         ->name('verification.send');
     Route::get('/dashboard', [WorkspaceController::class, 'dashboard'])
         ->middleware('active.account')
