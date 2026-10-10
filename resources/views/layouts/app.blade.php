@@ -39,6 +39,7 @@
             </div>
             <a href="{{ route('verification.notice') }}">Vérifier maintenant</a>
             <a href="{{ route('account.email.edit') }}">Modifier l’adresse</a>
+            <a href="{{ route('account.password.edit') }}">Sécuriser le mot de passe</a>
             <form method="POST" action="{{ route('verification.send') }}">
                 @csrf
                 <button type="submit">Renvoyer le lien</button>
