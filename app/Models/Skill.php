@@ -43,7 +43,7 @@ class Skill extends Model
 
     public function services(): BelongsToMany
     {
-        return $this->belongsToMany($this::class, 'service_skills', 'skill_id', 'service_id')->withTimestamps();
+        return $this->belongsToMany(Service::class, 'service_skills', 'skill_id', 'service_id')->withTimestamps();
     }
 
     public function categories(): BelongsToMany
