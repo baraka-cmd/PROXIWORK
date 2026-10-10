@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Collection;
 
@@ -46,7 +47,7 @@ class PublicServiceSearchService
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
                 'images:id,service_id,path,alt_text,sort_order,is_cover',
-                'professionalProfile' => fn (Builder $professional) => $professional->select([
+                'professionalProfile' => fn (BelongsTo $professional) => $professional->select([
                     'id',
                     'user_id',
                     'business_name',
