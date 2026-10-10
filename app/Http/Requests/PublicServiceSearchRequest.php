@@ -167,8 +167,10 @@ class PublicServiceSearchRequest extends FormRequest
         $data = [];
 
         foreach (['search', 'profession', 'category', 'city', 'province', 'currency', 'billing_unit'] as $field) {
-            if ($this->has($field) && $this->input($field) !== null) {
-                $data[$field] = trim((string) $this->input($field));
+            $value = $this->input($field);
+
+            if ($this->has($field) && $value !== null && is_scalar($value)) {
+                $data[$field] = trim((string) $value);
             }
         }
 
@@ -182,18 +184,28 @@ class PublicServiceSearchRequest extends FormRequest
             $data['currency'] = strtoupper($data['currency']);
         }
 
-        if (array_key_exists('skills', $this->all())) {
-            $data['skills'] = collect($this->input('skills', []))
-                ->map(fn ($skill): string => trim((string) $skill))
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
+        $skillsInput = $this->input('skills');
+        if (is_array($skillsInput)) {
+            $normalizedSkills = [];
+
+            foreach ($skillsInput as $skill) {
+                if (is_scalar($skill)) {
+                    $skill = trim((string) $skill);
+                    if ($skill !== '') {
+                        $normalizedSkills[] = $skill;
+                    }
+                } else {
+                    $normalizedSkills[] = $skill;
+                }
+            }
+
+            $data['skills'] = array_values($normalizedSkills);
         }
 
-        if ($this->has('verified_only')) {
+        $verifiedOnlyInput = $this->input('verified_only');
+        if ($this->has('verified_only') && is_scalar($verifiedOnlyInput)) {
             $data['verified_only'] = filter_var(
-                $this->input('verified_only'),
+                $verifiedOnlyInput,
                 FILTER_VALIDATE_BOOLEAN,
                 FILTER_NULL_ON_FAILURE
             ) ?? false;
