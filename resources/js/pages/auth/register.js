@@ -40,11 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
         page.querySelectorAll('[data-account-choice]').forEach((card) => {
             card.classList.toggle('is-selected', card.dataset.accountChoice === accountType());
         });
-        professionalFields?.classList.toggle('is-visible', professional);
+        professionalFields?.classList.toggle('is-visible', professional);\n        setEnabled(professionalFields, professional);\n        const cityField = form.querySelector('#city');\n        if (cityField) cityField.required = professional;
         wizard?.classList.toggle('is-visible', professional);
         clientSubmit?.classList.toggle('is-visible', !professional);
         nextButtons.forEach((button) => button.classList.toggle('is-visible', professional));
-        wizardActions?.classList.toggle('is-visible', professional);
+        wizardActions?.classList.toggle('is-visible', professional && currentStep > 1);
         if (professional) {
             currentStep = Math.min(Math.max(currentStep, 1), 5);
             showStep(currentStep);
@@ -68,14 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
             step.classList.toggle('is-active', active);
             setEnabled(step, active || stepNumber === 5);
         });
-        if (professionalFields) setEnabled(professionalFields, stepNumber === 1);
+        if (professionalFields) setEnabled(professionalFields, accountType() === 'professional' && (stepNumber === 1 || stepNumber === 5));\n        wizardActions?.classList.toggle('is-visible', accountType() === 'professional' && stepNumber > 1);
         page.querySelectorAll('[data-progress-step]').forEach((item) => {
             const n = Number(item.dataset.progressStep);
             item.classList.toggle('is-current', n === stepNumber);
             item.classList.toggle('is-complete', n < stepNumber);
         });
         if (previousButton) previousButton.classList.toggle('is-visible', stepNumber > 1);
-        nextButtons.forEach((button) => button.classList.toggle('is-visible', stepNumber < 5 && accountType() === 'professional'));
+        nextButtons.forEach((button) => {\n            const inIdentityActions = Boolean(button.closest('.register-actions'));\n            button.classList.toggle('is-visible', accountType() === 'professional' && stepNumber < 5 && (inIdentityActions ? stepNumber === 1 : stepNumber > 1));\n        });
         if (professionalSubmit) professionalSubmit.classList.toggle('is-visible', stepNumber === 5 && accountType() === 'professional');
         updateSummary();
         if (stepNumber > 1) {
