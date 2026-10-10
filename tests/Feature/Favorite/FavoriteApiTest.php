@@ -215,6 +215,25 @@ class FavoriteApiTest extends TestCase
             ->assertJsonPath('meta.per_page', 1);
     }
 
+    public function test_professionals_cannot_use_client_favorite_endpoints(): void
+    {
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = $this->professional();
+
+        $this->actingAs($professionalUser, 'sanctum')
+            ->getJson('/api/v1/favorites')
+            ->assertForbidden();
+
+        $this->actingAs($professionalUser, 'sanctum')
+            ->putJson('/api/v1/favorites/'.$professional->id)
+            ->assertForbidden();
+
+        $this->actingAs($professionalUser, 'sanctum')
+            ->deleteJson('/api/v1/favorites/'.$professional->id)
+            ->assertForbidden();
+    }
+
     public function test_favorites_index_hides_profiles_that_are_no_longer_publicly_discoverable(): void
     {
         $user = $this->user();
