@@ -43,6 +43,7 @@ class AuthenticationTest extends TestCase
             ->assertJsonMissingPath('success');
 
         $this->assertDatabaseHas('users', ['email' => 'jean@example.com']);
+        $this->assertNotNull(User::where('email', 'jean@example.com')->firstOrFail()->terms_accepted_at);
         $user = User::where('email', 'jean@example.com')->firstOrFail();
         $this->assertTrue($user->hasRole('client'));
         $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
