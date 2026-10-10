@@ -70,7 +70,7 @@
                             <span><i class="fa-regular fa-star" aria-hidden="true"></i>Pas encore d’avis publiés</span>
                         @endif
                         @if ($professional->years_experience !== null)
-                            <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i>{{ $professional->years_experience }} an(s) d’expérience</span>
+                            <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i>{{ $professional->years_experience }} {{ $professional->years_experience === 1 ? 'an' : 'ans' }} d’expérience</span>
                         @endif
                     </div>
 
