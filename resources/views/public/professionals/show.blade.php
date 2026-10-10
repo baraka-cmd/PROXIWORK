@@ -43,7 +43,7 @@
 
                 <div class="professional-profile-hero__content">
                     <div class="professional-profile-hero__badges">
-                        @if ($professional->verification_status?->value === 'verified')
+                        @if ($professional->verification_status?->value === 'verified' && $professional->verified_at !== null)
                             <span class="badge badge--success">
                                 <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                                 Professionnel vérifié
