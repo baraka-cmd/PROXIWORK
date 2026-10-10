@@ -4,23 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Rbac;
 
-use App\Enums\ProfessionalVerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Rbac\SyncUserRolesRequest;
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Audit\AuditLogService;
-use App\Services\Auth\SessionRevocationService;
-use Illuminate\Database\DatabaseManager;
+use App\Services\Rbac\UserRoleAssignmentService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\ValidationException;
 
 class UserRoleController extends Controller
 {
     public function __construct(
-        private readonly AuditLogService $auditLogService,
-        private readonly SessionRevocationService $sessionRevocationService,
-        private readonly DatabaseManager $database,
+        private readonly UserRoleAssignmentService $roleAssignmentService,
     ) {}
 
     public function update(SyncUserRolesRequest $request, User $user): JsonResponse
@@ -30,57 +24,12 @@ class UserRoleController extends Controller
         abort_unless($actor !== null, 401);
         abort_if($actor->is($user), 403, 'Vous ne pouvez pas modifier vos propres rôles.');
 
-        $roleIds = collect($request->validated('role_ids'))
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
-
-        $updated = $this->database->transaction(function () use ($user, $actor, $roleIds, $request): User {
-            $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
-            $previousRoles = $target->roles()->pluck('name')->sort()->values()->all();
-
-            $keepsAdministrator = Role::query()
-                ->whereIn('id', $roleIds)
-                ->where('name', 'admin')
-                ->exists();
-
-            $targetIsAdministrator = $target->hasRole('admin');
-            $administratorCount = User::query()
-                ->whereHas('roles', fn ($query) => $query->where('name', 'admin'))
-                ->count();
-
-            if ($targetIsAdministrator && ! $keepsAdministrator && $administratorCount <= 1) {
-                throw ValidationException::withMessages([
-                    'role_ids' => ['Le dernier compte administrateur ne peut pas perdre son rôle.'],
-                ]);
-            }
-
-            $target->roles()->sync($roleIds);
-
-            if ($target->hasRole('professional') && $target->professionalProfile()->exists() === false) {
-                $professionalProfile = $target->professionalProfile()->create();
-                $professionalProfile->forceFill([
-                    'status' => 'draft',
-                    'visibility' => 'private',
-                    'verification_status' => ProfessionalVerificationStatus::PENDING,
-                    'professional_terms_accepted_at' => now(),
-                ])->save();
-            }
-
-            $this->sessionRevocationService->revokeAll($target);
-
-            $newRoles = $target->roles()->pluck('name')->sort()->values()->all();
-            $this->auditLogService->record(
-                'admin.user.roles_updated',
-                $target,
-                $actor,
-                ['previous_roles' => $previousRoles, 'new_roles' => $newRoles],
-                $request,
-            );
-
-            return $target->fresh(['roles.permissions']);
-        });
+        $updated = $this->roleAssignmentService->sync(
+            $user,
+            $actor,
+            collect($request->validated('role_ids'))->map(fn ($id) => (int) $id)->unique()->values()->all(),
+            $request,
+        );
 
         return response()->json([
             'message' => 'Les rôles de l’utilisateur ont été mis à jour. Ses anciennes sessions et clés API ont été révoquées.',
