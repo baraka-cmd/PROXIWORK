@@ -24,18 +24,9 @@ class PublicSearchController
      * Public service discovery. The catalogue is browsable without an account;
      * the database query itself enforces service, category, profile and account visibility.
      */
-    public function search(PublicServiceSearchRequest $request): View
+    public function search(Request $request): Response
     {
-        return view('public.search', [
-            'services' => \App\Models\Service::query()->whereRaw('1 = 0')->paginate(12),
-            'filters' => [],
-            'categories' => collect(),
-            'featuredCategories' => collect(),
-            'skills' => collect(),
-            'currencies' => collect(),
-            'billingUnits' => collect(),
-            'activeFiltersCount' => 0,
-        ]);
+        return response('Search route diagnostic');
     }
     public function professionals(ProfessionalSearchRequest $request): View
     {
