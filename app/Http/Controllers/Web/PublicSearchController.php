@@ -26,23 +26,17 @@ class PublicSearchController
      */
     public function search(PublicServiceSearchRequest $request): View
     {
-        $filters = $request->validated();
-
         return view('public.search', [
-            'services' => $this->serviceSearchService->search($filters),
-            'filters' => $filters,
-            'categories' => $this->serviceSearchService->availableCategories(),
-            'featuredCategories' => $this->serviceSearchService->availableCategories(featuredOnly: true),
-            'skills' => $this->serviceSearchService->availableSkills(),
-            'currencies' => $this->serviceSearchService->availableCurrencies(),
-            'billingUnits' => $this->serviceSearchService->availableBillingUnits(),
-            'activeFiltersCount' => $this->serviceSearchService->activeFiltersCount($filters),
+            'services' => \App\Models\Service::query()->whereRaw('1 = 0')->paginate(12),
+            'filters' => [],
+            'categories' => collect(),
+            'featuredCategories' => collect(),
+            'skills' => collect(),
+            'currencies' => collect(),
+            'billingUnits' => collect(),
+            'activeFiltersCount' => 0,
         ]);
     }
-
-    /**
-     * Keep the existing professional directory separate from service search.
-     */
     public function professionals(ProfessionalSearchRequest $request): View
     {
         $filters = $request->validated();
