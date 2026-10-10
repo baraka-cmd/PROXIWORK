@@ -29,14 +29,14 @@
 
         <div class="professional-card__identity">
             <div class="professional-card__badges">
-                @if ($professional->verification_status->value === 'verified')
+                @if ($professional->verification_status?->value === 'verified')
                     <span class="badge badge--success">
                         <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                         Vérifié
                     </span>
                 @endif
 
-                @if ($professional->availability_status->value === 'available')
+                @if ($professional->availability_status?->value === 'available')
                     <span class="badge badge--primary">
                         <span class="badge__dot" aria-hidden="true"></span>
                         Disponible
