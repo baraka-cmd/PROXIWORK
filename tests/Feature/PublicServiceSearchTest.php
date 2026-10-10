@@ -94,7 +94,7 @@ class PublicServiceSearchTest extends TestCase
             ->assertDontSee('Offre compte suspendu');
 
         $this->get(route('public.services.show', $privateService->slug))->assertNotFound();
-        $this->getJson('/api/v1/services/'.$inactiveAccountService->getKey())->assertNotFound();
+        $this->getJson('/api/v1/services/' . $inactiveAccountService->getKey())->assertNotFound();
     }
 
     public function test_unpublished_service_is_not_exposed_by_public_service_api(): void
@@ -108,7 +108,7 @@ class PublicServiceSearchTest extends TestCase
             ->assertOk()
             ->assertJsonMissing(['title' => 'Prestation privée API']);
 
-        $this->getJson('/api/v1/services/'.$draft->getKey())->assertNotFound();
+        $this->getJson('/api/v1/services/' . $draft->getKey())->assertNotFound();
     }
 
     public function test_price_sort_requires_currency_and_returns_a_clean_search_page(): void
@@ -233,7 +233,7 @@ class PublicServiceSearchTest extends TestCase
         ]));
 
         $response->assertOk()
-            ->assertSee('type="hidden" name="category" value="'.$category->slug.'"', false)
+            ->assertSee('type="hidden" name="category" value="' . $category->slug . '"', false)
             ->assertSee('type="hidden" name="currency" value="USD"', false)
             ->assertSee('type="hidden" name="billing_unit" value="hour"', false)
             ->assertDontSee('type="hidden" name="page" value="3"', false);
@@ -254,7 +254,7 @@ class PublicServiceSearchTest extends TestCase
         ]));
 
         $response->assertOk()
-            ->assertSee('category='.$category->slug, false)
+            ->assertSee('category=' . $category->slug, false)
             ->assertSee('per_page=1', false);
 
         $this->get(route('public.services.index', ['search' => 'plomberie']))
@@ -322,7 +322,7 @@ class PublicServiceSearchTest extends TestCase
         $this->get($requestUrl)
             ->assertRedirect(route('login'));
 
-        $this->assertStringContainsString('/client/requests/create?service='.$service->id, (string) session('url.intended'));
+        $this->assertStringContainsString('/client/requests/create?service=' . $service->id, (string) session('url.intended'));
     }
 
     public function test_professional_service_manager_persists_billing_unit_and_service_area(): void
