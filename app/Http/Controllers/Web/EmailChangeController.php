@@ -90,7 +90,7 @@ class EmailChangeController extends Controller
             'Ce lien de confirmation est invalide ou a expiré.',
         );
 
-        if (User::query()->where('email', $pendingEmail)->whereKeyNot($id)->exists()) {
+        if (User::query()->where('email', $pendingEmail)->where('id', '!=', $id)->exists()) {
             return redirect()->route('account.email.edit')
                 ->withErrors(['email' => 'Cette adresse est maintenant associée à un autre compte. Demandez une nouvelle confirmation.']);
         }
