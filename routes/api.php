@@ -138,9 +138,9 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('throttle:message-send');
         Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead']);
 
-        Route::get('favorites', [FavoriteController::class, 'index']);
-        Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store']);
-        Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy']);
+        Route::get('favorites', [FavoriteController::class, 'index'])->middleware('role:client');
+        Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store'])->middleware('role:client');
+        Route::delete('favorites/{professionalProfile}', [FavoriteController::class, 'destroy'])->middleware('role:client');
 
         Route::prefix('admin')->group(function (): void {
             Route::get('dashboard', AdminDashboardController::class)->middleware('permission:admin.dashboard.view');
