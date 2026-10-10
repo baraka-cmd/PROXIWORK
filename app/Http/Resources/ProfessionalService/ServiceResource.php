@@ -22,6 +22,8 @@ class ServiceResource extends JsonResource
             'price_min' => $this->price_min,
             'price_max' => $this->price_max,
             'currency' => $this->currency,
+            'billing_unit' => $this->billing_unit,
+            'service_area' => $this->service_area,
             'estimated_duration_minutes' => $this->estimated_duration_minutes,
             'status' => $this->status->value,
             'sort_order' => $this->sort_order,
