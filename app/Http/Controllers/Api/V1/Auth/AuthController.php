@@ -13,6 +13,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Auth\SessionRevocationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -29,6 +30,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly SessionRevocationService $sessionRevocationService,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -140,7 +142,7 @@ class AuthController extends Controller
             'password' => $request->string('password')->toString(),
         ]);
 
-        $user->tokens()->delete();
+        $this->sessionRevocationService->revokeAll($user);
 
         $this->auditLogService->record('password_changed', $user, $user, [], $request);
         $user->notify(new AccountActivityNotification(
@@ -173,9 +175,11 @@ class AuthController extends Controller
             'email' => mb_strtolower($request->string('email')->toString()),
         ]);
 
-        if ($status !== Password::ResetLinkSent) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
+        if (! in_array($status, [Password::RESET_LINK_SENT, Password::INVALID_USER, Password::RESET_THROTTLED], true)) {
+            return response()->json([
+                'message' => 'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
+                'data' => null,
+                'meta' => [],
             ]);
         }
 
@@ -200,7 +204,7 @@ class AuthController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
-                $user->tokens()->delete();
+                $this->sessionRevocationService->revokeAll($user);
 
                 event(new PasswordReset($user));
             }
@@ -208,7 +212,7 @@ class AuthController extends Controller
 
         if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
             throw ValidationException::withMessages([
-                'email' => [__($status)],
+                'email' => ['Le lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.'],
             ]);
         }
 
