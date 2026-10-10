@@ -61,6 +61,7 @@ class AdminAuthController extends Controller
 
         $request->session()->forget('active_workspace');
         $request->session()->regenerate();
+        $request->session()->put('auth.session_version', (int) $user->session_version);
         $auditLogService->record('auth.admin.login_succeeded', $user, $user, [], $request);
 
         return redirect()->route('dashboard');
