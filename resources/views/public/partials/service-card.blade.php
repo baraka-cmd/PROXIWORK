@@ -1,0 +1,87 @@
+@php
+    $professional = $service->professionalProfile;
+    $person = $professional?->user?->profile;
+    $displayName = $person !== null
+        ? trim($person->first_name.' '.$person->last_name)
+        : ($professional?->user?->name ?? 'Professionnel PROXIWORK');
+    $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
+    $currency = $service->currency ? ' '.$service->currency : '';
+    $priceLabel = match ($service->pricing_type->value) {
+        'fixed' => $service->price !== null
+            ? number_format((float) $service->price, 2, ',', ' ').$currency
+            : 'Sur devis',
+        'from' => $service->price !== null
+            ? 'À partir de '.number_format((float) $service->price, 2, ',', ' ').$currency
+            : 'Sur devis',
+        'range' => $service->price_min !== null && $service->price_max !== null
+            ? number_format((float) $service->price_min, 2, ',', ' ').' – '.number_format((float) $service->price_max, 2, ',', ' ').$currency
+            : 'Sur devis',
+        default => 'Sur devis',
+    };
+    if (filled($service->billing_unit) && $priceLabel !== 'Sur devis') {
+        $priceLabel .= ' / '.str_replace('_', ' ', $service->billing_unit);
+    }
+@endphp
+
+<article class="service-card surface-card surface-card--interactive">
+    <a class="service-card__media" href="{{ route('public.services.show', $service->slug) }}" aria-label="Consulter le service {{ $service->title }}">
+        @if ($cover)
+            <img
+                src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($cover->path) }}"
+                alt="{{ $cover->alt_text ?: $service->title }}"
+                loading="lazy"
+                decoding="async"
+            >
+        @else
+            <span class="service-card__placeholder" aria-hidden="true">
+                <i class="fa-solid fa-briefcase"></i>
+            </span>
+        @endif
+        @if ($professional?->verification_status?->value === 'verified')
+            <span class="service-card__verified"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Professionnel vérifié</span>
+        @endif
+    </a>
+
+    <div class="service-card__content">
+        @if ($service->category)
+            <a class="service-card__category" href="{{ route('public.search', ['category' => $service->category->slug]) }}">{{ $service->category->name }}</a>
+        @endif
+
+        <h3><a href="{{ route('public.services.show', $service->slug) }}">{{ $service->title }}</a></h3>
+        @if ($service->short_description)
+            <p class="service-card__description">{{ \Illuminate\Support\Str::limit($service->short_description, 145) }}</p>
+        @endif
+
+        <div class="service-card__professional">
+            <span class="service-card__professional-avatar" aria-hidden="true">
+                {{ collect(preg_split('/\s+/', trim($displayName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P' }}
+            </span>
+            <span>
+                <strong>{{ $displayName }}</strong>
+                <small>{{ $professional?->professional_title ?: 'Prestataire PROXIWORK' }}</small>
+            </span>
+        </div>
+
+        <div class="service-card__facts">
+            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                {{ collect([$service->service_area, $professional?->city, $professional?->province])->filter()->unique()->take(2)->join(', ') ?: 'Zone à confirmer' }}
+            </span>
+            @if (($professional?->rating_count ?? 0) > 0)
+                <span><i class="fa-solid fa-star" aria-hidden="true"></i>
+                    {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5
+                    <small>({{ $professional->rating_count }} avis)</small>
+                </span>
+            @else
+                <span><i class="fa-regular fa-star" aria-hidden="true"></i> Nouveau service</span>
+            @endif
+        </div>
+
+        <div class="service-card__footer">
+            <div class="service-card__price">
+                <small>Tarif indicatif</small>
+                <strong>{{ $priceLabel }}</strong>
+            </div>
+            <a class="button button--primary" href="{{ route('public.services.show', $service->slug) }}">Voir le service</a>
+        </div>
+    </div>
+</article>
