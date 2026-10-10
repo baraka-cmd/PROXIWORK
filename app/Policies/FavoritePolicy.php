@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\UserAccountStatus;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
