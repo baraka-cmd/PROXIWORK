@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -33,10 +34,8 @@ class PublicSearchController
             'filters' => $filters,
             'categories' => $this->serviceSearchService->availableCategories(),
             'featuredCategories' => $this->serviceSearchService->availableCategories(featuredOnly: true),
-            'skills' => Skill::query()
-                ->active()
-                ->orderBy('name')
-                ->get(['id', 'name', 'slug']),
+            'skills' => $this->serviceSearchService->availableSkills(),
+            'currencies' => $this->serviceSearchService->availableCurrencies(),
             'activeFiltersCount' => collect($filters)
                 ->except(['sort', 'per_page', 'skills_mode'])
                 ->filter(fn ($value) => $value !== null && $value !== '' && $value !== [])
@@ -58,7 +57,7 @@ class PublicSearchController
         ]);
     }
 
-    public function redirectServicesIndex(Request $request)
+    public function redirectServicesIndex(Request $request): RedirectResponse
     {
         return redirect()->route('public.search', $request->query());
     }
