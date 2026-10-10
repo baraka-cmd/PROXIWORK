@@ -19,6 +19,37 @@
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">État professionnel</span><h3>Vérification & activité</h3></div></div><div class="admin-stat-grid"><div class="admin-stat"><span>Vérification</span><strong>{{ ['pending'=>'En attente','under_review'=>'En revue','verified'=>'Vérifié','rejected'=>'Rejeté'][$professional->verification_status?->value] ?? '—' }}</strong></div><div class="admin-stat"><span>Disponibilité</span><strong>{{ ['available'=>'Disponible','unavailable'=>'Indisponible','unknown'=>'Inconnue'][$professional->availability_status?->value] ?? '—' }}</strong></div><div class="admin-stat"><span>Note</span><strong>{{ $professional->rating_average }}/5</strong></div><div class="admin-stat"><span>Avis</span><strong>{{ $professional->reviews_count }}</strong></div><div class="admin-stat"><span>Services</span><strong>{{ $professional->services_count }}</strong></div><div class="admin-stat"><span>Demandes</span><strong>{{ $professional->service_requests_count }}</strong></div></div></section>
 </div>
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Compétences</span><h3>Expertises déclarées</h3></div></div><div class="admin-chip-list admin-chip-list--large">@forelse($professional->skills as $skill)<span class="admin-chip">{{ $skill->name }} @if($skill->pivot?->years_experience)· {{ $skill->pivot->years_experience }} an{{ $skill->pivot->years_experience>1?'s':'' }}@endif</span>@empty<span class="admin-muted">Aucune compétence renseignée.</span>@endforelse</div></section>
+<section class="admin-card">
+    <div class="admin-card__header"><div><span class="admin-card__eyebrow">Documents privés</span><h3>Pièces justificatives transmises</h3></div></div>
+    <p class="admin-muted">Les fichiers sont conservés dans le stockage privé. Chaque téléchargement autorisé est journalisé.</p>
+    <div class="admin-document-list">
+        @forelse($professional->documents as $document)
+            <article class="admin-document-row">
+                <div>
+                    <strong>{{ ['identity'=>'Pièce d’identité','certificate'=>'Certificat','diploma'=>'Diplôme','license'=>'Licence / autorisation','reference'=>'Référence / expérience','other'=>'Autre'][$document->document_type] ?? 'Document professionnel' }}</strong>
+                    <p>{{ $document->original_name }} · {{ number_format($document->size_bytes / 1024, 0, ',', ' ') }} Ko</p>
+                    <small>État : {{ $document->review_status === 'pending' ? 'En attente de revue' : $document->review_status }}</small>
+                </div>
+                <a class="button button--secondary" href="{{ route('admin.professional-documents.download', $document) }}"><i class="fa-solid fa-download" aria-hidden="true"></i> Télécharger en privé</a>
+            </article>
+        @empty
+            <p class="admin-muted">Aucun document n’a été transmis.</p>
+        @endforelse
+    </div>
+</section>
+<section class="admin-card">
+    <div class="admin-card__header"><div><span class="admin-card__eyebrow">Services déclarés</span><h3>Services et modération</h3></div></div>
+    <div class="admin-service-list">
+        @forelse($professional->services as $service)
+            <article class="admin-service-row">
+                <div><strong>{{ $service->title }}</strong><p>{{ $service->category?->name ?? 'Catégorie' }} · {{ $service->skills->pluck('name')->join(', ') }}</p><small>{{ $service->status?->value ?? 'draft' }} · {{ $service->pricing_type?->value ?? 'quote' }}</small></div>
+                <p>{{ $service->description }}</p>
+            </article>
+        @empty
+            <p class="admin-muted">Aucun service n’a été déclaré.</p>
+        @endforelse
+    </div>
+</section>
 <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">Workflow</span><h3>Vérification professionnelle</h3></div></div><div class="admin-action-row">
 @if($professional->verification_status?->value === 'pending')@can('review',$professional)<form method="POST" action="{{ route('admin.professionals.verification.start',$professional) }}">@csrf<button class="button button--primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Démarrer la revue</button></form>@endcan
 @elseif($professional->verification_status?->value === 'under_review')@can('verify',$professional)<button class="button button--primary" type="button" data-open-note="verify-modal"><i class="fa-solid fa-circle-check"></i> Vérifier</button>@endcan @can('reject',$professional)<button class="button button--secondary" type="button" data-open-note="reject-modal"><i class="fa-solid fa-circle-xmark"></i> Rejeter</button>@endcan
