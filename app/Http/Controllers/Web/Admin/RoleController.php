@@ -62,7 +62,7 @@ class RoleController extends Controller
 
         return view('admin.roles.form', [
             'role' => $role->load('permissions'),
-            'permissions' => $this->service->permissions(),
+            'permissions' => $this->service->permissions($request->user()),
             'selectedPermissions' => $role->permissions->pluck('id')->all(),
         ]);
     }
