@@ -18,7 +18,7 @@ class LoginController
         return view('auth.login');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AuditLogService $auditLogService): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
