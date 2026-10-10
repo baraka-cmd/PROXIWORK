@@ -62,6 +62,7 @@ class PublicServiceSearchService
                     'commune',
                     'service_radius_km',
                     'verification_status',
+                    'verified_at',
                     'availability_status',
                     'rating_average',
                     'rating_count',
@@ -379,7 +380,8 @@ class PublicServiceSearchService
     {
         if (filter_var($filters['verified_only'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $query->whereHas('professionalProfile', fn (Builder $professional) => $professional
-                ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value));
+                ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
+                ->whereNotNull('verified_at'));
         }
     }
 
