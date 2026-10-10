@@ -409,7 +409,7 @@ class ProfessionalSearchApiTest extends TestCase
 
         $this->getJson('/api/v1/professionals?sort=price_low')
             ->assertUnprocessable()
-            ->assertJsonValidationErrors(['currency']);
+            ->assertJsonValidationErrors(['sort']);
     }
 
     public function test_minimum_rating_excludes_profiles_without_admissible_reviews(): void
