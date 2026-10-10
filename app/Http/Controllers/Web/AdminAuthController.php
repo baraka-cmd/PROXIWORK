@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+declare(strict_types=1);
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
+namespace App\\Http\\Controllers\\Web;
+
+use App\\Enums\\UserAccountStatus;
+use App\\Http\\Controllers\\Controller;
+use Illuminate\\Http\\RedirectResponse;
+use Illuminate\\Http\\Request;
+use Illuminate\\Support\\Facades\\Auth;
+use Illuminate\\Validation\\ValidationException;
+use Illuminate\\View\\View;
 
 class AdminAuthController extends Controller
 {
@@ -18,14 +21,18 @@ class AdminAuthController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $credentials = $request->validate([
+        $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string'],
+            'password' => ['required', 'string', 'max:255'],
+            'remember' => ['sometimes', 'boolean'],
         ]);
 
-        $remember = $request->boolean('remember');
+        $credentials = [
+            'email' => mb_strtolower(trim($validated['email'])),
+            'password' => $validated['password'],
+        ];
 
-        if (! Auth::guard('web')->attempt($credentials, $remember)) {
+        if (! Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => 'Les identifiants fournis sont incorrects.',
             ]);
@@ -33,19 +40,23 @@ class AdminAuthController extends Controller
 
         $user = Auth::guard('web')->user();
 
-        if (! $user->hasRole('admin') && ! $user->hasPermissionTo('rbac.view')) {
+        if (
+            $user === null
+            || $user->account_status !== UserAccountStatus::ACTIVE
+            || (! $user->hasRole('admin') && ! $user->hasPermissionTo('rbac.view'))
+        ) {
             Auth::guard('web')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
             throw ValidationException::withMessages([
-                'email' => 'Ce compte n’est pas autorisé à accéder à l’administration.',
+                'email' => 'Les identifiants fournis sont incorrects ou ce compte ne peut pas accéder à cet espace.',
             ]);
         }
 
         $request->session()->regenerate();
 
-        return redirect()->route('admin.rbac.dashboard');
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -54,6 +65,6 @@ class AdminAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('admin.login');
+        return redirect()->route('home')->with('status', 'Vous avez été déconnecté avec succès.');
     }
 }
