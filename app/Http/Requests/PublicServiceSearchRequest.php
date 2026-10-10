@@ -125,8 +125,36 @@ class PublicServiceSearchRequest extends FormRequest
     protected function failedValidation(Validator $validator)
     {
         if ($this->isMethod('GET')) {
+            $input = collect($this->query())->only([
+                'search', 'profession', 'category', 'skills', 'skills_mode', 'city', 'province',
+                'min_price', 'max_price', 'currency', 'billing_unit', 'rating', 'availability',
+                'verified_only', 'sort', 'per_page', 'page',
+            ])->all();
+
+            foreach ([
+                'search', 'profession', 'category', 'skills_mode', 'city', 'province',
+                'min_price', 'max_price', 'currency', 'billing_unit', 'rating', 'availability',
+                'verified_only', 'sort', 'per_page', 'page',
+            ] as $field) {
+                if (isset($input[$field]) && ! is_scalar($input[$field])) {
+                    unset($input[$field]);
+                }
+            }
+
+            if (isset($input['skills'])) {
+                if (! is_array($input['skills'])) {
+                    unset($input['skills']);
+                } else {
+                    $input['skills'] = collect($input['skills'])
+                        ->filter(fn ($skill): bool => is_scalar($skill))
+                        ->map(fn ($skill): string => (string) $skill)
+                        ->values()
+                        ->all();
+                }
+            }
+
             throw new HttpResponseException(
-                redirect()->route('public.search')->withErrors($validator)->withInput($this->query())
+                redirect()->route('public.search')->withErrors($validator)->withInput($input)
             );
         }
 
