@@ -69,7 +69,7 @@
                             @if ($professional?->verification_status?->value === 'verified')
                                 <span class="badge badge--success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Professionnel vérifié</span>
                             @endif
-                            @if (($professional?->rating_count ?? 0) > 0)
+                            @if (($professional?->rating_count ?? 0) > 0 && $professional?->rating_average !== null)
                                 <span class="service-detail-rating"><i class="fa-solid fa-star" aria-hidden="true"></i> {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5 ({{ $professional->rating_count }} avis)</span>
                             @else
                                 <span class="service-detail-rating"><i class="fa-regular fa-star" aria-hidden="true"></i> Pas encore d’avis publiés</span>
@@ -78,7 +78,7 @@
                     </header>
 
                     <div class="service-detail-gallery">
-                        @if ($coverImage)
+                        @if ($coverImage && \Illuminate\Support\Facades\Storage::disk('public')->exists($coverImage->path))
                             <img class="service-detail-cover" src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($coverImage->path) }}" alt="{{ $coverImage->alt_text ?: $service->title }}" fetchpriority="high">
                         @else
                             <div class="service-detail-cover service-detail-cover--placeholder" aria-label="Aucune image disponible">
@@ -89,7 +89,7 @@
 
                         @if ($service->images->count() > 1)
                             <div class="service-detail-thumbnails" aria-label="Autres images du service">
-                                @foreach ($service->images->where('id', '!=', $coverImage?->id) as $image)
+                                @foreach ($service->images->where('id', '!=', $coverImage?->id)->filter(fn ($image) => \Illuminate\Support\Facades\Storage::disk('public')->exists($image->path)) as $image)
                                     <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($image->path) }}" alt="{{ $image->alt_text ?: $service->title }}" loading="lazy" decoding="async">
                                 @endforeach
                             </div>
