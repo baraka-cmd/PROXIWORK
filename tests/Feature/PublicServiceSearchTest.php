@@ -151,7 +151,7 @@ class PublicServiceSearchTest extends TestCase
 
     public function test_price_sort_never_compares_different_billing_units(): void
     {
-        $hourly = $this->publishedService('Tarif horaire', [
+        $this->publishedService('Tarif horaire', [
             'pricing_type' => ServicePricingType::FIXED,
             'price' => '15.00',
             'currency' => 'USD',
@@ -186,7 +186,7 @@ class PublicServiceSearchTest extends TestCase
             'name' => 'Catégorie disponible publique',
             'slug' => 'categorie-disponible-publique',
         ]);
-        $unusedCategory = Category::factory()->create([
+        Category::factory()->create([
             'name' => 'Catégorie sans offre',
             'slug' => 'categorie-sans-offre',
         ]);
