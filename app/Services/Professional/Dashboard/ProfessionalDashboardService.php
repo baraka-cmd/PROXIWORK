@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Professional\Dashboard;
 
+use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
@@ -14,7 +15,7 @@ class ProfessionalDashboardService
     public function getFor(User $user): array
     {
         $profile = $user->professionalProfile()
-            ->with(['user.profile'])
+            ->with(['user.profile', 'verificationReviews' => fn ($query) => $query->latest()])
             ->withCount([
                 'services',
                 'services as published_services_count' => fn ($query) => $query
@@ -59,6 +60,8 @@ class ProfessionalDashboardService
             'id' => $profile->getKey(),
             'professional_title' => $profile->professional_title,
             'verification_status' => $profile->verification_status?->value,
+            'verification_note' => $profile->verificationReviews->first()?->note,
+            'verification_reason_code' => $profile->verificationReviews->first()?->reason_code,
             'availability_status' => $profile->availability_status?->value,
             'rating_average' => $profile->rating_average,
             'rating_count' => $profile->rating_count,
@@ -82,19 +85,48 @@ class ProfessionalDashboardService
     {
         $actions = collect();
 
+        $verificationStatus = $profile->verification_status;
+
+        if ($verificationStatus === ProfessionalVerificationStatus::PENDING) {
+            $actions->push([
+                'type' => 'verification',
+                'priority' => 'normal',
+                'message' => 'Votre dossier a été transmis et attend la revue de l’administration.',
+            ]);
+        } elseif ($verificationStatus === ProfessionalVerificationStatus::UNDER_REVIEW) {
+            $actions->push([
+                'type' => 'verification',
+                'priority' => 'normal',
+                'message' => 'Votre dossier est en cours de vérification. Votre profil reste privé pendant cette étape.',
+            ]);
+        } elseif ($verificationStatus === ProfessionalVerificationStatus::NEEDS_INFORMATION) {
+            $actions->push([
+                'type' => 'verification',
+                'priority' => 'high',
+                'message' => 'Des informations complémentaires sont demandées. Consultez la décision et complétez votre dossier.',
+            ]);
+        } elseif ($verificationStatus === ProfessionalVerificationStatus::REJECTED) {
+            $actions->push([
+                'type' => 'verification',
+                'priority' => 'high',
+                'message' => 'La vérification a été rejetée. Consultez le motif communiqué par l’administration.',
+            ]);
+        }
+
         if ($profile->services_count === 0) {
             $actions->push([
                 'type' => 'services',
                 'priority' => 'normal',
                 'message' => 'Créez votre premier service professionnel.',
             ]);
-        }
-
-        if ($profile->services_count > 0 && $profile->published_services_count === 0) {
+        } elseif (
+            $verificationStatus === ProfessionalVerificationStatus::VERIFIED
+            && $profile->published_services_count === 0
+        ) {
             $actions->push([
                 'type' => 'services',
                 'priority' => 'normal',
-                'message' => 'Publiez au moins un service pour apparaître dans le catalogue.',
+                'message' => 'Votre profil est vérifié. Préparez et publiez un service lorsque ses informations sont prêtes.',
             ]);
         }
 
