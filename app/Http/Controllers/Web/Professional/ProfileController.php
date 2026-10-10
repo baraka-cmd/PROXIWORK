@@ -29,11 +29,12 @@ class ProfileController extends Controller
     public function __construct(
         private readonly ProfessionalServiceManager $serviceManager,
         private readonly AuditLogService $auditLogService,
-    ) {}
+    ) {
+    }
 
     public function show(Request $request): View
     {
-        
+
         $professional = $request->user()->professionalProfile()
             ->with([
                 'user.profile',
