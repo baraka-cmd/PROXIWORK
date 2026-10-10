@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Enums\UserAccountStatus;
+use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,14 +61,14 @@ class LoginController
         // is handled inside the professional workspace, not by granting public visibility.
         $intended = $request->session()->pull('url.intended');
 
-        if (is_string($intended) && $this->isSafeInternalRedirect($intended)) {
+        if (is_string($intended) && $this->isSafeInternalRedirect($intended, $user)) {
             return redirect()->to($intended);
         }
 
         return redirect()->route('dashboard');
     }
 
-    private function isSafeInternalRedirect(string $url): bool
+    private function isSafeInternalRedirect(string $url, User $user): bool
     {
         if (str_starts_with($url, '/') && ($url[1] ?? '') !== '/' && ($url[1] ?? '') !== chr(92)) {
             return true;
@@ -78,11 +79,35 @@ class LoginController
         $scheme = parse_url($url, PHP_URL_SCHEME);
         $applicationScheme = parse_url((string) config('app.url'), PHP_URL_SCHEME);
 
-        return is_string($targetHost)
+        $isSameOrigin = is_string($targetHost)
             && is_string($applicationHost)
             && is_string($scheme)
             && $scheme === $applicationScheme
             && hash_equals(strtolower($applicationHost), strtolower($targetHost));
+
+        if (! $isSameOrigin) {
+            return false;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+
+        if (! is_string($path)) {
+            return false;
+        }
+
+        if (str_starts_with($path, '/client/') || $path === '/client') {
+            return $user->hasRole('client');
+        }
+
+        if (str_starts_with($path, '/professional/') || $path === '/professional') {
+            return $user->hasRole('professional');
+        }
+
+        if (str_starts_with($path, '/admin/') || $path === '/admin') {
+            return $user->hasPermissionTo('admin.dashboard.view') || $user->hasPermissionTo('rbac.view');
+        }
+
+        return true;
     }
 
     public function destroy(Request $request, AuditLogService $auditLogService): RedirectResponse
