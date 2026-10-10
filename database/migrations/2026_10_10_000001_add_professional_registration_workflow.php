@@ -24,8 +24,8 @@ return new class extends Migration
             $table->foreignId('professional_profile_id')->constrained('professional_profiles')->cascadeOnDelete();
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->timestamps();
-            $table->unique(['professional_profile_id', 'category_id']);
-            $table->index(['category_id', 'professional_profile_id']);
+            $table->unique(['professional_profile_id', 'category_id'], 'pro_categories_unique');
+            $table->index(['category_id', 'professional_profile_id'], 'pro_categories_category_profile_idx');
         });
 
         Schema::table('professional_profiles', function (Blueprint $table): void {
