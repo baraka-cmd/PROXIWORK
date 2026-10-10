@@ -52,7 +52,7 @@ return new class extends Migration
             $table->text('review_notes')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->timestamps();
-            $table->index(['professional_profile_id', 'review_status']);
+            $table->index(['professional_profile_id', 'review_status'], 'pro_docs_profile_review_idx');
         });
     }
 
