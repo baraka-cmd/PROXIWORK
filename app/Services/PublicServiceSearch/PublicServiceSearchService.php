@@ -389,6 +389,24 @@ class PublicServiceSearchService
                 'CASE WHEN LOWER(services.title) = LOWER(?) THEN 0 WHEN LOWER(services.title) LIKE LOWER(?) THEN 1 ELSE 2 END ASC',
                 [$term, $like]
             );
+
+            $normalized = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $term) ?? $term;
+            $stopWords = [
+                'a', 'à', 'au', 'aux', 'avec', 'chez', 'dans', 'de', 'des', 'du',
+                'en', 'et', 'la', 'le', 'les', 'pour', 'sur', 'un', 'une',
+                'and', 'for', 'in', 'of', 'the', 'to', 'with',
+            ];
+            $firstRelevantTerm = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
+                ->filter(fn (string $word): bool => $word !== ''
+                    && ! in_array(mb_strtolower($word), $stopWords, true))
+                ->first();
+
+            if ($firstRelevantTerm !== null) {
+                $query->orderByRaw(
+                    'CASE WHEN LOWER(services.title) LIKE LOWER(?) THEN 0 ELSE 1 END ASC',
+                    ['%'.$firstRelevantTerm.'%']
+                );
+            }
         }
 
         $query->orderByDesc('services.published_at')->orderByDesc('services.id');
