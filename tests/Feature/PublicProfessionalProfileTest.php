@@ -9,6 +9,7 @@ use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Enums\UserAccountStatus;
 use App\Models\Category;
+use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\User;
@@ -156,7 +157,7 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertOk()
             ->assertSee('aria-pressed="false"', false);
 
-        \App\Models\Favorite::query()->create([
+        Favorite::query()->create([
             'user_id' => $client->getKey(),
             'professional_profile_id' => $professional->getKey(),
         ]);
@@ -177,7 +178,7 @@ class PublicProfessionalProfileTest extends TestCase
         $client = User::factory()->create();
         $client->assignRole('client');
 
-        $favorite = \App\Models\Favorite::query()->create([
+        $favorite = Favorite::query()->create([
             'user_id' => $client->getKey(),
             'professional_profile_id' => $professional->getKey(),
         ]);
@@ -230,7 +231,7 @@ class PublicProfessionalProfileTest extends TestCase
             ->put(route('client.favorites.store', $professional->getKey()))
             ->assertRedirect();
 
-        $favorite = \App\Models\Favorite::query()
+        $favorite = Favorite::query()
             ->where('user_id', $client->getKey())
             ->where('professional_profile_id', $professional->getKey())
             ->firstOrFail();
