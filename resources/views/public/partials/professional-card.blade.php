@@ -1,5 +1,6 @@
 @php
     $profile = $professional->user->profile;
+    $favorite = $canFavoriteProfessionals ? $professional->favorites->first() : null;
     $profileName = $profile !== null ? trim($profile->first_name.' '.$profile->last_name) : '';
     $displayName = filled($professional->business_name)
         ? $professional->business_name
@@ -27,7 +28,7 @@
 
         <div class="professional-card__identity">
             <div class="professional-card__badges">
-                @if ($professional->verification_status?->value === 'verified')
+                @if ($professional->verification_status?->value === 'verified' && $professional->verified_at !== null)
                     <span class="badge badge--success">
                         <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                         Vérifié
@@ -47,17 +48,25 @@
         </div>
 
         @if ($canFavoriteProfessionals)
-            <form class="professional-card__favorite-form" method="POST" action="{{ route('client.favorites.store', $professional->getKey()) }}">
+            <form
+                class="professional-card__favorite-form"
+                method="POST"
+                action="{{ $favorite ? route('client.favorites.destroy', $favorite->getKey()) : route('client.favorites.store', $professional->getKey()) }}"
+            >
                 @csrf
-                @method('PUT')
+                @if ($favorite)
+                    @method('DELETE')
+                @else
+                    @method('PUT')
+                @endif
                 <button
                     class="icon-button professional-card__favorite"
                     type="submit"
-                    aria-label="{{ ($professional->is_favorited ?? false) ? 'Retirer '.$displayName.' des favoris' : 'Ajouter '.$displayName.' aux favoris' }}"
-                    aria-pressed="{{ ($professional->is_favorited ?? false) ? 'true' : 'false' }}"
-                    title="{{ ($professional->is_favorited ?? false) ? 'Déjà dans vos favoris' : 'Ajouter aux favoris' }}"
+                    aria-label="{{ $favorite ? 'Retirer '.$displayName.' des favoris' : 'Ajouter '.$displayName.' aux favoris' }}"
+                    aria-pressed="{{ $favorite ? 'true' : 'false' }}"
+                    title="{{ $favorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}"
                 >
-                    <i class="{{ ($professional->is_favorited ?? false) ? 'fa-solid' : 'fa-regular' }} fa-heart" aria-hidden="true"></i>
+                    <i class="{{ $favorite ? 'fa-solid' : 'fa-regular' }} fa-heart" aria-hidden="true"></i>
                 </button>
             </form>
         @elseif (! auth()->check())
