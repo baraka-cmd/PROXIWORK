@@ -330,6 +330,7 @@ class PublicServiceSearchService
 
         $query
             ->whereNotNull('services.currency')
+            ->where('services.currency', '!=', '')
             ->when($currency, fn (Builder $query) => $query->where('services.currency', $currency))
             ->when($billingUnit, fn (Builder $query) => $query->where('services.billing_unit', $billingUnit))
             ->where(function (Builder $query) use ($min, $max): void {
@@ -410,29 +411,104 @@ class PublicServiceSearchService
     private function applyRelevanceSort(Builder $query, string $term): void
     {
         if ($term !== '') {
-            $like = '%'.$term.'%';
-
-            $query->orderByRaw(
-                'CASE WHEN LOWER(services.title) = LOWER(?) THEN 0 WHEN LOWER(services.title) LIKE LOWER(?) THEN 1 ELSE 2 END ASC',
-                [$term, $like]
-            );
-
             $normalized = preg_replace('/[^\p{L}\p{N}]+/u', ' ', $term) ?? $term;
             $stopWords = [
                 'a', 'à', 'au', 'aux', 'avec', 'chez', 'dans', 'de', 'des', 'du',
                 'en', 'et', 'la', 'le', 'les', 'pour', 'sur', 'un', 'une',
                 'and', 'for', 'in', 'of', 'the', 'to', 'with',
             ];
-            $firstRelevantTerm = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
+            $terms = collect(preg_split('/\s+/u', trim($normalized)) ?: [])
+                ->map(fn (string $word): string => trim($word))
                 ->filter(fn (string $word): bool => $word !== ''
                     && ! in_array(mb_strtolower($word), $stopWords, true))
-                ->first();
+                ->unique(fn (string $word): string => mb_strtolower($word))
+                ->take(12)
+                ->values();
 
-            if ($firstRelevantTerm !== null) {
-                $query->orderByRaw(
-                    'CASE WHEN LOWER(services.title) LIKE LOWER(?) THEN 0 ELSE 1 END ASC',
-                    ['%'.$firstRelevantTerm.'%']
-                );
+            $query->orderByRaw(
+                'CASE WHEN LOWER(services.title) = LOWER(?) THEN 0 '
+                .'WHEN LOWER(services.title) LIKE LOWER(?) THEN 1 '
+                .'WHEN LOWER(services.title) LIKE LOWER(?) THEN 2 ELSE 3 END ASC',
+                [$term, $term.'%', '%'.$term.'%']
+            );
+
+            /*
+             * Rank all fields that can satisfy the search, not only the service
+             * title. A query such as "plombier à Goma" should favour a service
+             * whose professional title and service area both match, even when
+             * the service title itself does not contain "plombier".
+             *
+             * Every user-supplied term remains a bound parameter. Table and
+             * column names in these expressions are fixed application code.
+             */
+            $scoreParts = [];
+            $scoreBindings = [];
+
+            foreach ($terms as $word) {
+                $like = '%'.$word.'%';
+
+                $scoreParts[] = '(CASE WHEN LOWER(services.title) LIKE LOWER(?) THEN 8 ELSE 0 END)';
+                $scoreBindings[] = $like;
+
+                $scoreParts[] = '(CASE WHEN EXISTS (
+                    SELECT 1 FROM professional_profiles AS search_professionals
+                    LEFT JOIN users AS search_users ON search_users.id = search_professionals.user_id
+                    LEFT JOIN profiles AS search_profiles ON search_profiles.user_id = search_professionals.user_id
+                    WHERE search_professionals.id = services.professional_profile_id
+                    AND (
+                        LOWER(search_professionals.professional_title) LIKE LOWER(?)
+                        OR LOWER(search_professionals.business_name) LIKE LOWER(?)
+                        OR LOWER(search_users.name) LIKE LOWER(?)
+                        OR LOWER(search_profiles.first_name) LIKE LOWER(?)
+                        OR LOWER(search_profiles.last_name) LIKE LOWER(?)
+                    )
+                ) THEN 7 ELSE 0 END)';
+                array_push($scoreBindings, $like, $like, $like, $like, $like);
+
+                $scoreParts[] = '(CASE WHEN (
+                    LOWER(services.service_area) LIKE LOWER(?)
+                    OR EXISTS (
+                        SELECT 1 FROM professional_profiles AS location_professionals
+                        WHERE location_professionals.id = services.professional_profile_id
+                        AND (
+                            LOWER(location_professionals.city) LIKE LOWER(?)
+                            OR LOWER(location_professionals.province) LIKE LOWER(?)
+                            OR LOWER(location_professionals.commune) LIKE LOWER(?)
+                        )
+                    )
+                ) THEN 6 ELSE 0 END)';
+                array_push($scoreBindings, $like, $like, $like, $like);
+
+                $scoreParts[] = '(CASE WHEN EXISTS (
+                    SELECT 1
+                    FROM service_skills AS search_service_skills
+                    INNER JOIN skills AS search_skills ON search_skills.id = search_service_skills.skill_id
+                    WHERE search_service_skills.service_id = services.id
+                    AND search_skills.status = ?
+                    AND (
+                        LOWER(search_skills.name) LIKE LOWER(?)
+                        OR LOWER(search_skills.slug) LIKE LOWER(?)
+                    )
+                ) THEN 5 ELSE 0 END)';
+                array_push($scoreBindings, 'active', $like, $like);
+
+                $scoreParts[] = '(CASE WHEN EXISTS (
+                    SELECT 1 FROM categories AS search_categories
+                    WHERE search_categories.id = services.category_id
+                    AND search_categories.status = ?
+                    AND LOWER(search_categories.name) LIKE LOWER(?)
+                ) THEN 5 ELSE 0 END)';
+                array_push($scoreBindings, 'active', $like);
+
+                $scoreParts[] = '(CASE WHEN LOWER(services.short_description) LIKE LOWER(?) THEN 4 ELSE 0 END)';
+                $scoreBindings[] = $like;
+
+                $scoreParts[] = '(CASE WHEN LOWER(services.description) LIKE LOWER(?) THEN 1 ELSE 0 END)';
+                $scoreBindings[] = $like;
+            }
+
+            if ($scoreParts !== []) {
+                $query->orderByRaw('('.implode(' + ', $scoreParts).') DESC', $scoreBindings);
             }
         }
 
