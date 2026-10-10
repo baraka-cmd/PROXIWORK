@@ -77,12 +77,15 @@
             </div>
             <div class="directory-filter-grid directory-filter-grid--currency">
                 <select class="form-control form-select" name="currency" aria-label="Devise">
-                    <option value="">Toutes devises</option>
+                    <option value="">Choisir une devise</option>
                     @foreach (['USD' => 'USD — Dollar', 'CDF' => 'CDF — Franc congolais', 'EUR' => 'EUR — Euro'] as $code => $label)
                         <option value="{{ $code }}" @selected(($filters['currency'] ?? '') === $code)>{{ $label }}</option>
                     @endforeach
                 </select>
             </div>
+            @error('currency')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="directory-filter-grid">
@@ -117,10 +120,8 @@
             <label class="form-label" for="{{ $idPrefix }}-verification">Vérification</label>
             <div class="form-select-wrapper">
                 <select id="{{ $idPrefix }}-verification" class="form-control form-select" name="verification">
-                    <option value="">Tous les profils</option>
-                    <option value="verified" @selected(($filters['verification'] ?? '') === 'verified')>Vérifiés</option>
-                    <option value="pending" @selected(($filters['verification'] ?? '') === 'pending')>En attente</option>
-                    <option value="under_review" @selected(($filters['verification'] ?? '') === 'under_review')>En vérification</option>
+                    <option value="">Tous les profils publiables</option>
+                    <option value="verified" @selected(($filters['verification'] ?? '') === 'verified')>Vérifiés uniquement</option>
                 </select>
                 <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
             </div>
@@ -138,6 +139,9 @@
                 </select>
                 <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
             </div>
+            @error('sort')
+                <p class="form-error" role="alert">{{ $message }}</p>
+            @enderror
         </div>
 
         <div class="directory-filter-actions">
