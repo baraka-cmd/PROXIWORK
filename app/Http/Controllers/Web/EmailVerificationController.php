@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\Events\Verified;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use App\Models\User;
 
 class EmailVerificationController
 {
@@ -22,17 +22,32 @@ class EmailVerificationController
         return view('auth.verify-email');
     }
 
-    public function verify(EmailVerificationRequest $request, AuditLogService $auditLogService): RedirectResponse
+    public function verify(Request $request, int $id, string $hash, AuditLogService $auditLogService): RedirectResponse
     {
-        $user = $request->user();
+        $user = User::query()->findOrFail($id);
+
+        abort_unless($user->isActive(), 403, 'Ce compte ne peut pas être vérifié dans son état actuel.');
+        abort_if($request->user() !== null && ! $request->user()->is($user), 403, 'Ce lien appartient à un autre compte.');
+        abort_unless(
+            hash_equals(sha1($user->getEmailForVerification()), $hash),
+            403,
+            'Le lien de vérification ne correspond pas à cette adresse e-mail.'
+        );
 
         if (! $user->hasVerifiedEmail() && $user->markEmailAsVerified()) {
             $auditLogService->record('auth.web.email_verified', $user, $user, [], $request);
             event(new Verified($user));
         }
 
-        return redirect()->intended(route('dashboard'))
-            ->with('status', 'Votre adresse e-mail a été vérifiée avec succès.');
+        if ($request->user()?->is($user)) {
+            return redirect()->intended(route('dashboard'))
+                ->with('status', 'Votre adresse e-mail a été vérifiée avec succès.');
+        }
+
+        return redirect()->route('login')->with(
+            'status',
+            'Votre adresse e-mail a été vérifiée avec succès. Vous pouvez maintenant vous connecter.'
+        );
     }
 
     public function resend(Request $request, AuditLogService $auditLogService): RedirectResponse
