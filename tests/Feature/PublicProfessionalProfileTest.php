@@ -211,6 +211,62 @@ class PublicProfessionalProfileTest extends TestCase
             ->assertDontSee('Professionnel vérifié');
     }
 
+    public function test_public_profile_allows_a_client_to_add_and_remove_a_favorite(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $service = $this->publishedService('Service profil avec favori');
+        $professional = $service->professionalProfile;
+        $professional->forceFill(['business_name' => 'Atelier profil favori'])->save();
+        $client = User::factory()->create();
+        $client->assignRole('client');
+        $url = $this->profileUrl($professional);
+
+        $this->actingAs($client)
+            ->get($url)
+            ->assertOk()
+            ->assertSee('Ajouter aux favoris');
+
+        $this->actingAs($client)
+            ->put(route('client.favorites.store', $professional->getKey()))
+            ->assertRedirect();
+
+        $favorite = \\App\\Models\\Favorite::query()
+            ->where('user_id', $client->getKey())
+            ->where('professional_profile_id', $professional->getKey())
+            ->firstOrFail();
+
+        $this->actingAs($client)
+            ->get($url)
+            ->assertOk()
+            ->assertSee('Retirer des favoris')
+            ->assertSee(route('client.favorites.destroy', $favorite->getKey()), false);
+
+        $this->actingAs($client)
+            ->delete(route('client.favorites.destroy', $favorite->getKey()))
+            ->assertRedirect();
+
+        $this->assertDatabaseMissing('favorites', ['id' => $favorite->getKey()]);
+    }
+
+    public function test_favorites_cannot_be_added_for_a_suspended_professional(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $service = $this->publishedService('Service profil suspendu');
+        $professional = $service->professionalProfile;
+        $professional->forceFill(['status' => ProfessionalProfile::STATUS_SUSPENDED])->save();
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $this->actingAs($client)
+            ->put(route('client.favorites.store', $professional->getKey()))
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('favorites', [
+            'user_id' => $client->getKey(),
+            'professional_profile_id' => $professional->getKey(),
+        ]);
+    }
+
     private function profileUrl(ProfessionalProfile $professional): string
     {
         $professional->loadMissing(['user', 'user.profile']);
