@@ -52,7 +52,7 @@ class RegisterRequest extends FormRequest
             'services.*.pricing_type' => ['required', Rule::in(['fixed', 'from', 'range', 'quote'])],
             'services.*.price' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'services.*.price_min' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
-            'services.*.price_max' => ['nullable', 'numeric', 'min:0', 'max:9999999999', 'gte:services.*.price_min'],
+            'services.*.price_max' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'services.*.currency' => ['nullable', Rule::in(['CDF', 'USD'])],
             'services.*.billing_unit' => ['nullable', 'string', 'max:50'],
             'services.*.estimated_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:10080'],
@@ -109,6 +109,18 @@ class RegisterRequest extends FormRequest
             }
 
             foreach ($this->input('services', []) as $index => $service) {
+                $pricingType = $service['pricing_type'] ?? 'quote';
+                if (in_array($pricingType, ['fixed', 'from'], true) && (! isset($service['price']) || $service['price'] === '')) {
+                    $validator->errors()->add("services.$index.price", 'Indiquez le tarif demandé pour ce mode de tarification.');
+                }
+                if ($pricingType === 'range') {
+                    if (! isset($service['price_min']) || $service['price_min'] === '' || ! isset($service['price_max']) || $service['price_max'] === '') {
+                        $validator->errors()->add("services.$index.price_min", 'Indiquez le tarif minimum et maximum.');
+                    } elseif ((float) $service['price_max'] < (float) $service['price_min']) {
+                        $validator->errors()->add("services.$index.price_max", 'Le tarif maximum doit être supérieur ou égal au tarif minimum.');
+                    }
+                }
+
                 $serviceCategoryId = (int) ($service['category_id'] ?? 0);
                 if (! $categoryIds->contains($serviceCategoryId)) {
                     $validator->errors()->add("services.$index.category_id", 'Le service doit appartenir à une catégorie choisie.');
