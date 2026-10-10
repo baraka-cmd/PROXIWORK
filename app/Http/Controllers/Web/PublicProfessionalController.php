@@ -33,11 +33,12 @@ class PublicProfessionalController
             ->firstOrFail();
 
         $person = $professional->user->profile;
+        $personName = $person !== null
+            ? trim($person->first_name.' '.$person->last_name)
+            : '';
         $displayName = filled($professional->business_name)
             ? $professional->business_name
-            : ($person !== null
-                ? trim($person->first_name.' '.$person->last_name)
-                : $professional->user->name);
+            : (filled($personName) ? $personName : $professional->user->name);
 
         $profileSlug = Str::slug($displayName);
         if ($profileSlug === '') {
