@@ -30,10 +30,7 @@ class ServiceCatalogController extends Controller
                 'professionalProfile.user.profile',
             ])
             ->whereHas('category', function ($query): void {
-                $query->where(
-                    'status',
-                    CategoryStatus::ACTIVE->value
-                );
+                $query->where('status', CategoryStatus::ACTIVE->value);
             })
             ->whereHas('professionalProfile', function ($query): void {
                 $query
