@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Favorite;
 
+use App\Enums\ProfessionalVerificationStatus;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
@@ -39,6 +40,23 @@ class FavoriteApiTest extends TestCase
         ]);
 
         $this->assertArrayNotHasKey('email', $response->json('data.professional'));
+    }
+
+    public function test_private_or_unverified_professional_cannot_be_favorited(): void
+    {
+        $user = $this->user();
+        $professional = $this->professional();
+
+        $professional->forceFill([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+        ])->save();
+
+        $this->actingAs($user, 'sanctum')
+            ->putJson('/api/v1/favorites/'.$professional->id)
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('favorites', 0);
     }
 
     public function test_adding_the_same_favorite_is_idempotent(): void
@@ -208,6 +226,7 @@ class FavoriteApiTest extends TestCase
 
         return ProfessionalProfile::factory()->create([
             'user_id' => $user->id,
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
         ]);
     }
 }
