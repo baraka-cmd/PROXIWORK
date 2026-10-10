@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
-use App\Enums\UserAccountStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ChangePasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
@@ -22,10 +21,12 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Throwable;
 
 class AuthController extends Controller
 {
@@ -174,9 +175,15 @@ class AuthController extends Controller
     {
         $request->validate(['email' => ['required', 'email:rfc']]);
 
-        Password::sendResetLink([
-            'email' => mb_strtolower($request->string('email')->toString()),
-        ]);
+        try {
+            Password::sendResetLink([
+                'email' => mb_strtolower($request->string('email')->toString()),
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('API password reset notification could not be dispatched.', [
+                'exception' => $exception::class,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Si cette adresse existe, un lien de réinitialisation a été envoyé.',
