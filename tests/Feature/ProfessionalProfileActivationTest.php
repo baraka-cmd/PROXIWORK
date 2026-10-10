@@ -52,7 +52,7 @@ class ProfessionalProfileActivationTest extends TestCase
             ->get(route('account.professional-profile.create'))
             ->assertOk()
             ->assertViewIs('auth.professional-activation')
-            ->assertSee('Votre identité sera réutilisée')
+            ->assertSee('Cette identité sera réutilisée')
             ->assertSee('Ajouter mon espace professionnel');
 
         $this->actingAs($user)
