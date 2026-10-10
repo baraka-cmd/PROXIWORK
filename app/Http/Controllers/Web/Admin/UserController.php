@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Rbac\SyncUserRolesRequest;
 use App\Http\Requests\Admin\User\AdminUserIndexRequest;
+use App\Http\Requests\Rbac\SyncUserRolesRequest;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\User\AdminUserService;
@@ -17,9 +17,7 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    public function __construct(
-        private readonly AdminUserService $service,
-    ) {}
+    public function __construct(private readonly AdminUserService $service) {}
 
     public function index(AdminUserIndexRequest $request): View
     {
