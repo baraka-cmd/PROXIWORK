@@ -247,6 +247,8 @@ class AuthController extends Controller
     {
         $user = User::findOrFail($id);
 
+        abort_unless($user->isActive(), 403, 'Compte suspendu.');
+
         abort_unless(
             hash_equals(sha1($user->getEmailForVerification()), $hash),
             403,
