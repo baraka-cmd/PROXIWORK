@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
-@section('title', $service->title.' — PROXIWORK')
-@section('meta_description', \Illuminate\Support\Str::limit($service->short_description ?: $service->description, 160))
+@section('title', e($service->title).' — PROXIWORK')
+@section('meta_description', e(\Illuminate\Support\Str::limit($service->short_description ?: $service->description, 160)))
 
 @push('head')
     @unless (app()->environment('testing'))
@@ -120,7 +120,11 @@
                         <h2 id="service-professional-title">Le professionnel</h2>
                         <div class="service-detail-professional">
                             <span class="service-card__professional-avatar service-card__professional-avatar--large" aria-hidden="true">
-                                {{ collect(preg_split('/\s+/', trim($displayName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P' }}
+                                @if ($person?->avatar_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($person->avatar_path))
+                                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($person->avatar_path) }}" alt="" loading="lazy" decoding="async">
+                                @else
+                                    {{ collect(preg_split('/\s+/', trim($displayName)) ?: [])->filter()->take(2)->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))->implode('') ?: 'P' }}
+                                @endif
                             </span>
                             <div>
                                 <h3>{{ $displayName }}</h3>
