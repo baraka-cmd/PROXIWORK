@@ -45,7 +45,7 @@ Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
 
 Route::middleware(['auth', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
-    Route::get('professionals/{professional}', [ProfessionalController::class, 'show'])->name('professionals.show');
+    Route::get('professionals/{professional}', [ProfessionalController::class, 'show'])->name('professionals.show');\n    Route::get('professional-documents/{document}/download', [ProfessionalDocumentController::class, 'download'])\n        ->middleware('active.account')\n        ->name('professional-documents.download');
 });
 Route::middleware('auth')->group(function (): void {
     Route::post('professionals/{professional}/suspend', [ProfessionalController::class, 'suspend'])->middleware('permission:admin.professionals.suspend')->name('professionals.suspend');
