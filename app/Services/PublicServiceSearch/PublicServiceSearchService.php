@@ -141,6 +141,28 @@ class PublicServiceSearchService
             ->pluck('currency');
     }
 
+    /**
+     * Return billing units which are actually used by public, priced services.
+     * This prevents price comparisons between incomparable units such as hours and days.
+     *
+     * @return Collection<int, string>
+     */
+    public function availableBillingUnits(): Collection
+    {
+        return Service::query()
+            ->publiclyVisible()
+            ->whereIn('pricing_type', [
+                ServicePricingType::FIXED->value,
+                ServicePricingType::FROM->value,
+                ServicePricingType::RANGE->value,
+            ])
+            ->whereNotNull('billing_unit')
+            ->where('billing_unit', '!=', '')
+            ->distinct()
+            ->orderBy('billing_unit')
+            ->pluck('billing_unit');
+    }
+
     private function applyTextSearch(Builder $query, array $filters): void
     {
         $term = trim((string) ($filters['search'] ?? ''));
@@ -246,14 +268,16 @@ class PublicServiceSearchService
         $min = $filters['min_price'] ?? null;
         $max = $filters['max_price'] ?? null;
         $currency = $filters['currency'] ?? null;
+        $billingUnit = $filters['billing_unit'] ?? null;
 
-        if ($min === null && $max === null && empty($currency)) {
+        if ($min === null && $max === null && empty($currency) && empty($billingUnit)) {
             return;
         }
 
         $query
             ->whereNotNull('services.currency')
             ->when($currency, fn (Builder $query) => $query->where('services.currency', $currency))
+            ->when($billingUnit, fn (Builder $query) => $query->where('services.billing_unit', $billingUnit))
             ->where(function (Builder $query) use ($min, $max): void {
                 $query
                     ->where(function (Builder $query) use ($min, $max): void {
