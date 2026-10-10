@@ -88,8 +88,8 @@
 
         <div class="service-card__professional">
             <span class="service-card__professional-avatar" aria-hidden="true">
-                @if ($person?->avatar_path && \\Illuminate\\Support\\Facades\\Storage::disk('public')->exists($person->avatar_path))
-                    <img src="{{ \\Illuminate\\Support\\Facades\\Storage::disk('public')->url($person->avatar_path) }}" alt="" loading="lazy" decoding="async">
+                @if ($person?->avatar_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($person->avatar_path))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($person->avatar_path) }}" alt="" loading="lazy" decoding="async">
                 @else
                     {{ $initials }}
                 @endif
