@@ -115,12 +115,12 @@
             </div>
 
             <div class="form-field">
-                <label class="form-label" for="{{ $idPrefix }}-availability">Disponibilité</label>
+                <label class="form-label" for="{{ $idPrefix }}-availability">Disponibilité déclarée</label>
                 <div class="form-select-wrapper">
                     <select id="{{ $idPrefix }}-availability" class="form-control form-select" name="availability">
                         <option value="">Toutes</option>
-                        <option value="available" @selected(($filters['availability'] ?? '') === 'available')>Disponible</option>
-                        <option value="unavailable" @selected(($filters['availability'] ?? '') === 'unavailable')>Indisponible</option>
+                        <option value="available" @selected(($filters['availability'] ?? '') === 'available')>Disponible (déclaré)</option>
+                        <option value="unavailable" @selected(($filters['availability'] ?? '') === 'unavailable')>Indisponible (déclaré)</option>
                         <option value="unknown" @selected(($filters['availability'] ?? '') === 'unknown')>Non renseignée</option>
                     </select>
                     <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
