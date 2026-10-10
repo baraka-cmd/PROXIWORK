@@ -8,6 +8,7 @@ use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\CategoryStatus;
 use App\Enums\SkillStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -74,6 +75,17 @@ class PublicServiceSearchRequest extends FormRequest
                 }
             },
         ];
+    }
+
+    protected function failedValidation(Validator $validator)
+    {
+        if ($this->isMethod('GET')) {
+            throw new HttpResponseException(
+                redirect()->route('public.search')->withErrors($validator)
+            );
+        }
+
+        parent::failedValidation($validator);
     }
 
     protected function prepareForValidation(): void
