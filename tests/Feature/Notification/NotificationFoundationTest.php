@@ -300,6 +300,29 @@ class NotificationFoundationTest extends TestCase
     }
 
 
+
+    public function test_pending_optional_email_is_skipped_if_the_user_opts_out_before_delivery(): void
+    {
+        config(['mail.default' => 'log']);
+
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            null,
+            'quotation-created:email-opt-out-56',
+        );
+
+        $delivery = NotificationDelivery::query()->where('user_id', $recipient->id)->firstOrFail();
+        $recipient->notificationPreference()->create(['email_enabled' => false]);
+
+        (new SendNotificationEmail((int) $delivery->id))->handle();
+
+        $this->assertSame('SKIPPED', $delivery->fresh()->status);
+        $this->assertNull($delivery->fresh()->sent_at);
+    }
+
     public function test_local_sms_simulator_records_only_a_masked_recipient_and_never_sends_a_real_sms(): void
     {
         $recipient = User::factory()->create();
