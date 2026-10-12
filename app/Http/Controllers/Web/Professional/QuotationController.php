@@ -141,6 +141,39 @@ class QuotationController extends Controller
             ->with('success', 'Contre-proposition refusée. La décision a été enregistrée.');
     }
 
+    public function renew(StoreQuotationOfferRequest $request, Quotation $quotation): RedirectResponse
+    {
+        $this->authorize('renew', $quotation);
+
+        $renewed = $this->negotiationService->renewExpiredQuotation(
+            $quotation,
+            $request->user(),
+            $request->validated(),
+        );
+        $renewed->load('serviceRequest.client');
+
+        $this->auditLogService->record(
+            'quotation_renewed',
+            $renewed,
+            $request->user(),
+            [
+                'service_request_id' => $renewed->service_request_id,
+                'offer_id' => $renewed->current_offer_id,
+            ],
+            $request,
+        );
+
+        if ($renewed->serviceRequest->client !== null) {
+            $this->notificationService->quotationCreated(
+                $renewed->serviceRequest->client,
+                route('client.quotes.show', $renewed, true),
+            );
+        }
+
+        return redirect()->route('professional.quotes.show', $renewed)
+            ->with('success', 'Le devis expiré a été renouvelé avec une nouvelle version. Le client doit maintenant examiner cette proposition.');
+    }
+
     public function counterOffer(StoreQuotationOfferRequest $request, Quotation $quotation): RedirectResponse
     {
         $this->authorize('createOffer', $quotation);
