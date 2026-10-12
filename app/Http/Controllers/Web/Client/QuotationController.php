@@ -18,7 +18,6 @@ use App\Services\Quotation\QuotationNegotiationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class QuotationController extends Controller
@@ -29,9 +28,7 @@ class QuotationController extends Controller
         private readonly QuotationExpirationService $expirationService,
         private readonly AuditLogService $auditLogService,
         private readonly TransactionalNotificationService $notificationService,
-    )
-    {
-    }
+    ) {}
 
     public function index(IndexClientQuotationsRequest $request): View
     {
@@ -82,7 +79,7 @@ class QuotationController extends Controller
             'order',
         ]);
 
-        if (!empty($filters['bucket'])) {
+        if (! empty($filters['bucket'])) {
             match ($filters['bucket']) {
                 'review' => $quotesQuery
                     ->whereIn('quotations.status', [
@@ -102,11 +99,11 @@ class QuotationController extends Controller
             };
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $quotesQuery->where('quotations.status', $filters['status']);
         }
 
-        if (!empty($filters['q'])) {
+        if (! empty($filters['q'])) {
             $term = $filters['q'];
             $referenceId = preg_match('/^(?:DEV(?:IS)?[-\s]?)?0*(\d+)$/i', $term, $matches) === 1
                 ? (int) $matches[1]
@@ -126,15 +123,15 @@ class QuotationController extends Controller
             });
         }
 
-        if (!empty($filters['received_from'])) {
+        if (! empty($filters['received_from'])) {
             $quotesQuery->whereDate('quotations.created_at', '>=', $filters['received_from']);
         }
 
-        if (!empty($filters['received_to'])) {
+        if (! empty($filters['received_to'])) {
             $quotesQuery->whereDate('quotations.created_at', '<=', $filters['received_to']);
         }
 
-        if (!empty($filters['validity'])) {
+        if (! empty($filters['validity'])) {
             match ($filters['validity']) {
                 'valid' => $quotesQuery
                     ->whereIn('quotations.status', [
@@ -154,7 +151,7 @@ class QuotationController extends Controller
             };
         }
 
-        if (!empty($filters['currency'])) {
+        if (! empty($filters['currency'])) {
             $quotesQuery->whereHas('currentOffer', fn ($query) => $query->where('currency', $filters['currency']));
         }
 
@@ -269,8 +266,7 @@ class QuotationController extends Controller
     public function counterOffer(
         StoreQuotationOfferRequest $request,
         Quotation $quotation,
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $this->authorize('createOffer', $quotation);
         $counterOffer = $this->negotiationService->counterOffer(
             $quotation,
