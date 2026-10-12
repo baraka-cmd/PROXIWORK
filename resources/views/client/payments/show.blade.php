@@ -29,6 +29,16 @@
         'expired' => 'Expirée',
         'refunded' => 'Remboursée',
     ];
+    $eventLabels = [
+        'attempt.created' => 'Tentative créée',
+        'gateway.result' => 'Résultat de la passerelle enregistré',
+        'gateway.amount_mismatch' => 'Anomalie de montant ou de devise',
+        'gateway.outcome_unknown' => 'Résultat incertain — vérification requise',
+        'payment.confirmed' => 'Paiement confirmé dans la simulation',
+        'payment.status_changed' => 'État financier mis à jour',
+        'webhook.result' => 'Événement externe traité',
+        'webhook.final_state_rechecked' => 'Événement externe recontrôlé',
+    ];
     $refundLabels = [
         'requested' => 'Demande enregistrée — examen requis',
         'processing' => 'Examen / traitement en cours',
@@ -109,6 +119,22 @@
             </article>
         @empty
             <p class="payment-muted">Aucune tentative n’est associée à ce paiement.</p>
+        @endforelse
+    </section>
+
+    <section class="client-panel">
+        <div class="payment-section-heading"><div><h2>Journal des événements</h2><p>Historique enregistré côté serveur. Une actualisation de la page ne crée pas une nouvelle opération financière.</p></div></div>
+        @forelse($payment->events as $event)
+            <article class="payment-event-item">
+                <span class="payment-event-item__marker" aria-hidden="true"><i class="fa-solid fa-circle"></i></span>
+                <div class="payment-event-item__body">
+                    <strong>{{ $eventLabels[$event->event_type] ?? str_replace('.', ' ', $event->event_type) }}</strong>
+                    <p>@if($event->from_status) {{ $event->from_status }} → @endif{{ $event->to_status }} <span>Source : {{ $event->source }}</span></p>
+                    <small>{{ optional($event->occurred_at)->format('d/m/Y à H:i:s') ?? 'Date non disponible' }}</small>
+                </div>
+            </article>
+        @empty
+            <p class="payment-muted">Aucun événement historique n’est enregistré pour ce paiement.</p>
         @endforelse
     </section>
 
