@@ -172,13 +172,19 @@ class NotificationController extends Controller
 
         $target = parse_url($url);
         $application = parse_url((string) config('app.url'));
+        $targetScheme = strtolower((string) ($target['scheme'] ?? 'https'));
+        $applicationScheme = strtolower((string) ($application['scheme'] ?? 'https'));
+        $targetPort = (int) ($target['port'] ?? ($targetScheme === 'https' ? 443 : 80));
+        $applicationPort = (int) ($application['port'] ?? ($applicationScheme === 'https' ? 443 : 80));
 
         if (
             ! is_array($target)
             || ! is_array($application)
             || empty($target['host'])
             || empty($application['host'])
-            || ! in_array(strtolower((string) ($target['scheme'] ?? 'https')), ['http', 'https'], true)
+            || ! in_array($targetScheme, ['http', 'https'], true)
+            || $targetScheme !== $applicationScheme
+            || $targetPort !== $applicationPort
             || strtolower((string) $target['host']) !== strtolower((string) $application['host'])
         ) {
             return null;
