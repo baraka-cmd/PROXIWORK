@@ -240,7 +240,7 @@
                             <div class="client-form-alert">
                                 <strong>Adresse d'exécution requise</strong>
                                 <p>Une adresse appartenant à votre compte est nécessaire pour créer la commande après acceptation.</p>
-                                <a class="btn btn-secondary client-quote-full-width" href="{{ route('client.requests.show', $quotation->serviceRequest) }}">Choisir l'adresse</a>
+                                <a class="btn btn-secondary client-quote-full-width" href="{{ route('client.requests.show', $quotation->serviceRequest) }}">Choisir l’adresse de cette demande</a>
                             </div>
                         @endif
                         <form method="POST" action="{{ route('client.quotes.accept', $quotation) }}">
