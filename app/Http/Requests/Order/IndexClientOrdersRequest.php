@@ -20,6 +20,7 @@ class IndexClientOrdersRequest extends FormRequest
     {
         return [
             'q' => ['nullable', 'string', 'max:120'],
+            'bucket' => ['nullable', Rule::in(['all', 'active', 'pending_payment', 'completed'])],
             'status' => ['nullable', Rule::enum(OrderStatus::class)],
             'payment_status' => ['nullable', Rule::enum(PaymentStatus::class)],
             'professional_id' => ['nullable', 'integer', 'exists:professional_profiles,id'],
