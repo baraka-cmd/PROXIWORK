@@ -35,7 +35,7 @@ class OrderService
 
             $request = ServiceRequest::query()
                 ->lockForUpdate()
-                ->with(['service', 'address', 'professional'])
+                ->with(['service', 'address', 'addressSnapshot', 'professional'])
                 ->findOrFail($lockedQuotation->service_request_id);
 
             $isClientActor = $request->client_id === $actor->getKey();
@@ -80,9 +80,9 @@ class OrderService
                 return $existing->load(['items', 'addressSnapshot', 'statusHistories']);
             }
 
-            if ($request->address === null) {
+            if ($request->address === null || $request->addressSnapshot === null) {
                 throw ValidationException::withMessages([
-                    'address' => 'Une adresse d’exécution est requise pour créer la commande.',
+                    'address' => 'Une adresse d’exécution valide et son instantané sont requis pour créer la commande.',
                 ]);
             }
 
@@ -136,20 +136,20 @@ class OrderService
 
             OrderAddressSnapshot::query()->forceCreate([
                 'order_id' => $order->getKey(),
-                'recipient_name' => $request->address->recipient_name,
-                'contact_phone' => $request->address->contact_phone,
-                'country_code' => $request->address->country_code,
-                'province' => $request->address->province,
-                'city' => $request->address->city,
-                'commune' => $request->address->commune,
-                'neighborhood' => $request->address->neighborhood,
-                'address_line_1' => $request->address->address_line_1,
-                'address_line_2' => $request->address->address_line_2,
-                'landmark' => $request->address->landmark,
-                'access_instructions' => $request->address->access_instructions,
-                'postal_code' => $request->address->postal_code,
-                'latitude' => $request->address->latitude,
-                'longitude' => $request->address->longitude,
+                'recipient_name' => $request->addressSnapshot->recipient_name,
+                'contact_phone' => $request->addressSnapshot->contact_phone,
+                'country_code' => $request->addressSnapshot->country_code,
+                'province' => $request->addressSnapshot->province,
+                'city' => $request->addressSnapshot->city,
+                'commune' => $request->addressSnapshot->commune,
+                'neighborhood' => $request->addressSnapshot->neighborhood,
+                'address_line_1' => $request->addressSnapshot->address_line_1,
+                'address_line_2' => $request->addressSnapshot->address_line_2,
+                'landmark' => $request->addressSnapshot->landmark,
+                'access_instructions' => $request->addressSnapshot->access_instructions,
+                'postal_code' => $request->addressSnapshot->postal_code,
+                'latitude' => $request->addressSnapshot->latitude,
+                'longitude' => $request->addressSnapshot->longitude,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
