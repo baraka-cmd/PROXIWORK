@@ -27,7 +27,6 @@ class IndexClientOrdersRequest extends FormRequest
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'created_from' => ['nullable', 'date_format:Y-m-d'],
             'created_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:created_from'],
-            'sort' => ['nullable', Rule::in(['newest', 'oldest', 'amount_asc', 'amount_desc'])],
         ];
     }
 
