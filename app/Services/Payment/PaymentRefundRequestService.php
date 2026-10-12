@@ -18,8 +18,7 @@ class PaymentRefundRequestService
 {
     public function __construct(
         private readonly PaymentEventService $events,
-    ) {
-    }
+    ) {}
 
     public function request(Payment $payment, User $client, string $reason): PaymentRefund
     {
