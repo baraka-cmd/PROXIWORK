@@ -253,6 +253,7 @@ class ProfessionalServiceManager
                 'title',
                 'short_description',
                 'description',
+                'execution_mode',
                 'pricing_type',
                 'price',
                 'price_min',
