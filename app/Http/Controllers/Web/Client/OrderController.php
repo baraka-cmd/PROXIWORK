@@ -103,17 +103,7 @@ class OrderController extends Controller
             });
         }
 
-        $sort = $filters['sort'] ?? 'newest';
-
-        if ($sort === 'oldest') {
-            $query->orderBy('created_at')->orderBy('id');
-        } elseif ($sort === 'amount_asc') {
-            $query->orderBy('total')->orderByDesc('id');
-        } elseif ($sort === 'amount_desc') {
-            $query->orderByDesc('total')->orderByDesc('id');
-        } else {
-            $query->orderByDesc('created_at')->orderByDesc('id');
-        }
+        $query->orderByDesc('created_at')->orderByDesc('id');
 
         $orders = $query->paginate(12)->withQueryString();
 
