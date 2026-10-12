@@ -200,21 +200,30 @@ class AuthController extends Controller
     {
         $resetUser = null;
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) use (&$resetUser): void {
-                $resetUser = $user;
+        $status = DB::transaction(function () use ($request, &$resetUser) {
+            return Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function (User $user, string $password) use (&$resetUser): void {
+                    $resetUser = $user;
 
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
 
-                $user->tokens()->delete();
+                    $user->tokens()->delete();
 
-                event(new PasswordReset($user));
-            }
-        );
+                    event(new PasswordReset($user));
+                    $this->notificationService->securityAlert(
+                        $user,
+                        'Mot de passe réinitialisé',
+                        'Votre mot de passe a été réinitialisé avec succès.',
+                        null,
+                        'password-reset:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
+                    );
+                }
+            );
+        });
 
         if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
             throw ValidationException::withMessages([
@@ -223,13 +232,6 @@ class AuthController extends Controller
         }
 
         $this->auditLogService->record('password_reset', $resetUser, $resetUser, [], $request);
-        $this->notificationService->securityAlert(
-            $resetUser,
-            'Mot de passe réinitialisé',
-            'Votre mot de passe a été réinitialisé avec succès.',
-            null,
-            'password-reset:'.$resetUser->getKey().':'.(string) $resetUser->updated_at?->timestamp,
-        );
 
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',
