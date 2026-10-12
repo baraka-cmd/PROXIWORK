@@ -349,6 +349,25 @@ class PaymentApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_disabled_simulator_does_not_create_a_payment_attempt(): void
+    {
+        config(['payment.simulation_enabled' => false]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-simulation-disabled-001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertStatus(503);
+
+        $this->assertDatabaseCount('payment_intents', 0);
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertDatabaseCount('payment_transactions', 0);
+    }
+
     public function test_client_can_request_refund_review_without_marking_payment_refunded(): void
     {
         config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
