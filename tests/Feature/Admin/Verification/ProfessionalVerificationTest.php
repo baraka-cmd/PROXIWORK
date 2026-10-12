@@ -32,7 +32,10 @@ class ProfessionalVerificationTest extends TestCase
     public function test_pending_can_move_to_under_review_then_verified(): void
     {
         $admin = $this->admin();
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/start-review", [
@@ -64,7 +67,10 @@ class ProfessionalVerificationTest extends TestCase
     public function test_pending_cannot_be_verified_directly(): void
     {
         $admin = $this->admin();
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/verify")
@@ -77,7 +83,10 @@ class ProfessionalVerificationTest extends TestCase
     public function test_pending_cannot_be_rejected_directly(): void
     {
         $admin = $this->admin();
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/reject", [
@@ -90,7 +99,10 @@ class ProfessionalVerificationTest extends TestCase
     public function test_under_review_can_be_rejected_with_controlled_reason(): void
     {
         $admin = $this->admin();
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/start-review")
@@ -134,7 +146,10 @@ class ProfessionalVerificationTest extends TestCase
     {
         $client = User::factory()->create();
         $client->assignRole('client');
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($client, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/start-review")
@@ -144,7 +159,10 @@ class ProfessionalVerificationTest extends TestCase
     public function test_reject_reason_is_required_and_controlled(): void
     {
         $admin = $this->admin();
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/start-review")
