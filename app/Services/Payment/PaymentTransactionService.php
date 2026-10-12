@@ -17,8 +17,7 @@ class PaymentTransactionService
 {
     public function __construct(
         private readonly PaymentEventService $events,
-    ) {
-    }
+    ) {}
 
     public function ensure(
         Payment $payment,
