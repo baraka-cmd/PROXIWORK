@@ -9,8 +9,8 @@ use App\Http\Requests\Web\Client\RequestClientEmailChange;
 use App\Http\Requests\Web\Client\UpdateClientPasswordRequest;
 use App\Http\Requests\Web\Client\UpdateClientProfileRequest;
 use App\Models\User;
-use App\Notifications\AccountActivityNotification;
 use App\Notifications\EmailAddressChangeNotification;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -348,34 +348,38 @@ class ProfileController extends Controller
         );
     }
 
-    public function updatePassword(UpdateClientPasswordRequest $request): RedirectResponse
-    {
-        $user = $request->user();
-        $user->forceFill(['password' => $request->validated('password')])->save();
-        Log::info('Client password changed.', ['user_id' => $user->getKey()]);
+    public function updatePassword(
+        UpdateClientPasswordRequest $request,
+        TransactionalNotificationService $notificationService,
+    ): RedirectResponse {
+        $userId = $request->user()->getKey();
 
-        // Revoke API tokens and other database-backed sessions, but keep this session active.
-        $user->tokens()->delete();
+        // Keep the current browser session active, then atomically persist the
+        // password change, revoke other sessions/tokens and create the security alert.
         $request->session()->regenerate();
 
-        DB::table('sessions')
-            ->where('user_id', $user->getKey())
-            ->where('id', '!=', $request->session()->getId())
-            ->delete();
+        $user = DB::transaction(function () use ($request, $userId, $notificationService): User {
+            $user = User::query()->whereKey($userId)->lockForUpdate()->firstOrFail();
+            $user->forceFill(['password' => $request->validated('password')])->save();
+            $user->tokens()->delete();
 
-        try {
-            $user->notify(new AccountActivityNotification(
+            DB::table('sessions')
+                ->where('user_id', $user->getKey())
+                ->where('id', '!=', $request->session()->getId())
+                ->delete();
+
+            $notificationService->securityAlert(
+                $user,
                 'Mot de passe modifié',
                 'Le mot de passe de votre compte PROXIWORK vient d’être modifié. Si vous n’êtes pas à l’origine de cette action, sécurisez immédiatement votre compte.',
-                'password_changed',
                 route('client.profile'),
-            ));
-        } catch (Throwable $exception) {
-            Log::warning('Could not dispatch the client password-change notification.', [
-                'user_id' => $user->getKey(),
-                'exception' => $exception::class,
-            ]);
-        }
+                'password-changed:'.$user->getKey().':'.$user->updated_at?->timestamp,
+            );
+
+            return $user;
+        });
+
+        Log::info('Client password changed.', ['user_id' => $user->getKey()]);
 
         return redirect()->route('client.profile.edit')->with('success', 'Mot de passe modifié. Les autres sessions et les jetons API ont été révoqués.');
     }
