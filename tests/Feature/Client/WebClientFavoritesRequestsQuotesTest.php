@@ -9,6 +9,7 @@ use App\Models\Favorite;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
+use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
 use App\Models\Service;
 use App\Models\ServiceRequest;
@@ -615,14 +616,14 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         Notification::assertSentTo($client, AccountActivityNotification::class);
         Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
 
-        $eventCount = \App\Models\QuotationEvent::query()
+        $eventCount = QuotationEvent::query()
             ->where('quotation_id', $quotation->id)
             ->where('type', 'quote_expired')
             ->count();
 
         $this->artisan('quotations:expire')->assertExitCode(0);
 
-        $this->assertSame($eventCount, \App\Models\QuotationEvent::query()
+        $this->assertSame($eventCount, QuotationEvent::query()
             ->where('quotation_id', $quotation->id)
             ->where('type', 'quote_expired')
             ->count());
