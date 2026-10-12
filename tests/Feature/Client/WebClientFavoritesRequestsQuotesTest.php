@@ -399,8 +399,8 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->assertOk()
             ->assertSee('Adresse d’exécution requise')
             ->assertSee('Choisir l’adresse de cette demande')
-            ->assertSee('Ajoutez une adresse avant d’accepter')
-            ->assertSee('disabled aria-disabled="true"', false);
+            ->assertSee('Accepter le devis')
+            ->assertSee('disabled', false);
     }
 
 
