@@ -36,6 +36,7 @@
                 <div><strong>{{ $service->professionalProfile?->user?->name }}</strong><span>{{ $service->professionalProfile?->professional_title }}</span></div>
             </div>
             <dl class="client-definition-list">
+                <div><dt>Mode d’exécution</dt><dd>{{ $service->execution_mode->label() }}</dd></div>
                 <div><dt>Tarification</dt><dd>{{ ucfirst($service->pricing_type->value) }}</dd></div>
                 <div><dt>Devise</dt><dd>{{ $service->currency }}</dd></div>
                 <div><dt>Durée</dt><dd>{{ $service->estimated_duration_minutes ? $service->estimated_duration_minutes.' min' : 'À définir' }}</dd></div>
