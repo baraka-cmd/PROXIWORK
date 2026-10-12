@@ -21,9 +21,7 @@ use Illuminate\View\View;
 
 class FavoriteController extends Controller
 {
-    public function __construct(private readonly FavoriteService $favoriteService)
-    {
-    }
+    public function __construct(private readonly FavoriteService $favoriteService) {}
 
     public function index(Request $request): View|RedirectResponse
     {
