@@ -35,7 +35,8 @@ class NotificationController extends Controller
         ]);
 
         $query = $request->user()->notifications()->latest();
-        $query->whereNull('archived_at');
+        $archived = in_array(($filters['archived'] ?? false), [true, 1, '1', 'true'], true);
+        $archived ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at');
 
         if (($filters['status'] ?? 'all') === 'unread') {
             $query->whereNull('read_at');
@@ -54,11 +55,6 @@ class NotificationController extends Controller
                 $builder->where('data->title', 'like', $term)
                     ->orWhere('data->message', 'like', $term);
             });
-        }
-
-        if (($filters['archived'] ?? false) === true || ($filters['archived'] ?? false) === 1 || ($filters['archived'] ?? false) === '1') {
-            $query->withoutGlobalScopes();
-            $query->whereNotNull('archived_at');
         }
 
         $notifications = $query->paginate(min(max((int) ($filters['per_page'] ?? 20), 1), 100))
