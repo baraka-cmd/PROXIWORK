@@ -60,7 +60,11 @@
                     @if($order->addressSnapshot->access_instructions)<span><strong>Instructions d’accès :</strong> {{ $order->addressSnapshot->access_instructions }}</span>@endif
                 </address>
             @else
-                <p class="muted">Aucun snapshot d'adresse disponible.</p>
+                @if($order->serviceRequest?->execution_mode?->value === 'remote')
+                    <p class="muted">Prestation à distance : aucune adresse physique du client n’est requise.</p>
+                @else
+                    <p class="muted">Aucun snapshot d'adresse disponible.</p>
+                @endif
             @endif
         </section>
     </div>
