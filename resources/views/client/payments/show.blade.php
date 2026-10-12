@@ -38,6 +38,7 @@
         'gateway.amount_mismatch' => 'Anomalie de montant ou de devise',
         'gateway.outcome_unknown' => 'Résultat incertain — vérification requise',
         'payment.confirmed' => 'Paiement confirmé dans la simulation',
+        'payment.confirmed.order_incompatible' => 'Paiement confirmé — rapprochement requis avec la commande',
         'payment.status_changed' => 'État financier mis à jour',
         'refund.requested' => 'Demande de remboursement enregistrée',
         'webhook.result' => 'Événement externe traité',
