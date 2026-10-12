@@ -24,7 +24,9 @@ class RequestClientEmailChange extends FormRequest
                 'max:255',
                 'different:current_email',
                 Rule::unique('users', 'email'),
-                Rule::unique('users', 'pending_email')->where(fn ($query) => $query->where('pending_email_expires_at', '>', now())),
+                Rule::unique('users', 'pending_email')
+                    ->ignore($this->user()->getKey())
+                    ->where(fn ($query) => $query->where('pending_email_expires_at', '>', now())),
             ],
         ];
     }
