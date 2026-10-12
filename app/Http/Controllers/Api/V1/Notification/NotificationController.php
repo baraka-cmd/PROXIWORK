@@ -44,8 +44,11 @@ class NotificationController extends Controller
             $query->whereNotNull('read_at');
         }
 
-        if (($filters['category'] ?? 'all') !== 'all') {
-            $query->where('data->action', $filters['category']);
+        $category = $filters['category'] ?? 'all';
+        if ($category === 'account') {
+            $query->whereIn('data->action', ['account', 'profile_updated', 'password_changed', 'password_reset', 'email_changed']);
+        } elseif ($category !== 'all') {
+            $query->where('data->action', $category);
         }
 
         $search = trim((string) ($filters['q'] ?? ''));
