@@ -38,7 +38,7 @@
         @if($simulationEnabled)
             <form method="POST" action="{{ route('client.payments.store', $order) }}" data-payment-form>
                 @csrf
-                <input type="hidden" name="idempotency_key" value="{{ (string) Str::uuid() }}">
+                <input type="hidden" name="idempotency_key" value="{{ (string) \\Illuminate\\Support\\Str::uuid() }}">
                 <label for="payment-method">Moyen de paiement de démonstration
                     <select id="payment-method" name="method" required>
                         <option value="">Choisir un moyen simulé</option>
