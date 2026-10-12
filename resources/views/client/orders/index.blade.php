@@ -17,22 +17,22 @@
     </header>
 
     <nav class="client-order-statistics" aria-label="Filtres rapides des commandes">
-        <a class="client-order-stat {{ ($filters['bucket'] ?? 'all') === 'all' ? 'is-active' : '' }}" href="{{ route('client.orders.index', array_merge(request()->except('page'), ['bucket' => 'all'])) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? 'all') === 'all' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'all']) }}">
             <span class="client-order-stat__icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
             <span class="client-order-stat__label">Toutes mes commandes</span>
             <strong>{{ $statistics['total'] }}</strong>
         </a>
-        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'active' ? 'is-active' : '' }}" href="{{ route('client.orders.index', array_merge(request()->except('page'), ['bucket' => 'active'])) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'active' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'active']) }}">
             <span class="client-order-stat__icon client-order-stat__icon--active" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
             <span class="client-order-stat__label">Confirmées / en cours</span>
             <strong>{{ $statistics['active'] }}</strong>
         </a>
-        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'pending_payment' ? 'is-active' : '' }}" href="{{ route('client.orders.index', array_merge(request()->except('page'), ['bucket' => 'pending_payment'])) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'pending_payment' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'pending_payment']) }}">
             <span class="client-order-stat__icon client-order-stat__icon--attention" aria-hidden="true"><i class="fa-solid fa-credit-card"></i></span>
             <span class="client-order-stat__label">À payer</span>
             <strong>{{ $statistics['pending_payment'] }}</strong>
         </a>
-        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'completed' ? 'is-active' : '' }}" href="{{ route('client.orders.index', array_merge(request()->except('page'), ['bucket' => 'completed'])) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'completed' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'completed']) }}">
             <span class="client-order-stat__icon client-order-stat__icon--completed" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
             <span class="client-order-stat__label">Terminées</span>
             <strong>{{ $statistics['completed'] }}</strong>
@@ -164,8 +164,10 @@
                         </div>
                     </div>
                     <div class="client-list-item__side client-order-card__actions">
-                        @if($order->status->value === 'pending_payment')
+                        @if($order->status->value === 'pending_payment' && (!$order->payment || in_array($order->payment->status->value, ['failed', 'cancelled', 'expired'], true)))
                             <a class="btn btn-primary btn-sm" href="{{ route('client.orders.payment', $order) }}">Accéder au paiement</a>
+                        @elseif($order->payment)
+                            <a class="btn btn-secondary btn-sm" href="{{ route('client.payments.show', $order->payment) }}">Consulter le paiement</a>
                         @endif
                         <a class="btn btn-secondary btn-sm" href="{{ route('client.orders.show', $order) }}">Voir le détail <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </div>
