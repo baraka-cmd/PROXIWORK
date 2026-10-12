@@ -265,11 +265,11 @@ class ProfileController extends Controller
             $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
 
             if (
-                !is_string($lockedUser->pending_email_token_hash)
-                || !hash_equals($lockedUser->pending_email_token_hash, $tokenHash)
+                ! is_string($lockedUser->pending_email_token_hash)
+                || ! hash_equals($lockedUser->pending_email_token_hash, $tokenHash)
                 || $lockedUser->pending_email_expires_at === null
                 || $lockedUser->pending_email_expires_at->isPast()
-                || !is_string($lockedUser->pending_email)
+                || ! is_string($lockedUser->pending_email)
             ) {
                 return 'invalid';
             }
