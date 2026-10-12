@@ -175,7 +175,7 @@ class SendNotificationEmail implements ShouldQueue
     {
         $delivery = NotificationDelivery::query()->find($this->deliveryId);
 
-        if ($delivery === null || in_array($delivery->status, ['SENT', 'DELIVERED', 'UNKNOWN'], true)) {
+        if ($delivery === null || in_array($delivery->status, ['SENT', 'DELIVERED', 'UNKNOWN', 'SIMULATED'], true)) {
             return;
         }
 
