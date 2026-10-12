@@ -36,6 +36,7 @@
         'gateway.outcome_unknown' => 'Résultat incertain — vérification requise',
         'payment.confirmed' => 'Paiement confirmé dans la simulation',
         'payment.status_changed' => 'État financier mis à jour',
+        'refund.requested' => 'Demande de remboursement enregistrée',
         'webhook.result' => 'Événement externe traité',
         'webhook.final_state_rechecked' => 'Événement externe recontrôlé',
     ];
