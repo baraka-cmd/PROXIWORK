@@ -21,7 +21,9 @@ use Illuminate\View\View;
 
 class FavoriteController extends Controller
 {
-    public function __construct(private readonly FavoriteService $favoriteService) {}
+    public function __construct(private readonly FavoriteService $favoriteService)
+    {
+    }
 
     public function index(Request $request): View|RedirectResponse
     {
@@ -75,12 +77,12 @@ class FavoriteController extends Controller
             })
             ->when(($filters['sort'] ?? 'recent') === 'oldest', fn (Builder $query) => $query->orderBy('created_at')->orderBy('id'))
             ->when(($filters['sort'] ?? 'recent') === 'name', function (Builder $query): void {
-                $query->orderByRaw("COALESCE(
+                $query->orderByRaw('COALESCE(
                     (SELECT users.name FROM professional_profiles
                      INNER JOIN users ON users.id = professional_profiles.user_id
                      WHERE professional_profiles.id = favorites.professional_profile_id LIMIT 1),
                     (SELECT services.title FROM services WHERE services.id = favorites.service_id LIMIT 1)
-                ) ASC");
+                ) ASC');
             })
             ->when(($filters['sort'] ?? 'recent') === 'recent', fn (Builder $query) => $query->latest('id'))
             ->paginate(12)
