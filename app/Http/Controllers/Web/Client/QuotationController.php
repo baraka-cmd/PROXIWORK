@@ -80,7 +80,7 @@ class QuotationController extends Controller
             'order',
         ]);
 
-        if (! empty($filters['bucket'])) {
+        if (filled($filters['bucket'] ?? null)) {
             match ($filters['bucket']) {
                 'review' => $quotesQuery
                     ->whereIn('quotations.status', [
@@ -100,11 +100,11 @@ class QuotationController extends Controller
             };
         }
 
-        if (! empty($filters['status'])) {
+        if (filled($filters['status'] ?? null)) {
             $quotesQuery->where('quotations.status', $filters['status']);
         }
 
-        if (! empty($filters['q'])) {
+        if (filled($filters['q'] ?? null)) {
             $term = $filters['q'];
             $referenceId = preg_match('/^(?:DEV(?:IS)?[-\s]?)?0*(\d+)$/i', $term, $matches) === 1
                 ? (int) $matches[1]
@@ -124,15 +124,15 @@ class QuotationController extends Controller
             });
         }
 
-        if (! empty($filters['received_from'])) {
+        if (filled($filters['received_from'] ?? null)) {
             $quotesQuery->whereDate('quotations.created_at', '>=', $filters['received_from']);
         }
 
-        if (! empty($filters['received_to'])) {
+        if (filled($filters['received_to'] ?? null)) {
             $quotesQuery->whereDate('quotations.created_at', '<=', $filters['received_to']);
         }
 
-        if (! empty($filters['validity'])) {
+        if (filled($filters['validity'] ?? null)) {
             match ($filters['validity']) {
                 'valid' => $quotesQuery
                     ->whereIn('quotations.status', [
@@ -152,7 +152,7 @@ class QuotationController extends Controller
             };
         }
 
-        if (! empty($filters['currency'])) {
+        if (filled($filters['currency'] ?? null)) {
             $quotesQuery->whereHas('currentOffer', fn ($query) => $query->where('currency', $filters['currency']));
         }
 
