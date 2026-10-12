@@ -79,6 +79,8 @@ class PaymentController extends Controller
             ->orderBy('currency')
             ->get();
 
+        $currencies = (clone $ownedPayments)->distinct()->orderBy('currency')->pluck('currency');
+
         $query = (clone $ownedPayments)->with([
             'order.items',
             'transactions',
@@ -188,6 +190,7 @@ class PaymentController extends Controller
             'statusLabels',
             'methodLabels',
             'transactionStatusLabels',
+            'currencies',
         ));
     }
 
