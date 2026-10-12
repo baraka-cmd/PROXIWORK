@@ -6,6 +6,7 @@
     'required' => false,
     'placeholder' => null,
     'id' => null,
+    'options' => [],
 ])
 
 @php
@@ -14,6 +15,10 @@
     $hasError = $validationErrors?->has($name) ?? false;
     $errorId = "{$selectId}-error";
     $helpId = "{$selectId}-help";
+    $htmlAttributes = $attributes
+        ->except(['id', 'name', 'required', 'options'])
+        ->filter(fn ($attributeValue) => is_scalar($attributeValue) || $attributeValue === null)
+        ->merge(['class' => 'form-control form-select']);
 @endphp
 
 <div class="form-field">
@@ -32,11 +37,17 @@
             name="{{ $name }}"
             @if ($required) required @endif
             @if ($hasError) aria-invalid="true" aria-describedby="{{ $errorId }}" @elseif ($help) aria-describedby="{{ $helpId }}" @endif
-            {{ $attributes->except(['id', 'name', 'required'])->merge(['class' => 'form-control form-select']) }}
+            {{ $htmlAttributes }}
         >
             @if ($placeholder)
                 <option value="">{{ $placeholder }}</option>
             @endif
+
+            @foreach ($options as $optionValue => $optionLabel)
+                <option value="{{ $optionValue }}" @selected((string) $value === (string) $optionValue)>
+                    {{ $optionLabel }}
+                </option>
+            @endforeach
 
             {{ $slot }}
         </select>
