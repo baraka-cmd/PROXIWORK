@@ -217,6 +217,28 @@
         @endif
     </section>
 
+    <section class="client-panel">
+        <div class="client-panel__header">
+            <h2>Messages liés à cette prestation</h2>
+        </div>
+        @if($conversations->isNotEmpty())
+            <p class="client-order-muted">Les conversations ci-dessous sont liées à cette commande ou à sa demande d’origine et sont accessibles à votre compte.</p>
+            <div class="client-order-transactions">
+                @foreach($conversations as $conversation)
+                    <article>
+                        <div>
+                            <strong>Conversation #{{ $conversation->id }}</strong>
+                            <span>{{ ucfirst(str_replace('_', ' ', $conversation->type->value)) }} · {{ ucfirst(str_replace('_', ' ', $conversation->status->value)) }}</span>
+                        </div>
+                        <a class="btn btn-secondary btn-sm" href="{{ route('client.messages.show', $conversation) }}">Ouvrir les messages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                    </article>
+                @endforeach
+            </div>
+        @else
+            <p class="client-order-muted">Aucune conversation liée à cette commande n’est disponible pour votre compte.</p>
+        @endif
+    </section>
+
     <footer class="client-action-bar client-order-footer">
         <a class="btn btn-secondary" href="{{ route('client.orders.index') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour aux commandes</a>
     </footer>
