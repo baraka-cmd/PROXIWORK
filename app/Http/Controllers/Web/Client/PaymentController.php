@@ -217,6 +217,7 @@ class PaymentController extends Controller
 
         $receipt = $this->receipts->findOrIssueFor($payment);
         abort_if($receipt === null, 404);
+        abort_unless($this->receipts->verify($receipt), 409, 'Le reçu ne peut pas être vérifié à partir des données conservées.');
 
         return view('client.payments.receipt', compact('payment', 'receipt'));
     }
