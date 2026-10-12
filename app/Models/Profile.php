@@ -12,6 +12,8 @@ class Profile extends Model
 {
     use HasFactory;
 
+    protected $hidden = ['avatar_path'];
+
     protected $fillable = [
         'first_name',
         'last_name',
