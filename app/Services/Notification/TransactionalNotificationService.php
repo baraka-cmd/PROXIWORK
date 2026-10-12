@@ -148,7 +148,7 @@ class TransactionalNotificationService
                 : null;
 
             if ($notification === null) {
-                $notification = new DatabaseNotification();
+                $notification = new DatabaseNotification;
                 $notification->forceFill([
                     'id' => (string) Str::uuid(),
                     'type' => \App\Notifications\AccountActivityNotification::class,
