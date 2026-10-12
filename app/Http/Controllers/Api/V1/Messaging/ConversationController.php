@@ -104,10 +104,6 @@ class ConversationController extends Controller
             $messageRequest->validated('body'),
         );
 
-        $conversation->loadMissing('participants');
-        $recipient = $conversation->participants
-            ->firstWhere('id', '!=', $request->user()->getKey());
-
         return response()->json([
             'message' => 'Message envoyé.',
             'data' => new MessageResource($message),
