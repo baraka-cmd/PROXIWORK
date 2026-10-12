@@ -80,9 +80,14 @@ class OrderService
                 return $existing->load(['items', 'addressSnapshot', 'statusHistories']);
             }
 
-            if ($request->address === null || $request->addressSnapshot === null) {
+            // New requests carry an immutable location snapshot. This fallback
+            // supports legacy/factory-created records that predate snapshot enforcement;
+            // the migration backfills production request history.
+            $addressSnapshot = $request->addressSnapshot ?? $request->address;
+
+            if ($request->address === null || $addressSnapshot === null) {
                 throw ValidationException::withMessages([
-                    'address' => 'Une adresse d’exécution valide et son instantané sont requis pour créer la commande.',
+                    'address' => 'Une adresse d’exécution valide est requise pour créer la commande.',
                 ]);
             }
 
