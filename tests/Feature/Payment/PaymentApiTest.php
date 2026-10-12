@@ -292,7 +292,12 @@ class PaymentApiTest extends TestCase
         $this->assertDatabaseHas('payment_intents', [
             'order_id' => $order->id,
             'idempotency_key' => 'payment-network-failure-001',
-            'status' => PaymentStatus::INITIATED->value,
+            'status' => PaymentStatus::PROCESSING->value,
+            'failure_code' => 'RESULT_UNKNOWN',
+        ]);
+        $this->assertDatabaseHas('payment_transactions', [
+            'status' => 'unknown',
+            'failure_code' => 'RESULT_UNKNOWN',
         ]);
         $this->assertDatabaseCount('payment_intents', 1);
 
@@ -302,6 +307,45 @@ class PaymentApiTest extends TestCase
 
         $second->assertStatus(503);
         $this->assertDatabaseCount('payment_intents', 1);
+        $this->assertDatabaseCount('payment_transactions', 1);
+    }
+
+    public function test_client_payment_dashboard_and_receipt_are_scoped_to_the_owner(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-web-receipt-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+
+        $this->actingAs($client)
+            ->get('/client/payments?status=succeeded&currency=USD')
+            ->assertOk()
+            ->assertSee('Mode simulation')
+            ->assertSee('PAY-'.str_pad((string) $payment->id, 8, '0', STR_PAD_LEFT));
+
+        $this->get(route('client.payments.receipt', $payment))
+            ->assertOk()
+            ->assertSee('SIMULATION — AUCUNE TRANSACTION FINANCIÈRE RÉELLE')
+            ->assertSee('Vérification d’intégrité');
+
+        $otherClient = $this->client();
+
+        $this->actingAs($otherClient)
+            ->get(route('client.payments.show', $payment))
+            ->assertNotFound();
+
+        $this->actingAs($otherClient)
+            ->get(route('client.payments.receipt', $payment))
+            ->assertNotFound();
     }
 
     public function test_successful_payment_dispatches_order_paid_event(): void
