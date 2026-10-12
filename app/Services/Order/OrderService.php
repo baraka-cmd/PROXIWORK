@@ -160,7 +160,8 @@ class OrderService
                     'longitude' => $addressSnapshot->longitude,
                     'created_at' => $now,
                     'updated_at' => $now,
-                ]);}
+                ]);
+            }
 
             OrderStatusHistory::query()->forceCreate([
                 'order_id' => $order->getKey(),
