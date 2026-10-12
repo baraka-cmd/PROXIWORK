@@ -51,7 +51,7 @@ class QuotationController extends Controller
             ['service_request_id' => $serviceRequest->getKey()],
             $request,
         );
-        $this->notificationService->quotationCreated($serviceRequest->client);
+        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true));
 
         return (new QuotationResource($quotation))->additional([
             'message' => 'Devis créé et envoyé au client avec succès.',
@@ -72,7 +72,7 @@ class QuotationController extends Controller
             ['service_request_id' => $accepted->service_request_id],
             $request,
         );
-        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user);
+        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true));
 
         return new QuotationResource($accepted);
     }
@@ -90,7 +90,7 @@ class QuotationController extends Controller
             ['service_request_id' => $rejected->service_request_id],
             $request,
         );
-        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user);
+        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true));
 
         return new QuotationResource($rejected);
     }
