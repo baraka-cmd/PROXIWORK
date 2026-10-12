@@ -34,6 +34,7 @@ class ServiceRequestService
                             'service',
                             'professional.user',
                             'address',
+                            'addressSnapshot',
                             'statusHistories.actor',
                         ]);
                         $existing->setAttribute('_idempotent_replay', true);
