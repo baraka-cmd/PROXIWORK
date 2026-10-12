@@ -46,6 +46,12 @@ class QuotationPolicy
             && $quotation->serviceRequest->professional?->user_id === $user->getKey();
     }
 
+    public function renew(User $user, Quotation $quotation): bool
+    {
+        return $user->hasRole('professional')
+            && $quotation->serviceRequest->professional?->user_id === $user->getKey();
+    }
+
     public function createOffer(User $user, Quotation $quotation): bool
     {
         $request = $quotation->serviceRequest;
