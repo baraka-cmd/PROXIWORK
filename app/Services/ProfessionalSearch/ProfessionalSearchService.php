@@ -133,6 +133,7 @@ class ProfessionalSearchService
                 ->orWhereHas('services', function (Builder $service) use ($like): void {
                     $service
                         ->published()
+                        ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
                         ->where(function (Builder $service) use ($like): void {
                             $service
                                 ->where('title', 'like', $like)
@@ -221,6 +222,7 @@ class ProfessionalSearchService
         $query->whereHas('services', function (Builder $services) use ($min, $max, $currency): void {
             $services
                 ->published()
+                ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
                 ->when($currency, fn (Builder $services) => $services->where('currency', $currency))
                 ->where(function (Builder $services) use ($min, $max): void {
                     $services
@@ -281,14 +283,14 @@ class ProfessionalSearchService
                 ->orderByDesc('id'),
             'price_low' => $query
                 ->orderByRaw(
-                    '(SELECT MIN(COALESCE(price, price_min)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL)',
-                    [ServiceStatus::PUBLISHED->value]
+                    '(SELECT MIN(COALESCE(price, price_min)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND EXISTS (SELECT 1 FROM categories WHERE categories.id = services.category_id AND categories.status = ?))',
+                    [ServiceStatus::PUBLISHED->value, 'active']
                 )
                 ->orderByDesc('id'),
             'price_high' => $query
                 ->orderByRaw(
-                    '(SELECT MAX(COALESCE(price, price_max)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL)',
-                    [ServiceStatus::PUBLISHED->value]
+                    '(SELECT MAX(COALESCE(price, price_max)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND EXISTS (SELECT 1 FROM categories WHERE categories.id = services.category_id AND categories.status = ?))',
+                    [ServiceStatus::PUBLISHED->value, 'active']
                 )
                 ->orderByDesc('id'),
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
