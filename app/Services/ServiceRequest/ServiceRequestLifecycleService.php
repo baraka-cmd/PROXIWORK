@@ -73,6 +73,17 @@ class ServiceRequestLifecycleService
         );
     }
 
+    public function rejectByProfessionalDuringNegotiation(ServiceRequest $request, User $actor): ServiceRequest
+    {
+        return $this->transition(
+            $request,
+            $actor,
+            ServiceRequestStatus::QUOTED,
+            ServiceRequestStatus::REJECTED,
+            'Contre-proposition du client refusée par le professionnel.',
+        );
+    }
+
     public function markQuoted(ServiceRequest $request, User $actor): ServiceRequest
     {
         return $this->transition(
