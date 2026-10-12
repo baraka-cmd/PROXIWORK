@@ -202,6 +202,7 @@ class PaymentController extends Controller
             'order.items',
             'order.professional.user',
             'transactions',
+            'events',
             'refunds' => fn ($refunds) => $refunds->latest('created_at'),
         ]);
 
