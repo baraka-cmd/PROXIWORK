@@ -239,7 +239,7 @@ class ProfileController extends Controller
 
             $pendingEmail = $lockedUser->pending_email;
 
-            if (User::query()->where('email', $pendingEmail)->whereKeyNot($lockedUser->getKey())->exists()) {
+            if (User::query()->where('email', $pendingEmail)->where('id', '!=', $lockedUser->getKey())->exists()) {
                 $lockedUser->forceFill([
                     'pending_email' => null,
                     'pending_email_token_hash' => null,
@@ -277,6 +277,10 @@ class ProfileController extends Controller
         $user->refresh();
         $user->tokens()->delete();
         $request->session()->regenerate();
+        DB::table('sessions')
+            ->where('user_id', $user->getKey())
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
 
         try {
             Notification::route('mail', $oldEmail)->notify(new \App\Notifications\EmailAddressChangeNotification(
