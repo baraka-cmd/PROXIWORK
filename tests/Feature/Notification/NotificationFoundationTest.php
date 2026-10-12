@@ -235,7 +235,8 @@ class NotificationFoundationTest extends TestCase
 
         $this->assertNull($notification->fresh()->archived_at);
     }
-\n    public function test_notification_channel_respects_preferences(): void
+
+    public function test_notification_channel_respects_preferences(): void
     {
         $user = User::factory()->create();
         $user->assignRole('client');
