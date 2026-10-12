@@ -162,7 +162,7 @@ class QuotationController extends Controller
             $this->notificationService->quotationCreated(
                 $renewed->serviceRequest->client,
                 route('client.quotes.show', $renewed, true),
-                'quotation-renewed:'.$renewed->getKey(),
+                'quotation-renewed:'.$renewed->current_offer_id,
             );
         }
 
