@@ -134,6 +134,50 @@ class QuotationApiTest extends TestCase
         Notification::assertSentTo($professional, AccountActivityNotification::class);
     }
 
+    public function test_professional_can_accept_client_counter_offer_through_api_and_create_order(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+        $counterOffer = $this->offerPayload();
+        $counterOffer['amount'] = 450;
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/offers', $counterOffer)
+            ->assertOk()
+            ->assertJsonPath('data.current_offer.actor_type', 'client');
+
+        $quotation->refresh();
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/accept-client-offer')
+            ->assertOk()
+            ->assertJsonPath('data.status', QuotationStatus::ACCEPTED->value);
+
+        $this->assertDatabaseHas('quotations', [
+            'id' => $quotation->id,
+            'status' => QuotationStatus::ACCEPTED->value,
+            'accepted_offer_id' => $quotation->current_offer_id,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'quotation_id' => $quotation->id,
+            'accepted_offer_id' => $quotation->current_offer_id,
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'currency' => 'USD',
+            'total' => 450,
+            'status' => OrderStatus::PENDING_PAYMENT->value,
+        ]);
+        Notification::assertSentTo($client, AccountActivityNotification::class);
+    }
+
     public function test_only_the_current_non_expired_offer_can_be_accepted(): void
     {
         [$professional, $profile] = $this->professional();
@@ -181,6 +225,12 @@ class QuotationApiTest extends TestCase
         $this->actingAs($client, 'sanctum')
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
             ->assertUnprocessable();
+
+        $this->assertSame(
+            1,
+            Order::query()->where('quotation_id', $quotation->id)->count(),
+            'Repeated acceptance attempts must never create a second order.',
+        );
     }
 
     public function test_order_address_is_a_historical_snapshot(): void
@@ -345,6 +395,50 @@ class QuotationApiTest extends TestCase
             'actor_id' => $client->id,
         ]);
         Notification::assertSentTo($professional, AccountActivityNotification::class);
+    }
+
+    public function test_professional_can_renew_an_expired_quotation_through_api_without_rewriting_history(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+        $previousOffer = $quotation->currentOffer;
+        QuotationOffer::query()->whereKey($previousOffer->getKey())->update([
+            'valid_until' => now()->subMinute(),
+        ]);
+
+        $this->artisan('quotations:expire')->assertExitCode(0);
+
+        $payload = $this->offerPayload();
+        $payload['amount'] = 525;
+        $payload['valid_until'] = now()->addDays(10)->toISOString();
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/renew', $payload)
+            ->assertOk()
+            ->assertJsonPath('data.status', QuotationStatus::SENT->value)
+            ->assertJsonPath('data.current_offer.version', 2)
+            ->assertJsonPath('data.current_offer.amount', '525.00');
+
+        $this->assertSame('500.00', $previousOffer->fresh()->amount);
+        $this->assertDatabaseHas('quotation_events', [
+            'quotation_id' => $quotation->id,
+            'type' => 'quote_renewed',
+            'actor_id' => $professional->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'quotation_renewed',
+            'subject_id' => $quotation->id,
+            'user_id' => $professional->id,
+        ]);
+        Notification::assertSentTo($client, AccountActivityNotification::class);
     }
 
     public function test_guest_cannot_access_quotation_api(): void

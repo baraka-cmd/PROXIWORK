@@ -18,6 +18,7 @@ class AccountActivityNotification extends Notification implements ShouldQueue
         private readonly string $title,
         private readonly string $message,
         private readonly string $action,
+        private readonly ?string $url = null,
     ) {
         $this->afterCommit();
     }
@@ -54,14 +55,21 @@ class AccountActivityNotification extends Notification implements ShouldQueue
             'title' => $this->title,
             'message' => $this->message,
             'action' => $this->action,
+            'url' => $this->url,
         ];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject($this->title)
             ->greeting('Bonjour '.$notifiable->name)
             ->line($this->message);
+
+        if ($this->url !== null) {
+            $mail->action('Consulter', $this->url);
+        }
+
+        return $mail;
     }
 }

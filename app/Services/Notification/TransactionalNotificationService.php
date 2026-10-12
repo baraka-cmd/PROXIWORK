@@ -21,19 +21,34 @@ class TransactionalNotificationService
         );
     }
 
-    public function quotationCreated(User $recipient): void
+    public function quotationCreated(User $recipient, ?string $url = null): void
     {
-        $this->send($recipient, 'Nouveau devis reçu', 'Le professionnel vous a envoyé une nouvelle proposition commerciale.', 'quotation');
+        $this->send($recipient, 'Nouveau devis reçu', 'Le professionnel vous a envoyé une nouvelle proposition commerciale.', 'quotation', $url);
     }
 
-    public function quotationAccepted(User $recipient): void
+    public function quotationAccepted(User $recipient, ?string $url = null): void
     {
-        $this->send($recipient, 'Devis accepté', 'Le client a accepté votre proposition commerciale.', 'quotation');
+        $this->send($recipient, 'Devis accepté', 'Le client a accepté votre proposition commerciale.', 'quotation', $url);
     }
 
-    public function quotationRejected(User $recipient): void
+    public function quotationRejected(User $recipient, ?string $url = null): void
     {
-        $this->send($recipient, 'Devis refusé', 'Le client a refusé votre proposition commerciale.', 'quotation');
+        $this->send($recipient, 'Devis refusé', 'Le client a refusé votre proposition commerciale.', 'quotation', $url);
+    }
+
+    public function clientCounterOfferAccepted(User $recipient, ?string $url = null): void
+    {
+        $this->send($recipient, 'Contre-proposition acceptée', 'Le professionnel a accepté votre contre-proposition. La commande a été créée et attend la prochaine étape prévue.', 'quotation', $url);
+    }
+
+    public function clientCounterOfferRejected(User $recipient, ?string $url = null): void
+    {
+        $this->send($recipient, 'Contre-proposition refusée', 'Le professionnel a refusé votre contre-proposition. La décision est enregistrée dans l’historique du devis.', 'quotation', $url);
+    }
+
+    public function quotationExpired(User $recipient, ?string $url = null): void
+    {
+        $this->send($recipient, 'Devis expiré', 'La période de validité de cette proposition commerciale est terminée.', 'quotation', $url);
     }
 
     public function serviceRequestCancelled(User $recipient): void
@@ -46,9 +61,9 @@ class TransactionalNotificationService
         $this->send($recipient, 'Demande refusée', 'Le professionnel a refusé votre demande de service.', 'service_request');
     }
 
-    public function counterOfferReceived(User $recipient): void
+    public function counterOfferReceived(User $recipient, ?string $url = null): void
     {
-        $this->send($recipient, 'Nouvelle contre-proposition', 'Une nouvelle proposition commerciale est disponible dans votre négociation.', 'quotation');
+        $this->send($recipient, 'Nouvelle contre-proposition', 'Une nouvelle proposition commerciale est disponible dans votre négociation.', 'quotation', $url);
     }
 
     public function paymentSucceeded(User $recipient): void
@@ -71,10 +86,10 @@ class TransactionalNotificationService
         $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review');
     }
 
-    private function send(User $recipient, string $title, string $message, string $action): void
+    private function send(User $recipient, string $title, string $message, string $action, ?string $url = null): void
     {
         try {
-            $recipient->notify(new AccountActivityNotification($title, $message, $action));
+            $recipient->notify(new AccountActivityNotification($title, $message, $action, $url));
         } catch (Throwable $exception) {
             // Notifications are secondary effects: a dispatch failure must not turn
             // an already-committed business transition into a false HTTP failure.

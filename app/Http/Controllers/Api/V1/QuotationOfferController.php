@@ -31,9 +31,13 @@ class QuotationOfferController extends Controller
         );
 
         $updated->load('serviceRequest.client', 'serviceRequest.professional.user');
-        $recipient = $updated->serviceRequest->client_id === $request->user()->getKey()
+        $clientInitiated = $updated->serviceRequest->client_id === $request->user()->getKey();
+        $recipient = $clientInitiated
             ? $updated->serviceRequest->professional->user
             : $updated->serviceRequest->client;
+        $recipientUrl = $clientInitiated
+            ? route('professional.quotes.show', $updated, true)
+            : route('client.quotes.show', $updated, true);
 
         $this->auditLogService->record(
             'quotation_counter_offer_created',
@@ -42,7 +46,7 @@ class QuotationOfferController extends Controller
             ['service_request_id' => $updated->service_request_id],
             $request,
         );
-        $this->notificationService->counterOfferReceived($recipient);
+        $this->notificationService->counterOfferReceived($recipient, $recipientUrl);
 
         return new QuotationResource($updated);
     }

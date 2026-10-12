@@ -76,6 +76,9 @@
                         </div>
 
                         <p>{{ $data['message'] ?? '' }}</p>
+                        @if (! empty($data['url']))
+                            <a class="button button--small button--secondary" href="{{ $data['url'] }}">Ouvrir le devis</a>
+                        @endif
 
                         <div class="notification-card__meta">
                             <span class="notification-type">{{ $action }}</span>

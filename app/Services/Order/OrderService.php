@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Order;
 
 use App\Enums\OrderStatus;
+use App\Enums\QuotationOfferActor;
 use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Models\Order;
@@ -34,10 +35,13 @@ class OrderService
 
             $request = ServiceRequest::query()
                 ->lockForUpdate()
-                ->with(['service', 'address'])
+                ->with(['service', 'address', 'professional'])
                 ->findOrFail($lockedQuotation->service_request_id);
 
-            if ($request->client_id !== $actor->getKey()) {
+            $isClientActor = $request->client_id === $actor->getKey();
+            $isProfessionalActor = $request->professional?->user_id === $actor->getKey();
+
+            if (! $isClientActor && ! $isProfessionalActor) {
                 throw ValidationException::withMessages([
                     'quotation' => 'Vous ne pouvez pas créer une commande pour ce devis.',
                 ]);
@@ -55,6 +59,16 @@ class OrderService
             if ($acceptedOffer->quotation_id !== $lockedQuotation->getKey()) {
                 throw ValidationException::withMessages([
                     'quotation' => 'L’offre acceptée n’appartient pas à ce devis.',
+                ]);
+            }
+
+            $expectedOfferActor = $isClientActor
+                ? QuotationOfferActor::PROFESSIONAL
+                : QuotationOfferActor::CLIENT;
+
+            if ($acceptedOffer->actor_type !== $expectedOfferActor) {
+                throw ValidationException::withMessages([
+                    'quotation' => 'La commande ne peut être créée qu’à partir de l’offre de l’autre partie effectivement acceptée.',
                 ]);
             }
 
