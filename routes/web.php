@@ -106,6 +106,13 @@ Route::middleware('auth')->group(function (): void {
         Route::get('profile', [ClientProfileController::class, 'show'])->name('profile');
         Route::get('profile/edit', [ClientProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('profile', [ClientProfileController::class, 'update'])->name('profile.update');
+        Route::get('profile/photo', [ClientProfileController::class, 'photo'])->name('profile.photo');
+        Route::post('profile/photo', [ClientProfileController::class, 'storePhoto'])->middleware('throttle:6,1')->name('profile.photo.store');
+        Route::delete('profile/photo', [ClientProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+        Route::patch('profile/password', [ClientProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password.update');
+        Route::post('profile/email-change', [ClientProfileController::class, 'requestEmailChange'])->middleware('throttle:6,1')->name('profile.email-change.store');
+        Route::get('profile/email-change/{token}', [ClientProfileController::class, 'showEmailChangeConfirmation'])->middleware('throttle:10,1')->name('profile.email-change.confirmation');
+        Route::post('profile/email-change/{token}/confirm', [ClientProfileController::class, 'confirmEmailChange'])->middleware('throttle:6,1')->name('profile.email-change.confirm');
         Route::get('addresses', [ClientAddressController::class, 'index'])->name('addresses.index');
         Route::get('addresses/create', [ClientAddressController::class, 'create'])->name('addresses.create');
         Route::post('addresses', [ClientAddressController::class, 'store'])->name('addresses.store');

@@ -12,6 +12,8 @@ class Profile extends Model
 {
     use HasFactory;
 
+    protected $hidden = ['avatar_path'];
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -19,6 +21,7 @@ class Profile extends Model
         'bio',
         'locale',
         'timezone',
+        'avatar_path',
     ];
 
     public function user(): BelongsTo
