@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Client;
 
-use App\Models\Profile;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
@@ -69,6 +68,7 @@ class ClientProfileTest extends TestCase
     {
         $client = $this->client();
         $client->profile()->create(['first_name' => 'Ancien', 'last_name' => 'Nom']);
+        $verifiedAt = $client->email_verified_at;
 
         $this->actingAs($client)
             ->patch('/client/profile', [
@@ -78,7 +78,7 @@ class ClientProfileTest extends TestCase
                 'bio' => 'Profil mis à jour.',
                 'role' => 'admin',
                 'account_status' => 'suspended',
-                'email_verified_at' => now()->toISOString(),
+                'email_verified_at' => null,
                 'user_id' => 99999,
             ])
             ->assertRedirect('/client/profile')
@@ -88,7 +88,7 @@ class ClientProfileTest extends TestCase
         $this->assertSame('client', $client->roles()->value('name'));
         $this->assertNotSame('admin', $client->roles()->value('name'));
         $this->assertTrue($client->isActive());
-        $this->assertNull($client->email_verified_at);
+        $this->assertEquals($verifiedAt, $client->email_verified_at);
         $this->assertDatabaseHas('profiles', [
             'user_id' => $client->id,
             'first_name' => 'Baraka',
