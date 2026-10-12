@@ -71,3 +71,11 @@
 .btn-danger-outline:hover{background:color-mix(in srgb,var(--color-danger,#b42318) 8%,transparent)}
 @media(max-width:700px){.profile-page-header{align-items:flex-start;flex-direction:column}.profile-page-header .btn{width:100%;justify-content:center}.profile-hero{align-items:flex-start;padding:1.1rem}.profile-member-since{width:100%;margin-left:0;padding-top:.75rem;border-top:1px solid var(--color-border)}.profile-details-grid,.profile-shortcuts,.profile-form-grid{grid-template-columns:minmax(0,1fr)}.profile-detail-wide{grid-column:auto}.profile-section{padding:1.1rem}.profile-section-heading{flex-direction:column}.profile-form-actions{flex-direction:column-reverse}.profile-form-actions .btn{width:100%;justify-content:center}.profile-shortcut{padding:.95rem}.profile-avatar--large{width:80px;height:80px;flex-basis:80px}}
 @media(prefers-reduced-motion:reduce){.profile-shortcut{transition:none}.profile-shortcut:hover{transform:none}}
+
+.profile-pending-email{display:flex;align-items:flex-start;gap:.75rem;padding:1rem;border:1px solid var(--color-warning,#b7791f);border-radius:var(--radius-md,10px);background:var(--color-surface);color:var(--color-text)}
+.profile-pending-email>i{margin-top:.2rem;color:var(--color-warning,#b7791f)}
+.profile-pending-email p{margin:.4rem 0 0;color:var(--color-text-muted);line-height:1.55}
+.profile-confirm-email{padding:1rem;border-radius:var(--radius-md,10px);background:var(--color-surface-muted,var(--color-surface));overflow-wrap:anywhere;font-size:1.05rem}
+.profile-email-confirm-page .profile-section{max-width:760px}
+.profile-email-confirm-page .profile-section .btn{width:fit-content}
+@media(max-width:700px){.profile-email-confirm-page .profile-section .btn{width:100%;justify-content:center}}
