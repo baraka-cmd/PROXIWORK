@@ -53,6 +53,18 @@ class OrderController extends Controller
             'payment',
         ]);
 
+        if (filled($filters['bucket'] ?? null)) {
+            match ($filters['bucket']) {
+                'active' => $query->whereIn('status', [
+                    OrderStatus::CONFIRMED->value,
+                    OrderStatus::IN_PROGRESS->value,
+                ]),
+                'pending_payment' => $query->where('status', OrderStatus::PENDING_PAYMENT->value),
+                'completed' => $query->where('status', OrderStatus::COMPLETED->value),
+                default => null,
+            };
+        }
+
         if (filled($filters['status'] ?? null)) {
             $query->where('status', $filters['status']);
         }
