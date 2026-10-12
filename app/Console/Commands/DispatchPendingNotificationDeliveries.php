@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Jobs\Notifications\SendNotificationEmail;
+use App\Jobs\Notifications\SendNotificationSms;
 use App\Models\NotificationDelivery;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class DispatchPendingNotificationDeliveries extends Command
         $now = now();
 
         $stale = NotificationDelivery::query()
-            ->where('channel', 'mail')
+            ->whereIn('channel', ['mail', 'sms'])
             ->where('status', 'PROCESSING')
             ->where('processing_at', '<=', $now->copy()->subMinutes(15))
             ->update([
@@ -51,11 +52,12 @@ class DispatchPendingNotificationDeliveries extends Command
             })
             ->orderBy('id')
             ->limit($limit)
-            ->pluck('id');
+            ->get(['id', 'channel']);
 
         $dispatched = 0;
 
-        foreach ($candidateIds as $id) {
+        foreach ($candidateIds as $candidate) {
+            $id = (int) $candidate->id;
             $claimed = DB::transaction(function () use ($id): bool {
                 $delivery = NotificationDelivery::query()->lockForUpdate()->find($id);
 
@@ -78,7 +80,11 @@ class DispatchPendingNotificationDeliveries extends Command
             }
 
             try {
-                SendNotificationEmail::dispatch((int) $id);
+                if ($candidate->channel === 'sms') {
+                    SendNotificationSms::dispatch($id);
+                } else {
+                    SendNotificationEmail::dispatch($id);
+                }
                 $dispatched++;
             } catch (Throwable $exception) {
                 NotificationDelivery::query()->whereKey($id)->update([
