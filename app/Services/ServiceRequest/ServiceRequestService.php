@@ -54,6 +54,10 @@ class ServiceRequestService
                     ]);
                 }
 
+                if (! $service->execution_mode->requiresClientAddress()) {
+                    $attributes['address_id'] = null;
+                }
+
                 if (($attributes['address_id'] ?? null) !== null) {
                     $ownedAddress = Address::query()
                         ->whereKey($attributes['address_id'])
@@ -84,6 +88,7 @@ class ServiceRequestService
                     'idempotency_key' => $idempotencyKey,
                     'client_id' => $client->getKey(),
                     'professional_id' => $service->professionalProfile->getKey(),
+                    'execution_mode' => $service->execution_mode,
                     'status' => ServiceRequestStatus::DRAFT,
                 ]);
 
@@ -150,6 +155,10 @@ class ServiceRequestService
                 ]);
             }
 
+            if (! $locked->execution_mode->requiresClientAddress()) {
+                $attributes['address_id'] = null;
+            }
+
             if (($attributes['address_id'] ?? null) !== null) {
                 $ownedAddress = Address::query()
                     ->whereKey($attributes['address_id'])
@@ -203,6 +212,12 @@ class ServiceRequestService
 
             if ($locked->client_id !== $client->getKey()) {
                 abort(403, 'Vous ne pouvez pas modifier cette demande.');
+            }
+
+            if (! $locked->execution_mode->requiresClientAddress()) {
+                throw ValidationException::withMessages([
+                    'address_id' => 'Cette prestation est à distance et ne nécessite pas d’adresse physique.',
+                ]);
             }
 
             if (in_array($locked->status, [
