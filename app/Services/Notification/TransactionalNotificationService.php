@@ -170,26 +170,47 @@ class TransactionalNotificationService
             $preference = $recipient->notificationPreference()->first();
             $emailEnabled = $priority === 'critical' || ($preference?->email_enabled ?? true);
 
-            if (! $emailEnabled) {
-                return;
+            if ($emailEnabled) {
+                $validEmail = is_string($recipient->email)
+                    && filter_var($recipient->email, FILTER_VALIDATE_EMAIL) !== false;
+
+                NotificationDelivery::query()->firstOrCreate(
+                    [
+                        'notification_id' => $notification->id,
+                        'channel' => 'mail',
+                    ],
+                    [
+                        'user_id' => $recipient->getKey(),
+                        'status' => $validEmail ? 'PENDING' : 'FAILED',
+                        'attempts' => 0,
+                        'available_at' => $validEmail ? now() : null,
+                        'last_error_code' => $validEmail ? null : 'InvalidRecipientEmail',
+                    ],
+                );
             }
 
-            $validEmail = is_string($recipient->email)
-                && filter_var($recipient->email, FILTER_VALIDATE_EMAIL) !== false;
+            $smsEligible = $priority === 'critical' || in_array($action, ['quotation', 'payment', 'order'], true);
+            if ($preference?->sms_enabled && $smsEligible && app()->environment(['local', 'testing'])) {
+                $phone = (string) $recipient->profile()->value('phone');
+                $digits = preg_replace('/\\D+/', '', $phone) ?? '';
+                $recipientHint = $digits === '' ? null : '***'.substr($digits, -4);
 
-            NotificationDelivery::query()->firstOrCreate(
-                [
-                    'notification_id' => $notification->id,
-                    'channel' => 'mail',
-                ],
-                [
-                    'user_id' => $recipient->getKey(),
-                    'status' => $validEmail ? 'PENDING' : 'FAILED',
-                    'attempts' => 0,
-                    'available_at' => $validEmail ? now() : null,
-                    'last_error_code' => $validEmail ? null : 'InvalidRecipientEmail',
-                ],
-            );
+                NotificationDelivery::query()->firstOrCreate(
+                    [
+                        'notification_id' => $notification->id,
+                        'channel' => 'sms',
+                    ],
+                    [
+                        'user_id' => $recipient->getKey(),
+                        'recipient_hint' => $recipientHint,
+                        'status' => $recipientHint !== null ? 'SIMULATED' : 'FAILED',
+                        'attempts' => 0,
+                        'last_error_code' => $recipientHint !== null
+                            ? 'SMS_PROVIDER_NOT_CONFIGURED'
+                            : 'RecipientPhoneUnavailable',
+                    ],
+                );
+            }
         });
     }
 }
