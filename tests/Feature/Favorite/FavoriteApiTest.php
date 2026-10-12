@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Favorite;
 
+use App\Models\Category;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -182,8 +184,8 @@ class FavoriteApiTest extends TestCase
     {
         $user = $this->user();
         $professional = $this->professional();
-        $category = \App\Models\Category::factory()->create();
-        $service = \App\Models\Service::factory()->create([
+        $category = Category::factory()->create();
+        $service = Service::factory()->create([
             'professional_profile_id' => $professional->id,
             'category_id' => $category->id,
             'status' => 'published',
