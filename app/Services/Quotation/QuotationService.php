@@ -98,7 +98,7 @@ class QuotationService
                 throw ValidationException::withMessages(['quotation' => 'Vous ne pouvez pas accepter ce devis.']);
             }
 
-            if (!in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
+            if (! in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
                 throw ValidationException::withMessages(['status' => 'Ce devis ne peut plus être accepté.']);
             }
 
@@ -184,7 +184,7 @@ class QuotationService
                 ]);
             }
 
-            if (! $offer->valid_until->isFuture()) {
+            if (!$offer->valid_until->isFuture()) {
                 throw ValidationException::withMessages([
                     'valid_until' => 'La contre-proposition du client a expiré.',
                 ]);
