@@ -13,6 +13,7 @@ class NotificationDelivery extends Model
     protected $fillable = [
         'notification_id',
         'user_id',
+        'recipient_hint',
         'channel',
         'status',
         'attempts',
