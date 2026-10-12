@@ -199,6 +199,7 @@ class OrderController extends Controller
             'order' => $order,
             'methods' => PaymentMethod::cases(),
             'providers' => PaymentProvider::cases(),
+            'simulationEnabled' => config('payment.simulation_enabled') === true && app()->environment('production') === false,
         ]);
     }
 }
