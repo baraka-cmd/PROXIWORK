@@ -16,7 +16,7 @@ class UpdateClientProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['required', 'string', 'trim', 'max:100'],
+            'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'trim', 'max:100'],
             'phone' => ['nullable', 'string', 'max:30'],
             'bio' => ['nullable', 'string', 'max:2000'],
