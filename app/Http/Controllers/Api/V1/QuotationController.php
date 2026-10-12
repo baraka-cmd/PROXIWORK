@@ -11,7 +11,6 @@ use App\Http\Resources\Quotation\QuotationResource;
 use App\Models\Quotation;
 use App\Models\ServiceRequest;
 use App\Services\Audit\AuditLogService;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Quotation\QuotationNegotiationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +22,6 @@ class QuotationController extends Controller
     public function __construct(
         private readonly QuotationService $quotationService,
         private readonly QuotationNegotiationService $negotiationService,
-        private readonly TransactionalNotificationService $notificationService,
         private readonly AuditLogService $auditLogService,
     ) {}
 
@@ -54,8 +52,7 @@ class QuotationController extends Controller
             ['service_request_id' => $serviceRequest->getKey()],
             $request,
         );
-        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true), 'quotation-created:'.$quotation->getKey());
-
+        
         return (new QuotationResource($quotation))->additional([
             'message' => 'Devis créé et envoyé au client avec succès.',
             'meta' => [],
@@ -75,8 +72,7 @@ class QuotationController extends Controller
             ['service_request_id' => $accepted->service_request_id],
             $request,
         );
-        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true), 'quotation-accepted:'.$accepted->getKey());
-
+        
         return new QuotationResource($accepted);
     }
 
@@ -99,14 +95,6 @@ class QuotationController extends Controller
             $request,
         );
 
-        if ($accepted->serviceRequest->client !== null) {
-            $this->notificationService->clientCounterOfferAccepted(
-                $accepted->serviceRequest->client,
-                route('client.quotes.show', $accepted, true),
-                'client-counter-offer-accepted:'.$accepted->getKey(),
-            );
-        }
-
         return new QuotationResource($accepted);
     }
 
@@ -124,14 +112,6 @@ class QuotationController extends Controller
             ['service_request_id' => $rejected->service_request_id, 'offer_id' => $rejected->current_offer_id],
             $request,
         );
-
-        if ($rejected->serviceRequest->client !== null) {
-            $this->notificationService->clientCounterOfferRejected(
-                $rejected->serviceRequest->client,
-                route('client.quotes.show', $rejected, true),
-                'client-counter-offer-rejected:'.$rejected->getKey(),
-            );
-        }
 
         return new QuotationResource($rejected);
     }
@@ -158,14 +138,6 @@ class QuotationController extends Controller
             $request,
         );
 
-        if ($renewed->serviceRequest->client !== null) {
-            $this->notificationService->quotationCreated(
-                $renewed->serviceRequest->client,
-                route('client.quotes.show', $renewed, true),
-                'quotation-renewed:'.$renewed->current_offer_id,
-            );
-        }
-
         return (new QuotationResource($renewed))->additional([
             'message' => 'Le devis expiré a été renouvelé avec une nouvelle version.',
             'meta' => [],
@@ -185,8 +157,7 @@ class QuotationController extends Controller
             ['service_request_id' => $rejected->service_request_id],
             $request,
         );
-        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true), 'quotation-rejected:'.$rejected->getKey());
-
+        
         return new QuotationResource($rejected);
     }
 }
