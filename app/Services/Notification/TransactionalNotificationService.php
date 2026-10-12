@@ -36,6 +36,11 @@ class TransactionalNotificationService
         $this->send($recipient, 'Devis refusé', 'Le client a refusé votre proposition commerciale.', 'quotation');
     }
 
+    public function quotationExpired(User $recipient): void
+    {
+        $this->send($recipient, 'Devis expiré', 'La période de validité de cette proposition commerciale est terminée.', 'quotation');
+    }
+
     public function serviceRequestCancelled(User $recipient): void
     {
         $this->send($recipient, 'Demande annulée', 'Une demande de service qui vous était destinée a été annulée par le client.', 'service_request');
