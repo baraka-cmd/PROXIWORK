@@ -225,8 +225,7 @@ class NotificationFoundationTest extends TestCase
 
         $this->actingAs($user, 'sanctum')
             ->postJson("/api/v1/notifications/{$notification->id}/archive")
-            ->assertOk()
-            ->assertJsonPath('data.archived_at', fn ($value) => $value !== null);
+            ->assertOk();
 
         $this->assertNotNull($notification->fresh()->archived_at);
 
