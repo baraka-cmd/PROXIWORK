@@ -37,7 +37,10 @@ class OrderService
                 ->with(['service', 'address'])
                 ->findOrFail($lockedQuotation->service_request_id);
 
-            if ($request->client_id !== $actor->getKey()) {
+            $isClientActor = $request->client_id === $actor->getKey();
+            $isProfessionalActor = $request->professional?->user_id === $actor->getKey();
+
+            if (! $isClientActor && ! $isProfessionalActor) {
                 throw ValidationException::withMessages([
                     'quotation' => 'Vous ne pouvez pas créer une commande pour ce devis.',
                 ]);
@@ -55,6 +58,16 @@ class OrderService
             if ($acceptedOffer->quotation_id !== $lockedQuotation->getKey()) {
                 throw ValidationException::withMessages([
                     'quotation' => 'L’offre acceptée n’appartient pas à ce devis.',
+                ]);
+            }
+
+            $expectedOfferActor = $isClientActor
+                ? QuotationOfferActor::PROFESSIONAL
+                : QuotationOfferActor::CLIENT;
+
+            if ($acceptedOffer->actor_type !== $expectedOfferActor) {
+                throw ValidationException::withMessages([
+                    'quotation' => 'La commande ne peut être créée qu’à partir de l’offre de l’autre partie effectivement acceptée.',
                 ]);
             }
 
