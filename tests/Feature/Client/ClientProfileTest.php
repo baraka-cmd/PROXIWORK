@@ -186,7 +186,7 @@ class ClientProfileTest extends TestCase
         $client->refresh();
         $this->assertTrue(Hash::check('NewPassword123!', $client->password));
         $this->assertDatabaseMissing('personal_access_tokens', ['id' => $token->accessToken->id]);
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_password_change_rejects_a_weak_or_unconfirmed_password(): void
