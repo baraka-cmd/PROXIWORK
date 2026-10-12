@@ -21,7 +21,10 @@ class PaymentReceiptService
 
             if ($lockedPayment->status !== PaymentStatus::SUCCEEDED
                 || $transaction->payment_id !== $lockedPayment->getKey()
-                || $transaction->status !== PaymentTransactionStatus::SUCCEEDED) {
+                || $transaction->status !== PaymentTransactionStatus::SUCCEEDED
+                || $this->money((string) $transaction->amount) !== $this->money((string) $lockedPayment->amount)
+                || strtoupper($transaction->currency) !== strtoupper($lockedPayment->currency)
+                || $transaction->provider !== $lockedPayment->provider->value) {
                 throw new \LogicException('Un reçu ne peut être émis que pour une transaction confirmée.');
             }
 
@@ -88,6 +91,17 @@ class PaymentReceiptService
             && $receipt->payment?->status === PaymentStatus::SUCCEEDED
             && $receipt->transaction?->status === PaymentTransactionStatus::SUCCEEDED
             && $receipt->transaction?->payment_id === $receipt->payment_id;
+    }
+
+    private function money(string $value): string
+    {
+        if (preg_match('/^\\d+(?:\\.\\d{1,2})?$/', trim($value)) !== 1) {
+            return '__invalid__';
+        }
+
+        [$whole, $decimal] = array_pad(explode('.', trim($value), 2), 2, '0');
+
+        return $whole.'.'.str_pad($decimal, 2, '0');
     }
 
     private function canonicalize(array $value): array
