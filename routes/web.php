@@ -13,7 +13,10 @@ use App\Http\Controllers\Web\Client\OrderController;
 use App\Http\Controllers\Web\Client\PaymentController;
 use App\Http\Controllers\Web\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Web\Client\QuotationController;
+use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
+use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\HomePageController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\PasswordResetLinkController;
@@ -30,14 +33,11 @@ use App\Http\Controllers\Web\Professional\ServiceRequestController as Profession
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\PublicSearchController;
-use App\Http\Controllers\Web\HomePageController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\Client\ServiceCatalogController;
-use App\Http\Controllers\Web\EmailVerificationController;
 
 Route::get('/', [HomePageController::class, 'index'])->name('home');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
@@ -79,6 +79,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/', ClientDashboardController::class)->name('dashboard');
         Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store'])->name('favorites.store');
+        Route::post('favorites/services/{service}', [FavoriteController::class, 'storeService'])->name('favorites.services.store');
         Route::delete('favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
         Route::get('requests', [ServiceRequestController::class, 'index'])->name('requests.index');
         Route::get('requests/create', [ServiceRequestController::class, 'create'])->name('requests.create');

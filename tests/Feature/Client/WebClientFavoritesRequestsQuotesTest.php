@@ -74,7 +74,13 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $client = $this->client();
         $professionalUser = User::factory()->create();
         $professionalUser->assignRole('professional');
-        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $professional = ProfessionalProfile::factory()->create([
+            'user_id' => $professionalUser->id,
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+            'verification_status' => 'verified',
+            'verified_at' => now(),
+        ]);
 
         $this->actingAs($client)
             ->put('/client/favorites/'.$professional->id)

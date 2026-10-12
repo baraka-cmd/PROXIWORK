@@ -95,9 +95,22 @@
             </div>
         @endif
 
-        <a class="button button--ghost" href="{{ route('public.professionals.show', $professional) }}">
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-            Voir le profil
-        </a>
+        <div class="professional-card__actions" style="display:flex;gap:.5rem;flex-wrap:wrap">
+            <a class="button button--ghost" href="{{ route('public.professionals.show', $professional) }}">
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                Voir le profil
+            </a>
+            @auth
+                @if (auth()->user()->hasRole('client'))
+                    <form method="POST" action="{{ route('client.favorites.store', $professional) }}">
+                        @csrf
+                        @method('PUT')
+                        <button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button>
+                    </form>
+                @endif
+            @else
+                <a class="button button--secondary" href="{{ route('login') }}">Se connecter pour enregistrer</a>
+            @endauth
+        </div>
     </div>
 </article>

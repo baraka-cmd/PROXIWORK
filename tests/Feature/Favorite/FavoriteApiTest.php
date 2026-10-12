@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Favorite;
 
+use App\Models\Category;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -178,6 +180,40 @@ class FavoriteApiTest extends TestCase
         ]);
     }
 
+    public function test_client_can_add_and_list_a_service_favorite(): void
+    {
+        $user = $this->user();
+        $professional = $this->professional();
+        $category = Category::factory()->create();
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'category_id' => $category->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($user, 'sanctum')
+            ->putJson('/api/v1/favorites/services/'.$service->id)
+            ->assertCreated()
+            ->assertJsonPath('data.type', 'service')
+            ->assertJsonPath('data.service_id', $service->id);
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/favorites')
+            ->assertOk()
+            ->assertJsonPath('data.0.type', 'service')
+            ->assertJsonPath('data.0.service.title', $service->title);
+
+        $this->actingAs($user, 'sanctum')
+            ->deleteJson('/api/v1/favorites/services/'.$service->id)
+            ->assertNoContent();
+
+        $this->assertDatabaseMissing('favorites', [
+            'user_id' => $user->id,
+            'service_id' => $service->id,
+        ]);
+    }
+
     public function test_favorites_pagination_is_bounded(): void
     {
         $user = $this->user();
@@ -208,6 +244,10 @@ class FavoriteApiTest extends TestCase
 
         return ProfessionalProfile::factory()->create([
             'user_id' => $user->id,
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+            'verification_status' => 'verified',
+            'verified_at' => now(),
         ]);
     }
 }
