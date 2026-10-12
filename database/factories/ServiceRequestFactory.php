@@ -22,6 +22,7 @@ class ServiceRequestFactory extends Factory
             'client_id' => User::factory(),
             'professional_id' => $service->professional_profile_id,
             'service_id' => $service->getKey(),
+            'execution_mode' => \\App\\Enums\\ServiceExecutionMode::CLIENT_LOCATION->value,
             'address_id' => null,
             'title' => fake()->sentence(5),
             'description' => fake()->paragraph(2),
