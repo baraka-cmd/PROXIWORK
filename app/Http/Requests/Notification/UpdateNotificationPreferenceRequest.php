@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Requests\\Notification;
+namespace App\Http\Requests\Notification;
 
-use Illuminate\\Foundation\\Http\\FormRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateNotificationPreferenceRequest extends FormRequest
 {
