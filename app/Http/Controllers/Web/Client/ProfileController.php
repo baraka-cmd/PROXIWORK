@@ -44,6 +44,14 @@ class ProfileController extends Controller
         unset($data['avatar_path'], $data['email'], $data['role'], $data['account_status']);
 
         DB::transaction(function () use ($request, $data): void {
+            User::query()->whereNotNull('pending_email')
+                ->where('pending_email_expires_at', '<=', now())
+                ->update([
+                    'pending_email' => null,
+                    'pending_email_token_hash' => null,
+                    'pending_email_expires_at' => null,
+                ]);
+
             $user = User::query()
                 ->whereKey($request->user()->getKey())
                 ->lockForUpdate()
@@ -51,6 +59,11 @@ class ProfileController extends Controller
 
             $user->profile()->updateOrCreate([], $data);
         });
+
+        Log::info('Client profile updated.', [
+            'user_id' => $request->user()->getKey(),
+            'fields' => array_values(array_intersect(array_keys($data), ['first_name', 'last_name', 'phone', 'bio', 'locale', 'timezone'])),
+        ]);
 
         return redirect()
             ->route('client.profile')
@@ -108,6 +121,8 @@ class ProfileController extends Controller
             Storage::disk('local')->delete($oldPath);
         }
 
+        Log::info('Client profile avatar updated.', ['user_id' => $user->getKey()]);
+
         return redirect()->route('client.profile.edit')->with('success', 'Photo de profil mise à jour.');
     }
 
@@ -128,6 +143,8 @@ class ProfileController extends Controller
         if (is_string($oldPath) && $oldPath !== '') {
             Storage::disk('local')->delete($oldPath);
         }
+
+        Log::info('Client profile avatar removed.', ['user_id' => $user->getKey()]);
 
         return redirect()->route('client.profile.edit')->with('success', 'Photo de profil supprimée.');
     }
@@ -189,6 +206,8 @@ class ProfileController extends Controller
                 'email' => 'Le message de confirmation n’a pas pu être envoyé. Aucune modification de votre adresse actuelle n’a été effectuée.',
             ])->withInput($request->safe()->except(['current_password']));
         }
+
+        Log::info('Client email-change confirmation requested.', ['user_id' => $user->getKey()]);
 
         return redirect()->route('client.profile.edit')->with(
             'success',
@@ -275,6 +294,7 @@ class ProfileController extends Controller
         }
 
         $user->refresh();
+        Log::info('Client email address changed after confirmation.', ['user_id' => $user->getKey()]);
         $user->tokens()->delete();
         $request->session()->regenerate();
         DB::table('sessions')
@@ -304,6 +324,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $user->forceFill(['password' => $request->validated('password')])->save();
+        Log::info('Client password changed.', ['user_id' => $user->getKey()]);
 
         // Revoke API tokens and other database-backed sessions, but keep this session active.
         $user->tokens()->delete();
