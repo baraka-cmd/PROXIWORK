@@ -22,6 +22,8 @@ class PaymentWebhookService
 {
     public function __construct(
         private readonly CommissionService $commissionService,
+        private readonly PaymentReceiptService $receiptService,
+        private readonly PaymentEventService $events,
     ) {
         // Dependencies are injected only.
     }
@@ -65,10 +67,21 @@ class PaymentWebhookService
                 ]);
             }
 
+            $previousTransactionStatus = $transaction->status->value;
+
             // Validate the financial payload even when the transaction is already
             // final. A repeated callback must never bypass amount/currency checks.
             if ($transaction->status->isFinal()) {
                 $transaction->forceFill(['provider_event_id' => $eventId])->save();
+                $this->events->record(
+                    $transaction,
+                    'webhook.final_state_rechecked',
+                    $previousTransactionStatus,
+                    $previousTransactionStatus,
+                    $provider->value,
+                    ['provider_event_id' => $eventId],
+                    'webhook-'.$provider->value.'-'.hash('sha256', $eventId),
+                );
 
                 return $transaction->refresh();
             }
@@ -84,8 +97,19 @@ class PaymentWebhookService
                 'processed_at' => $status === PaymentStatus::SUCCEEDED ? now() : $transaction->processed_at,
                 'failed_at' => $status === PaymentStatus::FAILED ? now() : $transaction->failed_at,
             ])->save();
+            $transaction->refresh();
+            $this->events->record(
+                $transaction,
+                'webhook.result',
+                $previousTransactionStatus,
+                $transaction->status->value,
+                $provider->value,
+                ['provider_event_id' => $eventId],
+                'webhook-'.$provider->value.'-'.hash('sha256', $eventId),
+            );
 
             $payment = Payment::query()->lockForUpdate()->findOrFail($transaction->payment_id);
+            $previousPaymentStatus = $payment->status->value;
             $payment->forceFill([
                 'status' => $status,
                 'paid_at' => $status === PaymentStatus::SUCCEEDED ? now() : $payment->paid_at,
@@ -102,10 +126,12 @@ class PaymentWebhookService
                 ])->save();
             }
 
+            $orderEligibleForSettlement = false;
             if ($status === PaymentStatus::SUCCEEDED) {
                 $order = Order::query()->lockForUpdate()->findOrFail($payment->order_id);
 
                 if ($order->status === OrderStatus::PENDING_PAYMENT) {
+                    $orderEligibleForSettlement = true;
                     $from = $order->status;
                     $order->forceFill([
                         'status' => OrderStatus::CONFIRMED,
@@ -124,13 +150,49 @@ class PaymentWebhookService
                             'provider_event_id' => $eventId,
                         ],
                     ]);
+                } elseif ($order->status === OrderStatus::CONFIRMED) {
+                    $orderEligibleForSettlement = true;
+                } else {
+                    $this->events->record(
+                        $transaction,
+                        'payment.confirmed.order_incompatible',
+                        $order->status->value,
+                        PaymentStatus::SUCCEEDED->value,
+                        $provider->value,
+                        ['order_status' => $order->status->value, 'reconciliation_required' => true, 'provider_event_id' => $eventId],
+                        'payment-order-incompatible-'.$payment->getKey(),
+                    );
                 }
             }
 
             if ($status === PaymentStatus::SUCCEEDED) {
-                $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
+                if ($orderEligibleForSettlement) {
+                    $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
+                }
+                $receipt = $this->receiptService->issueFor($payment->refresh(), $transaction->refresh());
+                $this->events->record(
+                    $transaction,
+                    'payment.confirmed',
+                    $previousPaymentStatus,
+                    PaymentStatus::SUCCEEDED->value,
+                    $provider->value,
+                    ['receipt_number' => $receipt->receipt_number, 'provider_event_id' => $eventId],
+                    'payment-confirmed-'.$payment->getKey(),
+                );
 
-                OrderPaid::dispatch($order);
+                if ($orderEligibleForSettlement) {
+                    OrderPaid::dispatch($order);
+                }
+            } elseif ($previousPaymentStatus !== $status->value) {
+                $this->events->record(
+                    $transaction,
+                    'payment.status_changed',
+                    $previousPaymentStatus,
+                    $status->value,
+                    $provider->value,
+                    ['provider_event_id' => $eventId],
+                    'payment-status-'.$payment->getKey().'-'.$eventId,
+                );
             }
 
             return $transaction->refresh();

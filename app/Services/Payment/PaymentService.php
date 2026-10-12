@@ -29,6 +29,8 @@ class PaymentService
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
         private readonly CommissionService $commissionService,
+        private readonly PaymentReceiptService $receiptService,
+        private readonly PaymentEventService $events,
     ) {
         // Dependencies are injected only.
     }
@@ -40,6 +42,13 @@ class PaymentService
         PaymentProvider $provider,
         string $idempotencyKey,
     ): Payment {
+        if ($provider === PaymentProvider::FAKE
+            && (app()->environment('production') || config('payment.simulation_enabled') !== true)) {
+            throw new PaymentGatewayUnavailableException(
+                new \RuntimeException('Le mode de simulation est désactivé dans cet environnement.')
+            );
+        }
+
         $prepared = $this->prepareIntent(
             $order,
             $client,
@@ -87,8 +96,8 @@ class PaymentService
                     metadata: ['payment_intent_id' => $intent->getKey(), 'payment_id' => $payment->getKey()],
                 ));
         } catch (Throwable $exception) {
-            // The local transaction remains durable. The same key must be reused
-            // to reconcile an unknown provider outcome safely.
+            // Persist the unresolved result. A network failure is not proof that the provider failed.
+            $this->transactionService->markUnknown($transaction);
             throw new PaymentGatewayUnavailableException($exception);
         }
 
@@ -114,6 +123,8 @@ class PaymentService
                 return $lockedPayment->load('transactions');
             }
 
+            $previousPaymentStatus = $lockedPayment->status->value;
+
             $lockedIntent->forceFill([
                 'status' => $result->status,
                 'provider_reference' => $result->providerReference,
@@ -131,10 +142,12 @@ class PaymentService
                 'cancelled_at' => $result->status === PaymentStatus::CANCELLED ? now() : $lockedPayment->cancelled_at,
             ])->save();
 
+            $orderEligibleForSettlement = false;
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $order = Order::query()->lockForUpdate()->findOrFail($lockedPayment->order_id);
 
                 if ($order->status === OrderStatus::PENDING_PAYMENT) {
+                    $orderEligibleForSettlement = true;
                     $from = $order->status;
                     $order->forceFill([
                         'status' => OrderStatus::CONFIRMED,
@@ -152,17 +165,39 @@ class PaymentService
                             'payment_transaction_id' => $transaction->getKey(),
                         ],
                     ]);
-                } elseif ($order->status !== OrderStatus::CONFIRMED) {
-                    throw new PaymentConflictException(
-                        'Le paiement est confirmé mais la commande est dans un état incompatible.'
+                } elseif ($order->status === OrderStatus::CONFIRMED) {
+                    $orderEligibleForSettlement = true;
+                } else {
+                    $this->events->record(
+                        $transaction,
+                        'payment.confirmed.order_incompatible',
+                        $order->status->value,
+                        PaymentStatus::SUCCEEDED->value,
+                        'simulation',
+                        ['order_status' => $order->status->value, 'reconciliation_required' => true],
+                        'payment-order-incompatible-'.$lockedPayment->getKey(),
                     );
                 }
             }
 
             if ($result->status === PaymentStatus::SUCCEEDED) {
-                $this->commissionService->postForPayment($lockedPayment, $transaction);
+                if ($orderEligibleForSettlement) {
+                    $this->commissionService->postForPayment($lockedPayment, $transaction);
+                }
+                $receipt = $this->receiptService->issueFor($lockedPayment->refresh(), $transaction->refresh());
+                $this->events->record(
+                    $transaction,
+                    'payment.confirmed',
+                    $previousPaymentStatus,
+                    PaymentStatus::SUCCEEDED->value,
+                    'simulation',
+                    ['receipt_number' => $receipt->receipt_number],
+                    'payment-confirmed-'.$lockedPayment->getKey(),
+                );
 
-                OrderPaid::dispatch($order);
+                if ($orderEligibleForSettlement) {
+                    OrderPaid::dispatch($order);
+                }
             }
 
             return $lockedPayment->refresh()->load('transactions');

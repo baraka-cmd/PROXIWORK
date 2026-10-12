@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +23,8 @@ class Payment extends Model
     {
         return [
             'status' => PaymentStatus::class,
+            'method' => PaymentMethod::class,
+            'provider' => PaymentProvider::class,
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'failed_at' => 'datetime',
@@ -46,6 +50,21 @@ class Payment extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(PaymentEvent::class)->orderBy('occurred_at')->orderBy('id');
+    }
+
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(PaymentReceipt::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(PaymentRefund::class);
     }
 
     public function commission(): HasOne

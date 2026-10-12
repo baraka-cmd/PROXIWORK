@@ -8,6 +8,7 @@ use App\Contracts\Payments\PaymentGateway;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
+use App\Enums\PaymentRefundStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
@@ -16,6 +17,7 @@ use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentRefund;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Service;
@@ -292,7 +294,12 @@ class PaymentApiTest extends TestCase
         $this->assertDatabaseHas('payment_intents', [
             'order_id' => $order->id,
             'idempotency_key' => 'payment-network-failure-001',
-            'status' => PaymentStatus::INITIATED->value,
+            'status' => PaymentStatus::PROCESSING->value,
+            'failure_code' => 'RESULT_UNKNOWN',
+        ]);
+        $this->assertDatabaseHas('payment_transactions', [
+            'status' => 'unknown',
+            'failure_code' => 'RESULT_UNKNOWN',
         ]);
         $this->assertDatabaseCount('payment_intents', 1);
 
@@ -302,6 +309,169 @@ class PaymentApiTest extends TestCase
 
         $second->assertStatus(503);
         $this->assertDatabaseCount('payment_intents', 1);
+        $this->assertDatabaseCount('payment_transactions', 1);
+    }
+
+    public function test_client_payment_dashboard_and_receipt_are_scoped_to_the_owner(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-web-receipt-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+
+        $this->actingAs($client)
+            ->get('/client/payments?status=succeeded&currency=USD')
+            ->assertOk()
+            ->assertSee('Mode simulation')
+            ->assertSee('PAY-'.str_pad((string) $payment->id, 8, '0', STR_PAD_LEFT));
+
+        $this->get(route('client.payments.receipt', $payment))
+            ->assertOk()
+            ->assertSee('SIMULATION — AUCUNE TRANSACTION FINANCIÈRE RÉELLE')
+            ->assertSee('Vérification d’intégrité');
+
+        $otherClient = $this->client();
+
+        $this->actingAs($otherClient)
+            ->get(route('client.payments.show', $payment))
+            ->assertNotFound();
+
+        $this->actingAs($otherClient)
+            ->get(route('client.payments.receipt', $payment))
+            ->assertNotFound();
+    }
+
+    public function test_tampered_receipt_snapshot_is_rejected(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-receipt-tamper-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+        $receipt = $payment->receipt()->firstOrFail();
+        $payload = $receipt->payload;
+        $payload['amount'] = '1.00';
+        $receipt->forceFill(['payload' => $payload])->save();
+
+        $this->actingAs($client)
+            ->get(route('client.payments.receipt', $payment))
+            ->assertStatus(409);
+    }
+
+    public function test_refund_request_uses_only_the_remaining_unrefunded_amount(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-partial-refund-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+
+        PaymentRefund::query()->forceCreate([
+            'reference' => 'RFD-EXISTING-PARTIAL',
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'amount' => '100.00',
+            'currency' => 'USD',
+            'status' => PaymentRefundStatus::SUCCEEDED,
+            'reason' => 'Remboursement partiel déjà confirmé.',
+            'requested_at' => now()->subDay(),
+            'processed_at' => now(),
+        ]);
+
+        $this->actingAs($client)
+            ->post(route('client.payments.refunds.store', $payment), [
+                'reason' => 'Je demande l’examen du solde restant à rembourser.',
+            ])
+            ->assertRedirect(route('client.payments.show', $payment));
+
+        $this->assertDatabaseHas('payment_refunds', [
+            'payment_id' => $payment->id,
+            'status' => PaymentRefundStatus::REQUESTED->value,
+            'amount' => '400.00',
+        ]);
+    }
+
+    public function test_disabled_simulator_does_not_create_a_payment_attempt(): void
+    {
+        config(['payment.simulation_enabled' => false]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-simulation-disabled-001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertStatus(503);
+
+        $this->assertDatabaseCount('payment_intents', 0);
+        $this->assertDatabaseCount('payments', 0);
+        $this->assertDatabaseCount('payment_transactions', 0);
+    }
+
+    public function test_client_can_request_refund_review_without_marking_payment_refunded(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-refund-review-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+        $url = route('client.payments.refunds.store', $payment);
+
+        $this->actingAs($client)
+            ->post($url, ['reason' => 'La prestation ne correspond pas aux conditions convenues.'])
+            ->assertRedirect(route('client.payments.show', $payment));
+
+        $this->assertDatabaseCount('payment_refunds', 1);
+        $this->assertDatabaseHas('payment_refunds', [
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'status' => PaymentRefundStatus::REQUESTED->value,
+            'amount' => '500.00',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => PaymentStatus::SUCCEEDED->value,
+        ]);
+
+        $this->post($url, ['reason' => 'Je répète ma demande sans créer de doublon.'])
+            ->assertRedirect(route('client.payments.show', $payment));
+
+        $this->assertDatabaseCount('payment_refunds', 1);
     }
 
     public function test_successful_payment_dispatches_order_paid_event(): void

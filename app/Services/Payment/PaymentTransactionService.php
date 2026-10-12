@@ -8,12 +8,17 @@ use App\Enums\PaymentStatus;
 use App\Enums\PaymentTransactionStatus;
 use App\Exceptions\PaymentConflictException;
 use App\Models\Payment;
+use App\Models\PaymentIntent;
 use App\Models\PaymentTransaction;
 use App\Payments\DTO\PaymentResult;
 use Illuminate\Support\Facades\DB;
 
 class PaymentTransactionService
 {
+    public function __construct(
+        private readonly PaymentEventService $events,
+    ) {}
+
     public function ensure(
         Payment $payment,
         string $idempotencyKey,
@@ -44,7 +49,7 @@ class PaymentTransactionService
                 throw new PaymentConflictException('Le paiement de cette commande est déjà confirmé.');
             }
 
-            return PaymentTransaction::query()->forceCreate([
+            $transaction = PaymentTransaction::query()->forceCreate([
                 'payment_id' => $lockedPayment->getKey(),
                 'provider' => $provider,
                 'idempotency_key' => $idempotencyKey,
@@ -53,6 +58,17 @@ class PaymentTransactionService
                 'amount' => $amount,
                 'initiated_at' => now(),
             ]);
+
+            $this->events->record(
+                $transaction,
+                'attempt.created',
+                null,
+                PaymentTransactionStatus::INITIATED->value,
+                'local',
+                ['idempotency_key_hash' => hash('sha256', $idempotencyKey)],
+            );
+
+            return $transaction;
         }, attempts: 3);
     }
 
@@ -69,6 +85,8 @@ class PaymentTransactionService
                 return $locked;
             }
 
+            $previousStatus = $locked->status->value;
+
             if ($this->money($result->amount) !== $this->money((string) $locked->amount)
                 || strtoupper($result->currency) !== strtoupper($locked->currency)) {
                 $locked->forceFill([
@@ -80,6 +98,16 @@ class PaymentTransactionService
                     'failed_at' => now(),
                     'response_metadata' => $result->metadata,
                 ])->save();
+
+                $locked->refresh();
+                $this->events->record(
+                    $locked,
+                    'gateway.amount_mismatch',
+                    $previousStatus,
+                    PaymentTransactionStatus::FAILED->value,
+                    (string) data_get($result->metadata, 'gateway', 'provider'),
+                    ['failure_code' => 'PROVIDER_AMOUNT_MISMATCH'],
+                );
 
                 // Return normally so the failure is committed instead of rolled back
                 // by the surrounding transaction.
@@ -97,6 +125,59 @@ class PaymentTransactionService
                 'processed_at' => $result->status === PaymentStatus::SUCCEEDED ? now() : $locked->processed_at,
                 'failed_at' => $result->status === PaymentStatus::FAILED ? now() : $locked->failed_at,
             ])->save();
+
+            $this->events->record(
+                $locked,
+                'gateway.result',
+                $previousStatus,
+                $locked->status->value,
+                (string) data_get($result->metadata, 'gateway', 'provider'),
+                ['failure_code' => $result->failureCode],
+            );
+
+            return $locked->refresh();
+        }, attempts: 3);
+    }
+
+    public function markUnknown(PaymentTransaction $transaction): PaymentTransaction
+    {
+        return DB::transaction(function () use ($transaction): PaymentTransaction {
+            $locked = PaymentTransaction::query()->lockForUpdate()->findOrFail($transaction->getKey());
+
+            if ($locked->status->isFinal()) {
+                return $locked;
+            }
+
+            $previousStatus = $locked->status->value;
+            $locked->forceFill([
+                'status' => PaymentTransactionStatus::UNKNOWN,
+                'failure_code' => 'RESULT_UNKNOWN',
+                'failure_message' => 'Le résultat n’a pas pu être confirmé. Vérifiez le statut avant toute nouvelle tentative.',
+            ])->save();
+            $this->events->record(
+                $locked,
+                'gateway.outcome_unknown',
+                $previousStatus,
+                PaymentTransactionStatus::UNKNOWN->value,
+                'gateway',
+                ['failure_code' => 'RESULT_UNKNOWN'],
+            );
+
+            $payment = Payment::query()->lockForUpdate()->findOrFail($locked->payment_id);
+            if ($payment->status !== PaymentStatus::SUCCEEDED) {
+                $payment->forceFill(['status' => PaymentStatus::PROCESSING])->save();
+            }
+
+            if ($payment->payment_intent_id !== null) {
+                $intent = PaymentIntent::query()->lockForUpdate()->find($payment->payment_intent_id);
+                if ($intent !== null && $intent->status !== PaymentStatus::SUCCEEDED) {
+                    $intent->forceFill([
+                        'status' => PaymentStatus::PROCESSING,
+                        'failure_code' => 'RESULT_UNKNOWN',
+                        'failure_message' => 'Le résultat doit être vérifié avant toute nouvelle tentative.',
+                    ])->save();
+                }
+            }
 
             return $locked->refresh();
         }, attempts: 3);

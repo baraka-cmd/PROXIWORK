@@ -9,6 +9,7 @@ enum PaymentTransactionStatus: string
     case INITIATED = 'initiated';
     case PENDING = 'pending';
     case PROCESSING = 'processing';
+    case UNKNOWN = 'unknown';
     case SUCCEEDED = 'succeeded';
     case FAILED = 'failed';
     case CANCELLED = 'cancelled';

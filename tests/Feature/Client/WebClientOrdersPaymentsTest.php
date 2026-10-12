@@ -24,6 +24,32 @@ class WebClientOrdersPaymentsTest extends TestCase
         $this->get('/client/orders')->assertRedirect('/login');
     }
 
+    public function test_guest_is_redirected_from_payments(): void
+    {
+        $this->get('/client/payments')->assertRedirect('/login');
+    }
+
+    public function test_non_client_cannot_access_payments(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+
+        $this->actingAs($user)->get('/client/payments')->assertForbidden();
+    }
+
+    public function test_client_can_open_payment_dashboard(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->get('/client/payments')
+            ->assertOk()
+            ->assertViewIs('client.payments.index')
+            ->assertSee('Mode simulation')
+            ->assertSee('Rechercher un paiement');
+    }
+
     public function test_non_client_cannot_access_orders(): void
     {
         $user = User::factory()->create();
