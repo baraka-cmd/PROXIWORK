@@ -65,7 +65,7 @@ class ProfileController extends Controller
 
     public function photo(Request $request): BinaryFileResponse
     {
-        $profile = $request->user()->profile;
+        $profile = $request->user()->profile()->first();
         $path = $profile?->avatar_path;
 
         abort_unless(
@@ -97,7 +97,7 @@ class ProfileController extends Controller
 
         $user = $request->user();
         $newPath = $validated['avatar']->store('client-avatars/'.$user->getKey(), 'local');
-        $oldPath = $user->profile?->avatar_path;
+        $oldPath = $user->profile()->value('avatar_path');
 
         try {
             DB::transaction(function () use ($user, $newPath): void {
