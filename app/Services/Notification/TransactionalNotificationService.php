@@ -6,6 +6,7 @@ namespace App\Services\Notification;
 
 use App\Models\NotificationDelivery;
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -151,7 +152,7 @@ class TransactionalNotificationService
                 $notification = new DatabaseNotification;
                 $notification->forceFill([
                     'id' => (string) Str::uuid(),
-                    'type' => \App\Notifications\AccountActivityNotification::class,
+                    'type' => AccountActivityNotification::class,
                     'data' => [
                         'title' => $title,
                         'message' => trim($message),
