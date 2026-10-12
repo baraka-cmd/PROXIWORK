@@ -26,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'account_status' => UserAccountStatus::class,
+            'pending_email_expires_at' => 'datetime',
         ];
     }
 
