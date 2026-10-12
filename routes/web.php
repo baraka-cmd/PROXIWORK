@@ -106,6 +106,10 @@ Route::middleware('auth')->group(function (): void {
         Route::get('profile', [ClientProfileController::class, 'show'])->name('profile');
         Route::get('profile/edit', [ClientProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('profile', [ClientProfileController::class, 'update'])->name('profile.update');
+        Route::get('profile/photo', [ClientProfileController::class, 'photo'])->name('profile.photo');
+        Route::post('profile/photo', [ClientProfileController::class, 'storePhoto'])->middleware('throttle:profile-sensitive')->name('profile.photo.store');
+        Route::delete('profile/photo', [ClientProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+        Route::patch('profile/password', [ClientProfileController::class, 'updatePassword'])->middleware('throttle:profile-sensitive')->name('profile.password.update');
         Route::get('addresses', [ClientAddressController::class, 'index'])->name('addresses.index');
         Route::get('addresses/create', [ClientAddressController::class, 'create'])->name('addresses.create');
         Route::post('addresses', [ClientAddressController::class, 'store'])->name('addresses.store');
