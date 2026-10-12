@@ -6,12 +6,15 @@ namespace Tests\Feature\Notification;
 
 use App\Jobs\Notifications\SendNotificationEmail;
 use App\Jobs\Notifications\SendNotificationSms;
+use App\Jobs\Notifications\SendNotificationPush;
 use App\Models\NotificationDelivery;
+use App\Models\NotificationDevice;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Notification\TransactionalNotificationService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
@@ -430,6 +433,51 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame('SMS_PROVIDER_RESULT_UNKNOWN', $delivery->fresh()->last_error_code);
     }
 
+    public function test_configured_firebase_push_records_provider_acceptance(): void
+    {
+        Cache::flush();
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+        $recipient->notificationPreference()->create(['push_enabled' => true]);
+        $device = NotificationDevice::query()->create([
+            'user_id' => $recipient->id,
+            'token' => 'test-fcm-device-token-1234567890',
+            'platform' => 'android',
+        ]);
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            null,
+            'quotation-created:push-test-81',
+        );
+
+        $delivery = NotificationDelivery::query()
+            ->where('user_id', $recipient->id)
+            ->where('channel', 'push')
+            ->firstOrFail();
+        $delivery->forceFill(['status' => 'PENDING', 'available_at' => now()])->save();
+
+        config([
+            'services.firebase.project_id' => 'proxi-test',
+            'services.firebase.client_email' => 'push-service@proxi-test.iam.gserviceaccount.com',
+            'services.firebase.private_key' => 'test-private-key',
+        ]);
+        Cache::put('proxiwork.firebase.access_token.proxi-test', 'test-access-token', now()->addMinutes(10));
+        Http::fake([
+            'https://fcm.googleapis.com/v1/projects/proxi-test/messages:send' => Http::response([
+                'name' => 'projects/proxi-test/messages/1',
+            ], 200),
+        ]);
+
+        (new SendNotificationPush((int) $delivery->id))->handle();
+
+        $this->assertSame('SENT', $delivery->fresh()->status);
+        $this->assertSame('projects/proxi-test/messages/1', $delivery->fresh()->provider_reference);
+        $this->assertNotNull($device->fresh()->last_used_at);
+        Http::assertSent(fn (\Illuminate\Http\Client\Request $request): bool => str_contains($request->url(), 'fcm.googleapis.com')
+            && $request['message']['token'] === $device->token);
+    }
+
     public function test_critical_security_alert_keeps_email_delivery_enabled_when_optional_email_is_disabled(): void
     {
         $recipient = User::factory()->create();
@@ -444,7 +492,9 @@ class NotificationFoundationTest extends TestCase
             'security-event:abc',
         );
 
-        $this->assertSame(1, NotificationDelivery::query()->where('user_id', $recipient->id)->count());
+        $this->assertSame(1, NotificationDelivery::query()->where('user_id', $recipient->id)->where('channel', 'mail')->count());
+        $this->assertSame('FAILED', NotificationDelivery::query()->where('user_id', $recipient->id)->where('channel', 'sms')->value('status'));
+        $this->assertSame('FAILED', NotificationDelivery::query()->where('user_id', $recipient->id)->where('channel', 'push')->value('status'));
         $this->assertSame('critical', $recipient->notifications()->firstOrFail()->data['priority']);
     }
 
