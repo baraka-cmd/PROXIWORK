@@ -56,6 +56,7 @@ return new class extends Migration
                 'addresses.address_line_1',
                 'addresses.address_line_2',
                 'addresses.landmark',
+                'addresses.access_instructions',
                 'addresses.postal_code',
                 'addresses.latitude',
                 'addresses.longitude',
@@ -78,6 +79,7 @@ return new class extends Migration
                         'address_line_1' => $row->address_line_1,
                         'address_line_2' => $row->address_line_2,
                         'landmark' => $row->landmark,
+                        'access_instructions' => $row->access_instructions,
                         'postal_code' => $row->postal_code,
                         'latitude' => $row->latitude,
                         'longitude' => $row->longitude,
@@ -91,6 +93,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('service_request_address_snapshots');
+
+        DB::table('order_address_snapshots')->whereNull('contact_phone')->update(['contact_phone' => '']);
 
         Schema::table('order_address_snapshots', function (Blueprint $table): void {
             $table->dropColumn('access_instructions');
