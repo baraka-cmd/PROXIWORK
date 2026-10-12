@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Payments\DTO\PaymentRequest;
 use App\Payments\DTO\PaymentResult;
 use App\Services\Commission\CommissionService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Database\DatabaseManager;
 use Throwable;
 
@@ -31,6 +32,7 @@ class PaymentService
         private readonly CommissionService $commissionService,
         private readonly PaymentReceiptService $receiptService,
         private readonly PaymentEventService $events,
+        private readonly TransactionalNotificationService $notificationService,
     ) {
         // Dependencies are injected only.
     }
@@ -197,6 +199,26 @@ class PaymentService
 
                 if ($orderEligibleForSettlement) {
                     OrderPaid::dispatch($order);
+                }
+            }
+
+            if ($result->status === PaymentStatus::SUCCEEDED) {
+                $client = User::query()->find($lockedPayment->client_id);
+                if ($client !== null) {
+                    $this->notificationService->paymentSucceeded(
+                        $client,
+                        'payment-succeeded:'.$lockedPayment->getKey(),
+                    );
+                }
+
+                if ($orderEligibleForSettlement && isset($order)) {
+                    $order->loadMissing('professional.user');
+                    if ($order->professional?->user !== null) {
+                        $this->notificationService->orderConfirmed(
+                            $order->professional->user,
+                            'order-confirmed:'.$order->getKey(),
+                        );
+                    }
                 }
             }
 
