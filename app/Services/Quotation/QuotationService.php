@@ -238,7 +238,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $professional): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest.professional')
+                ->with(['serviceRequest.professional', 'serviceRequest.client'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->professional?->user_id !== $professional->getKey()) {
@@ -304,7 +304,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $client): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest')
+                ->with(['serviceRequest', 'serviceRequest.professional.user'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->client_id !== $client->getKey()) {
