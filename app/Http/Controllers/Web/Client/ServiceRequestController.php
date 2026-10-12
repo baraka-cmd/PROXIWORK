@@ -26,6 +26,7 @@ use Illuminate\View\View;
 
 class ServiceRequestController extends Controller
 {
+
     public function __construct(
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
