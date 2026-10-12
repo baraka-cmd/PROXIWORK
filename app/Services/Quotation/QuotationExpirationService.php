@@ -73,30 +73,33 @@ class QuotationExpirationService
                             'created_at' => now(),
                         ]);
 
-                        return [
-                            'quotation_id' => $quotation->getKey(),
-                            'client_id' => $quotation->serviceRequest->client_id,
-                            'professional_user_id' => $quotation->serviceRequest->professional?->user_id,
-                        ];
+                        $client = $quotation->serviceRequest->client;
+                        if ($client !== null) {
+                            $this->notificationService->quotationExpired(
+                                $client,
+                                route('client.quotes.show', $quotation, true),
+                                'quotation-expired:'.$quotation->getKey().':'.$offer->getKey(),
+                            );
+                        }
+
+                        $professional = $quotation->serviceRequest->professional?->user;
+                        if ($professional !== null) {
+                            $this->notificationService->quotationExpired(
+                                $professional,
+                                route('professional.quotes.show', $quotation, true),
+                                'quotation-expired:'.$quotation->getKey().':'.$offer->getKey(),
+                            );
+                        }
+
+                        return ['quotation_id' => $quotation->getKey()];
                     });
 
                     if ($recipients === null) {
                         continue;
                     }
 
-                    $client = User::query()->find($recipients['client_id']);
-                    if ($client !== null) {
-                        $this->notificationService->quotationExpired($client, route('client.quotes.show', $recipients['quotation_id'], true));
-                    }
-
-                    $professional = $recipients['professional_user_id'] !== null
-                        ? User::query()->find($recipients['professional_user_id'])
-                        : null;
-
-                    if ($professional !== null) {
-                        $this->notificationService->quotationExpired($professional, route('professional.quotes.show', $recipients['quotation_id'], true));
-                    }
-
+                    // The notification and delivery intent were persisted inside
+                    // the same transaction as the EXPIRED status transition.
                     $expiredCount++;
                 }
             });
