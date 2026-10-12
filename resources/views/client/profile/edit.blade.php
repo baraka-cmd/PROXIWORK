@@ -128,6 +128,44 @@
         </form>
     </section>
 
+    <section id="profile-email" class="client-panel profile-section" aria-labelledby="profile-email-title">
+        <div class="profile-section-heading">
+            <div>
+                <p class="profile-section-kicker">COORDONNÉES DU COMPTE</p>
+                <h2 id="profile-email-title">Modifier l’adresse e-mail</h2>
+                <p class="profile-muted-copy">Votre adresse actuelle reste active jusqu’à ce que vous confirmiez le lien envoyé à la nouvelle adresse.</p>
+            </div>
+            <span class="profile-section-icon" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+        </div>
+
+        @if ($user->pending_email && $user->pending_email_expires_at?->isFuture())
+            <div class="profile-pending-email" role="status">
+                <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                <div>
+                    <strong>Confirmation en attente : {{ $user->pending_email }}</strong>
+                    <p>Le lien expire le {{ $user->pending_email_expires_at->format('d/m/Y à H:i') }}. Tant que le lien n’est pas confirmé, votre adresse de connexion actuelle ne change pas.</p>
+                </div>
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('client.profile.email-change.store') }}" class="profile-form">
+            @csrf
+            <label for="new_email">Nouvelle adresse e-mail
+                <input id="new_email" type="email" name="email" value="{{ old('email') }}" required maxlength="255" autocomplete="email" aria-invalid="@error('email') true @else false @enderror" aria-describedby="@error('email') email-change-error @enderror">
+                @error('email')<small id="email-change-error" class="profile-field-error">{{ $message }}</small>@enderror
+            </label>
+
+            <label for="email_current_password">Mot de passe actuel
+                <input id="email_current_password" type="password" name="current_password" required autocomplete="current-password" aria-invalid="@error('current_password') true @else false @enderror" aria-describedby="@error('current_password') email-password-error @enderror">
+                @error('current_password')<small id="email-password-error" class="profile-field-error">{{ $message }}</small>@enderror
+            </label>
+
+            <div class="profile-form-actions">
+                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer le lien de confirmation</button>
+            </div>
+        </form>
+    </section>
+
     <section id="profile-password" class="client-panel profile-section" aria-labelledby="profile-password-title">
         <div class="profile-section-heading">
             <div>
