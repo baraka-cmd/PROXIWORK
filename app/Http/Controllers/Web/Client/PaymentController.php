@@ -33,8 +33,7 @@ class PaymentController extends Controller
         private readonly PaymentService $payments,
         private readonly PaymentReceiptService $receipts,
         private readonly PaymentRefundRequestService $refundRequests,
-    ) {
-    }
+    ) {}
 
     public function index(IndexClientPaymentsRequest $request): View
     {
