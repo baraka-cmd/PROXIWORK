@@ -469,7 +469,7 @@ class NotificationFoundationTest extends TestCase
             ], 200),
         ]);
 
-        (new SendNotificationPush((int) $delivery->id))->handle();
+        (new SendNotificationPush((int) $delivery->id))->handle(app(\App\Services\Notification\FirebasePushService::class));
 
         $this->assertSame('SENT', $delivery->fresh()->status);
         $this->assertSame('projects/proxi-test/messages/1', $delivery->fresh()->provider_reference);
