@@ -167,8 +167,10 @@
                                         @switch($event->type)
                                             @case('quote_created') Devis envoyé @break
                                             @case('counter_offer_created') Nouvelle proposition envoyée @break
-                                            @case('offer_accepted') Devis accepté @break
-                                            @case('quote_rejected') Devis refusé @break
+                                            @case('offer_accepted') Devis accepté par le client @break
+                                            @case('offer_accepted_by_professional') Contre-proposition acceptée par le professionnel @break
+                                            @case('quote_rejected') Devis refusé par le client @break
+                                            @case('counter_offer_rejected_by_professional') Contre-proposition refusée par le professionnel @break
                                             @case('quote_expired') Devis expiré @break
                                             @case('quotation_withdrawn') Devis retiré @break
                                             @default {{ str_replace('_', ' ', ucfirst($event->type)) }}
