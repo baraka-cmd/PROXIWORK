@@ -51,9 +51,7 @@ class AppServiceProvider extends ServiceProvider
             return [
                 Limit::perMinute(30)->by($request->ip()),
                 Limit::perMinute(5)->by(
-                    'email:' . mb_strtolower(
-                        (string) $request->input('email')
-                    )
+                    'email:' . mb_strtolower((string) $request->input('email'))
                 ),
             ];
         });
@@ -65,9 +63,7 @@ class AppServiceProvider extends ServiceProvider
             return [
                 Limit::perMinute(10)->by($request->ip()),
                 Limit::perMinute(5)->by(
-                    'admin-email:' . mb_strtolower(
-                        (string) $request->input('email')
-                    )
+                    'admin-email:' . mb_strtolower((string) $request->input('email'))
                 ),
             ];
         });
@@ -79,13 +75,10 @@ class AppServiceProvider extends ServiceProvider
             return [
                 Limit::perMinute(10)->by($request->ip()),
                 Limit::perMinute(5)->by(
-                    'sensitive-user:' .
-                    ($request->user()?->getAuthIdentifier() ?? 'guest')
+                    'sensitive-user:' . ($request->user()?->getAuthIdentifier() ?? 'guest')
                 ),
                 Limit::perMinute(5)->by(
-                    'sensitive-email:' . mb_strtolower(
-                        (string) $request->input('email')
-                    )
+                    'sensitive-email:' . mb_strtolower((string) $request->input('email'))
                 ),
             ];
         });
@@ -98,8 +91,7 @@ class AppServiceProvider extends ServiceProvider
 
             return [
                 Limit::perMinute(30)->by(
-                    'message-user:' .
-                    ($request->user()?->getAuthIdentifier() ?? $request->ip())
+                    'message-user:' . ($request->user()?->getAuthIdentifier() ?? $request->ip())
                 ),
                 Limit::perMinute(10)->by(
                     'message-conversation:' . $conversationKey
@@ -111,15 +103,13 @@ class AppServiceProvider extends ServiceProvider
          * Limitation des opérations de paiement.
          */
         RateLimiter::for('payment', function (Request $request) {
-            $userKey = 'payment-user:' .
-                ($request->user()?->getAuthIdentifier() ?? $request->ip());
+            $userKey = 'payment-user:' . ($request->user()?->getAuthIdentifier() ?? $request->ip());
 
             $routeResource = $request->route('order') ?? $request->route('payment');
             if (is_object($routeResource) && method_exists($routeResource, 'getKey')) {
                 $routeResource = $routeResource->getKey();
             }
-            $orderKey = 'payment-order:' .
-                (string) ($routeResource ?? $request->ip());
+            $orderKey = 'payment-order:' . (string) ($routeResource ?? $request->ip());
 
             return [
                 Limit::perMinute(10)->by($userKey),
