@@ -97,6 +97,7 @@ class ServiceRequestController extends Controller
             'service',
             'professional.user',
             'address',
+            'addressSnapshot',
             'statusHistories.actor',
         ]);
 
