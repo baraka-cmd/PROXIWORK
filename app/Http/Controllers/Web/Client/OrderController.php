@@ -10,6 +10,7 @@ use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\IndexClientOrdersRequest;
+use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProfessionalProfile;
@@ -175,7 +176,21 @@ class OrderController extends Controller
             'payment.transactions',
         ]);
 
-        return view('client.orders.show', compact('order'));
+        $conversations = Conversation::query()
+            ->where(function ($query) use ($order): void {
+                $query->where('order_id', $order->getKey());
+
+                if ($order->service_request_id !== null) {
+                    $query->orWhere('service_request_id', $order->service_request_id);
+                }
+            })
+            ->whereHas('participants', fn ($query) => $query
+                ->where('users.id', request()->user()->getKey())
+                ->whereNull('conversation_participants.left_at'))
+            ->latest('updated_at')
+            ->get(['id', 'type', 'status', 'order_id', 'service_request_id']);
+
+        return view('client.orders.show', compact('order', 'conversations'));
     }
 
     public function pay(Order $order): View|RedirectResponse
