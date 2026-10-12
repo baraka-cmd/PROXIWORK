@@ -36,6 +36,16 @@ class TransactionalNotificationService
         $this->send($recipient, 'Devis refusé', 'Le client a refusé votre proposition commerciale.', 'quotation');
     }
 
+    public function clientCounterOfferAccepted(User $recipient): void
+    {
+        $this->send($recipient, 'Contre-proposition acceptée', 'Le professionnel a accepté votre contre-proposition. La commande a été créée et attend la prochaine étape prévue.', 'quotation');
+    }
+
+    public function clientCounterOfferRejected(User $recipient): void
+    {
+        $this->send($recipient, 'Contre-proposition refusée', 'Le professionnel a refusé votre contre-proposition. La décision est enregistrée dans l’historique du devis.', 'quotation');
+    }
+
     public function quotationExpired(User $recipient): void
     {
         $this->send($recipient, 'Devis expiré', 'La période de validité de cette proposition commerciale est terminée.', 'quotation');
