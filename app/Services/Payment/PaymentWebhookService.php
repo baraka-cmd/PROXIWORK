@@ -80,7 +80,7 @@ class PaymentWebhookService
                     $previousTransactionStatus,
                     $provider->value,
                     ['provider_event_id' => $eventId],
-                    'webhook-'.$provider->value.'-'.$eventId,
+                    'webhook-'.$provider->value.'-'.hash('sha256', $eventId),
                 );
 
                 return $transaction->refresh();
@@ -105,7 +105,7 @@ class PaymentWebhookService
                 $transaction->status->value,
                 $provider->value,
                 ['provider_event_id' => $eventId],
-                'webhook-'.$provider->value.'-'.$eventId,
+                'webhook-'.$provider->value.'-'.hash('sha256', $eventId),
             );
 
             $payment = Payment::query()->lockForUpdate()->findOrFail($transaction->payment_id);
