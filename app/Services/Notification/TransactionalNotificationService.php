@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Notification;
 
 use App\Models\NotificationDelivery;
+use App\Models\NotificationDevice;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Illuminate\Notifications\DatabaseNotification;
@@ -231,7 +232,7 @@ class TransactionalNotificationService
                 $firebaseConfigured = trim((string) config('services.firebase.project_id')) !== ''
                     && trim((string) config('services.firebase.client_email')) !== ''
                     && trim((string) config('services.firebase.private_key')) !== '';
-                $hasDevices = \App\Models\NotificationDevice::query()
+                $hasDevices = NotificationDevice::query()
                     ->where('user_id', $recipient->getKey())
                     ->exists();
                 $localSimulation = app()->environment(['local', 'testing']);
