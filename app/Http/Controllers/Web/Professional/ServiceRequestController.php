@@ -61,7 +61,7 @@ class ServiceRequestController extends Controller
             ->where('professional_id', $serviceRequest->professional_id)
             ->first();
 
-        if ($conversation !== null && !Gate::allows('view', $conversation)) {
+        if ($conversation !== null && ! Gate::allows('view', $conversation)) {
             $conversation = null;
         }
 
