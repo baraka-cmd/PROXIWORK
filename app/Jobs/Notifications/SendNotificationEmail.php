@@ -35,7 +35,7 @@ class SendNotificationEmail implements ShouldQueue
                 ->lockForUpdate()
                 ->findOrFail($this->deliveryId);
 
-            if (in_array($record->status, ['SENT', 'DELIVERED', 'FAILED', 'UNKNOWN', 'SIMULATED'], true)) {
+            if (in_array($record->status, ['SENT', 'DELIVERED', 'FAILED', 'UNKNOWN', 'SIMULATED', 'SKIPPED'], true)) {
                 return null;
             }
 
@@ -85,6 +85,19 @@ class SendNotificationEmail implements ShouldQueue
         }
 
         $data = is_array($notification->data) ? $notification->data : [];
+        $priority = (string) ($data['priority'] ?? 'normal');
+        $preferences = $user->notificationPreference()->first();
+
+        if ($priority !== 'critical' && $preferences !== null && ! $preferences->email_enabled) {
+            $delivery->update([
+                'status' => 'SKIPPED',
+                'processing_at' => null,
+                'last_error_code' => 'EMAIL_DISABLED_BY_PREFERENCE',
+            ]);
+
+            return;
+        }
+
         $message = new TransactionalNotificationMail(
             (string) ($data['title'] ?? 'Notification PROXIWORK'),
             (string) ($data['message'] ?? 'Un événement important est disponible dans votre espace PROXIWORK.'),
@@ -175,7 +188,7 @@ class SendNotificationEmail implements ShouldQueue
     {
         $delivery = NotificationDelivery::query()->find($this->deliveryId);
 
-        if ($delivery === null || in_array($delivery->status, ['SENT', 'DELIVERED', 'UNKNOWN', 'SIMULATED'], true)) {
+        if ($delivery === null || in_array($delivery->status, ['SENT', 'DELIVERED', 'UNKNOWN', 'SIMULATED', 'SKIPPED'], true)) {
             return;
         }
 
