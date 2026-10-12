@@ -23,12 +23,12 @@ class TransactionalNotificationService
 
     public function quotationCreated(User $recipient, ?string $url = null): void
     {
-        $this->send($recipient, 'Nouveau devis reçu', 'Le professionnel vous a envoyé une nouvelle proposition commerciale.', 'quotation', $url);
+        $this->send($recipient, 'Nouveau devis reçu', 'Le professionnel vous a envoyé une nouvelle proposition commerciale.', 'quotation', $url, 'important');
     }
 
     public function quotationAccepted(User $recipient, ?string $url = null): void
     {
-        $this->send($recipient, 'Devis accepté', 'Le client a accepté votre proposition commerciale.', 'quotation', $url);
+        $this->send($recipient, 'Devis accepté', 'Le client a accepté votre proposition commerciale.', 'quotation', $url, 'important');
     }
 
     public function quotationRejected(User $recipient, ?string $url = null): void
@@ -68,12 +68,12 @@ class TransactionalNotificationService
 
     public function paymentSucceeded(User $recipient): void
     {
-        $this->send($recipient, 'Paiement confirmé', 'Votre paiement a été confirmé avec succès.', 'payment');
+        $this->send($recipient, 'Paiement confirmé', 'Votre paiement a été confirmé avec succès.', 'payment', null, 'important');
     }
 
     public function orderConfirmed(User $recipient): void
     {
-        $this->send($recipient, 'Commande confirmée', 'Une commande vient d’être confirmée après paiement.', 'order');
+        $this->send($recipient, 'Commande confirmée', 'Une commande vient d’être confirmée après paiement.', 'order', null, 'important');
     }
 
     public function messageReceived(User $recipient): void
@@ -86,10 +86,21 @@ class TransactionalNotificationService
         $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review');
     }
 
-    private function send(User $recipient, string $title, string $message, string $action, ?string $url = null): void
+    public function securityAlert(User $recipient, string $title, string $message, ?string $url = null): void
     {
+        $this->send($recipient, $title, $message, 'account', $url, 'critical');
+    }
+
+    private function send(
+        User $recipient,
+        string $title,
+        string $message,
+        string $action,
+        ?string $url = null,
+        string $priority = 'normal',
+    ): void {
         try {
-            $recipient->notify(new AccountActivityNotification($title, $message, $action, $url));
+            $recipient->notify(new AccountActivityNotification($title, $message, $action, $url, $priority));
         } catch (Throwable $exception) {
             // Notifications are secondary effects: a dispatch failure must not turn
             // an already-committed business transition into a false HTTP failure.
