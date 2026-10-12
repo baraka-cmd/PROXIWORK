@@ -163,6 +163,7 @@ class ServiceRequestController extends Controller
         $this->notificationService->serviceRequestCreated(
             $serviceRequest->professional->user,
             $serviceRequest->service->title,
+            'service-request-submitted:'.$serviceRequest->getKey(),
         );
 
         return (new ServiceRequestResource($serviceRequest))->additional([
@@ -178,7 +179,7 @@ class ServiceRequestController extends Controller
         $serviceRequest = $this->lifecycleService->cancel($serviceRequest, $request->user());
 
         $this->auditLogService->record('service_request_cancelled', $serviceRequest, $request->user(), [], $request);
-        $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user);
+        $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user, 'service-request-cancelled:'.$serviceRequest->getKey());
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande annulée avec succès.',
@@ -202,7 +203,7 @@ class ServiceRequestController extends Controller
             'reason' => $request->validated('reason'),
         ], $request);
 
-        $this->notificationService->serviceRequestRejected($serviceRequest->client);
+        $this->notificationService->serviceRequestRejected($serviceRequest->client, 'service-request-rejected:'.$serviceRequest->getKey());
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande refusée avec succès.',
