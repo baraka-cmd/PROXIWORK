@@ -187,6 +187,7 @@ class ServiceRequestController extends Controller
             fn () => $this->notificationService->serviceRequestCreated(
                 $serviceRequest->professional->user,
                 $serviceRequest->service->title,
+                'service-request-submitted:'.$serviceRequest->getKey(),
             ),
             'service_request_submitted',
             $serviceRequest,
@@ -236,7 +237,7 @@ class ServiceRequestController extends Controller
 
         if ($serviceRequest->professional?->user !== null) {
             $this->notifySafely(
-                fn () => $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user),
+                fn () => $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user, 'service-request-cancelled:'.$serviceRequest->getKey()),
                 'service_request_cancelled',
                 $serviceRequest,
             );
