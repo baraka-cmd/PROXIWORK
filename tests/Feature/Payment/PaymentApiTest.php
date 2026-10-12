@@ -350,6 +350,31 @@ class PaymentApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_tampered_receipt_snapshot_is_rejected(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-receipt-tamper-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+        $receipt = $payment->receipt()->firstOrFail();
+        $payload = $receipt->payload;
+        $payload['amount'] = '1.00';
+        $receipt->forceFill(['payload' => $payload])->save();
+
+        $this->actingAs($client)
+            ->get(route('client.payments.receipt', $payment))
+            ->assertStatus(409);
+    }
+
     public function test_refund_request_uses_only_the_remaining_unrefunded_amount(): void
     {
         config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
