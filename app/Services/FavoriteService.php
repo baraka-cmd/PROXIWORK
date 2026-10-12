@@ -38,8 +38,8 @@ class FavoriteService
     }
 
     /**
-     * @param array{professional_profile_id: int|null, service_id: int|null} $target
-     * @param array<int, string> $relations
+     * @param  array{professional_profile_id: int|null, service_id: int|null}  $target
+     * @param  array<int, string>  $relations
      * @return array{0: Favorite, 1: bool}
      */
     private function addTarget(User $user, array $target, array $relations): array
