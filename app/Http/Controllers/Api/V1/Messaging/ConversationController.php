@@ -111,7 +111,7 @@ class ConversationController extends Controller
             ->firstWhere('id', '!=', $request->user()->getKey());
 
         if ($recipient !== null) {
-            $this->notificationService->messageReceived($recipient);
+            $this->notificationService->messageReceived($recipient, 'message-received:'.$message->getKey());
         }
 
         return response()->json([
