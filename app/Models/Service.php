@@ -22,6 +22,7 @@ class Service extends Model
 
     protected $attributes = [
         'pricing_type' => ServicePricingType::QUOTE->value,
+        'execution_mode' => \\App\\Enums\\ServiceExecutionMode::CLIENT_LOCATION->value,
         'status' => ServiceStatus::DRAFT->value,
         'sort_order' => 0,
     ];
