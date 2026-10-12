@@ -48,7 +48,7 @@ class FavoriteController extends Controller
         $favorites = (clone $baseQuery)
             ->with([
                 'professionalProfile.user.profile',
-                'professionalProfile.services' => fn (Builder $query) => $query->published(),
+                'professionalProfile.services' => fn ($query) => $query->published(),
                 'service.category',
                 'service.skills',
                 'service.images',
