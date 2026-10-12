@@ -43,10 +43,12 @@ class NotificationFoundationTest extends TestCase
 
         $this->actingAs($user, 'sanctum')
             ->patchJson('/api/v1/notifications/preferences', [
+                'database_enabled' => false,
                 'email_enabled' => false,
                 'push_enabled' => true,
             ])
             ->assertOk()
+            ->assertJsonPath('data.database_enabled', true)
             ->assertJsonPath('data.email_enabled', false)
             ->assertJsonPath('data.push_enabled', true);
     }
@@ -169,7 +171,72 @@ class NotificationFoundationTest extends TestCase
         );
     }
 
-    public function test_notification_channel_respects_preferences(): void
+
+    public function test_api_notification_filters_exclude_other_users_and_sanitize_external_urls(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $other = User::factory()->create();
+        $other->assignRole('client');
+
+        $user->notify(new AccountActivityNotification(
+            'Nouveau devis',
+            'Une proposition est disponible.',
+            'quotation',
+            'https://evil.example/phishing',
+        ));
+        $user->notify(new AccountActivityNotification(
+            'Paiement confirmé',
+            'Le paiement est confirmé.',
+            'payment',
+        ));
+        $other->notify(new AccountActivityNotification(
+            'Notification privée',
+            'Ne doit pas être visible.',
+            'quotation',
+        ));
+
+        $this->actingAs($user, 'sanctum')
+            ->getJson('/api/v1/notifications?category=quotation&status=unread&q=devis')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.data.title', 'Nouveau devis')
+            ->assertJsonPath('data.0.data.url', null);
+    }
+
+    public function test_api_can_archive_and_restore_only_owned_notifications(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $other = User::factory()->create();
+        $other->assignRole('client');
+
+        $user->notify(new AccountActivityNotification('À archiver', 'Historique conservé.', 'quotation'));
+        $other->notify(new AccountActivityNotification('Privée', 'Autre propriétaire.', 'quotation'));
+
+        $notification = $user->notifications()->firstOrFail();
+        $otherNotification = $other->notifications()->firstOrFail();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/notifications/{$otherNotification->id}/archive")
+            ->assertNotFound();
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/notifications/{$notification->id}/archive")
+            ->assertOk()
+            ->assertJsonPath('data.archived_at', fn ($value) => $value !== null);
+
+        $this->assertNotNull($notification->fresh()->archived_at);
+
+        $this->actingAs($user, 'sanctum')
+            ->postJson("/api/v1/notifications/{$notification->id}/restore")
+            ->assertOk();
+
+        $this->assertNull($notification->fresh()->archived_at);
+    }
+\n    public function test_notification_channel_respects_preferences(): void
     {
         $user = User::factory()->create();
         $user->assignRole('client');
@@ -182,6 +249,10 @@ class NotificationFoundationTest extends TestCase
 
         $notification = new AccountActivityNotification('Test', 'Test', 'test');
 
-        $this->assertSame([], $notification->via($user));
+        // In-app history is mandatory even if a legacy preference row disables it.
+        $this->assertSame(['database'], $notification->via($user));
+
+        $critical = new AccountActivityNotification('Alerte de sécurité', 'Activité sensible détectée.', 'account', null, 'critical');
+        $this->assertSame(['database', 'mail'], $critical->via($user));
     }
 }
