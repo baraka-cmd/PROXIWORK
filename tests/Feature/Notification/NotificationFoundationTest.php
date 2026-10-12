@@ -304,7 +304,7 @@ class NotificationFoundationTest extends TestCase
     {
         $recipient = User::factory()->create();
         $recipient->assignRole('client');
-        $recipient->profile()->create(['phone' => '+243970001234']);
+        $recipient->profile()->create(['first_name' => 'Test', 'last_name' => 'Client', 'phone' => '+243970001234']);
         $recipient->notificationPreference()->create(['sms_enabled' => true]);
 
         app(TransactionalNotificationService::class)->quotationCreated(
