@@ -12,7 +12,7 @@
 <div class="client-module payment-receipt-page">
     <div class="payment-receipt-toolbar">
         <a class="btn btn-secondary" href="{{ route('client.payments.show', $payment) }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour au paiement</a>
-        <button class="btn btn-primary" type="button" onclick="window.print()"><i class="fa-solid fa-print" aria-hidden="true"></i> Imprimer / enregistrer en PDF</button>
+        <button class="btn btn-primary" type="button" data-print-receipt><i class="fa-solid fa-print" aria-hidden="true"></i> Imprimer / enregistrer en PDF</button>
     </div>
 
     <article class="payment-receipt-document">
