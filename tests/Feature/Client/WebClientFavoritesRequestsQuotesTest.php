@@ -658,6 +658,62 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->assertDontSee('DEVIS-'.str_pad((string) $acceptedQuote->id, 6, '0', STR_PAD_LEFT));
     }
 
+    public function test_professional_can_explicitly_renew_an_expired_quote_without_rewriting_history(): void
+    {
+        Notification::fake();
+
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'expired',
+        ], [
+            'amount' => 120,
+            'currency' => 'USD',
+            'valid_until' => now()->subMinute(),
+        ]);
+        $previousOffer = $quotation->currentOffer;
+        $previousValidity = $previousOffer->valid_until->toDateTimeString();
+
+        $this->actingAs($professionalUser)
+            ->post('/professional/quotes/'.$quotation->id.'/renew', [
+                'amount' => 125,
+                'currency' => 'USD',
+                'duration_value' => 5,
+                'duration_unit' => 'days',
+                'description' => 'Proposition renouvelée avec un périmètre clairement défini.',
+                'conditions' => 'La commande attendra le paiement après acceptation.',
+                'valid_until' => now()->addDays(7)->format('Y-m-d H:i:s'),
+            ])
+            ->assertRedirect('/professional/quotes/'.$quotation->id)
+            ->assertSessionHas('success');
+
+        $renewed = $quotation->fresh()->load('currentOffer', 'offers');
+
+        $this->assertSame('sent', $renewed->status->value);
+        $this->assertCount(2, $renewed->offers);
+        $this->assertSame(2, $renewed->currentOffer->version);
+        $this->assertSame('professional', $renewed->currentOffer->actor_type->value);
+        $this->assertSame('125.00', $renewed->currentOffer->amount);
+        $this->assertSame('USD', $renewed->currentOffer->currency);
+        $this->assertSame($previousValidity, $previousOffer->fresh()->valid_until->toDateTimeString());
+        $this->assertDatabaseHas('quotation_events', [
+            'quotation_id' => $quotation->id,
+            'type' => 'quote_renewed',
+            'offer_id' => $renewed->current_offer_id,
+            'actor_id' => $professionalUser->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'quotation_renewed',
+            'subject_id' => $quotation->id,
+            'user_id' => $professionalUser->id,
+        ]);
+        Notification::assertSentTo($client, AccountActivityNotification::class);
+    }
+
     private function makeQuoteForClient(
         User $client,
         User $professionalUser,
