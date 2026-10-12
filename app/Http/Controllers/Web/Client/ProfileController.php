@@ -258,8 +258,7 @@ class ProfileController extends Controller
         Request $request,
         string $token,
         TransactionalNotificationService $notificationService,
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $user = $request->user();
         $tokenHash = hash('sha256', $token);
         $oldEmail = $user->email;
