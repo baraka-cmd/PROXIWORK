@@ -250,6 +250,7 @@ class ClientProfileTest extends TestCase
     {
         Notification::fake();
         $client = $this->client();
+        $originalEmail = $client->email;
         $token = str_repeat('a', 64);
         $client->forceFill([
             'pending_email' => 'confirmed-address@example.test',
@@ -264,7 +265,7 @@ class ClientProfileTest extends TestCase
             ->assertViewIs('client.profile.email-change-confirmation')
             ->assertSee('confirmed-address@example.test');
 
-        $this->assertSame('client'.$client->id.'@example.test', $client->fresh()->email);
+        $this->assertSame($originalEmail, $client->fresh()->email);
         $this->assertSame('confirmed-address@example.test', $client->fresh()->pending_email);
 
         $this->actingAs($client)
