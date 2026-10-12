@@ -61,10 +61,15 @@ class AccountActivityNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        $mail = (new MailMessage)
             ->subject($this->title)
             ->greeting('Bonjour '.$notifiable->name)
-            ->line($this->message)
-            ->when($this->url !== null, fn (MailMessage $mail) => $mail->action('Consulter', $this->url));
+            ->line($this->message);
+
+        if ($this->url !== null) {
+            $mail->action('Consulter', $this->url);
+        }
+
+        return $mail;
     }
 }
