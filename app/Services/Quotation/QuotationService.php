@@ -91,8 +91,30 @@ class QuotationService
 
             $offer = QuotationOffer::query()->findOrFail($locked->current_offer_id);
 
-            if ($offer->valid_until->isPast()) {
-                throw ValidationException::withMessages(['valid_until' => 'Cette offre a expiré.']);
+            if ($offer->actor_type !== QuotationOfferActor::PROFESSIONAL) {
+                throw ValidationException::withMessages([
+                    'status' => 'Votre contre-proposition attend la réponse du professionnel et ne peut pas être acceptée par vous-même.',
+                ]);
+            }
+
+            if (! $offer->valid_until->isFuture()) {
+                throw ValidationException::withMessages([
+                    'valid_until' => 'Cette offre a expiré. Le professionnel doit la renouveler avant toute acceptation.',
+                ]);
+            }
+
+            $request = ServiceRequest::query()->lockForUpdate()->findOrFail($locked->service_request_id);
+
+            if ($request->status !== ServiceRequestStatus::QUOTED) {
+                throw ValidationException::withMessages([
+                    'status' => 'La demande n’est plus dans un état compatible avec l’acceptation.',
+                ]);
+            }
+
+            if ($request->address_id === null) {
+                throw ValidationException::withMessages([
+                    'address' => 'Une adresse d’exécution appartenant au client est requise avant l’acceptation.',
+                ]);
             }
 
             $locked->forceFill([
@@ -106,18 +128,14 @@ class QuotationService
                 'actor_id' => $client->getKey(),
                 'type' => 'offer_accepted',
                 'offer_id' => $offer->getKey(),
+                'metadata' => ['version' => $offer->version],
                 'created_at' => now(),
             ]);
-
-            $request = ServiceRequest::query()->lockForUpdate()->findOrFail($locked->service_request_id);
-            if ($request->status !== ServiceRequestStatus::QUOTED) {
-                throw ValidationException::withMessages(['status' => 'La demande n’est plus dans un état compatible avec l’acceptation.']);
-            }
 
             $this->requestLifecycle->accept($request, $client);
             $this->orderService->createFromAcceptedQuotation($locked, $client);
 
-            return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
+            return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events', 'order']);
         });
     }
 
@@ -137,6 +155,20 @@ class QuotationService
                 throw ValidationException::withMessages(['status' => 'Ce devis ne peut plus être refusé.']);
             }
 
+            $offer = QuotationOffer::query()->findOrFail($locked->current_offer_id);
+
+            if ($offer->actor_type !== QuotationOfferActor::PROFESSIONAL) {
+                throw ValidationException::withMessages([
+                    'status' => 'Votre contre-proposition attend la réponse du professionnel.',
+                ]);
+            }
+
+            if (! $offer->valid_until->isFuture()) {
+                throw ValidationException::withMessages([
+                    'valid_until' => 'Cette offre a expiré. Elle ne peut plus faire l’objet d’une décision.',
+                ]);
+            }
+
             $locked->forceFill([
                 'status' => QuotationStatus::REJECTED,
                 'rejected_at' => now(),
@@ -146,14 +178,12 @@ class QuotationService
                 'quotation_id' => $locked->getKey(),
                 'actor_id' => $client->getKey(),
                 'type' => 'quote_rejected',
-                'offer_id' => $locked->current_offer_id,
+                'offer_id' => $offer->getKey(),
+                'metadata' => ['version' => $offer->version],
                 'created_at' => now(),
             ]);
 
-            $this->requestLifecycle->rejectByClient(
-                $locked->serviceRequest,
-                $client,
-            );
+            $this->requestLifecycle->rejectByClient($locked->serviceRequest, $client);
 
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         });
