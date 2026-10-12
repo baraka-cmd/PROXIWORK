@@ -35,7 +35,7 @@ class SendNotificationEmail implements ShouldQueue
                 ->lockForUpdate()
                 ->findOrFail($this->deliveryId);
 
-            if (in_array($record->status, ['SENT', 'DELIVERED', 'FAILED', 'UNKNOWN'], true)) {
+            if (in_array($record->status, ['SENT', 'DELIVERED', 'FAILED', 'UNKNOWN', 'SIMULATED'], true)) {
                 return null;
             }
 
@@ -90,6 +90,28 @@ class SendNotificationEmail implements ShouldQueue
             (string) ($data['message'] ?? 'Un événement important est disponible dans votre espace PROXIWORK.'),
             is_string($data['url'] ?? null) ? $data['url'] : null,
         );
+
+        if (in_array((string) config('mail.default'), ['log', 'array'], true)) {
+            try {
+                Mail::to($user->email)->send($message);
+                $delivery->update([
+                    'status' => 'SIMULATED',
+                    'processing_at' => null,
+                    'sent_at' => null,
+                    'provider_reference' => null,
+                    'last_error_code' => 'NON_DELIVERING_MAILER',
+                ]);
+            } catch (Throwable $exception) {
+                $delivery->update([
+                    'status' => 'FAILED',
+                    'processing_at' => null,
+                    'last_error_code' => $exception::class,
+                ]);
+                throw $exception;
+            }
+
+            return;
+        }
 
         try {
             $sentMessage = Mail::to($user->email)->send($message);
