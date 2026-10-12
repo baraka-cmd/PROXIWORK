@@ -16,6 +16,9 @@ class ClientDashboardResource extends JsonResource
             'addresses' => $this->resource['addresses'],
             'favorites' => $this->resource['favorites'],
             'notifications' => $this->resource['notifications'],
+            'stats' => $this->resource['stats'],
+            'chart' => $this->resource['chart'],
+            'recent_activity' => $this->resource['recent_activity'],
             'pending_actions' => $this->resource['pending_actions'],
         ];
     }

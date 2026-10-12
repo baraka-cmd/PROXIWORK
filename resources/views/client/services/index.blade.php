@@ -3,6 +3,12 @@
 
 @section('title', 'Catalogue des services — PROXIWORK')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/client/services.css')
+    @endunless
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
@@ -203,12 +209,20 @@
                                     <strong>Sur devis</strong>
                                 @endif
 
-                                <a
-                                    class="button button--primary"
-                                    href="{{ route('client.requests.create', ['service' => $service->id]) }}"
-                                >
-                                    Demander ce service
-                                </a>
+                                <div class="service-card__actions">
+                                    <a
+                                        class="button button--ghost"
+                                        href="{{ route('public.services.show', $service) }}"
+                                    >
+                                        Voir le service
+                                    </a>
+                                    <a
+                                        class="button button--primary"
+                                        href="{{ route('client.requests.create', ['service' => $service->id]) }}"
+                                    >
+                                        Demander ce service
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </article>

@@ -18,6 +18,7 @@ use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\PasswordResetLinkController;
 use App\Http\Controllers\Web\Professional\DashboardController as ProfessionalDashboardController;
+use App\Http\Controllers\Web\Professional\DocumentController as ProfessionalDocumentController;
 use App\Http\Controllers\Web\Professional\MessageController;
 use App\Http\Controllers\Web\Professional\NotificationController;
 use App\Http\Controllers\Web\Professional\OrderController as ProfessionalOrderController;
@@ -29,16 +30,20 @@ use App\Http\Controllers\Web\Professional\ServiceRequestController as Profession
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
 use App\Http\Controllers\Web\PublicSearchController;
+use App\Http\Controllers\Web\HomePageController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\Client\ServiceCatalogController;
+use App\Http\Controllers\Web\EmailVerificationController;
 
-Route::view('/', 'public.home')->name('home');
+Route::get('/', [HomePageController::class, 'index'])->name('home');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
+Route::get('/services/{service:slug}', [PublicSearchController::class, 'service'])->name('public.services.show');
 Route::get('/professionals', [PublicSearchController::class, 'professionals'])->name('public.professionals.index');
+Route::get('/professionals/{professional}', [PublicSearchController::class, 'professional'])->name('public.professionals.show');
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
@@ -123,6 +128,17 @@ Route::middleware('guest')->group(function (): void {
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('throttle:5,1')->name('password.update');
 });
 
+Route::middleware('auth')->group(function (): void {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])
+        ->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware('signed')
+        ->name('verification.verify.web');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'send'])
+        ->middleware('throttle:auth-sensitive')
+        ->name('verification.send');
+});
+
 Route::prefix('professional')->name('professional.')->middleware(['auth', 'active.account', 'role:professional'])->group(function (): void {
     Route::get('/', ProfessionalDashboardController::class)->name('dashboard');
     Route::get('requests', [ProfessionalServiceRequestController::class, 'index'])->name('requests.index');
@@ -135,6 +151,9 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
+    Route::get('documents', [ProfessionalDocumentController::class, 'index'])->name('documents.index');
+    Route::post('documents', [ProfessionalDocumentController::class, 'store'])->name('documents.store');
+    Route::delete('documents/{document}', [ProfessionalDocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('services', [ProfileController::class, 'services'])->name('services.index');
     Route::get('services/create', [ProfileController::class, 'createService'])->name('services.create');
     Route::post('services', [ProfileController::class, 'storeService'])->name('services.store');
@@ -170,7 +189,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::get('login', [AdminAuthController::class, 'create'])->name('login');
         Route::post('login', [AdminAuthController::class, 'store'])->middleware('throttle:admin-login')->name('login.store');
     });
-    Route::middleware('auth')->group(function (): void {
+    Route::middleware(['auth', 'active.account'])->group(function (): void {
         Route::get('dashboard', [DashboardController::class, 'index'])->middleware('permission:admin.dashboard.view')->name('dashboard');
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
         Route::middleware('permission:rbac.view')->group(function (): void {

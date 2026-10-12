@@ -9,6 +9,9 @@ use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Tests\TestCase;
 
 class WebLoginTest extends TestCase
@@ -112,5 +115,44 @@ class WebLoginTest extends TestCase
         ])->assertSessionHasErrors('email');
 
         $this->assertGuest();
+    }
+
+    public function test_authenticated_user_can_logout_from_the_shared_web_route(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($user)
+            ->post(route('logout'))
+            ->assertRedirect(route('login'));
+
+        $this->assertGuest();
+    }
+
+    public function test_authenticated_user_can_request_web_email_verification(): void
+    {
+        Notification::fake();
+        $user = User::factory()->unverified()->create();
+
+        $this->actingAs($user)
+            ->post(route('verification.send'))
+            ->assertRedirect();
+
+        Notification::assertSentTo($user, VerifyEmail::class);
+    }
+
+    public function test_web_email_verification_requires_the_authenticated_user_and_signed_hash(): void
+    {
+        $user = User::factory()->unverified()->create();
+        $url = URL::temporarySignedRoute(
+            'verification.verify.web',
+            now()->addMinutes(10),
+            ['id' => $user->id, 'hash' => sha1($user->getEmailForVerification())],
+        );
+
+        $this->get($url)->assertRedirect('/login');
+
+        $this->actingAs($user)->get($url)->assertRedirect(route('dashboard'));
+        $this->assertNotNull($user->fresh()->email_verified_at);
     }
 }

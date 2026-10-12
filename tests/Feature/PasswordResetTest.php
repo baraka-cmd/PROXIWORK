@@ -9,6 +9,7 @@ use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -53,6 +54,7 @@ class PasswordResetTest extends TestCase
             'email' => 'client@example.com',
             'password' => 'OldPassword123!',
         ]);
+        $user->createToken('old-device');
 
         $this->post(route('password.email'), ['email' => $user->email])->assertRedirect();
 
@@ -77,6 +79,7 @@ class PasswordResetTest extends TestCase
             ->assertSessionHas('status');
 
         $this->assertTrue(Hash::check('NewPassword456!', $user->fresh()->password));
+        $this->assertDatabaseCount('personal_access_tokens', 0);
 
         $this->from(route('password.request'))
             ->post(route('password.update'), [

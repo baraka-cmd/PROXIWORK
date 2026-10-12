@@ -37,6 +37,7 @@ class ProfessionalSearchService
             ])
             ->where('status', ProfessionalProfile::STATUS_ACTIVE)
             ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
             ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
             ->whereHas('services', function (Builder $services): void {
                 $services
@@ -71,6 +72,31 @@ class ProfessionalSearchService
         return $query
             ->paginate($filters['per_page'] ?? 15)
             ->withQueryString();
+    }
+
+    public function findVisible(ProfessionalProfile $professional): ProfessionalProfile
+    {
+        return ProfessionalProfile::query()
+            ->whereKey($professional->getKey())
+            ->where('status', ProfessionalProfile::STATUS_ACTIVE)
+            ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
+            ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
+            ->with([
+                'user:id,name,email',
+                'user.profile',
+                'skills' => fn ($skills) => $skills->where('status', 'active'),
+                'services' => fn ($services) => $services
+                    ->published()
+                    ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
+                    ->with(['category', 'skills', 'images'])
+                    ->latest('published_at'),
+                'reviews' => fn ($reviews) => $reviews
+                    ->where('status', 'published')
+                    ->with('client:id,name')
+                    ->latest('published_at'),
+            ])
+            ->firstOrFail();
     }
 
     private function applyProfession(Builder $query, array $filters): void

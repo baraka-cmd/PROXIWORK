@@ -5,27 +5,45 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Requests\ProfessionalSearchRequest;
+use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
+use App\Services\PublicServiceSearch\PublicServiceSearchService;
+use App\Models\Service;
+use App\Models\ProfessionalProfile;
 use Illuminate\View\View;
 
 class PublicSearchController
 {
     public function __construct(
         private readonly ProfessionalSearchService $searchService,
+        private readonly PublicServiceSearchService $serviceSearchService,
     ) {}
 
-    public function search(ProfessionalSearchRequest $request): View
+    public function search(PublicServiceSearchRequest $request): View
     {
         $filters = $request->validated();
-        $hasCriteria = $this->hasSearchCriteria($filters);
 
-        return view('public.search', [
-            'professionals' => $hasCriteria ? $this->searchService->search($filters) : null,
+        return view('public.search-services', [
+            'services' => $this->serviceSearchService->search($filters),
             'filters' => $filters,
             ...$this->filterOptions(),
         ]);
+    }
+
+    public function service(Service $service): View
+    {
+        $service = $this->serviceSearchService->findVisible($service->getKey());
+
+        return view('public.services.show', compact('service'));
+    }
+
+    public function professional(ProfessionalProfile $professional): View
+    {
+        $professional = $this->searchService->findVisible($professional);
+
+        return view('public.professionals.show', compact('professional'));
     }
 
     public function professionals(ProfessionalSearchRequest $request): View
@@ -53,14 +71,4 @@ class PublicSearchController
         ];
     }
 
-    private function hasSearchCriteria(array $filters): bool
-    {
-        foreach (['profession', 'search', 'category', 'skills', 'city', 'province', 'min_price', 'max_price', 'currency', 'rating', 'availability', 'verification'] as $field) {
-            if (array_key_exists($field, $filters) && $filters[$field] !== '' && $filters[$field] !== [] && $filters[$field] !== null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

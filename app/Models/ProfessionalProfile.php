@@ -114,4 +114,9 @@ class ProfessionalProfile extends Model
     {
         return $this->hasMany(ProfessionalVerificationReview::class);
     }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(ProfessionalDocument::class);
+    }
 }

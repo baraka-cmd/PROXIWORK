@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Client;
 
 use App\Enums\CategoryStatus;
-use App\Enums\ServiceStatus;
+use App\Enums\ProfessionalVerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Service;
@@ -38,7 +38,9 @@ class ServiceCatalogController extends Controller
             ->whereHas('professionalProfile', function ($query): void {
                 $query
                     ->where('status', 'active')
-                    ->where('visibility', 'public');
+                    ->where('visibility', 'public')
+                    ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
+                    ->whereHas('user', fn ($user) => $user->where('account_status', 'active'));
             })
             ->when(
                 $filters['search'] ?? null,

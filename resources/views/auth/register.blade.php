@@ -36,26 +36,75 @@
                 @csrf
 
                 <div class="register-field">
-                    <label for="name">Nom complet</label>
+                    <label for="first_name">Prénom</label>
                     <div class="register-input">
                         <i class="fa-regular fa-user" aria-hidden="true"></i>
                         <input
-                            id="name"
-                            name="name"
+                            id="first_name"
+                            name="first_name"
                             type="text"
-                            value="{{ old('name') }}"
-                            autocomplete="name"
-                            placeholder="Votre nom complet"
+                            value="{{ old('first_name') }}"
+                            autocomplete="given-name"
+                            placeholder="Votre prénom"
                             minlength="2"
                             maxlength="100"
-                            aria-describedby="name-hint @error('name') name-error @enderror"
+                            aria-describedby="first-name-hint @error('first_name') first-name-error @enderror"
                             required
                             autofocus
                         >
                     </div>
-                    <small id="name-hint" class="register-hint">Utilisez votre vrai nom pour faciliter les échanges professionnels.</small>
-                    @error('name')
-                        <p id="name-error" class="register-field-error">
+                    @error('first_name')
+                        <p id="first-name-error" class="register-field-error">
+                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <div class="register-field">
+                    <label for="last_name">Nom</label>
+                    <div class="register-input">
+                        <i class="fa-regular fa-user" aria-hidden="true"></i>
+                        <input
+                            id="last_name"
+                            name="last_name"
+                            type="text"
+                            value="{{ old('last_name') }}"
+                            autocomplete="family-name"
+                            placeholder="Votre nom"
+                            minlength="2"
+                            maxlength="100"
+                            aria-describedby="last-name-error"
+                            required
+                        >
+                    </div>
+                    @error('last_name')
+                        <p id="last-name-error" class="register-field-error">
+                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
+                <div class="register-field">
+                    <label for="phone">Numéro de téléphone</label>
+                    <div class="register-input">
+                        <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                        <input
+                            id="phone"
+                            name="phone"
+                            type="tel"
+                            value="{{ old('phone') }}"
+                            autocomplete="tel"
+                            inputmode="tel"
+                            placeholder="+243 000 000 000"
+                            maxlength="30"
+                            aria-describedby="phone-error"
+                            required
+                        >
+                    </div>
+                    @error('phone')
+                        <p id="phone-error" class="register-field-error">
                             <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
                             {{ $message }}
                         </p>

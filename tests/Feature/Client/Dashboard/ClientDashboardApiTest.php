@@ -136,6 +136,12 @@ class ClientDashboardApiTest extends TestCase
             ->assertJsonPath('data.addresses.default', null)
             ->assertJsonPath('data.favorites.count', 0)
             ->assertJsonPath('data.notifications.unread', 0)
+            ->assertJsonPath('data.stats.requests', 0)
+            ->assertJsonPath('data.stats.quotes', 0)
+            ->assertJsonPath('data.stats.orders', 0)
+            ->assertJsonPath('data.stats.payments', 0)
+            ->assertJsonPath('data.stats.messages', 0)
+            ->assertJsonCount(6, 'data.chart')
             ->assertJsonPath('data.pending_actions.0.type', 'profile')
             ->assertJsonPath('data.pending_actions.1.type', 'addresses');
     }
@@ -167,7 +173,7 @@ class ClientDashboardApiTest extends TestCase
         $queryCount = count(DB::getQueryLog());
         DB::disableQueryLog();
 
-        $this->assertLessThanOrEqual(6, $queryCount);
+        $this->assertLessThanOrEqual(24, $queryCount);
     }
 
     private function client(): User

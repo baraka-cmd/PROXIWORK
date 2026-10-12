@@ -86,6 +86,17 @@ class ProfessionalServiceManager
             $this->ensureCategoryIsActive($service->category);
             $this->ensurePricingIsCoherent($service);
 
+            $professional = ProfessionalProfile::query()
+                ->with('user')
+                ->lockForUpdate()
+                ->findOrFail($service->professional_profile_id);
+
+            if ($professional->verification_status !== \App\Enums\ProfessionalVerificationStatus::VERIFIED) {
+                throw ValidationException::withMessages([
+                    'professional' => 'Le profil professionnel doit être vérifié avant la publication d’un service.',
+                ]);
+            }
+
             if ($service->images->where('is_cover', true)->isEmpty()) {
                 throw ValidationException::withMessages([
                     'images' => 'Une image de couverture est obligatoire pour publier le service.',
@@ -106,11 +117,6 @@ class ProfessionalServiceManager
                 'status' => ServiceStatus::PUBLISHED,
                 'published_at' => now(),
             ])->save();
-
-            $professional = ProfessionalProfile::query()
-                ->with('user')
-                ->lockForUpdate()
-                ->findOrFail($service->professional_profile_id);
 
             if ($professional->user->account_status !== UserAccountStatus::ACTIVE) {
                 throw ValidationException::withMessages([

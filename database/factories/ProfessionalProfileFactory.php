@@ -6,6 +6,7 @@ namespace Database\Factories;
 
 use App\Models\ProfessionalProfile;
 use App\Models\User;
+use App\Enums\ProfessionalVerificationStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProfessionalProfileFactory extends Factory
@@ -18,6 +19,8 @@ class ProfessionalProfileFactory extends Factory
             'user_id' => User::factory(),
             'status' => ProfessionalProfile::STATUS_ACTIVE,
             'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'verified_at' => now(),
         ];
     }
 }

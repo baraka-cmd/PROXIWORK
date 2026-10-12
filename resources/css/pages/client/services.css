@@ -1,0 +1,126 @@
+.client-module {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.client-module > form.surface-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(180px, .7fr) auto;
+    align-items: end;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.service-card {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.service-card__media {
+    display: grid;
+    min-height: 170px;
+    place-items: center;
+    overflow: hidden;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+.service-card__media img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+}
+
+.service-card__media span {
+    display: grid;
+    gap: .5rem;
+    place-items: center;
+    font-size: 2rem;
+}
+
+.service-card__media small {
+    font-size: .75rem;
+}
+
+.service-card__body {
+    display: grid;
+    flex: 1;
+    gap: .75rem;
+    padding: 1.25rem;
+}
+
+.service-card__category {
+    margin: 0;
+    color: var(--color-primary);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.service-card h3 {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.service-card__body > p:not(.service-card__category) {
+    margin: 0;
+    color: var(--color-text-muted);
+    line-height: 1.6;
+}
+
+.service-card__meta,
+.service-card__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    color: var(--color-text-muted);
+    font-size: .78rem;
+}
+
+.service-card__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-top: auto;
+    padding-top: .9rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.service-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+@media (max-width: 1050px) {
+    .service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .client-module > form.surface-card,
+    .service-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .service-card__footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .service-card__actions,
+    .service-card__actions .button {
+        width: 100%;
+    }
+}

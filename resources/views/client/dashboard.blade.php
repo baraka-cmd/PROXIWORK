@@ -58,6 +58,9 @@
                                 'profile' => ['icon' => 'fa-user-pen', 'label' => 'Compléter mon profil', 'url' => url('/client/profile')],
                                 'addresses' => ['icon' => 'fa-location-dot', 'label' => 'Gérer mes adresses', 'url' => url('/client/addresses')],
                                 'notifications' => ['icon' => 'fa-bell', 'label' => 'Voir mes notifications', 'url' => url('/client/notifications')],
+                                'quotes' => ['icon' => 'fa-file-invoice-dollar', 'label' => 'Examiner mes devis', 'url' => url('/client/quotes')],
+                                'payments' => ['icon' => 'fa-credit-card', 'label' => 'Vérifier mes paiements', 'url' => url('/client/payments')],
+                                'messages' => ['icon' => 'fa-comments', 'label' => 'Ouvrir mes messages', 'url' => url('/client/messages')],
                             ];
                             $actionView = $actionMap[$action['type']] ?? ['icon' => 'fa-arrow-right', 'label' => 'Voir', 'url' => url('/client')];
                         @endphp
@@ -86,6 +89,36 @@
             </div>
 
             <div class="client-dashboard__stat-grid">
+                <a class="client-dashboard__stat-card" href="{{ url('/client/requests') }}">
+                    <span class="client-dashboard__stat-icon" aria-hidden="true"><i class="fa-solid fa-file-lines"></i></span>
+                    <span><strong>{{ $dashboard['stats']['requests'] }}</strong><small>Demandes en cours</small></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </a>
+
+                <a class="client-dashboard__stat-card" href="{{ url('/client/quotes') }}">
+                    <span class="client-dashboard__stat-icon client-dashboard__stat-icon--warning" aria-hidden="true"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                    <span><strong>{{ $dashboard['stats']['quotes'] }}</strong><small>Devis à examiner</small></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </a>
+
+                <a class="client-dashboard__stat-card" href="{{ url('/client/orders') }}">
+                    <span class="client-dashboard__stat-icon" aria-hidden="true"><i class="fa-solid fa-cart-shopping"></i></span>
+                    <span><strong>{{ $dashboard['stats']['orders'] }}</strong><small>Commandes actives</small></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </a>
+
+                <a class="client-dashboard__stat-card" href="{{ url('/client/payments') }}">
+                    <span class="client-dashboard__stat-icon client-dashboard__stat-icon--warning" aria-hidden="true"><i class="fa-solid fa-credit-card"></i></span>
+                    <span><strong>{{ $dashboard['stats']['payments'] }}</strong><small>Paiements à régulariser</small></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </a>
+
+                <a class="client-dashboard__stat-card" href="{{ url('/client/messages') }}">
+                    <span class="client-dashboard__stat-icon" aria-hidden="true"><i class="fa-solid fa-comments"></i></span>
+                    <span><strong>{{ $dashboard['stats']['messages'] }}</strong><small>Messages non lus</small></span>
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                </a>
+
                 <a class="client-dashboard__stat-card" href="{{ url('/client/favorites') }}">
                     <span class="client-dashboard__stat-icon client-dashboard__stat-icon--favorite" aria-hidden="true">
                         <i class="fa-solid fa-heart"></i>
@@ -120,6 +153,27 @@
                 </a>
             </div>
         </section>
+
+        <div class="client-dashboard__insight-grid">
+            <section class="client-dashboard__card" aria-labelledby="client-chart-title">
+                <div class="client-dashboard__card-header"><div><span class="eyebrow">SUIVI</span><h3 id="client-chart-title">Activité des six derniers mois</h3></div><span class="client-dashboard__card-icon" aria-hidden="true"><i class="fa-solid fa-chart-line"></i></span></div>
+                <div class="client-dashboard__chart" aria-label="Évolution mensuelle des demandes et commandes">
+                    @foreach($dashboard['chart'] as $month)
+                        <div class="client-dashboard__chart-row"><span>{{ $month['label'] }}</span><div><i style="width: {{ min(100, $month['requests'] * 12) }}%" title="{{ $month['requests'] }} demandes"></i><b style="width: {{ min(100, $month['orders'] * 12) }}%" title="{{ $month['orders'] }} commandes"></b></div><small>{{ $month['requests'] }} / {{ $month['orders'] }}</small></div>
+                    @endforeach
+                </div>
+                <p class="client-dashboard__chart-legend"><span><i></i> Demandes</span><span><i></i> Commandes</span></p>
+            </section>
+
+            <section class="client-dashboard__card" aria-labelledby="client-activity-title">
+                <div class="client-dashboard__card-header"><div><span class="eyebrow">HISTORIQUE</span><h3 id="client-activity-title">Activité récente</h3></div></div>
+                @if(count($dashboard['recent_activity']) > 0)
+                    <div class="client-dashboard__activity-list">@foreach($dashboard['recent_activity'] as $activity)<a href="{{ $activity['url'] }}"><span class="client-dashboard__activity-icon"><i class="fa-solid {{ $activity['type'] === 'order' ? 'fa-cart-shopping' : 'fa-file-lines' }}"></i></span><span><strong>{{ $activity['label'] }}</strong><small>{{ $activity['title'] }} · {{ $activity['status'] }}</small></span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>@endforeach</div>
+                @else
+                    <div class="client-dashboard__empty"><span class="client-dashboard__empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></span><h4>Aucune activité récente</h4><p>Votre activité apparaîtra ici au fil de vos demandes.</p></div>
+                @endif
+            </section>
+        </div>
 
         <div class="client-dashboard__grid">
             <section class="client-dashboard__card" aria-labelledby="default-address-title">

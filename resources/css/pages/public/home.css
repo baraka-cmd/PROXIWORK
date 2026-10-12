@@ -138,6 +138,37 @@
 .button--accent:hover:not(:disabled) { background: var(--color-accent-hover); color: var(--color-on-accent); }
 .button--light { border-color: rgba(255,255,255,.3); background: transparent; color: var(--color-white); }
 .button--light:hover:not(:disabled) { background: rgba(255,255,255,.1); color: var(--color-white); }
+.home-hero--dynamic { padding-bottom: 2rem; }
+.home-slide { display: none; }
+.home-slide.is-active { display: block; }
+.home-hero__image { min-height: 360px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface-muted); box-shadow: var(--shadow-lg); }
+.home-hero__image img { width: 100%; height: 100%; min-height: 360px; object-fit: cover; }
+.home-hero__image-placeholder { display: grid; min-height: 360px; place-items: center; color: var(--color-primary); font-size: 4rem; }
+.home-carousel-controls { display: flex; align-items: center; justify-content: center; gap: .65rem; margin-top: 1rem; }
+.home-carousel-controls button { display: grid; width: 2.4rem; height: 2.4rem; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-primary); cursor: pointer; }
+.home-carousel-controls button:hover, .home-carousel-controls button:focus-visible { border-color: var(--color-primary); }
+.home-carousel-dots { display: flex; gap: .35rem; }
+.home-carousel-dots button { width: .55rem; height: .55rem; padding: 0; border: 0; background: var(--color-border-strong); }
+.home-carousel-dots button.is-active { width: 1.35rem; border-radius: 1rem; background: var(--color-primary); }
+.home-section--dynamic { background: var(--color-surface); }
+.home-section--skills { padding-top: 2.5rem; padding-bottom: 2.5rem; background: var(--color-page); }
+.home-data-grid { display: grid; gap: 1rem; }
+.home-data-grid--categories { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.home-data-card { display: grid; gap: .55rem; padding: 1.25rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); color: var(--color-text); text-decoration: none; transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.home-data-card:hover, .home-data-card:focus-visible { border-color: var(--color-primary); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
+.home-data-card__icon { display: grid; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: .8rem; background: var(--color-primary-soft); color: var(--color-primary); }
+.home-data-card strong { font-size: 1rem; }
+.home-data-card > span:last-child { color: var(--color-text-muted); font-size: .8rem; }
+.home-skill-list { display: flex; flex-wrap: wrap; justify-content: center; gap: .65rem; }
+.home-skill-list .badge { display: inline-flex; gap: .4rem; text-decoration: none; }
+.home-skill-list small { color: var(--color-text-subtle); }
+.home-section__more { display: flex; justify-content: center; margin-top: 2rem; }
+.home-review-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.home-review-card { display: grid; gap: .8rem; padding: 1.35rem; }
+.home-review-card__rating { color: var(--color-primary); font-weight: 700; }
+.home-review-card__rating span { color: var(--color-accent); letter-spacing: .08em; }
+.home-review-card p { margin: 0; color: var(--color-text-muted); line-height: 1.7; }
+.home-review-card small { color: var(--color-text-subtle); }
 @media (max-width: 1050px) {
     .home-hero__grid { grid-template-columns: minmax(0, 1fr) minmax(300px, .8fr); gap: 2rem; }
     .home-hero__visual { min-height: 420px; }
@@ -145,6 +176,8 @@
     .home-preview-card--quote { left: -3%; }
     .home-trust-strip__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .home-final-cta__inner { align-items: flex-start; flex-direction: column; }
+    .home-data-grid--categories { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .home-review-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
     .home-hero__grid, .home-steps-layout { grid-template-columns: minmax(0, 1fr); }
@@ -155,6 +188,7 @@
     .home-hero__actions .button { width: 100%; }
     .home-text-link { justify-content: center; }
     .home-audience-grid { grid-template-columns: minmax(0, 1fr); }
+    .home-data-grid--categories { grid-template-columns: minmax(0, 1fr); }
     .home-section-heading { text-align: left; }
     .home-section-heading > p { margin-left: 0; }
     .home-section-heading--left { text-align: left; }

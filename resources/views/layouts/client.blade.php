@@ -94,7 +94,7 @@
         <span>Espace sécurisé</span>
     </div>
 
-    <form method="POST" action="{{ route('admin.logout') }}" class="admin-logout-form">
+    <form method="POST" action="{{ route('logout') }}" class="admin-logout-form">
         @csrf
 
         <button type="submit" class="admin-logout-button">

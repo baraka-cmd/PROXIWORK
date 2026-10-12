@@ -18,6 +18,11 @@
                 <span>Profil professionnel</span>
             </a>
 
+            <a class="dashboard-nav-link" data-nav-link href="{{ route('professional.documents.index') }}">
+                <i class="fa-solid fa-file-shield" aria-hidden="true"></i>
+                <span>Documents</span>
+            </a>
+
             <a class="dashboard-nav-link" data-nav-link href="{{ url('/professional/services') }}">
                 <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
                 <span>Services</span>
@@ -89,7 +94,7 @@
         <span>Espace sécurisé</span>
     </div>
 
-    <form method="POST" action="{{ route('admin.logout') }}" class="admin-logout-form">
+    <form method="POST" action="{{ route('logout') }}" class="admin-logout-form">
         @csrf
 
         <button type="submit" class="admin-logout-button">

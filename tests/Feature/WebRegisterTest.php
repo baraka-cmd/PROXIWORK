@@ -38,7 +38,9 @@ class WebRegisterTest extends TestCase
     public function test_guest_can_create_an_active_account(): void
     {
         $response = $this->post(route('register.store'), [
-            'name' => 'Baraka Ntwali',
+            'first_name' => 'Baraka',
+            'last_name' => 'Ntwali',
+            'phone' => '+243 000 000 000',
             'email' => 'Baraka@Example.com',
             'account_type' => 'client',
             'password' => 'Password123!',
@@ -50,9 +52,17 @@ class WebRegisterTest extends TestCase
 
         $this->assertNotNull($user);
         $this->assertSame('Baraka Ntwali', $user->name);
+        $this->assertDatabaseHas('profiles', [
+            'user_id' => $user->id,
+            'first_name' => 'Baraka',
+            'last_name' => 'Ntwali',
+            'phone' => '+243 000 000 000',
+        ]);
         $this->assertSame(UserAccountStatus::ACTIVE, $user->account_status);
         $this->assertDatabaseHas('users', ['id' => $user->id, 'email' => 'baraka@example.com']);
         $this->assertTrue($user->hasRole('client'));
+        $this->assertDatabaseHas('profiles', ['user_id' => $user->id]);
+        $this->assertDatabaseHas('notification_preferences', ['user_id' => $user->id]);
         $this->assertDatabaseMissing('professional_profiles', ['user_id' => $user->id]);
         $this->assertTrue(Hash::check('Password123!', $user->password));
 
@@ -64,7 +74,9 @@ class WebRegisterTest extends TestCase
     public function test_professional_registration_assigns_role_and_creates_pending_profile(): void
     {
         $response = $this->post(route('register.store'), [
-            'name' => 'Professionnel Test',
+            'first_name' => 'Professionnel',
+            'last_name' => 'Test',
+            'phone' => '+243 000 000 001',
             'email' => 'professional@example.com',
             'account_type' => 'professional',
             'password' => 'Password123!',
@@ -92,7 +104,9 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Tentative Admin',
+                'first_name' => 'Tentative',
+                'last_name' => 'Admin',
+                'phone' => '+243 000 000 002',
                 'email' => 'attempt@example.com',
                 'account_type' => 'admin',
                 'password' => 'Password123!',
@@ -110,7 +124,9 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Compte sans type',
+                'first_name' => 'Compte',
+                'last_name' => 'Sans type',
+                'phone' => '+243 000 000 003',
                 'email' => 'missing-type@example.com',
                 'password' => 'Password123!',
                 'password_confirmation' => 'Password123!',
@@ -129,7 +145,9 @@ class WebRegisterTest extends TestCase
 
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
+                'phone' => '+243 000 000 004',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'Password123!',
@@ -146,7 +164,9 @@ class WebRegisterTest extends TestCase
     {
         $this->from(route('register'))
             ->post(route('register.store'), [
-                'name' => 'Baraka Ntwali',
+                'first_name' => 'Baraka',
+                'last_name' => 'Ntwali',
+                'phone' => '+243 000 000 005',
                 'email' => 'baraka@example.com',
                 'account_type' => 'client',
                 'password' => 'password',

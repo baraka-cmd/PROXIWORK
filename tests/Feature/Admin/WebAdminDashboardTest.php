@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Enums\UserAccountStatus;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -28,6 +29,16 @@ class WebAdminDashboardTest extends TestCase
     public function test_user_without_dashboard_permission_is_forbidden(): void
     {
         $user = User::factory()->create();
+
+        $this->actingAs($user)->get('/admin/dashboard')->assertForbidden();
+    }
+
+    public function test_suspended_admin_cannot_access_the_admin_dashboard(): void
+    {
+        $user = User::factory()->create([
+            'account_status' => UserAccountStatus::SUSPENDED,
+        ]);
+        $user->assignRole(Role::query()->where('name', 'admin')->firstOrFail());
 
         $this->actingAs($user)->get('/admin/dashboard')->assertForbidden();
     }

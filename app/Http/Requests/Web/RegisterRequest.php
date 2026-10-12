@@ -18,7 +18,9 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'min:2', 'max:100'],
+            'first_name' => ['required', 'string', 'min:2', 'max:100'],
+            'last_name' => ['required', 'string', 'min:2', 'max:100'],
+            'phone' => ['required', 'string', 'max:30', 'regex:/^\+?[0-9][0-9\s().-]{6,28}$/'],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:users,email'],
             'account_type' => ['required', 'string', Rule::in(['client', 'professional'])],
             'terms' => ['accepted'],
@@ -34,7 +36,9 @@ class RegisterRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => 'nom complet',
+            'first_name' => 'prénom',
+            'last_name' => 'nom',
+            'phone' => 'numéro de téléphone',
             'email' => 'adresse e-mail',
             'account_type' => 'type de compte',
             'password' => 'mot de passe',
@@ -44,8 +48,12 @@ class RegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'Votre nom complet est obligatoire.',
-            'name.min' => 'Votre nom complet doit contenir au moins :min caractères.',
+            'first_name.required' => 'Votre prénom est obligatoire.',
+            'first_name.min' => 'Votre prénom doit contenir au moins :min caractères.',
+            'last_name.required' => 'Votre nom est obligatoire.',
+            'last_name.min' => 'Votre nom doit contenir au moins :min caractères.',
+            'phone.required' => 'Votre numéro de téléphone est obligatoire.',
+            'phone.regex' => 'Saisissez un numéro de téléphone valide.',
             'email.required' => 'Votre adresse e-mail est obligatoire.',
             'email.unique' => 'Cette adresse e-mail est déjà associée à un compte.',
             'account_type.required' => 'Choisissez le type de compte à créer.',

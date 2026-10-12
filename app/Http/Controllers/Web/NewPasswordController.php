@@ -8,9 +8,11 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use App\Notifications\AccountActivityNotification;
 use Illuminate\View\View;
 
 class NewPasswordController
@@ -24,16 +26,28 @@ class NewPasswordController
 
     public function store(ResetPasswordRequest $request): RedirectResponse
     {
-        $status = Password::reset($request->validated(), function (User $user, string $password): void {
+        $resetUser = null;
+
+        $status = Password::reset($request->validated(), function (User $user, string $password) use (&$resetUser): void {
+            $resetUser = $user;
             $user->forceFill([
                 'password' => Hash::make($password),
                 'remember_token' => Str::random(60),
             ])->save();
 
+            $user->tokens()->delete();
+            DB::table('sessions')->where('user_id', $user->getKey())->delete();
+
             event(new PasswordReset($user));
         });
 
         if ($status === Password::PASSWORD_RESET) {
+            $resetUser?->notify(new AccountActivityNotification(
+                'Mot de passe réinitialisé',
+                'Votre mot de passe a été réinitialisé. Si vous n’êtes pas à l’origine de cette action, contactez immédiatement le support.',
+                'password_reset',
+            ));
+
             return redirect()->route('login')->with('status', 'Votre mot de passe a été réinitialisé. Vous pouvez vous connecter.');
         }
 

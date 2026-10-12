@@ -106,7 +106,10 @@ class ProfessionalVerificationService
                 ]);
             }
 
-            $target->verification_status = $to->value;
+            $target->forceFill([
+                'verification_status' => $to->value,
+                'verified_at' => $to === ProfessionalVerificationStatus::VERIFIED ? now() : null,
+            ]);
             $target->save();
 
             ProfessionalVerificationReview::create([

@@ -19,3 +19,93 @@
         align-items: stretch;
     }
 }
+
+.public-professional-detail {
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-16);
+}
+
+.public-professional-detail__hero {
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
+    margin-top: var(--space-6);
+    padding: var(--space-6);
+}
+
+.public-professional-detail__hero h1 {
+    margin: var(--space-2) 0 var(--space-1);
+}
+
+.public-professional-detail__hero p,
+.public-professional-detail__hero span,
+.public-professional-detail__main > p,
+.public-profile-services p,
+.public-professional-detail__aside p {
+    color: var(--color-text-muted);
+}
+
+.public-professional-detail__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(260px, .75fr);
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+}
+
+.public-professional-detail__main,
+.public-professional-detail__aside {
+    padding: var(--space-6);
+}
+
+.public-professional-detail__main h2 {
+    margin: 0 0 var(--space-3);
+}
+
+.public-professional-detail__main h2:not(:first-child) {
+    margin-top: var(--space-8);
+}
+
+.public-profile-services {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.public-profile-services article {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.public-profile-services h3 {
+    margin: 0;
+}
+
+.public-profile-reviews {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.public-profile-reviews article {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.public-profile-reviews strong {
+    color: var(--color-primary);
+}
+
+.public-profile-reviews p {
+    margin: .5rem 0;
+    color: var(--color-text-muted);
+}
+
+.public-profile-reviews small {
+    color: var(--color-text-subtle);
+}
+
+@media (max-width: 767px) {
+    .public-professional-detail__grid {
+        grid-template-columns: 1fr;
+    }
+}

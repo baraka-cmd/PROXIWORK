@@ -10,6 +10,7 @@ use App\Http\Requests\Web\RegisterRequest;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -29,15 +30,23 @@ class RegisterController
             // The submitted value is allow-listed by RegisterRequest; roles are never
             // accepted as arbitrary model IDs or assigned from unvalidated input.
             $role = Role::query()->where('name', $accountType)->firstOrFail();
+            $firstName = trim($request->string('first_name')->toString());
+            $lastName = trim($request->string('last_name')->toString());
 
             $user = User::create([
-                'name' => trim($request->string('name')->toString()),
+                'name' => $firstName.' '.$lastName,
                 'email' => strtolower(trim($request->string('email')->toString())),
                 'password' => $request->string('password')->toString(),
                 'account_status' => UserAccountStatus::ACTIVE,
             ]);
 
             $user->assignRole($role);
+            $user->profile()->create([
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'phone' => trim($request->string('phone')->toString()),
+            ]);
+            $user->notificationPreference()->create();
 
             if ($accountType === 'professional') {
                 $professionalProfile = $user->professionalProfile()->create();
@@ -49,6 +58,7 @@ class RegisterController
             return $user;
         });
 
+        event(new Registered($user));
         Auth::login($user);
         $request->session()->regenerate();
 

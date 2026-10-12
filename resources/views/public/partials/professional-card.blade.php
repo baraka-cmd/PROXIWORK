@@ -51,13 +51,17 @@
                 </div>
             @endif
 
-            <div>
-                <dt><i class="fa-solid fa-star" aria-hidden="true"></i><span class="sr-only">Note</span></dt>
-                <dd>
-                    {{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5
-                    <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span>
-                </dd>
-            </div>
+            @if ($professional->rating_count > 0)
+                <div>
+                    <dt><i class="fa-solid fa-star" aria-hidden="true"></i><span class="sr-only">Note</span></dt>
+                    <dd>{{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5 <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span></dd>
+                </div>
+            @else
+                <div>
+                    <dt><i class="fa-regular fa-star" aria-hidden="true"></i><span class="sr-only">Avis</span></dt>
+                    <dd class="professional-card__muted">Aucun avis pour le moment</dd>
+                </div>
+            @endif
 
             @if ($professional->years_experience !== null)
                 <div>
@@ -90,5 +94,10 @@
                 @endif
             </div>
         @endif
+
+        <a class="button button--ghost" href="{{ route('public.professionals.show', $professional) }}">
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            Voir le profil
+        </a>
     </div>
 </article>

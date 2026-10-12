@@ -7,6 +7,7 @@ namespace Tests\Feature\ProfessionalService;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\User;
+use App\Enums\ProfessionalVerificationStatus;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -71,6 +72,34 @@ class ProfessionalServiceSecurityTest extends TestCase
         $this->getJson('/api/v1/professional/services')->assertUnauthorized();
         $this->getJson('/api/v1/professional/services/'.$service->id)->assertUnauthorized();
         $this->postJson('/api/v1/professional/services/'.$service->id.'/publish')->assertUnauthorized();
+    }
+
+    public function test_unverified_professional_cannot_publish_a_service(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $profile->forceFill([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ])->save();
+
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+        ]);
+        $service->images()->create([
+            'path' => 'services/'.$service->id.'/cover.webp',
+            'is_cover' => true,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->id.'/publish')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['professional']);
+
+        $this->assertDatabaseHas('services', [
+            'id' => $service->id,
+            'status' => 'draft',
+        ]);
     }
 
     private function professional(): array
