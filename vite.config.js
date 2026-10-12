@@ -27,7 +27,7 @@ export default defineConfig({
                 'resources/css/pages/client/service-requests.css',
                 'resources/css/pages/client/favorites.css',
                 'resources/css/pages/client/orders-payments.css','resources/js/pages/client/orders-payments.js',
-                'resources/css/pages/client/profile.css','resources/css/pages/client/addresses.css','resources/js/pages/client/addresses.js',
+                'resources/css/pages/client/profile.css','resources/js/pages/client/profile.js','resources/css/pages/client/addresses.css','resources/js/pages/client/addresses.js',
                 'resources/css/pages/client/notifications.css','resources/css/pages/client/messages.css','resources/js/pages/client/messages.js',
                 'resources/css/pages/professional/dashboard.css',
                 'resources/css/pages/professional/orders-revenues.css','resources/js/pages/professional/orders-revenues.js',
