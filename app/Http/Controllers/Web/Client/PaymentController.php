@@ -266,6 +266,11 @@ class PaymentController extends Controller
             return redirect()->route('client.orders.payment', $order)
                 ->withErrors(['payment' => $exception->getMessage()]);
         } catch (PaymentGatewayUnavailableException) {
+            if (app()->environment('production') || config('payment.simulation_enabled') !== true) {
+                return redirect()->route('client.orders.payment', $order)
+                    ->withErrors(['payment' => 'Le mode simulation est désactivé dans cet environnement. Aucun paiement réel n’a été effectué.']);
+            }
+
             try {
                 $payment = $this->payments->paymentForOrder($order, $request->user());
 
