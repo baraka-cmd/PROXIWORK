@@ -6,7 +6,7 @@ namespace App\Services\Payment;
 
 use App\Contracts\Payments\PaymentGateway;
 use App\Enums\PaymentProvider;
-use App\\Exceptions\\PaymentGatewayUnavailableException;
+use App\Exceptions\PaymentGatewayUnavailableException;
 use RuntimeException;
 
 class PaymentGatewayManager
