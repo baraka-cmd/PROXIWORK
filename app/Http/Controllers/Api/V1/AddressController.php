@@ -52,6 +52,14 @@ class AddressController extends Controller
             $request->validated(),
         );
 
+        $this->auditLogService->record(
+            'address_created',
+            $address,
+            $request->user(),
+            ['is_default' => $address->is_default],
+            $request,
+        );
+
         return (new AddressResource($address))->additional([
             'message' => 'Adresse créée avec succès.',
             'meta' => [],
@@ -73,9 +81,21 @@ class AddressController extends Controller
     {
         $this->authorize('update', $address);
 
-        $address->update($request->validated());
+        $address = $this->addressService->update(
+            $request->user(),
+            $address,
+            $request->validated(),
+        );
 
-        return (new AddressResource($address->refresh()))->additional([
+        $this->auditLogService->record(
+            'address_updated',
+            $address,
+            $request->user(),
+            ['is_default' => $address->is_default],
+            $request,
+        );
+
+        return (new AddressResource($address->refresh())->additional([
             'success' => true,
             'message' => 'Adresse mise à jour avec succès.',
             'meta' => [],
@@ -87,6 +107,14 @@ class AddressController extends Controller
         $this->authorize('setDefault', $address);
 
         $address = $this->addressService->setDefault($request->user(), $address);
+
+        $this->auditLogService->record(
+            'address_default_changed',
+            $address,
+            $request->user(),
+            ['is_default' => true],
+            $request,
+        );
 
         return (new AddressResource($address))->additional([
             'success' => true,
