@@ -33,6 +33,7 @@ class ServiceRequest extends Model
 
     protected $attributes = [
         'status' => ServiceRequestStatus::DRAFT->value,
+        'execution_mode' => ServiceExecutionMode::CLIENT_LOCATION->value,
     ];
 
     protected function casts(): array
