@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Client;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Events\Verified;
 use App\Http\Requests\Web\Client\RequestClientEmailChange;
 use App\Http\Requests\Web\Client\UpdateClientPasswordRequest;
 use App\Http\Requests\Web\Client\UpdateClientProfileRequest;
@@ -207,6 +208,18 @@ class ProfileController extends Controller
             ])->withInput($request->safe()->except(['current_password']));
         }
 
+        try {
+            Notification::route('mail', $user->email)->notify(new \App\Notifications\EmailAddressChangeNotification(
+                'Demande de changement d’adresse e-mail',
+                'Une demande de changement d’adresse e-mail a été initiée pour votre compte PROXIWORK. Votre adresse actuelle reste active jusqu’à la confirmation de la nouvelle adresse.',
+            ));
+        } catch (Throwable $exception) {
+            Log::warning('Could not dispatch the old-address email-change request notice.', [
+                'user_id' => $user->getKey(),
+                'exception' => $exception::class,
+            ]);
+        }
+
         Log::info('Client email-change confirmation requested.', ['user_id' => $user->getKey()]);
 
         return redirect()->route('client.profile.edit')->with(
@@ -295,6 +308,16 @@ class ProfileController extends Controller
 
         $user->refresh();
         Log::info('Client email address changed after confirmation.', ['user_id' => $user->getKey()]);
+
+        try {
+            event(new Verified($user));
+        } catch (Throwable $exception) {
+            Log::warning('Could not dispatch the verified event after client email change.', [
+                'user_id' => $user->getKey(),
+                'exception' => $exception::class,
+            ]);
+        }
+
         $user->tokens()->delete();
         $request->session()->regenerate();
         DB::table('sessions')
