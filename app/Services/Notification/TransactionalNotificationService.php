@@ -125,6 +125,10 @@ class TransactionalNotificationService
             $priority,
             $deduplicationKey,
         ): void {
+            // Serialize concurrent attempts for the same recipient so the
+            // deduplication lookup and insert cannot race each other.
+            User::query()->whereKey($recipient->getKey())->lockForUpdate()->firstOrFail();
+
             $notificationQuery = $recipient->notifications();
 
             if ($deduplicationKey !== null) {
