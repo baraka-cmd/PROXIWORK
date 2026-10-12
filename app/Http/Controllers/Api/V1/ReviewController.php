@@ -38,7 +38,7 @@ class ReviewController extends Controller
 
         $review->loadMissing('professional.user');
         if ($review->professional?->user !== null) {
-            $this->notificationService->reviewReceived($review->professional->user);
+            $this->notificationService->reviewReceived($review->professional->user, 'review-received:'.$review->getKey());
         }
 
         return response()->json([
