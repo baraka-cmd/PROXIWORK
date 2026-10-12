@@ -27,7 +27,7 @@ return new class extends Migration
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
 
-            $table->index(['professional_profile_id', 'document_type', 'status']);
+            $table->index(['professional_profile_id', 'document_type', 'status'], 'prof_docs_profile_type_status_idx');
             $table->index(['status', 'created_at']);
         });
     }
