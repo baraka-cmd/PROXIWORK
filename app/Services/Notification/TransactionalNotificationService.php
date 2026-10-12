@@ -143,13 +143,9 @@ class TransactionalNotificationService
             // deduplication lookup and insert cannot race each other.
             User::query()->whereKey($recipient->getKey())->lockForUpdate()->firstOrFail();
 
-            $notificationQuery = $recipient->notifications();
-
-            if ($deduplicationKey !== null) {
-                $notificationQuery->where('deduplication_key', $deduplicationKey);
-            }
-
-            $notification = $notificationQuery->first();
+            $notification = $deduplicationKey !== null
+                ? $recipient->notifications()->where('deduplication_key', $deduplicationKey)->first()
+                : null;
 
             if ($notification === null) {
                 $notification = new DatabaseNotification();
