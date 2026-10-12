@@ -41,7 +41,7 @@ class QuotationNegotiationService
 
             $current = QuotationOffer::query()->findOrFail($locked->current_offer_id);
 
-            if ($current->valid_until->isPast()) {
+            if (! $current->valid_until->isFuture()) {
                 throw ValidationException::withMessages([
                     'valid_until' => 'L’offre courante a expiré. Une négociation n’est plus possible.',
                 ]);
@@ -51,13 +51,25 @@ class QuotationNegotiationService
                 ? QuotationOfferActor::CLIENT
                 : QuotationOfferActor::PROFESSIONAL;
 
+            if ($current->actor_type === $actorType) {
+                throw ValidationException::withMessages([
+                    'status' => 'Une réponse de l’autre partie est nécessaire avant une nouvelle proposition.',
+                ]);
+            }
+
+            if (strtoupper($data['currency']) !== strtoupper($current->currency)) {
+                throw ValidationException::withMessages([
+                    'currency' => 'La devise doit rester identique pendant une négociation afin de comparer correctement les montants.',
+                ]);
+            }
+
             $offer = QuotationOffer::query()->forceCreate([
                 'quotation_id' => $locked->getKey(),
                 'created_by' => $actor->getKey(),
                 'actor_type' => $actorType,
                 'version' => ((int) $locked->offers()->max('version')) + 1,
                 'amount' => $data['amount'],
-                'currency' => strtoupper($data['currency']),
+                'currency' => strtoupper($current->currency),
                 'description' => $data['description'],
                 'duration_value' => $data['duration_value'],
                 'duration_unit' => $data['duration_unit'],
