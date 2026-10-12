@@ -87,10 +87,26 @@ class PaymentReceiptService
 
         $receipt->loadMissing(['payment', 'transaction']);
 
-        return $receipt->mode === 'simulation'
-            && $receipt->payment?->status === PaymentStatus::SUCCEEDED
-            && $receipt->transaction?->status === PaymentTransactionStatus::SUCCEEDED
-            && $receipt->transaction?->payment_id === $receipt->payment_id;
+        $payment = $receipt->payment;
+        $transaction = $receipt->transaction;
+        $payload = $receipt->payload ?? [];
+
+        if ($receipt->mode !== 'simulation'
+            || $payment?->status !== PaymentStatus::SUCCEEDED
+            || $transaction?->status !== PaymentTransactionStatus::SUCCEEDED
+            || $transaction?->payment_id !== $receipt->payment_id) {
+            return false;
+        }
+
+        $expectedTransactionReference = $payment->provider->value === 'fake'
+            ? 'SIM-TXN-'.str_pad((string) $transaction->getKey(), 8, '0', STR_PAD_LEFT)
+            : ($transaction->provider_reference ?? $transaction->provider_transaction_id ?? 'TXN-'.$transaction->getKey());
+
+        return ($payload['payment_reference'] ?? null) === 'PAY-'.str_pad((string) $payment->getKey(), 8, '0', STR_PAD_LEFT)
+            && $this->money((string) ($payload['amount'] ?? '')) === $this->money((string) $payment->amount)
+            && strtoupper((string) ($payload['currency'] ?? '')) === strtoupper($payment->currency)
+            && ($payload['transaction_reference'] ?? null) === $expectedTransactionReference
+            && ($payload['payment_status'] ?? null) === PaymentStatus::SUCCEEDED->value;
     }
 
     private function money(string $value): string
