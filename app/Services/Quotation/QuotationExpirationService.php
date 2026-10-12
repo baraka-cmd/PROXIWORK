@@ -74,6 +74,7 @@ class QuotationExpirationService
                         ]);
 
                         return [
+                            'quotation_id' => $quotation->getKey(),
                             'client_id' => $quotation->serviceRequest->client_id,
                             'professional_user_id' => $quotation->serviceRequest->professional?->user_id,
                         ];
@@ -85,7 +86,7 @@ class QuotationExpirationService
 
                     $client = User::query()->find($recipients['client_id']);
                     if ($client !== null) {
-                        $this->notificationService->quotationExpired($client);
+                        $this->notificationService->quotationExpired($client, route('client.quotes.show', $recipients['quotation_id'], true));
                     }
 
                     $professional = $recipients['professional_user_id'] !== null
@@ -93,7 +94,7 @@ class QuotationExpirationService
                         : null;
 
                     if ($professional !== null) {
-                        $this->notificationService->quotationExpired($professional);
+                        $this->notificationService->quotationExpired($professional, route('professional.quotes.show', $recipients['quotation_id'], true));
                     }
 
                     $expiredCount++;
