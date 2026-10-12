@@ -153,6 +153,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('quotes/{quotation}/accept-client-offer', [ProfessionalQuotationController::class, 'acceptClientOffer'])->middleware('throttle:10,1')->name('quotes.accept-client-offer');
     Route::post('quotes/{quotation}/reject-client-offer', [ProfessionalQuotationController::class, 'rejectClientOffer'])->middleware('throttle:10,1')->name('quotes.reject-client-offer');
     Route::post('quotes/{quotation}/counter-offer', [ProfessionalQuotationController::class, 'counterOffer'])->middleware('throttle:10,1')->name('quotes.counter-offer');
+    Route::post('quotes/{quotation}/renew', [ProfessionalQuotationController::class, 'renew'])->middleware('throttle:10,1')->name('quotes.renew');
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
