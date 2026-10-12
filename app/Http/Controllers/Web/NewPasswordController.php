@@ -11,8 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
 use App\Services\Notification\TransactionalNotificationService;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class NewPasswordController
