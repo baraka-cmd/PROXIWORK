@@ -24,8 +24,7 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
         private readonly TransactionalNotificationService $notificationService,
-    ) {
-    }
+    ) {}
 
     public function index(IndexServiceRequestRequest $request): View
     {
