@@ -228,7 +228,7 @@ class QuotationController extends Controller
         );
 
         if ($accepted->serviceRequest->professional?->user !== null) {
-            $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true));
+            $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true), 'quotation-accepted:'.$accepted->getKey());
         }
 
         if ($accepted->order !== null) {
@@ -257,7 +257,7 @@ class QuotationController extends Controller
         );
 
         if ($rejected->serviceRequest->professional?->user !== null) {
-            $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true));
+            $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true), 'quotation-rejected:'.$rejected->getKey());
         }
 
         return redirect()->route('client.quotes.show', $rejected)->with('success', 'Devis refusé. Cette décision est enregistrée.');
@@ -287,7 +287,7 @@ class QuotationController extends Controller
         );
 
         if ($counterOffer->serviceRequest->professional?->user !== null) {
-            $this->notificationService->counterOfferReceived($counterOffer->serviceRequest->professional->user, route('professional.quotes.show', $counterOffer, true));
+            $this->notificationService->counterOfferReceived($counterOffer->serviceRequest->professional->user, route('professional.quotes.show', $counterOffer, true), 'counter-offer-received:'.$counterOffer->getKey());
         }
 
         return redirect()->route('client.quotes.show', $counterOffer)->with('success', 'Votre contre-proposition a été envoyée. Le devis attend maintenant la réponse du professionnel.');
