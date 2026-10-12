@@ -147,6 +147,7 @@ class SendNotificationSms implements ShouldQueue
             $delivery->forceFill([
                 'status' => 'RETRYING',
                 'processing_at' => null,
+                'queued_at' => null,
                 'available_at' => now()->addSeconds($delaySeconds),
                 'last_error_code' => 'SMS_PROVIDER_HTTP_'.$status,
             ])->save();
