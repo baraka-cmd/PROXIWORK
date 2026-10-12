@@ -81,7 +81,7 @@ class QuotationController extends Controller
             'service_request_id' => $serviceRequest->getKey(),
         ], $request);
 
-        $this->notificationService->quotationCreated($serviceRequest->client);
+        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true));
 
         return redirect()->route('professional.quotes.show', $quotation)->with('success', 'Le devis a été envoyé au client.');
     }
@@ -106,7 +106,7 @@ class QuotationController extends Controller
         );
 
         if ($accepted->serviceRequest->client !== null) {
-            $this->notificationService->clientCounterOfferAccepted($accepted->serviceRequest->client);
+            $this->notificationService->clientCounterOfferAccepted($accepted->serviceRequest->client, route('client.quotes.show', $accepted, true));
         }
 
         if ($accepted->order !== null) {
@@ -134,7 +134,7 @@ class QuotationController extends Controller
         );
 
         if ($rejected->serviceRequest->client !== null) {
-            $this->notificationService->clientCounterOfferRejected($rejected->serviceRequest->client);
+            $this->notificationService->clientCounterOfferRejected($rejected->serviceRequest->client, route('client.quotes.show', $rejected, true));
         }
 
         return redirect()->route('professional.quotes.show', $rejected)
@@ -164,7 +164,7 @@ class QuotationController extends Controller
         );
 
         if ($updated->serviceRequest->client !== null) {
-            $this->notificationService->counterOfferReceived($updated->serviceRequest->client);
+            $this->notificationService->counterOfferReceived($updated->serviceRequest->client, route('client.quotes.show', $updated, true));
         }
 
         return redirect()->route('professional.quotes.show', $updated)
