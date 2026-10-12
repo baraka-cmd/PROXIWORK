@@ -14,6 +14,7 @@ return new class extends Migration
             $table->id();
             $table->foreignUuid('notification_id')->constrained('notifications')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('recipient_hint', 64)->nullable();
             $table->string('channel', 24);
             $table->string('status', 24)->default('PENDING');
             $table->unsignedSmallInteger('attempts')->default(0);
