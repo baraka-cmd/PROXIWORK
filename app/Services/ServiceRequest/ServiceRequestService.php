@@ -46,13 +46,13 @@ class ServiceRequestService
                     ->lockForUpdate()
                     ->find($attributes['service_id']);
 
-                if ($service === null || ! $service->isRequestableForClient()) {
+                if ($service === null || !$service->isRequestableForClient()) {
                     throw ValidationException::withMessages([
                         'service_id' => 'Ce service n’est plus disponible pour recevoir une nouvelle demande.',
                     ]);
                 }
 
-                if (! empty($attributes['address_id']) && ! $client->addresses()
+                if (! empty($attributes['address_id']) && !$client->addresses()
                     ->whereKey($attributes['address_id'])
                     ->exists()) {
                     throw ValidationException::withMessages([
@@ -136,7 +136,7 @@ class ServiceRequestService
                 ]);
             }
 
-            if (! empty($attributes['address_id']) && ! Address::query()
+            if (! empty($attributes['address_id']) && !Address::query()
                 ->whereKey($attributes['address_id'])
                 ->where('user_id', $locked->client_id)
                 ->exists()) {
@@ -172,7 +172,7 @@ class ServiceRequestService
                 abort(403, 'Vous ne pouvez pas modifier cette demande.');
             }
 
-            if (! in_array($locked->status, [
+            if (!in_array($locked->status, [
                 ServiceRequestStatus::REQUESTED,
                 ServiceRequestStatus::QUOTED,
             ], true)) {
