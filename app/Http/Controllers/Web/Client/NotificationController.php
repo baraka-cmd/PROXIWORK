@@ -49,7 +49,9 @@ class NotificationController extends Controller
             $query->whereNotNull('read_at');
         }
 
-        if ($category !== 'all') {
+        if ($category === 'account') {
+            $query->whereIn('data->action', ['account', 'profile_updated', 'password_changed', 'password_reset', 'email_changed']);
+        } elseif ($category !== 'all') {
             $query->where('data->action', $category);
         }
 
