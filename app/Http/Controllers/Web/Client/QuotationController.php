@@ -12,7 +12,6 @@ use App\Http\Requests\Quotation\StoreQuotationOfferRequest;
 use App\Models\Quotation;
 use App\Models\QuotationOffer;
 use App\Services\Audit\AuditLogService;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Quotation\QuotationExpirationService;
 use App\Services\Quotation\QuotationNegotiationService;
 use App\Services\Quotation\QuotationService;
@@ -27,7 +26,6 @@ class QuotationController extends Controller
         private readonly QuotationNegotiationService $negotiationService,
         private readonly QuotationExpirationService $expirationService,
         private readonly AuditLogService $auditLogService,
-        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function index(IndexClientQuotationsRequest $request): View
@@ -227,10 +225,6 @@ class QuotationController extends Controller
             $request,
         );
 
-        if ($accepted->serviceRequest->professional?->user !== null) {
-            $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true), 'quotation-accepted:'.$accepted->getKey());
-        }
-
         if ($accepted->order !== null) {
             return redirect()
                 ->route('client.orders.show', $accepted->order)
@@ -255,10 +249,6 @@ class QuotationController extends Controller
             ['service_request_id' => $rejected->service_request_id],
             $request,
         );
-
-        if ($rejected->serviceRequest->professional?->user !== null) {
-            $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true), 'quotation-rejected:'.$rejected->getKey());
-        }
 
         return redirect()->route('client.quotes.show', $rejected)->with('success', 'Devis refusé. Cette décision est enregistrée.');
     }
@@ -285,10 +275,6 @@ class QuotationController extends Controller
             ],
             $request,
         );
-
-        if ($counterOffer->serviceRequest->professional?->user !== null) {
-            $this->notificationService->counterOfferReceived($counterOffer->serviceRequest->professional->user, route('professional.quotes.show', $counterOffer, true), 'counter-offer-received:'.$counterOffer->current_offer_id);
-        }
 
         return redirect()->route('client.quotes.show', $counterOffer)->with('success', 'Votre contre-proposition a été envoyée. Le devis attend maintenant la réponse du professionnel.');
     }
