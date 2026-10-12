@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServiceRequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,7 @@ class ServiceRequest extends Model
 
     protected $fillable = [
         'service_id',
+        'execution_mode',
         'address_id',
         'title',
         'description',
@@ -37,6 +39,7 @@ class ServiceRequest extends Model
     {
         return [
             'status' => ServiceRequestStatus::class,
+            'execution_mode' => ServiceExecutionMode::class,
             'budget_min' => 'decimal:2',
             'budget_max' => 'decimal:2',
             'desired_at' => 'datetime',
