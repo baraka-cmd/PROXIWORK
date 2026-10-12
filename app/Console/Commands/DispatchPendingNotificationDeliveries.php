@@ -64,7 +64,7 @@ class DispatchPendingNotificationDeliveries extends Command
 
                 if (
                     $delivery === null
-                    || !in_array($delivery->status, ['PENDING', 'RETRYING'], true)
+                    || ! in_array($delivery->status, ['PENDING', 'RETRYING'], true)
                     || ($delivery->available_at !== null && $delivery->available_at->isFuture())
                     || ($delivery->queued_at !== null && $delivery->queued_at->gt(now()->subMinutes(10)))
                 ) {
