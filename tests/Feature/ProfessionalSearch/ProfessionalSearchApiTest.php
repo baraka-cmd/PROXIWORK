@@ -375,6 +375,32 @@ class ProfessionalSearchApiTest extends TestCase
         $this->assertLessThanOrEqual(15, $queryCount);
     }
 
+    public function test_price_filter_ignores_services_in_inactive_categories(): void
+    {
+        $professional = $this->professional();
+
+        $activeCategory = Category::factory()->create(['status' => 'active']);
+        $inactiveCategory = Category::factory()->create(['status' => 'inactive']);
+
+        $this->publishedService($professional, [
+            'category_id' => $activeCategory->id,
+            'pricing_type' => 'fixed',
+            'price' => 250,
+            'currency' => 'USD',
+        ]);
+
+        $this->publishedService($professional, [
+            'category_id' => $inactiveCategory->id,
+            'pricing_type' => 'fixed',
+            'price' => 50,
+            'currency' => 'USD',
+        ]);
+
+        $this->getJson('/api/v1/professionals?min_price=10&max_price=100&currency=USD')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
     private function professional(array $attributes = []): ProfessionalProfile
     {
         $user = User::factory()->create();
