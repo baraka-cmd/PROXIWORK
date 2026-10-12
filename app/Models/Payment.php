@@ -52,6 +52,11 @@ class Payment extends Model
         return $this->hasMany(PaymentTransaction::class);
     }
 
+    public function events(): HasMany
+    {
+        return $this->hasMany(PaymentEvent::class)->orderBy('occurred_at')->orderBy('id');
+    }
+
     public function receipt(): HasOne
     {
         return $this->hasOne(PaymentReceipt::class);
