@@ -83,7 +83,7 @@
                 <div class="client-field client-quote-search">
                     <label for="quote-search">Recherche</label>
                     <input id="quote-search" name="q" type="search" maxlength="120"
-                           value="{{ $filters['q'] ?? '' }}" placeholder="Ex. DEV-000123, création de site…">
+                           value="{{ $filters['q'] ?? '' }}" placeholder="Ex. DEVIS-000123, création de site…">
                 </div>
 
                 <div class="client-field">
