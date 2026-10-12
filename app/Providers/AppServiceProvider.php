@@ -118,7 +118,8 @@ class AppServiceProvider extends ServiceProvider
             if (is_object($routeResource) && method_exists($routeResource, 'getKey')) {
                 $routeResource = $routeResource->getKey();
             }
-            $orderKey = 'payment-order:' . (string) ($routeResource ?? $request->ip());
+            $orderKey = 'payment-order:' .
+                (string) ($routeResource ?? $request->ip());
 
             return [
                 Limit::perMinute(10)->by($userKey),
