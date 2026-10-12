@@ -79,6 +79,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('/', ClientDashboardController::class)->name('dashboard');
         Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store'])->name('favorites.store');
+        Route::post('favorites/services/{service}', [FavoriteController::class, 'storeService'])->name('favorites.services.store');
         Route::delete('favorites/{favorite}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
         Route::get('requests', [ServiceRequestController::class, 'index'])->name('requests.index');
         Route::get('requests/create', [ServiceRequestController::class, 'create'])->name('requests.create');

@@ -15,6 +15,7 @@ class Favorite extends Model
     protected $fillable = [
         'user_id',
         'professional_profile_id',
+        'service_id',
     ];
 
     public function user(): BelongsTo
@@ -25,5 +26,20 @@ class Favorite extends Model
     public function professionalProfile(): BelongsTo
     {
         return $this->belongsTo(ProfessionalProfile::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function isProfessionalFavorite(): bool
+    {
+        return $this->professional_profile_id !== null;
+    }
+
+    public function isServiceFavorite(): bool
+    {
+        return $this->service_id !== null;
     }
 }
