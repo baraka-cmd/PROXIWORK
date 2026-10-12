@@ -24,6 +24,7 @@ class RequestClientEmailChange extends FormRequest
                 'max:255',
                 'different:current_email',
                 Rule::unique('users', 'email'),
+                Rule::unique('users', 'pending_email'),
             ],
         ];
     }
