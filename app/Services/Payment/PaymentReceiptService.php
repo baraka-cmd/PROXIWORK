@@ -53,9 +53,9 @@ class PaymentReceiptService
                 'method' => $lockedPayment->method->value,
                 'provider' => $lockedPayment->provider->value,
                 'payment_status' => PaymentStatus::SUCCEEDED->value,
-                'transaction_reference' => $transaction->provider_reference
-                    ?? $transaction->provider_transaction_id
-                    ?? 'SIM-TXN-'.$transaction->getKey(),
+                'transaction_reference' => $lockedPayment->provider->value === 'fake'
+                    ? 'SIM-TXN-'.str_pad((string) $transaction->getKey(), 8, '0', STR_PAD_LEFT)
+                    : ($transaction->provider_reference ?? $transaction->provider_transaction_id ?? 'TXN-'.$transaction->getKey()),
                 'confirmed_at' => optional($lockedPayment->paid_at)->toIso8601String(),
                 'issued_at' => now()->toIso8601String(),
             ];
