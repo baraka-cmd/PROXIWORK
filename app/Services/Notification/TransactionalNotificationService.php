@@ -80,9 +80,12 @@ class TransactionalNotificationService
         $this->send($recipient, 'Commande confirmée', 'Une commande vient d’être confirmée après paiement.', 'order', null, 'important', $idempotencyKey);
     }
 
-    public function messageReceived(User $recipient, ?string $idempotencyKey = null): void
-    {
-        $this->send($recipient, 'Nouveau message', 'Vous avez reçu un nouveau message.', 'message', null, 'important', $idempotencyKey);
+    public function messageReceived(
+        User $recipient,
+        ?string $idempotencyKey = null,
+        ?string $url = null,
+    ): void {
+        $this->send($recipient, 'Nouveau message', 'Vous avez reçu un nouveau message.', 'message', $url, 'important', $idempotencyKey);
     }
 
     public function reviewReceived(User $recipient, ?string $idempotencyKey = null): void
