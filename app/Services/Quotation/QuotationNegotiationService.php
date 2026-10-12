@@ -10,17 +10,22 @@ use App\Models\Quotation;
 use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
 use App\Models\User;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class QuotationNegotiationService
 {
+    public function __construct(
+        private readonly TransactionalNotificationService $notificationService,
+    ) {}
+
     public function counterOffer(Quotation $quotation, User $actor, array $data): Quotation
     {
         return DB::transaction(function () use ($quotation, $actor, $data): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest.professional')
+                ->with(['serviceRequest.professional.user', 'serviceRequest.client'])
                 ->findOrFail($quotation->getKey());
 
             if (! in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
@@ -92,6 +97,20 @@ class QuotationNegotiationService
                 'created_at' => now(),
             ]);
 
+            if ($isClient && $request->professional?->user !== null) {
+                $this->notificationService->counterOfferReceived(
+                    $request->professional->user,
+                    route('professional.quotes.show', $locked, true),
+                    'counter-offer-received:'.$offer->getKey(),
+                );
+            } elseif ($isProfessional && $request->client !== null) {
+                $this->notificationService->counterOfferReceived(
+                    $request->client,
+                    route('client.quotes.show', $locked, true),
+                    'counter-offer-received:'.$offer->getKey(),
+                );
+            }
+
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         });
     }
@@ -101,7 +120,7 @@ class QuotationNegotiationService
         return DB::transaction(function () use ($quotation, $professional, $data): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest.professional')
+                ->with(['serviceRequest.professional', 'serviceRequest.client'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->professional?->user_id !== $professional->getKey()) {
@@ -172,6 +191,14 @@ class QuotationNegotiationService
                 ],
                 'created_at' => now(),
             ]);
+
+            if ($locked->serviceRequest->client !== null) {
+                $this->notificationService->quotationCreated(
+                    $locked->serviceRequest->client,
+                    route('client.quotes.show', $locked, true),
+                    'quotation-renewed:'.$offer->getKey(),
+                );
+            }
 
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         }, attempts: 3);
