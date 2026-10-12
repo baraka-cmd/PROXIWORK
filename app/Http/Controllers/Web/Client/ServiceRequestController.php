@@ -225,5 +225,4 @@ class ServiceRequestController extends Controller
 
         return back()->with('success', 'Votre demande a été annulée.');
     }
-
 }
