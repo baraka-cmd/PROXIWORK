@@ -85,6 +85,7 @@ class ClientProfileTest extends TestCase
             ->assertSessionHas('success');
 
         $client->refresh();
+        $this->assertSame('Baraka Ntwali', $client->name);
         $this->assertSame('client', $client->roles()->value('name'));
         $this->assertNotSame('admin', $client->roles()->value('name'));
         $this->assertTrue($client->isActive());
