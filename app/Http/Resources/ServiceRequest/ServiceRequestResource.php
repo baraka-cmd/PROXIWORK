@@ -21,6 +21,7 @@ class ServiceRequestResource extends JsonResource
             'currency' => $this->currency,
             'desired_at' => $this->desired_at?->toISOString(),
             'status' => $this->status->value,
+            'execution_mode' => $this->execution_mode->value,
             'requested_at' => $this->requested_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
