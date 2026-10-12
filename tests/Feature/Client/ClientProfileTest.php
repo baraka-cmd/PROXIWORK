@@ -203,6 +203,103 @@ class ClientProfileTest extends TestCase
         $this->assertTrue(Hash::check('password', $client->fresh()->password));
     }
 
+    public function test_email_change_keeps_current_address_until_the_new_address_is_confirmed(): void
+    {
+        Notification::fake();
+        $client = $this->client();
+        $oldEmail = $client->email;
+
+        $this->actingAs($client)
+            ->post('/client/profile/email-change', [
+                'email' => 'new-address@example.test',
+                'current_password' => 'password',
+            ])
+            ->assertRedirect('/client/profile/edit')
+            ->assertSessionHas('success');
+
+        $client->refresh();
+        $this->assertSame($oldEmail, $client->email);
+        $this->assertSame('new-address@example.test', $client->pending_email);
+        $this->assertNotNull($client->pending_email_token_hash);
+        $this->assertTrue($client->pending_email_expires_at->isFuture());
+    }
+
+    public function test_email_change_requires_the_current_password_and_a_unique_address(): void
+    {
+        $client = $this->client();
+        $other = $this->client();
+
+        $this->actingAs($client)
+            ->post('/client/profile/email-change', [
+                'email' => 'new-address@example.test',
+                'current_password' => 'incorrect-password',
+            ])
+            ->assertSessionHasErrors('current_password');
+
+        $this->actingAs($client)
+            ->post('/client/profile/email-change', [
+                'email' => $other->email,
+                'current_password' => 'password',
+            ])
+            ->assertSessionHasErrors('email');
+
+        $this->assertNull($client->fresh()->pending_email);
+    }
+
+    public function test_email_confirmation_is_a_post_action_and_revokes_old_api_tokens(): void
+    {
+        Notification::fake();
+        $client = $this->client();
+        $token = str_repeat('a', 64);
+        $client->forceFill([
+            'pending_email' => 'confirmed-address@example.test',
+            'pending_email_token_hash' => hash('sha256', $token),
+            'pending_email_expires_at' => now()->addMinutes(30),
+        ])->save();
+        $apiToken = $client->createToken('email-change-test');
+
+        $this->actingAs($client)
+            ->get('/client/profile/email-change/'.$token)
+            ->assertOk()
+            ->assertViewIs('client.profile.email-change-confirmation')
+            ->assertSee('confirmed-address@example.test');
+
+        $this->assertSame('client'.$client->id.'@example.test', $client->fresh()->email);
+        $this->assertSame('confirmed-address@example.test', $client->fresh()->pending_email);
+
+        $this->actingAs($client)
+            ->post('/client/profile/email-change/'.$token.'/confirm')
+            ->assertRedirect('/client/profile')
+            ->assertSessionHas('success');
+
+        $client->refresh();
+        $this->assertSame('confirmed-address@example.test', $client->email);
+        $this->assertTrue($client->hasVerifiedEmail());
+        $this->assertNull($client->pending_email);
+        $this->assertNull($client->pending_email_token_hash);
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $apiToken->accessToken->id]);
+    }
+
+    public function test_expired_email_confirmation_cannot_change_the_account_email(): void
+    {
+        $client = $this->client();
+        $originalEmail = $client->email;
+        $token = str_repeat('b', 64);
+        $client->forceFill([
+            'pending_email' => 'expired-address@example.test',
+            'pending_email_token_hash' => hash('sha256', $token),
+            'pending_email_expires_at' => now()->subMinute(),
+        ])->save();
+
+        $this->actingAs($client)
+            ->post('/client/profile/email-change/'.$token.'/confirm')
+            ->assertRedirect('/client/profile/edit')
+            ->assertSessionHasErrors('email');
+
+        $this->assertSame($originalEmail, $client->fresh()->email);
+        $this->assertSame('expired-address@example.test', $client->fresh()->pending_email);
+    }
+
     private function client(): User
     {
         $user = User::factory()->create();
