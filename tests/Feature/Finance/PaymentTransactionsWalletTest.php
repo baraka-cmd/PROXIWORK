@@ -126,6 +126,61 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
+    public function test_late_success_after_order_cancellation_is_recorded_without_order_settlement(): void
+    {
+        config(['payment.webhooks.secrets.fake' => 'test-webhook-secret']);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'finance-late-success-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertAccepted();
+
+        $transaction = PaymentTransaction::query()->firstOrFail();
+        $order->forceFill(['status' => OrderStatus::CANCELLED])->save();
+
+        $payload = [
+            'event_id' => 'LATE-SUCCESS-AFTER-CANCEL',
+            'transaction_id' => $transaction->provider_transaction_id,
+            'amount' => '500.00',
+            'currency' => 'USD',
+            'status' => PaymentStatus::SUCCEEDED->value,
+            'metadata' => ['source' => 'late-success-test'],
+        ];
+        $rawBody = json_encode($payload, JSON_THROW_ON_ERROR);
+        $signature = hash_hmac('sha256', $rawBody, 'test-webhook-secret');
+
+        $this->call(
+            'POST',
+            '/api/v1/payments/webhooks/fake',
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_PAYMENT_SIGNATURE' => $signature,
+            ],
+            content: $rawBody,
+        )->assertOk();
+
+        $this->assertDatabaseHas('payments', [
+            'id' => $transaction->payment_id,
+            'status' => PaymentStatus::SUCCEEDED->value,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => OrderStatus::CANCELLED->value,
+        ]);
+        $this->assertDatabaseHas('payment_events', [
+            'payment_id' => $transaction->payment_id,
+            'event_type' => 'payment.confirmed.order_incompatible',
+        ]);
+        $this->assertDatabaseCount('payment_receipts', 1);
+        $this->assertDatabaseCount('commissions', 0);
+        $this->assertDatabaseCount('wallet_transactions', 0);
+    }
+
     public function test_client_amount_is_not_authoritative(): void
     {
         [$client, $order] = $this->orderScenario();
