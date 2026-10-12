@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Order;
 
 use App\Enums\OrderStatus;
+use App\Enums\QuotationOfferActor;
 use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Models\Order;
@@ -34,7 +35,7 @@ class OrderService
 
             $request = ServiceRequest::query()
                 ->lockForUpdate()
-                ->with(['service', 'address'])
+                ->with(['service', 'address', 'professional'])
                 ->findOrFail($lockedQuotation->service_request_id);
 
             $isClientActor = $request->client_id === $actor->getKey();
