@@ -172,7 +172,7 @@ class ServiceRequestService
                 abort(403, 'Vous ne pouvez pas modifier cette demande.');
             }
 
-            if (!in_array($locked->status, [
+            if (! in_array($locked->status, [
                 ServiceRequestStatus::REQUESTED,
                 ServiceRequestStatus::QUOTED,
             ], true)) {
