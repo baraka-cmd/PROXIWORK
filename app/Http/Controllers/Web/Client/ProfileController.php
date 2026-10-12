@@ -44,14 +44,6 @@ class ProfileController extends Controller
         unset($data['avatar_path'], $data['email'], $data['role'], $data['account_status']);
 
         DB::transaction(function () use ($request, $data): void {
-            User::query()->whereNotNull('pending_email')
-                ->where('pending_email_expires_at', '<=', now())
-                ->update([
-                    'pending_email' => null,
-                    'pending_email_token_hash' => null,
-                    'pending_email_expires_at' => null,
-                ]);
-
             $user = User::query()
                 ->whereKey($request->user()->getKey())
                 ->lockForUpdate()
@@ -158,6 +150,14 @@ class ProfileController extends Controller
 
         try {
             DB::transaction(function () use ($user, $pendingEmail, $tokenHash): void {
+                User::query()->whereNotNull('pending_email')
+                    ->where('pending_email_expires_at', '<=', now())
+                    ->update([
+                        'pending_email' => null,
+                        'pending_email_token_hash' => null,
+                        'pending_email_expires_at' => null,
+                    ]);
+
                 $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
 
                 $lockedUser->forceFill([
