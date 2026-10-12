@@ -227,8 +227,10 @@ Route::prefix('v1')->group(function (): void {
 
         Route::prefix('notifications')->group(function (): void {
             Route::get('/', [NotificationController::class, 'index']);
-            Route::post('{notification}/read', [NotificationController::class, 'markAsRead']);
             Route::post('read-all', [NotificationController::class, 'markAllAsRead']);
+            Route::post('{notification}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('{notification}/archive', [NotificationController::class, 'archive']);
+            Route::post('{notification}/restore', [NotificationController::class, 'restore']);
             Route::get('preferences', [NotificationController::class, 'preferences']);
             Route::patch('preferences', [NotificationController::class, 'updatePreferences']);
         });
