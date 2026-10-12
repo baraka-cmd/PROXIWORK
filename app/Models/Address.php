@@ -24,6 +24,7 @@ class Address extends Model
         'address_line_1',
         'address_line_2',
         'landmark',
+        'access_instructions',
         'postal_code',
         'latitude',
         'longitude',
