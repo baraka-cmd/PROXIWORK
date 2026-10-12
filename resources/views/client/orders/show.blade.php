@@ -92,6 +92,9 @@
                     @if($order->addressSnapshot->landmark)
                         <span>Repère : {{ $order->addressSnapshot->landmark }}</span>
                     @endif
+                    @if($order->addressSnapshot->access_instructions)
+                        <span><strong>Instructions d’accès :</strong> {{ $order->addressSnapshot->access_instructions }}</span>
+                    @endif
                 </address>
                 <p class="client-order-muted">Il s’agit de la copie de l’adresse enregistrée pour cette commande.</p>
             @else
