@@ -76,11 +76,12 @@ class ProfileController extends Controller
         $mimeType = Storage::disk('local')->mimeType($path);
         abort_unless(is_string($mimeType) && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true), 404);
 
-        return response()->file(Storage::disk('local')->path($path), [
-            'Content-Type' => $mimeType,
-            'Cache-Control' => 'private, no-store',
-            'X-Content-Type-Options' => 'nosniff',
-        ]);
+        $response = response()->file(Storage::disk('local')->path($path));
+        $response->headers->set('Content-Type', $mimeType);
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
     }
 
     public function storePhoto(Request $request): RedirectResponse
