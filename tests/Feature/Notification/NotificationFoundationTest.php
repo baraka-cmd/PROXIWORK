@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Notification;
 
+use App\Jobs\Notifications\SendNotificationEmail;
+use App\Models\NotificationDelivery;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Notification\TransactionalNotificationService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class NotificationFoundationTest extends TestCase
@@ -234,6 +237,84 @@ class NotificationFoundationTest extends TestCase
             ->assertOk();
 
         $this->assertNull($notification->fresh()->archived_at);
+    }
+
+
+    public function test_transactional_notifications_are_idempotent_when_an_event_key_is_reused(): void
+    {
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+
+        $service = app(TransactionalNotificationService::class);
+        $service->quotationCreated($recipient, '/client/quotes/quote-42', 'quotation-created:42');
+        $service->quotationCreated($recipient, '/client/quotes/quote-42', 'quotation-created:42');
+
+        $this->assertSame(1, $recipient->notifications()->count());
+        $this->assertSame(1, NotificationDelivery::query()->where('user_id', $recipient->id)->count());
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $recipient->id,
+            'deduplication_key' => hash('sha256', $recipient->id.'|quotation|quotation-created:42'),
+        ]);
+    }
+
+    public function test_pending_email_delivery_is_queued_by_the_recovery_command(): void
+    {
+        Queue::fake();
+
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            '/client/quotes/quote-43',
+            'quotation-created:43',
+        );
+
+        $delivery = NotificationDelivery::query()->where('user_id', $recipient->id)->firstOrFail();
+
+        $this->artisan('notifications:dispatch-pending')->assertSuccessful();
+
+        Queue::assertPushed(SendNotificationEmail::class);
+        $this->assertNotNull($delivery->fresh()->queued_at);
+    }
+
+    public function test_log_mailer_is_recorded_as_simulated_not_sent(): void
+    {
+        config(['mail.default' => 'log']);
+
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            null,
+            'quotation-created:44',
+        );
+
+        $delivery = NotificationDelivery::query()->where('user_id', $recipient->id)->firstOrFail();
+
+        (new SendNotificationEmail((int) $delivery->id))->handle();
+
+        $this->assertSame('SIMULATED', $delivery->fresh()->status);
+        $this->assertNull($delivery->fresh()->sent_at);
+    }
+
+    public function test_critical_security_alert_keeps_email_delivery_enabled_when_optional_email_is_disabled(): void
+    {
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+        $recipient->notificationPreference()->create(['email_enabled' => false]);
+
+        app(TransactionalNotificationService::class)->securityAlert(
+            $recipient,
+            'Alerte de sécurité',
+            'Un événement de sécurité important a été détecté.',
+            null,
+            'security-event:abc',
+        );
+
+        $this->assertSame(1, NotificationDelivery::query()->where('user_id', $recipient->id)->count());
+        $this->assertSame('critical', $recipient->notifications()->firstOrFail()->data['priority']);
     }
 
     public function test_notification_channel_respects_preferences(): void
