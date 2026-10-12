@@ -24,7 +24,8 @@ class QuotationService
         private readonly ServiceRequestLifecycleService $requestLifecycle,
         private readonly OrderService $orderService,
         private readonly TransactionalNotificationService $notificationService,
-    ) {}
+    ) {
+    }
 
     public function create(ServiceRequest $serviceRequest, User $professional, array $data): Quotation
     {
