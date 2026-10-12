@@ -8,11 +8,16 @@ use App\Enums\ServiceRequestStatus;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ServiceRequestLifecycleService
 {
+    public function __construct(
+        private readonly TransactionalNotificationService $notificationService,
+    ) {}
+
     public function submit(ServiceRequest $request, User $actor): ServiceRequest
     {
         return $this->transition(
@@ -158,8 +163,37 @@ class ServiceRequestLifecycleService
                 'created_at' => now(),
             ]);
 
+            $locked->loadMissing(['service', 'client', 'professional.user']);
+
+            if ($to === ServiceRequestStatus::REQUESTED && $locked->professional?->user !== null) {
+                $this->notificationService->serviceRequestCreated(
+                    $locked->professional->user,
+                    $locked->service?->title ?? 'un service',
+                    'service-request-submitted:'.$locked->getKey(),
+                );
+            } elseif (
+                $to === ServiceRequestStatus::CANCELLED
+                && $previous === ServiceRequestStatus::REQUESTED
+                && $locked->professional?->user !== null
+            ) {
+                $this->notificationService->serviceRequestCancelled(
+                    $locked->professional->user,
+                    'service-request-cancelled:'.$locked->getKey(),
+                );
+            } elseif (
+                $to === ServiceRequestStatus::REJECTED
+                && $previous === ServiceRequestStatus::REQUESTED
+                && $locked->client !== null
+            ) {
+                $this->notificationService->serviceRequestRejected(
+                    $locked->client,
+                    'service-request-rejected:'.$locked->getKey(),
+                );
+            }
+
             return $locked->refresh()->load([
                 'service',
+                'client',
                 'professional.user',
                 'address',
                 'addressSnapshot',
