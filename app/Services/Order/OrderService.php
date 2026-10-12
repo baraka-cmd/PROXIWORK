@@ -85,16 +85,18 @@ class OrderService
             // the migration backfills production request history.
             $addressSnapshot = $request->addressSnapshot ?? $request->address;
 
-            if ($request->address === null || $addressSnapshot === null) {
-                throw ValidationException::withMessages([
-                    'address' => 'Une adresse d’exécution valide est requise pour créer la commande.',
-                ]);
-            }
+            if ($request->execution_mode->requiresClientAddress()) {
+                if ($request->address === null || $addressSnapshot === null) {
+                    throw ValidationException::withMessages([
+                        'address' => 'Une adresse d’exécution valide est requise pour créer la commande.',
+                    ]);
+                }
 
-            if ($request->address->user_id !== $request->client_id) {
-                throw ValidationException::withMessages([
-                    'address' => 'L’adresse de la demande n’appartient pas au client.',
-                ]);
+                if ($request->address->user_id !== $request->client_id) {
+                    throw ValidationException::withMessages([
+                        'address' => 'L’adresse de la demande n’appartient pas au client.',
+                    ]);
+                }
             }
 
             if ($request->professional_id === null) {
@@ -139,7 +141,8 @@ class OrderService
                 'updated_at' => $now,
             ]);
 
-            OrderAddressSnapshot::query()->forceCreate([
+            if ($request->execution_mode->requiresClientAddress()) {
+                OrderAddressSnapshot::query()->forceCreate([
                 'order_id' => $order->getKey(),
                 'recipient_name' => $addressSnapshot->recipient_name,
                 'contact_phone' => $addressSnapshot->contact_phone,
@@ -157,7 +160,8 @@ class OrderService
                 'longitude' => $addressSnapshot->longitude,
                 'created_at' => $now,
                 'updated_at' => $now,
-            ]);
+                ]);
+            }
 
             OrderStatusHistory::query()->forceCreate([
                 'order_id' => $order->getKey(),
