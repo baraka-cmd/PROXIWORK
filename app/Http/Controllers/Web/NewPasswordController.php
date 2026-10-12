@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use App\Notifications\AccountActivityNotification;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\View\View;
 
 class NewPasswordController
@@ -24,7 +24,7 @@ class NewPasswordController
         ]);
     }
 
-    public function store(ResetPasswordRequest $request): RedirectResponse
+    public function store(ResetPasswordRequest $request, TransactionalNotificationService $notificationService): RedirectResponse
     {
         $resetUser = null;
 
@@ -42,11 +42,15 @@ class NewPasswordController
         });
 
         if ($status === Password::PASSWORD_RESET) {
-            $resetUser?->notify(new AccountActivityNotification(
-                'Mot de passe réinitialisé',
-                'Votre mot de passe a été réinitialisé. Si vous n’êtes pas à l’origine de cette action, contactez immédiatement le support.',
-                'password_reset',
-            ));
+            if ($resetUser !== null) {
+                $notificationService->securityAlert(
+                    $resetUser,
+                    'Mot de passe réinitialisé',
+                    'Votre mot de passe a été réinitialisé. Si vous n’êtes pas à l’origine de cette action, contactez immédiatement le support.',
+                    null,
+                    'password-reset:'.$resetUser->getKey().':'.(string) $resetUser->updated_at?->timestamp,
+                );
+            }
 
             return redirect()->route('login')->with('status', 'Votre mot de passe a été réinitialisé. Vous pouvez vous connecter.');
         }
