@@ -115,7 +115,7 @@ class AppServiceProvider extends ServiceProvider
                 ($request->user()?->getAuthIdentifier() ?? $request->ip());
 
             $orderKey = 'payment-order:' .
-                ((string) $request->route('order'));
+                ((string) ($request->route('order') ?? $request->route('payment') ?? 'unknown'));
 
             return [
                 Limit::perMinute(10)->by($userKey),
