@@ -75,9 +75,14 @@
                 <span>Adresses</span>
             </a>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/client/notifications') }}">
+            <a class="dashboard-nav-link dashboard-nav-link--notifications" data-nav-link href="{{ url('/client/notifications') }}">
                 <i class="fa-solid fa-bell" aria-hidden="true"></i>
                 <span>Notifications</span>
+                @if (($clientUnreadNotificationCount ?? 0) > 0)
+                    <span class="dashboard-nav-badge" aria-label="{{ $clientUnreadNotificationCount }} notification(s) non lue(s)">
+                        {{ $clientUnreadNotificationCount > 99 ? '99+' : $clientUnreadNotificationCount }}
+                    </span>
+                @endif
             </a>
 
             <a class="dashboard-nav-link" data-nav-link href="{{ url('/client/messages') }}">
