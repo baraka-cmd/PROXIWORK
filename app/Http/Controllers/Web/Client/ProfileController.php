@@ -266,7 +266,7 @@ class ProfileController extends Controller
 
             if (
                 !is_string($lockedUser->pending_email_token_hash)
-                || ! hash_equals($lockedUser->pending_email_token_hash, $tokenHash)
+                || !hash_equals($lockedUser->pending_email_token_hash, $tokenHash)
                 || $lockedUser->pending_email_expires_at === null
                 || $lockedUser->pending_email_expires_at->isPast()
                 || !is_string($lockedUser->pending_email)
