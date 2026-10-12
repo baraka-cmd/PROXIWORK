@@ -33,6 +33,19 @@ class ServiceRequestLifecycleService
                     ]);
                 }
 
+                if ($locked->execution_mode->requiresClientAddress()) {
+                    $hasOwnedAddress = $locked->address()
+                        ->where('user_id', $locked->client_id)
+                        ->exists();
+                    $hasSnapshot = $locked->addressSnapshot()->exists();
+
+                    if (! $hasOwnedAddress || ! $hasSnapshot) {
+                        throw ValidationException::withMessages([
+                            'address_id' => 'Choisissez une adresse d’intervention avant d’envoyer cette demande au professionnel.',
+                        ]);
+                    }
+                }
+
                 $locked->forceFill(['requested_at' => now()])->save();
             },
         );
@@ -149,6 +162,7 @@ class ServiceRequestLifecycleService
                 'service',
                 'professional.user',
                 'address',
+                'addressSnapshot',
                 'statusHistories.actor',
             ]);
         });
