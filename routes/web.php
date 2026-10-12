@@ -98,8 +98,10 @@ Route::middleware('auth')->group(function (): void {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}/payment', [OrderController::class, 'pay'])->name('orders.payment');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::post('orders/{order}/payment', [PaymentController::class, 'store'])->name('payments.store');
+        Route::post('orders/{order}/payment', [PaymentController::class, 'store'])->middleware('throttle:payment')->name('payments.store');
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
+        Route::post('payments/{payment}/refund-requests', [PaymentController::class, 'requestRefund'])->middleware('throttle:payment')->name('payments.refunds.store');
         Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
         Route::get('profile', [ClientProfileController::class, 'show'])->name('profile');
         Route::get('profile/edit', [ClientProfileController::class, 'edit'])->name('profile.edit');
