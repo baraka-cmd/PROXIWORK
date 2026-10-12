@@ -77,12 +77,14 @@ class ClientOrdersTest extends TestCase
         $pending = $this->makeOrder($client, 'Réparation ordinateur portable', OrderStatus::PENDING_PAYMENT);
         $this->makeOrder($client, 'Installation réseau local', OrderStatus::IN_PROGRESS);
 
-        $this->actingAs($client)
+        $response = $this->actingAs($client)
             ->get('/client/orders?status=pending_payment&q=ordinateur')
             ->assertOk()
             ->assertSee($pending->order_number)
-            ->assertSee('Réparation ordinateur portable')
-            ->assertDontSee('Installation réseau local');
+            ->assertSee('Réparation ordinateur portable');
+
+        $response->assertViewHas('orders', fn ($orders): bool => $orders->total() === 1
+            && $orders->first()?->getKey() === $pending->getKey());
     }
 
     public function test_client_can_filter_orders_by_the_quick_active_bucket(): void
@@ -93,13 +95,14 @@ class ClientOrdersTest extends TestCase
         $activeOrder = $this->makeOrder($client, 'Commande en cours', OrderStatus::IN_PROGRESS);
         $this->makeOrder($client, 'Commande terminée', OrderStatus::COMPLETED);
 
-        $this->actingAs($client)
+        $response = $this->actingAs($client)
             ->get('/client/orders?bucket=active')
             ->assertOk()
             ->assertSee($activeOrder->order_number)
-            ->assertSee('Commande en cours')
-            ->assertDontSee('Commande en attente de paiement')
-            ->assertDontSee('Commande terminée');
+            ->assertSee('Commande en cours');
+
+        $response->assertViewHas('orders', fn ($orders): bool => $orders->total() === 1
+            && $orders->first()?->getKey() === $activeOrder->getKey());
     }
 
     public function test_order_filters_reject_unknown_status_and_invalid_date_range(): void
