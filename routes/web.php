@@ -121,8 +121,21 @@ Route::middleware('auth')->group(function (): void {
         Route::delete('addresses/{address}', [ClientAddressController::class, 'destroy'])->middleware('throttle:10,1')->name('addresses.destroy');
         Route::post('addresses/{address}/default', [ClientAddressController::class, 'makeDefault'])->middleware('throttle:10,1')->name('addresses.default');
         Route::get('notifications', [ClientNotificationController::class, 'index'])->name('notifications.index');
-        Route::post('notifications/{notification}/read', [ClientNotificationController::class, 'markAsRead'])->name('notifications.read');
-        Route::post('notifications/read-all', [ClientNotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+        Route::patch('notifications/preferences', [ClientNotificationController::class, 'updatePreferences'])
+            ->middleware('throttle:10,1')
+            ->name('notifications.preferences.update');
+        Route::post('notifications/read-all', [ClientNotificationController::class, 'markAllAsRead'])
+            ->middleware('throttle:10,1')
+            ->name('notifications.read-all');
+        Route::post('notifications/{notification}/read', [ClientNotificationController::class, 'markAsRead'])
+            ->middleware('throttle:30,1')
+            ->name('notifications.read');
+        Route::post('notifications/{notification}/archive', [ClientNotificationController::class, 'archive'])
+            ->middleware('throttle:20,1')
+            ->name('notifications.archive');
+        Route::post('notifications/{notification}/restore', [ClientNotificationController::class, 'restore'])
+            ->middleware('throttle:20,1')
+            ->name('notifications.restore');
         Route::get('messages', [ClientMessageController::class, 'index'])->name('messages.index');
         Route::get('messages/{conversation}', [ClientMessageController::class, 'show'])->name('messages.show');
         Route::post('messages/{conversation}', [ClientMessageController::class, 'store'])->name('messages.store');
