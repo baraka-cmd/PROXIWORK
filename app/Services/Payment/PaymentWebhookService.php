@@ -23,6 +23,7 @@ class PaymentWebhookService
     public function __construct(
         private readonly CommissionService $commissionService,
         private readonly PaymentReceiptService $receiptService,
+        private readonly PaymentEventService $events,
     ) {
         // Dependencies are injected only.
     }
@@ -66,10 +67,21 @@ class PaymentWebhookService
                 ]);
             }
 
+            $previousTransactionStatus = $transaction->status->value;
+
             // Validate the financial payload even when the transaction is already
             // final. A repeated callback must never bypass amount/currency checks.
             if ($transaction->status->isFinal()) {
                 $transaction->forceFill(['provider_event_id' => $eventId])->save();
+                $this->events->record(
+                    $transaction,
+                    'webhook.final_state_rechecked',
+                    $previousTransactionStatus,
+                    $previousTransactionStatus,
+                    $provider->value,
+                    ['provider_event_id' => $eventId],
+                    'webhook-'.$provider->value.'-'.$eventId,
+                );
 
                 return $transaction->refresh();
             }
@@ -85,8 +97,19 @@ class PaymentWebhookService
                 'processed_at' => $status === PaymentStatus::SUCCEEDED ? now() : $transaction->processed_at,
                 'failed_at' => $status === PaymentStatus::FAILED ? now() : $transaction->failed_at,
             ])->save();
+            $transaction->refresh();
+            $this->events->record(
+                $transaction,
+                'webhook.result',
+                $previousTransactionStatus,
+                $transaction->status->value,
+                $provider->value,
+                ['provider_event_id' => $eventId],
+                'webhook-'.$provider->value.'-'.$eventId,
+            );
 
             $payment = Payment::query()->lockForUpdate()->findOrFail($transaction->payment_id);
+            $previousPaymentStatus = $payment->status->value;
             $payment->forceFill([
                 'status' => $status,
                 'paid_at' => $status === PaymentStatus::SUCCEEDED ? now() : $payment->paid_at,
@@ -130,9 +153,28 @@ class PaymentWebhookService
 
             if ($status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
-                $this->receiptService->issueFor($payment->refresh(), $transaction->refresh());
+                $receipt = $this->receiptService->issueFor($payment->refresh(), $transaction->refresh());
+                $this->events->record(
+                    $transaction,
+                    'payment.confirmed',
+                    $previousPaymentStatus,
+                    PaymentStatus::SUCCEEDED->value,
+                    $provider->value,
+                    ['receipt_number' => $receipt->receipt_number, 'provider_event_id' => $eventId],
+                    'payment-confirmed-'.$payment->getKey(),
+                );
 
                 OrderPaid::dispatch($order);
+            } elseif ($previousPaymentStatus !== $status->value) {
+                $this->events->record(
+                    $transaction,
+                    'payment.status_changed',
+                    $previousPaymentStatus,
+                    $status->value,
+                    $provider->value,
+                    ['provider_event_id' => $eventId],
+                    'payment-status-'.$payment->getKey().'-'.$eventId,
+                );
             }
 
             return $transaction->refresh();
