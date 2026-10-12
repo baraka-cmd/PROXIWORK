@@ -21,7 +21,7 @@ class TransactionalNotificationMail extends Mailable
             ->view('emails.notifications.transactional')
             ->with([
                 'title' => $this->notificationTitle,
-                'message' => $this->notificationMessage,
+                'notificationBody' => $this->notificationMessage,
                 'url' => $this->safeInternalUrl($this->notificationUrl),
                 'applicationName' => config('app.name', 'PROXIWORK'),
             ]);
