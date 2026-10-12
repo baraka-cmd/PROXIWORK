@@ -134,14 +134,21 @@ class QuotationController extends Controller
 
         if (! empty($filters['validity'])) {
             match ($filters['validity']) {
-                'valid' => $quotesQuery->whereHas('currentOffer', fn ($query) => $query->where('valid_until', '>', now())),
-                'expiring' => $quotesQuery->whereHas('currentOffer', fn ($query) => $query
-                    ->where('valid_until', '>', now())
-                    ->where('valid_until', '<=', now()->addDays(3))),
-                'expired' => $quotesQuery->where(function ($query): void {
-                    $query->where('quotations.status', QuotationStatus::EXPIRED->value)
-                        ->orWhereHas('currentOffer', fn ($offerQuery) => $offerQuery->where('valid_until', '<=', now()));
-                }),
+                'valid' => $quotesQuery
+                    ->whereIn('quotations.status', [
+                        QuotationStatus::SENT->value,
+                        QuotationStatus::NEGOTIATING->value,
+                    ])
+                    ->whereHas('currentOffer', fn ($query) => $query->where('valid_until', '>', now())),
+                'expiring' => $quotesQuery
+                    ->whereIn('quotations.status', [
+                        QuotationStatus::SENT->value,
+                        QuotationStatus::NEGOTIATING->value,
+                    ])
+                    ->whereHas('currentOffer', fn ($query) => $query
+                        ->where('valid_until', '>', now())
+                        ->where('valid_until', '<=', now()->addDays(3))),
+                'expired' => $quotesQuery->where('quotations.status', QuotationStatus::EXPIRED->value),
             };
         }
 
