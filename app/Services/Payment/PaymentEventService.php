@@ -27,7 +27,7 @@ class PaymentEventService
             return $existing;
         }
 
-        return PaymentEvent::query()->create([
+        return PaymentEvent::query()->forceCreate([
             'payment_id' => $transaction->payment_id,
             'payment_transaction_id' => $transaction->getKey(),
             'event_key' => $eventKey,
