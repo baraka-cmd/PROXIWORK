@@ -12,8 +12,8 @@ use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use App\Services\Order\OrderService;
 use App\Services\Notification\TransactionalNotificationService;
+use App\Services\Order\OrderService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -24,8 +24,7 @@ class QuotationService
         private readonly ServiceRequestLifecycleService $requestLifecycle,
         private readonly OrderService $orderService,
         private readonly TransactionalNotificationService $notificationService,
-    ) {
-    }
+    ) {}
 
     public function create(ServiceRequest $serviceRequest, User $professional, array $data): Quotation
     {
