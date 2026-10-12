@@ -129,28 +129,35 @@ class AuthController extends Controller
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $user = $request->user();
+        $user = DB::transaction(function () use ($request): User {
+            $user = User::query()
+                ->whereKey($request->user()->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
-            throw ValidationException::withMessages([
-                'current_password' => ['Le mot de passe actuel est incorrect.'],
+            if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['Le mot de passe actuel est incorrect.'],
+                ]);
+            }
+
+            $user->update([
+                'password' => $request->string('password')->toString(),
             ]);
-        }
 
-        $user->update([
-            'password' => $request->string('password')->toString(),
-        ]);
+            $user->tokens()->delete();
 
-        $user->tokens()->delete();
+            $this->auditLogService->record('password_changed', $user, $user, [], $request);
+            $this->notificationService->securityAlert(
+                $user,
+                'Mot de passe modifié',
+                'Votre mot de passe a été modifié et vos anciennes sessions ont été révoquées.',
+                null,
+                'password-changed:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
+            );
 
-        $this->auditLogService->record('password_changed', $user, $user, [], $request);
-        $this->notificationService->securityAlert(
-            $user,
-            'Mot de passe modifié',
-            'Votre mot de passe a été modifié et vos anciennes sessions ont été révoquées.',
-            null,
-            'password-changed:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
-        );
+            return $user;
+        });
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
