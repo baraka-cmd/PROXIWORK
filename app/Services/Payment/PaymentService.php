@@ -29,6 +29,7 @@ class PaymentService
         private readonly PaymentTransactionService $transactionService,
         private readonly DatabaseManager $database,
         private readonly CommissionService $commissionService,
+        private readonly PaymentReceiptService $receiptService,
     ) {
         // Dependencies are injected only.
     }
@@ -87,8 +88,8 @@ class PaymentService
                     metadata: ['payment_intent_id' => $intent->getKey(), 'payment_id' => $payment->getKey()],
                 ));
         } catch (Throwable $exception) {
-            // The local transaction remains durable. The same key must be reused
-            // to reconcile an unknown provider outcome safely.
+            // Persist the unresolved result. A network failure is not proof that the provider failed.
+            $this->transactionService->markUnknown($transaction);
             throw new PaymentGatewayUnavailableException($exception);
         }
 
@@ -161,6 +162,7 @@ class PaymentService
 
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($lockedPayment, $transaction);
+                $this->receiptService->issueFor($lockedPayment->refresh(), $transaction->refresh());
 
                 OrderPaid::dispatch($order);
             }
