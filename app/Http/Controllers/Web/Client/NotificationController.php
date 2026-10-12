@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Controllers\\Web\\Client;
+namespace App\Http\Controllers\Web\Client;
 
-use App\\Http\\Controllers\\Controller;
-use App\\Http\\Requests\\Notification\\UpdateNotificationPreferenceRequest;
-use App\\Models\\NotificationPreference;
-use Illuminate\\Contracts\\View\\View;
-use Illuminate\\Http\\RedirectResponse;
-use Illuminate\\Http\\Request;
-use Illuminate\\Validation\\Rule;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Notification\UpdateNotificationPreferenceRequest;
+use App\Models\NotificationPreference;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class NotificationController extends Controller
 {
@@ -164,7 +164,7 @@ class NotificationController extends Controller
 
         $url = trim($url);
 
-        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\\\')) {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\')) {
             return $url;
         }
 
