@@ -123,8 +123,8 @@ class SendNotificationPush implements ShouldQueue
                     continue;
                 }
 
-                $errorCode = (string) ($response->json('error.details.0.errorCode') ?? $response->json('error.status') ?? 'PUSH_PROVIDER_ERROR');
-                if (str_contains(strtoupper($errorCode), 'UNREGISTERED') || str_contains(strtoupper($errorCode), 'NOT_FOUND')) {
+                $deviceErrorCode = strtoupper((string) ($response->json('error.details.0.errorCode') ?? ''));
+                if ($deviceErrorCode === 'UNREGISTERED') {
                     $device->delete();
 
                     continue;
