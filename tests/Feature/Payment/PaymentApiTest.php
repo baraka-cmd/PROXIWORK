@@ -17,6 +17,7 @@ use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentRefund;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Service;
@@ -347,6 +348,47 @@ class PaymentApiTest extends TestCase
         $this->actingAs($otherClient)
             ->get(route('client.payments.receipt', $payment))
             ->assertNotFound();
+    }
+
+    public function test_refund_request_uses_only_the_remaining_unrefunded_amount(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-partial-refund-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+
+        PaymentRefund::query()->forceCreate([
+            'reference' => 'RFD-EXISTING-PARTIAL',
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'amount' => '100.00',
+            'currency' => 'USD',
+            'status' => PaymentRefundStatus::SUCCEEDED,
+            'reason' => 'Remboursement partiel déjà confirmé.',
+            'requested_at' => now()->subDay(),
+            'processed_at' => now(),
+        ]);
+
+        $this->actingAs($client)
+            ->post(route('client.payments.refunds.store', $payment), [
+                'reason' => 'Je demande l’examen du solde restant à rembourser.',
+            ])
+            ->assertRedirect(route('client.payments.show', $payment));
+
+        $this->assertDatabaseHas('payment_refunds', [
+            'payment_id' => $payment->id,
+            'status' => PaymentRefundStatus::REQUESTED->value,
+            'amount' => '400.00',
+        ]);
     }
 
     public function test_disabled_simulator_does_not_create_a_payment_attempt(): void
