@@ -4,7 +4,7 @@
 
 @section('content')
 @push('head')
-    @vite('resources/css/pages/client/profile.css')
+    @vite(['resources/css/pages/client/profile.css', 'resources/js/pages/client/profile.js'])
 @endpush
 
 <div class="client-profile-page">
@@ -69,7 +69,7 @@
                     <button class="btn btn-primary" type="submit"><i class="fa-solid fa-upload" aria-hidden="true"></i> Enregistrer la photo</button>
                 </form>
                 @if ($user->profile?->avatar_path)
-                    <form method="POST" action="{{ route('client.profile.photo.destroy') }}" onsubmit="return confirm('Supprimer votre photo de profil ? Les autres informations resteront inchangées.');">
+                    <form method="POST" action="{{ route('client.profile.photo.destroy') }}" data-confirm="Supprimer votre photo de profil ? Les autres informations resteront inchangées.">
                         @csrf
                         @method('DELETE')
                         <button class="btn btn-danger-outline" type="submit"><i class="fa-regular fa-trash-can" aria-hidden="true"></i> Supprimer la photo</button>
