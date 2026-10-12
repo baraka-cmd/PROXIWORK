@@ -12,7 +12,7 @@ class NotificationPreferenceResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'database_enabled' => $this->database_enabled,
+            'database_enabled' => true,
             'email_enabled' => $this->email_enabled,
             'sms_enabled' => $this->sms_enabled,
             'push_enabled' => $this->push_enabled,
