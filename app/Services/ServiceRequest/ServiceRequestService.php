@@ -46,15 +46,15 @@ class ServiceRequestService
                     ->lockForUpdate()
                     ->find($attributes['service_id']);
 
-                if ($service === null || !$service->isRequestableForClient()) {
+                if ($service === null || $service->isRequestableForClient() === false) {
                     throw ValidationException::withMessages([
                         'service_id' => 'Ce service n’est plus disponible pour recevoir une nouvelle demande.',
                     ]);
                 }
 
-                if (! empty($attributes['address_id']) && !$client->addresses()
+                if (($attributes['address_id'] ?? null) !== null && $client->addresses()
                     ->whereKey($attributes['address_id'])
-                    ->exists()) {
+                    ->exists() === false) {
                     throw ValidationException::withMessages([
                         'address_id' => 'Cette adresse ne vous appartient pas.',
                     ]);
@@ -136,10 +136,10 @@ class ServiceRequestService
                 ]);
             }
 
-            if (! empty($attributes['address_id']) && !Address::query()
+            if (($attributes['address_id'] ?? null) !== null && Address::query()
                 ->whereKey($attributes['address_id'])
                 ->where('user_id', $locked->client_id)
-                ->exists()) {
+                ->exists() === false) {
                 throw ValidationException::withMessages([
                     'address_id' => 'Cette adresse ne vous appartient pas.',
                 ]);
@@ -172,10 +172,10 @@ class ServiceRequestService
                 abort(403, 'Vous ne pouvez pas modifier cette demande.');
             }
 
-            if (!in_array($locked->status, [
+            if (in_array($locked->status, [
                 ServiceRequestStatus::REQUESTED,
                 ServiceRequestStatus::QUOTED,
-            ], true)) {
+            ], true) === false) {
                 throw ValidationException::withMessages([
                     'status' => 'Le lieu d’exécution ne peut être modifié qu’avant l’acceptation du devis.',
                 ]);
@@ -318,20 +318,20 @@ class ServiceRequestService
             });
         }
 
-        if (! empty($filters['professional_id'])) {
+        if (isset($filters['professional_id']) && $filters['professional_id'] !== '') {
             $query->where('professional_id', (int) $filters['professional_id']);
         }
 
-        if (! empty($filters['category_id'])) {
+        if (isset($filters['category_id']) && $filters['category_id'] !== '') {
             $query->whereHas('service', fn (Builder $service) => $service
                 ->where('category_id', (int) $filters['category_id']));
         }
 
-        if (! empty($filters['from'])) {
+        if (isset($filters['from']) && $filters['from'] !== '') {
             $query->whereDate('created_at', '>=', $filters['from']);
         }
 
-        if (! empty($filters['to'])) {
+        if (isset($filters['to']) && $filters['to'] !== '') {
             $query->whereDate('created_at', '<=', $filters['to']);
         }
     }
