@@ -31,6 +31,7 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
     ) {
+        // Dependencies are promoted constructor properties.
     }
 
     public function index(IndexServiceRequestRequest $request): View
