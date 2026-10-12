@@ -7,7 +7,6 @@ namespace Tests\Feature\Address;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Address;
-use App\Models\Category;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestAddressSnapshot;
