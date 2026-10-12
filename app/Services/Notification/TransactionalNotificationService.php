@@ -225,6 +225,40 @@ class TransactionalNotificationService
                     ],
                 );
             }
+            $pushEnabled = $priority === 'critical' || ($preference?->push_enabled ?? false);
+
+            if ($pushEnabled) {
+                $firebaseConfigured = trim((string) config('services.firebase.project_id')) !== ''
+                    && trim((string) config('services.firebase.client_email')) !== ''
+                    && trim((string) config('services.firebase.private_key')) !== '';
+                $hasDevices = \App\Models\NotificationDevice::query()
+                    ->where('user_id', $recipient->getKey())
+                    ->exists();
+                $localSimulation = app()->environment(['local', 'testing']);
+                $pushStatus = ! $hasDevices
+                    ? 'FAILED'
+                    : ($localSimulation ? 'SIMULATED' : ($firebaseConfigured ? 'PENDING' : 'FAILED'));
+                $pushError = match ($pushStatus) {
+                    'SIMULATED' => 'PUSH_PROVIDER_NOT_CONFIGURED',
+                    'PENDING' => null,
+                    default => ! $hasDevices ? 'PUSH_NO_REGISTERED_DEVICES' : 'PUSH_PROVIDER_NOT_CONFIGURED',
+                };
+
+                NotificationDelivery::query()->firstOrCreate(
+                    [
+                        'notification_id' => $notification->id,
+                        'channel' => 'push',
+                    ],
+                    [
+                        'user_id' => $recipient->getKey(),
+                        'status' => $pushStatus,
+                        'attempts' => 0,
+                        'available_at' => $pushStatus === 'PENDING' ? now() : null,
+                        'last_error_code' => $pushError,
+                    ],
+                );
+            }
+
         });
     }
 }
