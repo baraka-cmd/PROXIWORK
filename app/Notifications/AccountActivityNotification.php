@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\\Notifications;
+namespace App\Notifications;
 
-use App\\Models\\NotificationPreference;
-use Illuminate\\Bus\\Queueable;
-use Illuminate\\Contracts\\Queue\\ShouldQueue;
-use Illuminate\\Notifications\\Messages\\MailMessage;
-use Illuminate\\Notifications\\Notification;
+use App\Models\NotificationPreference;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
 class AccountActivityNotification extends Notification implements ShouldQueue
 {
@@ -86,7 +86,7 @@ class AccountActivityNotification extends Notification implements ShouldQueue
         $url = trim($url);
         $application = parse_url((string) config('app.url'));
 
-        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\\\')) {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\')) {
             return rtrim((string) config('app.url'), '/').$url;
         }
 
