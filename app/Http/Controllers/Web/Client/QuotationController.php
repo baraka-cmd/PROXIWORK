@@ -287,7 +287,7 @@ class QuotationController extends Controller
         );
 
         if ($counterOffer->serviceRequest->professional?->user !== null) {
-            $this->notificationService->counterOfferReceived($counterOffer->serviceRequest->professional->user, route('professional.quotes.show', $counterOffer, true), 'counter-offer-received:'.$counterOffer->getKey());
+            $this->notificationService->counterOfferReceived($counterOffer->serviceRequest->professional->user, route('professional.quotes.show', $counterOffer, true), 'counter-offer-received:'.$counterOffer->current_offer_id);
         }
 
         return redirect()->route('client.quotes.show', $counterOffer)->with('success', 'Votre contre-proposition a été envoyée. Le devis attend maintenant la réponse du professionnel.');
