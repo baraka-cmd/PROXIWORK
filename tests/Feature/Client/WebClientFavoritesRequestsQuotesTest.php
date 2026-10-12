@@ -623,6 +623,35 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->count());
     }
 
+    public function test_expired_validity_filter_does_not_reclassify_an_accepted_quote(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $acceptedQuote = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'accepted',
+        ], [
+            'valid_until' => now()->subDay(),
+        ]);
+
+        $expiredQuote = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'expired',
+        ], [
+            'valid_until' => now()->subDay(),
+        ]);
+
+        $this->actingAs($client)
+            ->get('/client/quotes?validity=expired')
+            ->assertOk()
+            ->assertSee('DEVIS-'.str_pad((string) $expiredQuote->id, 6, '0', STR_PAD_LEFT))
+            ->assertDontSee('DEVIS-'.str_pad((string) $acceptedQuote->id, 6, '0', STR_PAD_LEFT));
+    }
+
     private function makeQuoteForClient(
         User $client,
         User $professionalUser,
