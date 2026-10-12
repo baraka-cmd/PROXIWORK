@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\CategoryStatus;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Enums\UserAccountStatus;
@@ -31,6 +32,7 @@ class Service extends Model
         'slug',
         'short_description',
         'description',
+        'execution_mode',
         'pricing_type',
         'price',
         'price_min',
@@ -43,6 +45,7 @@ class Service extends Model
     protected function casts(): array
     {
         return [
+            'execution_mode' => ServiceExecutionMode::class,
             'pricing_type' => ServicePricingType::class,
             'status' => ServiceStatus::class,
             'price' => 'decimal:2',
