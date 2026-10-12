@@ -174,7 +174,6 @@ class NotificationFoundationTest extends TestCase
         );
     }
 
-
     public function test_api_notification_filters_exclude_other_users_and_sanitize_external_urls(): void
     {
         $user = User::factory()->create();
@@ -239,7 +238,6 @@ class NotificationFoundationTest extends TestCase
         $this->assertNull($notification->fresh()->archived_at);
     }
 
-
     public function test_transactional_notifications_are_idempotent_when_an_event_key_is_reused(): void
     {
         $recipient = User::factory()->create();
@@ -298,8 +296,6 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame('SIMULATED', $delivery->fresh()->status);
         $this->assertNull($delivery->fresh()->sent_at);
     }
-
-
 
     public function test_pending_optional_email_is_skipped_if_the_user_opts_out_before_delivery(): void
     {
