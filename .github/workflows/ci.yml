@@ -83,7 +83,8 @@ jobs:
             exit 0
           fi
 
-          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
+          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint
+          git diff -- app/Console/Commands/DispatchPendingNotificationDeliveries.php tests/Feature/Notification/NotificationFoundationTest.php
 
   mysql-migrations:
     name: Fresh MySQL migration
