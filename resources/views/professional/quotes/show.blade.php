@@ -158,6 +158,57 @@
             </section>
         @endif
 
+        @if ($quotation->status === \App\Enums\QuotationStatus::EXPIRED && $offer)
+            <section class="surface-card content-card professional-quote-panel">
+                <h2>Renouveler le devis expiré</h2>
+                <p>Le devis précédent reste dans l’historique. Cette action crée une nouvelle version, avec une nouvelle date de validité, que le client devra examiner avant toute acceptation.</p>
+                <form method="POST" action="{{ route('professional.quotes.renew', $quotation) }}" class="professional-quote-form">
+                    @csrf
+                    <input type="hidden" name="currency" value="{{ $offer->currency }}">
+                    <div class="field">
+                        <label for="renew-amount">Montant proposé ({{ $offer->currency }})</label>
+                        <input id="renew-amount" name="amount" type="number" step="0.01" min="0.01" max="9999999999.99" value="{{ old('amount', $offer->amount) }}" required>
+                        @error('amount')<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="field">
+                        <label for="renew-duration">Délai proposé</label>
+                        <input id="renew-duration" name="duration_value" type="number" min="1" max="10000" value="{{ old('duration_value', $offer->duration_value) }}" required>
+                        @error('duration_value')<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="field">
+                        <label for="renew-duration-unit">Unité</label>
+                        <select id="renew-duration-unit" name="duration_unit" required>
+                            @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
+                                <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($unit->value) }}</option>
+                            @endforeach
+                        </select>
+                        @error('duration_unit')<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="field">
+                        <label for="renew-valid-until">Nouvelle date limite</label>
+                        <input id="renew-valid-until" name="valid_until" type="datetime-local" value="{{ old('valid_until') }}" min="{{ now()->addMinute()->format('Y-m-d\\TH:i') }}" required>
+                        @error('valid_until')<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="field professional-quote-form__full">
+                        <label for="renew-description">Description et périmètre</label>
+                        <textarea id="renew-description" name="description" rows="4" minlength="10" maxlength="10000" required>{{ old('description', $offer->description) }}</textarea>
+                        @error('description')<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="field professional-quote-form__full">
+                        <label for="renew-conditions">Conditions complémentaires (facultatif)</label>
+                        <textarea id="renew-conditions" name="conditions" rows="3" maxlength="10000">{{ old('conditions', $offer->conditions) }}</textarea>
+                        @error('conditions')<small class="field-error">{{ $message }}</small>@enderror
+                    </div>
+                    <div class="professional-quote-form__full">
+                        <button class="button button--primary" type="submit"
+                            data-confirm-submit="Créer une nouvelle version du devis avec une validité renouvelée ? L’ancienne proposition restera consultable et ne sera pas réactivée.">
+                            Renouveler le devis
+                        </button>
+                    </div>
+                </form>
+            </section>
+        @endif
+
         @if ($quotation->status === \App\Enums\QuotationStatus::ACCEPTED && $quotation->order)
             <section class="surface-card content-card professional-quote-panel">
                 <h2>Commande issue du devis</h2>
