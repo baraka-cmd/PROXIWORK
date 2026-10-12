@@ -633,15 +633,15 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         // A user owns one professional profile. Reuse it when a test creates
         // multiple quotations for the same professional instead of violating
         // the unique constraint on professional_profiles.user_id.
-        $professional = ProfessionalProfile::query()->firstOrCreate(
-            ['user_id' => $professionalUser->id],
-            [
-                'status' => ProfessionalProfile::STATUS_ACTIVE,
-                'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
-                'verification_status' => 'verified',
-                'verified_at' => now(),
-            ],
-        );
+        $professional = ProfessionalProfile::query()
+            ->where('user_id', $professionalUser->id)
+            ->first();
+
+        if ($professional === null) {
+            $professional = ProfessionalProfile::factory()->create([
+                'user_id' => $professionalUser->id,
+            ]);
+        }
         $service = Service::factory()->create([
             'professional_profile_id' => $professional->id,
             'status' => 'published',
