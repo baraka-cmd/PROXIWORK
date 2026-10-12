@@ -57,6 +57,7 @@
         <aside class="surface-card content-card">
             <h2>Client</h2>
             <p>{{ $serviceRequest->client?->name ?? 'Client' }}</p>
+            @if ($serviceRequest->execution_mode->requiresClientAddress())
             @if ($serviceRequest->addressSnapshot || $serviceRequest->address)
                 @php($requestAddress = $serviceRequest->addressSnapshot ?? $serviceRequest->address)
                 <h3>Lieu de prestation</h3>
@@ -77,6 +78,9 @@
                 @if($requestAddress->access_instructions)
                     <div class="request-location-instructions"><strong>Instructions d’accès</strong><p>{{ $requestAddress->access_instructions }}</p></div>
                 @endif
+            @endif
+            @else
+                <p>Cette prestation est à distance. Aucune adresse physique du client n’est nécessaire.</p>
             @endif
             @if ($serviceRequest->status->value === 'requested')
                 <form method="POST" action="{{ route('professional.requests.reject', $serviceRequest) }}" data-action-form>
