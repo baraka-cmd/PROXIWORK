@@ -143,25 +143,24 @@ class OrderService
 
             if ($request->execution_mode->requiresClientAddress()) {
                 OrderAddressSnapshot::query()->forceCreate([
-                'order_id' => $order->getKey(),
-                'recipient_name' => $addressSnapshot->recipient_name,
-                'contact_phone' => $addressSnapshot->contact_phone,
-                'country_code' => $addressSnapshot->country_code,
-                'province' => $addressSnapshot->province,
-                'city' => $addressSnapshot->city,
-                'commune' => $addressSnapshot->commune,
-                'neighborhood' => $addressSnapshot->neighborhood,
-                'address_line_1' => $addressSnapshot->address_line_1,
-                'address_line_2' => $addressSnapshot->address_line_2,
-                'landmark' => $addressSnapshot->landmark,
-                'access_instructions' => $addressSnapshot->access_instructions,
-                'postal_code' => $addressSnapshot->postal_code,
-                'latitude' => $addressSnapshot->latitude,
-                'longitude' => $addressSnapshot->longitude,
-                'created_at' => $now,
-                'updated_at' => $now,
-                ]);
-            }
+                    'order_id' => $order->getKey(),
+                    'recipient_name' => $addressSnapshot->recipient_name,
+                    'contact_phone' => $addressSnapshot->contact_phone,
+                    'country_code' => $addressSnapshot->country_code,
+                    'province' => $addressSnapshot->province,
+                    'city' => $addressSnapshot->city,
+                    'commune' => $addressSnapshot->commune,
+                    'neighborhood' => $addressSnapshot->neighborhood,
+                    'address_line_1' => $addressSnapshot->address_line_1,
+                    'address_line_2' => $addressSnapshot->address_line_2,
+                    'landmark' => $addressSnapshot->landmark,
+                    'access_instructions' => $addressSnapshot->access_instructions,
+                    'postal_code' => $addressSnapshot->postal_code,
+                    'latitude' => $addressSnapshot->latitude,
+                    'longitude' => $addressSnapshot->longitude,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);}
 
             OrderStatusHistory::query()->forceCreate([
                 'order_id' => $order->getKey(),
