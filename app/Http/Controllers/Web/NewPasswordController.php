@@ -28,30 +28,29 @@ class NewPasswordController
     {
         $resetUser = null;
 
-        $status = Password::reset($request->validated(), function (User $user, string $password) use (&$resetUser): void {
-            $resetUser = $user;
-            $user->forceFill([
-                'password' => Hash::make($password),
-                'remember_token' => Str::random(60),
-            ])->save();
+        $status = DB::transaction(function () use ($request, &$resetUser, $notificationService) {
+            return Password::reset($request->validated(), function (User $user, string $password) use (&$resetUser, $notificationService): void {
+                $resetUser = $user;
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
 
-            $user->tokens()->delete();
-            DB::table('sessions')->where('user_id', $user->getKey())->delete();
+                $user->tokens()->delete();
+                DB::table('sessions')->where('user_id', $user->getKey())->delete();
 
-            event(new PasswordReset($user));
-        });
-
-        if ($status === Password::PASSWORD_RESET) {
-            if ($resetUser !== null) {
+                event(new PasswordReset($user));
                 $notificationService->securityAlert(
-                    $resetUser,
+                    $user,
                     'Mot de passe réinitialisé',
                     'Votre mot de passe a été réinitialisé. Si vous n’êtes pas à l’origine de cette action, contactez immédiatement le support.',
                     null,
-                    'password-reset:'.$resetUser->getKey().':'.(string) $resetUser->updated_at?->timestamp,
+                    'password-reset:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
                 );
-            }
+            });
+        });
 
+        if ($status === Password::PASSWORD_RESET) {
             return redirect()->route('login')->with('status', 'Votre mot de passe a été réinitialisé. Vous pouvez vous connecter.');
         }
 
