@@ -23,8 +23,8 @@ class QuotationController extends Controller
         private readonly QuotationService $quotationService,
         private readonly QuotationNegotiationService $negotiationService,
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    )
+    {}
 
     public function show(Request $request, Quotation $quotation): QuotationResource
     {
