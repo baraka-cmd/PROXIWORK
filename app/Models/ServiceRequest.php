@@ -61,6 +61,11 @@ class ServiceRequest extends Model
         return $this->belongsTo(Address::class);
     }
 
+    public function addressSnapshot(): HasOne
+    {
+        return $this->hasOne(ServiceRequestAddressSnapshot::class);
+    }
+
     public function statusHistories(): HasMany
     {
         return $this->hasMany(ServiceRequestStatusHistory::class)
