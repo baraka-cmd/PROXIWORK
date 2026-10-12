@@ -131,17 +131,32 @@ class ClientAddressBookTest extends TestCase
         $otherClient = $this->client();
 
         $this->actingAs($client)
-            ->from('/client/addresses/create')
             ->post('/client/addresses', $this->validAddress([
                 'user_id' => $otherClient->id,
+            ]))
+            ->assertRedirect('/client/addresses')
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('addresses', [
+            'user_id' => $client->id,
+            'label' => 'Maison',
+        ]);
+        $this->assertDatabaseMissing('addresses', [
+            'user_id' => $otherClient->id,
+            'label' => 'Maison',
+        ]);
+
+        $this->actingAs($client)
+            ->from('/client/addresses/create')
+            ->post('/client/addresses', $this->validAddress([
+                'label' => 'Adresse GPS incomplète',
                 'latitude' => '-1.68',
                 'longitude' => '',
             ]))
             ->assertRedirect('/client/addresses/create')
             ->assertSessionHasErrors('longitude');
 
-        $this->assertDatabaseMissing('addresses', ['user_id' => $otherClient->id, 'label' => 'Maison']);
-        $this->assertSame(0, $client->addresses()->count());
+        $this->assertSame(1, $client->addresses()->count());
     }
 
     private function client(): User
@@ -153,7 +168,7 @@ class ClientAddressBookTest extends TestCase
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     private function validAddress(array $overrides = []): array
     {
