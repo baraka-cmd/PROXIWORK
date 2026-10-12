@@ -46,13 +46,26 @@ class PaymentRefundRequestService
                 return $openRequest;
             }
 
+            $alreadyRefundedCents = PaymentRefund::query()
+                ->where('payment_id', $lockedPayment->getKey())
+                ->where('status', PaymentRefundStatus::SUCCEEDED->value)
+                ->get(['amount'])
+                ->sum(fn (PaymentRefund $refund): int => $this->toMinorUnits((string) $refund->amount));
+            $remainingCents = $this->toMinorUnits((string) $lockedPayment->amount) - $alreadyRefundedCents;
+
+            if ($remainingCents <= 0) {
+                throw new PaymentConflictException('Aucun montant supplémentaire ne peut être demandé pour ce paiement.');
+            }
+
+            $requestedAmount = intdiv($remainingCents, 100).'.'.str_pad((string) ($remainingCents % 100), 2, '0', STR_PAD_LEFT);
+
             $refund = PaymentRefund::query()->forceCreate([
                 'reference' => 'RFD-'.now()->format('Ymd').'-'.Str::upper(Str::random(10)),
                 'payment_id' => $lockedPayment->getKey(),
                 'client_id' => $client->getKey(),
-                // This is the amount requested for review, not a completed refund.
-                // An authorized review workflow must decide the actual refundable amount.
-                'amount' => $lockedPayment->amount,
+                // This is a requested amount, not a completed refund.
+                // An authorized review workflow must confirm the actual refundable amount.
+                'amount' => $requestedAmount,
                 'currency' => strtoupper($lockedPayment->currency),
                 'status' => PaymentRefundStatus::REQUESTED,
                 'reason' => trim($reason),
@@ -78,5 +91,14 @@ class PaymentRefundRequestService
 
             return $refund;
         }, attempts: 3);
+    }
+
+    private function toMinorUnits(string $amount): int
+    {
+        if (preg_match('/^(\\d+)(?:\\.(\\d{1,2}))?$/', trim($amount), $matches) !== 1) {
+            throw new PaymentConflictException('Le montant enregistré ne peut pas être utilisé pour un remboursement.');
+        }
+
+        return ((int) $matches[1] * 100) + (int) str_pad($matches[2] ?? '', 2, '0');
     }
 }
