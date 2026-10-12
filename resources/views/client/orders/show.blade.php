@@ -116,7 +116,7 @@
                     <div><dt>Quantité</dt><dd>{{ $item->quantity }}</dd></div>
                     <div><dt>Prix unitaire</dt><dd>{{ number_format((float) $item->unit_price, 2, ',', ' ') }} {{ $item->currency }}</dd></div>
                     @if($item->duration_value && $item->duration_unit)
-                        <div><dt>Durée convenue</dt><dd>{{ $item->duration_value }} {{ $item->duration_unit->value ?? $item->duration_unit }}</dd></div>
+                        <div><dt>Durée convenue</dt><dd>{{ $item->duration_value }} {{ $item->duration_unit }}</dd></div>
                     @endif
                 </dl>
                 @if($item->conditions)
