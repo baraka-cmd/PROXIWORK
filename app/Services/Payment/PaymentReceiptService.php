@@ -1,0 +1,93 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Payment;
+
+use App\Enums\PaymentStatus;
+use App\Enums\PaymentTransactionStatus;
+use App\Models\Payment;
+use App\Models\PaymentReceipt;
+use App\Models\PaymentTransaction;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class PaymentReceiptService
+{
+    public function issueFor(Payment $payment, PaymentTransaction $transaction): PaymentReceipt
+    {
+        return DB::transaction(function () use ($payment, $transaction): PaymentReceipt {
+            $lockedPayment = Payment::query()->lockForUpdate()->findOrFail($payment->getKey());
+
+            if ($lockedPayment->status !== PaymentStatus::SUCCEEDED
+                || $transaction->payment_id !== $lockedPayment->getKey()
+                || $transaction->status !== PaymentTransactionStatus::SUCCEEDED) {
+                throw new \LogicException('Un reçu ne peut être émis que pour une transaction confirmée.');
+            }
+
+            $existing = PaymentReceipt::query()->where('payment_id', $lockedPayment->getKey())->first();
+            if ($existing !== null) {
+                return $existing;
+            }
+
+            $lockedPayment->loadMissing([
+                'client',
+                'order.items',
+                'order.professional.user',
+            ]);
+
+            $order = $lockedPayment->order;
+            $snapshot = [
+                'mode' => 'simulation',
+                'simulation_notice' => 'SIMULATION — aucune transaction financière réelle n’a été effectuée.',
+                'payment_reference' => 'PAY-'.str_pad((string) $lockedPayment->getKey(), 8, '0', STR_PAD_LEFT),
+                'order_reference' => $order?->order_number ?? '#'.$lockedPayment->order_id,
+                'client_name' => $lockedPayment->client?->name ?? 'Client PROXIWORK',
+                'professional_name' => $order?->professional?->user?->name,
+                'service_title' => $order?->items?->first()?->service_title ?? 'Prestation de service',
+                'amount' => (string) $lockedPayment->amount,
+                'currency' => strtoupper($lockedPayment->currency),
+                'method' => $lockedPayment->method->value,
+                'provider' => $lockedPayment->provider->value,
+                'payment_status' => PaymentStatus::SUCCEEDED->value,
+                'transaction_reference' => $transaction->provider_reference
+                    ?? $transaction->provider_transaction_id
+                    ?? 'SIM-TXN-'.$transaction->getKey(),
+                'confirmed_at' => optional($lockedPayment->paid_at)->toIso8601String(),
+                'issued_at' => now()->toIso8601String(),
+            ];
+
+            $serialized = json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+
+            return PaymentReceipt::query()->forceCreate([
+                'receipt_number' => 'SIM-'.now()->format('Ymd').'-'.Str::upper(Str::random(12)),
+                'payment_id' => $lockedPayment->getKey(),
+                'payment_transaction_id' => $transaction->getKey(),
+                'mode' => 'simulation',
+                'payload' => $snapshot,
+                'content_hash' => hash('sha256', $serialized),
+                'issued_at' => now(),
+            ]);
+        }, attempts: 3);
+    }
+
+    public function findOrIssueFor(Payment $payment): ?PaymentReceipt
+    {
+        $existing = PaymentReceipt::query()->where('payment_id', $payment->getKey())->first();
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        if ($payment->status !== PaymentStatus::SUCCEEDED) {
+            return null;
+        }
+
+        $transaction = $payment->transactions()
+            ->where('status', PaymentTransactionStatus::SUCCEEDED->value)
+            ->orderByDesc('processed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        return $transaction === null ? null : $this->issueFor($payment, $transaction);
+    }
+}
