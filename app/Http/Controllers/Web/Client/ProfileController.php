@@ -254,14 +254,18 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function confirmEmailChange(Request $request, string $token): RedirectResponse
+    public function confirmEmailChange(
+        Request $request,
+        string $token,
+        TransactionalNotificationService $notificationService,
+    ): RedirectResponse
     {
         $user = $request->user();
         $tokenHash = hash('sha256', $token);
         $oldEmail = $user->email;
         $confirmedEmail = null;
 
-        $result = DB::transaction(function () use ($user, $tokenHash, &$confirmedEmail): string {
+        $result = DB::transaction(function () use ($user, $tokenHash, &$confirmedEmail, $notificationService): string {
             $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
 
             if (
@@ -293,6 +297,14 @@ class ProfileController extends Controller
                 'pending_email_token_hash' => null,
                 'pending_email_expires_at' => null,
             ])->save();
+
+            $notificationService->securityAlert(
+                $lockedUser,
+                'Adresse e-mail modifiée',
+                'L’adresse e-mail de votre compte PROXIWORK vient d’être modifiée. Si vous n’êtes pas à l’origine de cette action, sécurisez votre compte.',
+                route('client.profile'),
+                'email-address-changed:'.$lockedUser->getKey().':'.$pendingEmail,
+            );
 
             $confirmedEmail = $pendingEmail;
 
