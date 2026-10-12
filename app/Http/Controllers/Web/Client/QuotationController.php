@@ -29,7 +29,9 @@ class QuotationController extends Controller
         private readonly QuotationExpirationService $expirationService,
         private readonly AuditLogService $auditLogService,
         private readonly TransactionalNotificationService $notificationService,
-    ) {}
+    )
+    {
+    }
 
     public function index(IndexClientQuotationsRequest $request): View
     {
