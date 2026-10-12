@@ -6,6 +6,8 @@ namespace App\Services\Notification;
 
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class TransactionalNotificationService
 {
@@ -71,6 +73,16 @@ class TransactionalNotificationService
 
     private function send(User $recipient, string $title, string $message, string $action): void
     {
-        $recipient->notify(new AccountActivityNotification($title, $message, $action));
+        try {
+            $recipient->notify(new AccountActivityNotification($title, $message, $action));
+        } catch (Throwable $exception) {
+            // Notifications are secondary effects: a dispatch failure must not turn
+            // an already-committed business transition into a false HTTP failure.
+            Log::error('PROXIWORK notification dispatch failed.', [
+                'recipient_id' => $recipient->getKey(),
+                'action' => $action,
+                'exception' => $exception::class,
+            ]);
+        }
     }
 }
