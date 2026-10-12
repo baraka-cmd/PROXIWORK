@@ -395,10 +395,206 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->actingAs($client)
             ->get('/client/quotes/'.$quotation->id)
             ->assertOk()
-            ->assertSee('Une adresse d’exécution est nécessaire avant l’acceptation.')
+            ->assertSee('Adresse d’exécution requise')
             ->assertSee('Choisir l’adresse de cette demande')
             ->assertSee('Ajoutez une adresse avant d’accepter')
             ->assertSee('disabled aria-disabled="true"', false);
+    }
+
+
+    public function test_client_quotes_dashboard_filters_only_owned_quotes_and_calculates_review_statistics(): void
+    {
+        $client = $this->client();
+        $otherClient = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quote = $this->makeQuoteForClient($client, $professionalUser, [
+            'title' => 'Création du site e-commerce',
+            'status' => 'quoted',
+        ], [
+            'status' => 'sent',
+        ], [
+            'amount' => 245.50,
+            'currency' => 'USD',
+            'valid_until' => now()->addDays(2),
+        ]);
+
+        $privateQuote = $this->makeQuoteForClient($otherClient, $professionalUser, [
+            'title' => 'Dossier confidentiel autre client',
+            'status' => 'quoted',
+        ], [
+            'status' => 'sent',
+        ], [
+            'amount' => 500,
+            'currency' => 'CDF',
+            'valid_until' => now()->addDays(2),
+        ]);
+
+        $response = $this->actingAs($client)
+            ->get('/client/quotes?q=site%20e-commerce&bucket=review&currency=USD')
+            ->assertOk()
+            ->assertViewIs('client.quotes.index')
+            ->assertSee('Création du site e-commerce')
+            ->assertSee('245,50')
+            ->assertDontSee('Dossier confidentiel autre client')
+            ->assertDontSee('DEV-'.str_pad((string) $privateQuote->id, 6, '0', STR_PAD_LEFT));
+
+        $response->assertViewHas('statistics', function (array $statistics): bool {
+            return $statistics['review'] === 1
+                && $statistics['negotiating'] === 0
+                && $statistics['accepted'] === 0
+                && $statistics['history'] === 0;
+        });
+    }
+
+    public function test_client_cannot_accept_their_own_counter_offer(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'negotiating',
+        ], [
+            'actor_type' => 'client',
+            'version' => 2,
+            'created_by' => $client->id,
+            'valid_until' => now()->addDay(),
+        ]);
+
+        $this->actingAs($client)
+            ->post('/client/quotes/'.$quotation->id.'/accept')
+            ->assertSessionHasErrors('status');
+
+        $this->assertDatabaseHas('quotations', [
+            'id' => $quotation->id,
+            'status' => 'negotiating',
+            'accepted_offer_id' => null,
+        ]);
+        $this->assertDatabaseMissing('orders', ['quotation_id' => $quotation->id]);
+    }
+
+    public function test_client_cannot_submit_a_second_counter_offer_before_the_professional_replies(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'negotiating',
+        ], [
+            'actor_type' => 'client',
+            'version' => 2,
+            'created_by' => $client->id,
+            'valid_until' => now()->addDay(),
+        ]);
+
+        $this->actingAs($client)
+            ->post('/client/quotes/'.$quotation->id.'/counter-offer', [
+                'amount' => 90,
+                'currency' => 'USD',
+                'duration_value' => 4,
+                'duration_unit' => 'days',
+                'description' => 'Je propose une adaptation du périmètre et du calendrier.',
+                'conditions' => 'Le prix doit rester en dollars américains.',
+                'valid_until' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            ])
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(2, $quotation->offers()->count());
+    }
+
+    public function test_overdue_quotations_are_expired_once_and_both_parties_are_notified(): void
+    {
+        Notification::fake();
+
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'sent',
+        ], [
+            'valid_until' => now()->subMinute(),
+        ]);
+
+        $this->artisan('quotations:expire')->assertExitCode(0);
+
+        $this->assertDatabaseHas('quotations', [
+            'id' => $quotation->id,
+            'status' => 'expired',
+        ]);
+        $this->assertDatabaseHas('quotation_events', [
+            'quotation_id' => $quotation->id,
+            'type' => 'quote_expired',
+            'actor_id' => null,
+        ]);
+
+        Notification::assertSentTo($client, AccountActivityNotification::class);
+        Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
+
+        $eventCount = \App\Models\QuotationEvent::query()
+            ->where('quotation_id', $quotation->id)
+            ->where('type', 'quote_expired')
+            ->count();
+
+        $this->artisan('quotations:expire')->assertExitCode(0);
+
+        $this->assertSame($eventCount, \App\Models\QuotationEvent::query()
+            ->where('quotation_id', $quotation->id)
+            ->where('type', 'quote_expired')
+            ->count());
+    }
+
+    private function makeQuoteForClient(
+        User $client,
+        User $professionalUser,
+        array $requestAttributes = [],
+        array $quotationAttributes = [],
+        array $offerAttributes = [],
+    ): Quotation {
+        $professional = ProfessionalProfile::factory()->create([
+            'user_id' => $professionalUser->id,
+        ]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+            'title' => 'Service professionnel de test',
+        ]);
+        $serviceRequest = ServiceRequest::factory()->create(array_merge([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'title' => 'Demande de prestation',
+            'status' => 'quoted',
+        ], $requestAttributes));
+
+        $quotation = Quotation::factory()->create(array_merge([
+            'service_request_id' => $serviceRequest->id,
+            'status' => 'sent',
+        ], $quotationAttributes));
+
+        $offer = QuotationOffer::factory()->create(array_merge([
+            'quotation_id' => $quotation->id,
+            'created_by' => $professionalUser->id,
+            'actor_type' => 'professional',
+            'version' => 1,
+            'amount' => 100,
+            'currency' => 'USD',
+            'valid_until' => now()->addDay(),
+        ], $offerAttributes));
+
+        $quotation->forceFill(['current_offer_id' => $offer->id])->save();
+
+        return $quotation->refresh();
     }
 
     private function client(): User
