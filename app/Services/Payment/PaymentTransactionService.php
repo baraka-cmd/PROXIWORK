@@ -102,6 +102,41 @@ class PaymentTransactionService
         }, attempts: 3);
     }
 
+    public function markUnknown(PaymentTransaction $transaction): PaymentTransaction
+    {
+        return DB::transaction(function () use ($transaction): PaymentTransaction {
+            $locked = PaymentTransaction::query()->lockForUpdate()->findOrFail($transaction->getKey());
+
+            if ($locked->status->isFinal()) {
+                return $locked;
+            }
+
+            $locked->forceFill([
+                'status' => PaymentTransactionStatus::UNKNOWN,
+                'failure_code' => 'RESULT_UNKNOWN',
+                'failure_message' => 'Le résultat n’a pas pu être confirmé. Vérifiez le statut avant toute nouvelle tentative.',
+            ])->save();
+
+            $payment = Payment::query()->lockForUpdate()->findOrFail($locked->payment_id);
+            if ($payment->status !== PaymentStatus::SUCCEEDED) {
+                $payment->forceFill(['status' => PaymentStatus::PROCESSING])->save();
+            }
+
+            if ($payment->payment_intent_id !== null) {
+                $intent = PaymentIntent::query()->lockForUpdate()->find($payment->payment_intent_id);
+                if ($intent !== null && $intent->status !== PaymentStatus::SUCCEEDED) {
+                    $intent->forceFill([
+                        'status' => PaymentStatus::PROCESSING,
+                        'failure_code' => 'RESULT_UNKNOWN',
+                        'failure_message' => 'Le résultat doit être vérifié avant toute nouvelle tentative.',
+                    ])->save();
+                }
+            }
+
+            return $locked->refresh();
+        }, attempts: 3);
+    }
+
     private function money(string $value): string
     {
         $value = trim($value);
