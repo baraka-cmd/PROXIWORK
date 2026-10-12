@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('status', 24)->default('PENDING');
             $table->unsignedSmallInteger('attempts')->default(0);
             $table->timestamp('available_at')->nullable();
+            $table->timestamp('queued_at')->nullable();
             $table->timestamp('processing_at')->nullable();
             $table->timestamp('sent_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
