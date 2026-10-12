@@ -15,6 +15,7 @@ use App\Exceptions\PaymentConflictException;
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\PaymentTransaction;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
