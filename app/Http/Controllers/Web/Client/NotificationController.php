@@ -144,6 +144,18 @@ class NotificationController extends Controller
         return back()->with('success', 'Vos préférences de notification ont été enregistrées.');
     }
 
+    public function restore(Request $request, string $notification): RedirectResponse
+    {
+        $model = $request->user()->notifications()
+            ->whereKey($notification)
+            ->whereNotNull('archived_at')
+            ->firstOrFail();
+
+        $model->forceFill(['archived_at' => null])->save();
+
+        return back()->with('success', 'Notification restaurée dans votre boîte de réception.');
+    }
+
     private function safeInternalUrl(?string $url): ?string
     {
         if ($url === null || trim($url) === '') {
