@@ -11,8 +11,8 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
-use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -29,6 +29,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -143,11 +144,13 @@ class AuthController extends Controller
         $user->tokens()->delete();
 
         $this->auditLogService->record('password_changed', $user, $user, [], $request);
-        $user->notify(new AccountActivityNotification(
+        $this->notificationService->securityAlert(
+            $user,
             'Mot de passe modifié',
             'Votre mot de passe a été modifié et vos anciennes sessions ont été révoquées.',
-            'password_changed',
-        ));
+            null,
+            'password-changed:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
+        );
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
@@ -213,11 +216,13 @@ class AuthController extends Controller
         }
 
         $this->auditLogService->record('password_reset', $resetUser, $resetUser, [], $request);
-        $resetUser->notify(new AccountActivityNotification(
+        $this->notificationService->securityAlert(
+            $resetUser,
             'Mot de passe réinitialisé',
             'Votre mot de passe a été réinitialisé avec succès.',
-            'password_reset',
-        ));
+            null,
+            'password-reset:'.$resetUser->getKey().':'.(string) $resetUser->updated_at?->timestamp,
+        );
 
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',
