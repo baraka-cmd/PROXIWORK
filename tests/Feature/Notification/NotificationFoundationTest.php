@@ -16,7 +16,7 @@ use App\Services\Notification\TransactionalNotificationService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -395,7 +395,7 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame('SM123456', $delivery->provider_reference);
         $this->assertSame('***1234', $delivery->recipient_hint);
         $this->assertStringNotContainsString('970001234', $delivery->recipient_hint);
-        Http::assertSent(fn (ClientRequest $request): bool => $request['To'] === '+243970001234');
+        Http::assertSent(fn (Request $request): bool => $request['To'] === '+243970001234');
     }
 
     public function test_sms_timeout_is_marked_unknown_and_not_automatically_retried(): void
