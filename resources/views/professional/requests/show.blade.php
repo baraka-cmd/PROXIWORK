@@ -59,8 +59,11 @@
             <p>{{ $serviceRequest->client?->name ?? 'Client' }}</p>
             @if ($serviceRequest->address)
                 <h3>Lieu de prestation</h3>
-                <p>{{ $serviceRequest->address->city }}{{ $serviceRequest->address->province ? ', ' . $serviceRequest->address->province : '' }}</p>
-                <p>{{ $serviceRequest->address->neighborhood }}</p>
+                <p>{{ $serviceRequest->address->address_line_1 }}</p>
+                @if($serviceRequest->address->address_line_2)
+                    <p>{{ $serviceRequest->address->address_line_2 }}</p>
+                @endif
+                <p>{{ $serviceRequest->address->neighborhood }}{{ $serviceRequest->address->city ? ', '.$serviceRequest->address->city : '' }}{{ $serviceRequest->address->province ? ', '.$serviceRequest->address->province : '' }}</p>
             @endif
             @if ($serviceRequest->status->value === 'requested')
                 <form method="POST" action="{{ route('professional.requests.reject', $serviceRequest) }}" data-action-form>
