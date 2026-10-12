@@ -105,8 +105,9 @@
         <div class="payment-section-heading"><div><h2>Historique des tentatives</h2><p>Chaque tentative reste visible même si une autre tentative est lancée plus tard.</p></div></div>
         @forelse($payment->transactions as $transaction)
             <article class="payment-attempt">
+                @php($attemptReference = $transaction->provider === 'fake' ? 'SIM-TXN-'.str_pad((string) $transaction->id, 8, '0', STR_PAD_LEFT) : ($transaction->provider_reference ?? $transaction->provider_transaction_id ?? 'Tentative #'.$transaction->id))
                 <div class="payment-attempt__top">
-                    <div><strong>{{ $transaction->provider_reference ?? $transaction->provider_transaction_id ?? 'Tentative #'.$transaction->id }}</strong><small>{{ optional($transaction->created_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</small></div>
+                    <div><strong>{{ $attemptReference }}</strong><small>{{ optional($transaction->created_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</small></div>
                     <span class="status-badge status-badge--{{ $transaction->status->value }}">{{ $transactionLabels[$transaction->status->value] ?? $transaction->status->value }}</span>
                 </div>
                 <dl class="client-definition-list">
