@@ -209,7 +209,7 @@ class ServiceRequestService
      * Query only the authenticated client's requests. Filters are applied in SQL
      * before pagination so private records are never loaded into application memory.
      *
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function clientRequests(
         User $client,
@@ -226,7 +226,7 @@ class ServiceRequestService
     }
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function professionalRequests(User $professionalUser, int $perPage = 15, array $filters = [])
     {
@@ -271,7 +271,7 @@ class ServiceRequestService
     }
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     private function applyFilters(
         Builder $query,
@@ -337,7 +337,7 @@ class ServiceRequestService
     }
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     private function paginate(Builder $query, int $perPage, array $filters)
     {
