@@ -6,7 +6,6 @@ namespace App\Services\Payment;
 
 use App\Models\PaymentEvent;
 use App\Models\PaymentTransaction;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PaymentEventService
