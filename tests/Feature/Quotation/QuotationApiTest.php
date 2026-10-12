@@ -134,6 +134,50 @@ class QuotationApiTest extends TestCase
         Notification::assertSentTo($professional, AccountActivityNotification::class);
     }
 
+    public function test_professional_can_accept_client_counter_offer_through_api_and_create_order(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+        $counterOffer = $this->offerPayload();
+        $counterOffer['amount'] = 450;
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/offers', $counterOffer)
+            ->assertOk()
+            ->assertJsonPath('data.current_offer.actor_type', 'client');
+
+        $quotation->refresh();
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/accept-client-offer')
+            ->assertOk()
+            ->assertJsonPath('data.status', QuotationStatus::ACCEPTED->value);
+
+        $this->assertDatabaseHas('quotations', [
+            'id' => $quotation->id,
+            'status' => QuotationStatus::ACCEPTED->value,
+            'accepted_offer_id' => $quotation->current_offer_id,
+        ]);
+        $this->assertDatabaseHas('orders', [
+            'quotation_id' => $quotation->id,
+            'accepted_offer_id' => $quotation->current_offer_id,
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'currency' => 'USD',
+            'total' => 450,
+            'status' => OrderStatus::PENDING_PAYMENT->value,
+        ]);
+        Notification::assertSentTo($client, AccountActivityNotification::class);
+    }
+
     public function test_only_the_current_non_expired_offer_can_be_accepted(): void
     {
         [$professional, $profile] = $this->professional();
