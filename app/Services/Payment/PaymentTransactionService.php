@@ -8,6 +8,7 @@ use App\Enums\PaymentStatus;
 use App\Enums\PaymentTransactionStatus;
 use App\Exceptions\PaymentConflictException;
 use App\Models\Payment;
+use App\Models\PaymentIntent;
 use App\Models\PaymentTransaction;
 use App\Payments\DTO\PaymentResult;
 use Illuminate\Support\Facades\DB;
