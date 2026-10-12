@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProfessionalProfile;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -161,7 +162,7 @@ class OrderController extends Controller
         ));
     }
 
-    public function show(Order $order): View
+    public function show(Request $request, Order $order): View
     {
         Gate::authorize('view', $order);
 
@@ -185,7 +186,7 @@ class OrderController extends Controller
                 }
             })
             ->whereHas('participants', fn ($query) => $query
-                ->where('users.id', request()->user()->getKey())
+                ->where('users.id', $request->user()->getKey())
                 ->whereNull('conversation_participants.left_at'))
             ->latest('updated_at')
             ->get(['id', 'type', 'status', 'order_id', 'service_request_id']);
