@@ -15,6 +15,9 @@ class ServiceRequest extends Model
 {
     use HasFactory;
 
+    /** Indicates an idempotency replay without persisting transport state to the database. */
+    public bool $idempotencyReplay = false;
+
     protected $fillable = [
         'service_id',
         'address_id',
