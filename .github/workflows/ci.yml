@@ -84,6 +84,7 @@ jobs:
           fi
 
           printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint
+          git diff -- '*.php'
 
   mysql-migrations:
     name: Fresh MySQL migration
