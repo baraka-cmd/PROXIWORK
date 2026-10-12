@@ -116,5 +116,18 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute(5)->by($orderKey),
             ];
         });
+
+        /*
+         * Le compteur partagé du menu est calculé côté serveur, sur les seules
+         * notifications de l'utilisateur authentifié, hors archives.
+         */
+        View::composer('layouts.client', function ($view): void {
+            $user = auth()->user();
+
+            $view->with(
+                'clientUnreadNotificationCount',
+                $user?->unreadNotifications()->whereNull('archived_at')->count() ?? 0,
+            );
+        });
     }
 }
