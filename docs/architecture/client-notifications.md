@@ -20,6 +20,7 @@
 | FAILED | Échec final connu. |
 | UNKNOWN | La connexion a pu tomber après l'acceptation par le fournisseur. Pas de nouvel envoi automatique, afin d'éviter un doublon ; réconciliation requise. |
 | SIMULATED | Le mailer log/array ou le simulateur SMS local a enregistré une simulation. Aucun vrai message n'a été envoyé. |
+| SKIPPED | Le canal facultatif a été désactivé par le client avant l'envoi. |
 
 Les erreurs stockent la classe technique, pas le corps du message ni les secrets. Les tentatives abandonnées en état PROCESSING sont marquées UNKNOWN après quinze minutes.
 
