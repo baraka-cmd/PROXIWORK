@@ -40,7 +40,6 @@ class WebClientNotificationsMessagesTest extends TestCase
             ->assertViewIs('client.messages.index');
     }
 
-
     public function test_client_can_filter_and_search_own_notifications(): void
     {
         $client = User::factory()->create();
