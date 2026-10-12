@@ -195,7 +195,7 @@ class PaymentController extends Controller
         ));
     }
 
-    public function show(\Illuminate\Http\Request $request, Payment $payment): View
+    public function show(Request $request, Payment $payment): View
     {
         abort_unless($payment->client_id === $request->user()->getKey(), 404);
 
@@ -213,7 +213,7 @@ class PaymentController extends Controller
         return view('client.payments.show', compact('payment', 'receipt'));
     }
 
-    public function receipt(\Illuminate\Http\Request $request, Payment $payment): View
+    public function receipt(Request $request, Payment $payment): View
     {
         abort_unless($payment->client_id === $request->user()->getKey(), 404);
 
@@ -245,7 +245,7 @@ class PaymentController extends Controller
             ->with('success', 'Demande enregistrée sous la référence '.$refund->reference.'. Aucun remboursement n’a encore été exécuté : la demande doit être examinée.');
     }
 
-    public function store(\Illuminate\Http\Request $request, Order $order): RedirectResponse
+    public function store(Request $request, Order $order): RedirectResponse
     {
         Gate::authorize('pay', $order);
 
