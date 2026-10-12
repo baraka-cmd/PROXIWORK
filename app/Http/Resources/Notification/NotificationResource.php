@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Resources\\Notification;
+namespace App\Http\Resources\Notification;
 
-use Illuminate\\Http\\Request;
-use Illuminate\\Http\\Resources\\Json\\JsonResource;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
 class NotificationResource extends JsonResource
 {
@@ -35,7 +35,7 @@ class NotificationResource extends JsonResource
         $url = trim($url);
         $application = parse_url((string) config('app.url'));
 
-        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\\\')) {
+        if (str_starts_with($url, '/') && ! str_starts_with($url, '//') && ! str_contains($url, '\\')) {
             return $url;
         }
 
