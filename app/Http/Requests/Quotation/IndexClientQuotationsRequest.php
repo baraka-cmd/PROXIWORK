@@ -20,6 +20,7 @@ class IndexClientQuotationsRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::enum(QuotationStatus::class)],
+            'bucket' => ['nullable', Rule::in(['review', 'negotiating', 'accepted', 'history'])],
             'received_from' => ['nullable', 'date_format:Y-m-d'],
             'received_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:received_from'],
             'validity' => ['nullable', Rule::in(['valid', 'expiring', 'expired'])],
