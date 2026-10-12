@@ -57,13 +57,26 @@
         <aside class="surface-card content-card">
             <h2>Client</h2>
             <p>{{ $serviceRequest->client?->name ?? 'Client' }}</p>
-            @if ($serviceRequest->address)
+            @if ($serviceRequest->addressSnapshot || $serviceRequest->address)
+                @php($requestAddress = $serviceRequest->addressSnapshot ?? $serviceRequest->address)
                 <h3>Lieu de prestation</h3>
-                <p>{{ $serviceRequest->address->address_line_1 }}</p>
-                @if($serviceRequest->address->address_line_2)
-                    <p>{{ $serviceRequest->address->address_line_2 }}</p>
+                <p>{{ $requestAddress->address_line_1 }}</p>
+                @if($requestAddress->address_line_2)
+                    <p>{{ $requestAddress->address_line_2 }}</p>
                 @endif
-                <p>{{ $serviceRequest->address->neighborhood }}{{ $serviceRequest->address->city ? ', '.$serviceRequest->address->city : '' }}{{ $serviceRequest->address->province ? ', '.$serviceRequest->address->province : '' }}</p>
+                <p>{{ collect([$requestAddress->neighborhood, $requestAddress->commune, $requestAddress->city, $requestAddress->province, $requestAddress->country_code])->filter()->join(', ') }}</p>
+                @if($requestAddress->recipient_name)
+                    <p><strong>Contact sur place :</strong> {{ $requestAddress->recipient_name }}</p>
+                @endif
+                @if($requestAddress->contact_phone)
+                    <p><strong>Téléphone du lieu :</strong> {{ $requestAddress->contact_phone }}</p>
+                @endif
+                @if($requestAddress->landmark)
+                    <p><strong>Repère :</strong> {{ $requestAddress->landmark }}</p>
+                @endif
+                @if($requestAddress->access_instructions)
+                    <div class="request-location-instructions"><strong>Instructions d’accès</strong><p>{{ $requestAddress->access_instructions }}</p></div>
+                @endif
             @endif
             @if ($serviceRequest->status->value === 'requested')
                 <form method="POST" action="{{ route('professional.requests.reject', $serviceRequest) }}" data-action-form>
