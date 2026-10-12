@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Quotation\StoreQuotationOfferRequest;
 use App\Http\Requests\Quotation\StoreQuotationRequest;
 use App\Http\Resources\Quotation\QuotationResource;
 use App\Models\Quotation;
 use App\Models\ServiceRequest;
 use App\Services\Audit\AuditLogService;
 use App\Services\Notification\TransactionalNotificationService;
+use App\Services\Quotation\QuotationNegotiationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,6 +22,7 @@ class QuotationController extends Controller
 {
     public function __construct(
         private readonly QuotationService $quotationService,
+        private readonly QuotationNegotiationService $negotiationService,
         private readonly TransactionalNotificationService $notificationService,
         private readonly AuditLogService $auditLogService,
     ) {}
@@ -129,6 +132,41 @@ class QuotationController extends Controller
         }
 
         return new QuotationResource($rejected);
+    }
+
+    public function renew(StoreQuotationOfferRequest $request, Quotation $quotation): QuotationResource
+    {
+        $this->authorize('renew', $quotation);
+
+        $renewed = $this->negotiationService->renewExpiredQuotation(
+            $quotation,
+            $request->user(),
+            $request->validated(),
+        );
+        $renewed->load('serviceRequest.client');
+
+        $this->auditLogService->record(
+            'quotation_renewed',
+            $renewed,
+            $request->user(),
+            [
+                'service_request_id' => $renewed->service_request_id,
+                'offer_id' => $renewed->current_offer_id,
+            ],
+            $request,
+        );
+
+        if ($renewed->serviceRequest->client !== null) {
+            $this->notificationService->quotationCreated(
+                $renewed->serviceRequest->client,
+                route('client.quotes.show', $renewed, true),
+            );
+        }
+
+        return (new QuotationResource($renewed))->additional([
+            'message' => 'Le devis expiré a été renouvelé avec une nouvelle version.',
+            'meta' => [],
+        ]);
     }
 
     public function reject(Request $request, Quotation $quotation): QuotationResource
