@@ -238,7 +238,7 @@
                         <p>Vérifiez le montant, la devise, le délai et les conditions avant de répondre.</p>
                         @if (! $quotation->serviceRequest?->address)
                             <div class="client-form-alert">
-                                <strong>Adresse d'exécution requise</strong>
+                                <strong>Adresse d’exécution requise</strong>
                                 <p>Une adresse appartenant à votre compte est nécessaire pour créer la commande après acceptation.</p>
                                 <a class="btn btn-secondary client-quote-full-width" href="{{ route('client.requests.show', $quotation->serviceRequest) }}">Choisir l’adresse de cette demande</a>
                             </div>
