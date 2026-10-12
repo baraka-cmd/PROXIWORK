@@ -122,11 +122,11 @@ class ProfileController extends Controller
     public function destroyPhoto(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $oldPath = $user->profile?->avatar_path;
+        $oldPath = $user->profile()->value('avatar_path');
 
         DB::transaction(function () use ($user): void {
             $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
-            $profile = $lockedUser->profile;
+            $profile = $lockedUser->profile()->first();
 
             if ($profile !== null) {
                 $profile->forceFill(['avatar_path' => null])->save();
