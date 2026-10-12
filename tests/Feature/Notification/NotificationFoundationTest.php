@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Notification;
 
 use App\Jobs\Notifications\SendNotificationEmail;
+use App\Jobs\Notifications\SendNotificationSms;
 use App\Models\NotificationDelivery;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Notification\TransactionalNotificationService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -341,6 +343,91 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame('***1234', $delivery->recipient_hint);
         $this->assertSame('SMS_PROVIDER_NOT_CONFIGURED', $delivery->last_error_code);
         $this->assertNull($delivery->sent_at);
+    }
+
+    public function test_configured_twilio_sms_delivery_records_provider_acceptance_without_storing_full_phone(): void
+    {
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+        $recipient->profile()->create([
+            'first_name' => 'Test',
+            'last_name' => 'Client',
+            'phone' => '+243970001234',
+        ]);
+        $recipient->notificationPreference()->create(['sms_enabled' => true]);
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            null,
+            'quotation-created:twilio-test-71',
+        );
+
+        $delivery = NotificationDelivery::query()
+            ->where('user_id', $recipient->id)
+            ->where('channel', 'sms')
+            ->firstOrFail();
+        $delivery->forceFill([
+            'status' => 'PENDING',
+            'available_at' => now(),
+            'last_error_code' => null,
+        ])->save();
+
+        config([
+            'services.twilio.account_sid' => 'AC123456789',
+            'services.twilio.auth_token' => 'test-auth-token',
+            'services.twilio.from' => '+15551234567',
+            'services.twilio.default_country_code' => '243',
+        ]);
+        Http::fake([
+            'https://api.twilio.com/*' => Http::response(['sid' => 'SM123456'], 201),
+        ]);
+
+        (new SendNotificationSms((int) $delivery->id))->handle();
+
+        $delivery->refresh();
+        $this->assertSame('SENT', $delivery->status);
+        $this->assertSame('SM123456', $delivery->provider_reference);
+        $this->assertSame('***1234', $delivery->recipient_hint);
+        $this->assertStringNotContainsString('970001234', $delivery->recipient_hint);
+        Http::assertSent(fn (\Illuminate\Http\Client\Request $request): bool => $request['To'] === '+243970001234');
+    }
+
+    public function test_sms_timeout_is_marked_unknown_and_not_automatically_retried(): void
+    {
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+        $recipient->profile()->create([
+            'first_name' => 'Test',
+            'last_name' => 'Client',
+            'phone' => '+243970001234',
+        ]);
+        $recipient->notificationPreference()->create(['sms_enabled' => true]);
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            null,
+            'quotation-created:twilio-timeout-72',
+        );
+
+        $delivery = NotificationDelivery::query()
+            ->where('user_id', $recipient->id)
+            ->where('channel', 'sms')
+            ->firstOrFail();
+        $delivery->forceFill(['status' => 'PENDING', 'available_at' => now()])->save();
+
+        config([
+            'services.twilio.account_sid' => 'AC123456789',
+            'services.twilio.auth_token' => 'test-auth-token',
+            'services.twilio.from' => '+15551234567',
+        ]);
+        Http::fake([
+            'https://api.twilio.com/*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('Simulated timeout'),
+        ]);
+
+        (new SendNotificationSms((int) $delivery->id))->handle();
+
+        $this->assertSame('UNKNOWN', $delivery->fresh()->status);
+        $this->assertSame('SMS_PROVIDER_RESULT_UNKNOWN', $delivery->fresh()->last_error_code);
     }
 
     public function test_critical_security_alert_keeps_email_delivery_enabled_when_optional_email_is_disabled(): void
