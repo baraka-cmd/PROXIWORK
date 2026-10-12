@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Requests\\Order;
+namespace App\Http\Requests\Order;
 
-use App\\Enums\\OrderStatus;
-use App\\Enums\\PaymentStatus;
-use Illuminate\\Foundation\\Http\\FormRequest;
-use Illuminate\\Validation\\Rule;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class IndexClientOrdersRequest extends FormRequest
 {
