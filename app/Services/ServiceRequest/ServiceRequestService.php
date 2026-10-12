@@ -127,7 +127,7 @@ class ServiceRequestService
                         'addressSnapshot',
                         'statusHistories.actor',
                     ]);
-                    $existing->setAttribute('_idempotent_replay', true);
+                    $existing->idempotencyReplay = true;
 
                     return $existing;
                 }
