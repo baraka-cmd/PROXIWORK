@@ -269,7 +269,8 @@ class QuotationController extends Controller
     public function counterOffer(
         StoreQuotationOfferRequest $request,
         Quotation $quotation,
-    ): RedirectResponse {
+    ): RedirectResponse
+    {
         $this->authorize('createOffer', $quotation);
         $counterOffer = $this->negotiationService->counterOffer(
             $quotation,
