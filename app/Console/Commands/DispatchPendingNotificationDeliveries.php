@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Jobs\Notifications\SendNotificationEmail;
-use App\Jobs\Notifications\SendNotificationSms;
 use App\Jobs\Notifications\SendNotificationPush;
+use App\Jobs\Notifications\SendNotificationSms;
 use App\Models\NotificationDelivery;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
