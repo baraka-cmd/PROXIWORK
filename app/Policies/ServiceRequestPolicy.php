@@ -53,6 +53,12 @@ class ServiceRequestPolicy
             && in_array($request->status->value, ['draft', 'requested'], true);
     }
 
+    public function setAddress(User $user, ServiceRequest $request): bool
+    {
+        return $request->client_id === $user->getKey()
+            && in_array($request->status->value, ['requested', 'quoted'], true);
+    }
+
     public function reject(User $user, ServiceRequest $request): bool
     {
         return $request->professional?->user_id === $user->getKey()

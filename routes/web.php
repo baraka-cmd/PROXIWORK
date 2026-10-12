@@ -87,6 +87,7 @@ Route::middleware('auth')->group(function (): void {
         Route::get('requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('requests.show');
         Route::get('requests/{serviceRequest}/edit', [ServiceRequestController::class, 'edit'])->name('requests.edit');
         Route::put('requests/{serviceRequest}', [ServiceRequestController::class, 'update'])->name('requests.update');
+        Route::post('requests/{serviceRequest}/address', [ServiceRequestController::class, 'setAddress'])->name('requests.address');
         Route::post('requests/{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->name('requests.submit');
         Route::post('requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->name('requests.cancel');
         Route::get('quotes', [QuotationController::class, 'index'])->name('quotes.index');

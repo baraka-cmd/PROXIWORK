@@ -45,6 +45,7 @@
         <form class="client-panel client-request-form" method="POST" action="{{ route('client.requests.store') }}">
             @csrf
             <input type="hidden" name="service_id" value="{{ $service->id }}">
+            <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', $idempotencyKey) }}">
 
             <div class="client-form-section">
                 <p class="client-form-section__title">1. Votre besoin</p>

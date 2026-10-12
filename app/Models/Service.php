@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CategoryStatus;
+use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
+use App\Enums\UserAccountStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -88,5 +91,38 @@ class Service extends Model
         return $query
             ->where('status', ServiceStatus::PUBLISHED->value)
             ->whereNotNull('published_at');
+    }
+
+    /**
+     * Restrict request creation to services currently visible to clients.
+     *
+     * Historical requests keep their relations even when a service later becomes
+     * unavailable; this scope is for starting a new request, not reading history.
+     */
+    public function scopeRequestable($query)
+    {
+        return $query
+            ->published()
+            ->whereHas('category', fn ($category) => $category
+                ->where('status', CategoryStatus::ACTIVE->value))
+            ->whereHas('professionalProfile', fn ($profile) => $profile
+                ->where('status', ProfessionalProfile::STATUS_ACTIVE)
+                ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
+                ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
+                ->whereNotNull('verified_at')
+                ->whereHas('user', fn ($user) => $user
+                    ->where('account_status', UserAccountStatus::ACTIVE->value)));
+    }
+
+    public function isRequestableForClient(): bool
+    {
+        return $this->status === ServiceStatus::PUBLISHED
+            && $this->published_at !== null
+            && $this->category?->status === CategoryStatus::ACTIVE
+            && $this->professionalProfile?->status === ProfessionalProfile::STATUS_ACTIVE
+            && $this->professionalProfile?->visibility === ProfessionalProfile::VISIBILITY_PUBLIC
+            && $this->professionalProfile?->verification_status === ProfessionalVerificationStatus::VERIFIED
+            && $this->professionalProfile?->verified_at !== null
+            && $this->professionalProfile?->user?->account_status === UserAccountStatus::ACTIVE;
     }
 }

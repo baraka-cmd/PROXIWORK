@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\ServiceRequest;
 
 use App\Enums\ServiceRequestStatus;
+use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,17 @@ class ServiceRequestLifecycleService
             ServiceRequestStatus::REQUESTED,
             null,
             function (ServiceRequest $locked): void {
+                $service = Service::query()
+                    ->with(['category', 'professionalProfile.user'])
+                    ->lockForUpdate()
+                    ->find($locked->service_id);
+
+                if ($service === null || ! $service->isRequestableForClient()) {
+                    throw ValidationException::withMessages([
+                        'service_id' => 'Ce service n’est plus disponible pour recevoir une nouvelle demande.',
+                    ]);
+                }
+
                 $locked->forceFill(['requested_at' => now()])->save();
             },
         );
@@ -47,6 +59,17 @@ class ServiceRequestLifecycleService
             ServiceRequestStatus::REQUESTED,
             ServiceRequestStatus::REJECTED,
             $reason,
+        );
+    }
+
+    public function rejectByClient(ServiceRequest $request, User $actor): ServiceRequest
+    {
+        return $this->transition(
+            $request,
+            $actor,
+            ServiceRequestStatus::QUOTED,
+            ServiceRequestStatus::REJECTED,
+            'Devis refusé par le client.',
         );
     }
 

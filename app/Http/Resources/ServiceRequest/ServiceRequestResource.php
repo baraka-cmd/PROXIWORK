@@ -13,6 +13,7 @@ class ServiceRequestResource extends JsonResource
     {
         return [
             'id' => $this->getKey(),
+            'reference' => sprintf('PW-REQ-%06d', $this->getKey()),
             'title' => $this->title,
             'description' => $this->description,
             'budget_min' => $this->budget_min,

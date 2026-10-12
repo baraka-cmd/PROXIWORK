@@ -63,7 +63,14 @@ class ServiceRequest extends Model
 
     public function statusHistories(): HasMany
     {
-        return $this->hasMany(ServiceRequestStatusHistory::class);
+        return $this->hasMany(ServiceRequestStatusHistory::class)
+            ->orderBy('created_at')
+            ->orderBy('id');
+    }
+
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
     }
 
     public function order(): HasOne

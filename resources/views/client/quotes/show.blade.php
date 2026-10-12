@@ -8,12 +8,31 @@
 @endpush
 
 @section('content')
-<div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">DEVIS #{{ $quotation->id }}</p><h1>Proposition commerciale</h1><p>{{ $quotation->serviceRequest?->service?->title }} · {{ $quotation->serviceRequest?->professional?->user?->name }}</p></div><span class="status-badge status-badge--{{ $quotation->status->value }}">{{ ucfirst($quotation->status->value) }}</span></div>
+<div class="client-module"><div class="client-module__header"><div><p class="client-module__eyebrow">DEVIS #{{ $quotation->id }}</p><h1>Proposition commerciale</h1><p>{{ $quotation->serviceRequest?->service?->title }} · {{ $quotation->serviceRequest?->professional?->user?->name }}</p></div><span class="status-badge status-badge--{{ $quotation->status->value }}">{{ $quotation->status->label() }}</span></div>
 @if(session('success'))<x-alert type="success" :message="session('success')" />@endif
 @if($quotation->currentOffer)<section class="client-panel client-panel--accent"><p class="client-module__eyebrow">OFFRE COURANTE</p><h2>{{ number_format((float)$quotation->currentOffer->amount,2,',',' ') }} {{ $quotation->currentOffer->currency }}</h2><p>{{ $quotation->currentOffer->description }}</p><dl class="client-definition-list"><div><dt>Durée</dt><dd>{{ $quotation->currentOffer->duration_value }} {{ $quotation->currentOffer->duration_unit->value }}</dd></div><div><dt>Valable jusqu'au</dt><dd>{{ optional($quotation->currentOffer->valid_until)->format('d/m/Y à H:i') }}</dd></div><div><dt>Conditions</dt><dd>{{ $quotation->currentOffer->conditions ?: 'Aucune condition supplémentaire.' }}</dd></div></dl></section>@endif
 <section class="client-panel"><h2>Historique des offres</h2><div class="client-offer-history">@foreach($quotation->offers as $offer)<article><div><strong>Offre v{{ $offer->version }}</strong><span>{{ $offer->actor_type->value }}</span></div><strong>{{ number_format((float)$offer->amount,2,',',' ') }} {{ $offer->currency }}</strong><small>{{ optional($offer->created_at)->format('d/m/Y à H:i') }}</small></article>@endforeach</div></section>
 @if($quotation->currentOffer && optional($quotation->currentOffer->valid_until)->isPast() && in_array($quotation->status->value,['sent','negotiating'],true))<div class="client-form-alert" role="status"><strong>Cette offre a expiré.</strong><p>Le professionnel devra proposer une nouvelle offre avant toute acceptation.</p></div>@endif
-@if(in_array($quotation->status->value,['sent','negotiating'],true) && $quotation->currentOffer && optional($quotation->currentOffer->valid_until)->isFuture())<section class="client-panel"><h2>Votre décision</h2><div class="client-action-bar"><form method="POST" action="{{ route('client.quotes.accept',$quotation) }}">@csrf<button class="btn btn-primary" type="submit" data-confirm-submit="Confirmer l’acceptation de cette offre ?">Accepter le devis</button></form><form method="POST" action="{{ route('client.quotes.reject',$quotation) }}">@csrf<button class="btn btn-danger" type="submit" data-confirm-submit="Voulez-vous vraiment refuser ce devis ?">Refuser</button></form></div></section>
-<section class="client-panel"><h2>Faire une contre-proposition</h2><form class="client-form-grid" method="POST" action="{{ route('client.quotes.counter-offer',$quotation) }}">@csrf<x-input name="amount" label="Montant" type="number" step="0.01" min="0.01" required /><x-input name="currency" label="Devise" value="{{ $quotation->currentOffer?->currency }}" maxlength="3" required /><x-input name="duration_value" label="Durée" type="number" min="1" required /><x-select name="duration_unit" label="Unité" :options="['hours'=>'Heure(s)','days'=>'Jour(s)','weeks'=>'Semaine(s)']" required /><x-input name="valid_until" label="Valable jusqu'au" type="datetime-local" required /><x-textarea class="client-form-grid__full" name="description" label="Description" rows="4" required /><x-textarea class="client-form-grid__full" name="conditions" label="Conditions" rows="3" /><div class="client-form-grid__full client-action-bar"><button class="btn btn-primary" type="submit">Envoyer la contre-proposition</button></div></form></section>@endif
+@if(in_array($quotation->status->value,['sent','negotiating'],true) && $quotation->currentOffer && optional($quotation->currentOffer->valid_until)->isFuture())
+@if(! $quotation->serviceRequest?->address)
+    <div class="client-form-alert" role="status">
+        <strong>Une adresse d’exécution est nécessaire avant l’acceptation.</strong>
+        <p>Le système doit enregistrer une adresse appartenant à votre compte pour créer la commande après acceptation du devis.</p>
+        <a class="btn btn-secondary" href="{{ route('client.requests.show', $quotation->serviceRequest) }}">Choisir l’adresse de cette demande</a>
+    </div>
+@endif
+<section class="client-panel"><h2>Votre décision</h2><div class="client-action-bar">
+@if($quotation->serviceRequest?->address)
+<form method="POST" action="{{ route('client.quotes.accept',$quotation) }}">@csrf<button class="btn btn-primary" type="submit" data-confirm-submit="Confirmer l’acceptation de cette offre ?">Accepter le devis</button></form>
+@else
+<button class="btn btn-primary" type="button" disabled aria-disabled="true">Ajoutez une adresse avant d’accepter</button>
+@endif
+<form method="POST" action="{{ route('client.quotes.reject',$quotation) }}">@csrf<button class="btn btn-danger" type="submit" data-confirm-submit="Voulez-vous vraiment refuser ce devis ?">Refuser</button></form>
+</div></section>
+<section class="client-panel"><h2>Faire une contre-proposition</h2><form class="client-form-grid" method="POST" action="{{ route('client.quotes.counter-offer',$quotation) }}">@csrf<x-input name="amount" label="Montant" type="number" step="0.01" min="0.01" required /><x-input name="currency" label="Devise" value="{{ $quotation->currentOffer?->currency }}" maxlength="3" required /><x-input name="duration_value" label="Durée" type="number" min="1" required /><x-select name="duration_unit" label="Unité" required>
+    <option value="hours">Heure(s)</option>
+    <option value="days">Jour(s)</option>
+    <option value="weeks">Semaine(s)</option>
+</x-select><x-input name="valid_until" label="Valable jusqu'au" type="datetime-local" required /><x-textarea class="client-form-grid__full" name="description" label="Description" rows="4" required /><x-textarea class="client-form-grid__full" name="conditions" label="Conditions" rows="3" /><div class="client-form-grid__full client-action-bar"><button class="btn btn-primary" type="submit">Envoyer la contre-proposition</button></div></form></section>@endif
 <a class="btn btn-secondary" href="{{ route('client.quotes.index') }}">Retour aux devis</a></div>
 @endsection

@@ -11,8 +11,10 @@ use App\Models\QuotationOffer;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class WebClientFavoritesRequestsQuotesTest extends TestCase
@@ -200,6 +202,203 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->actingAs($client)
             ->post('/client/quotes/'.$quotation->id.'/accept')
             ->assertSessionHasErrors('valid_until');
+    }
+
+    public function test_client_requests_dashboard_filters_lists_and_counts_only_the_current_client(): void
+    {
+        $client = $this->client();
+        $otherClient = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'title' => 'Demande en attente',
+            'status' => 'requested',
+            'requested_at' => now(),
+        ]);
+        ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'title' => 'Devis à consulter',
+            'status' => 'quoted',
+            'requested_at' => now(),
+        ]);
+        ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'title' => 'Demande annulée',
+            'status' => 'cancelled',
+        ]);
+        ServiceRequest::factory()->create([
+            'client_id' => $otherClient->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'title' => 'Demande privée autre client',
+            'status' => 'requested',
+            'requested_at' => now(),
+        ]);
+
+        $response = $this->actingAs($client)
+            ->get('/client/requests?status=quoted&search=Devis')
+            ->assertOk()
+            ->assertViewIs('client.requests.index')
+            ->assertSee('Devis à consulter')
+            ->assertDontSee('Demande en attente')
+            ->assertDontSee('Demande privée autre client');
+
+        $response->assertViewHas('stats', function (array $stats): bool {
+            return $stats['total'] === 3
+                && $stats['awaiting_professional'] === 1
+                && $stats['awaiting_client'] === 1
+                && $stats['closed'] === 1;
+        });
+    }
+
+    public function test_web_submission_records_audit_history_and_notifies_the_recipient(): void
+    {
+        Notification::fake();
+
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->actingAs($client)->post('/client/requests', [
+            'service_id' => $service->id,
+            'title' => 'Demande depuis le web',
+            'description' => 'Je souhaite une prestation avec un périmètre et un résultat clairement définis.',
+            'currency' => 'USD',
+        ])->assertRedirect();
+
+        $serviceRequest = ServiceRequest::query()
+            ->where('client_id', $client->id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->actingAs($client)
+            ->post('/client/requests/'.$serviceRequest->id.'/submit')
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('service_request_status_histories', [
+            'service_request_id' => $serviceRequest->id,
+            'from_status' => 'draft',
+            'to_status' => 'requested',
+            'changed_by' => $client->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'service_request_submitted',
+            'subject_id' => $serviceRequest->id,
+            'user_id' => $client->id,
+        ]);
+
+        Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
+    }
+
+    public function test_web_client_quote_rejection_updates_request_history_audit_and_notification(): void
+    {
+        Notification::fake();
+
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+        $serviceRequest = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'status' => 'quoted',
+        ]);
+        $quotation = Quotation::factory()->create([
+            'service_request_id' => $serviceRequest->id,
+            'status' => 'sent',
+        ]);
+        $offer = QuotationOffer::factory()->create([
+            'quotation_id' => $quotation->id,
+            'valid_until' => now()->addDay(),
+        ]);
+        $quotation->forceFill(['current_offer_id' => $offer->id])->save();
+
+        $this->actingAs($client)
+            ->post('/client/quotes/'.$quotation->id.'/reject')
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('service_requests', [
+            'id' => $serviceRequest->id,
+            'status' => 'rejected',
+        ]);
+        $this->assertDatabaseHas('service_request_status_histories', [
+            'service_request_id' => $serviceRequest->id,
+            'from_status' => 'quoted',
+            'to_status' => 'rejected',
+            'changed_by' => $client->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'quotation_rejected',
+            'subject_id' => $quotation->id,
+            'user_id' => $client->id,
+        ]);
+
+        Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
+    }
+
+    public function test_quote_page_guides_client_to_add_an_address_before_acceptance(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+        $serviceRequest = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'status' => 'quoted',
+            'address_id' => null,
+        ]);
+        $quotation = Quotation::factory()->create([
+            'service_request_id' => $serviceRequest->id,
+            'status' => 'sent',
+        ]);
+        $offer = QuotationOffer::factory()->create([
+            'quotation_id' => $quotation->id,
+            'valid_until' => now()->addDay(),
+        ]);
+        $quotation->forceFill(['current_offer_id' => $offer->id])->save();
+
+        $this->actingAs($client)
+            ->get('/client/quotes/'.$quotation->id)
+            ->assertOk()
+            ->assertSee('Une adresse d’exécution est nécessaire avant l’acceptation.')
+            ->assertSee('Choisir l’adresse de cette demande')
+            ->assertSee('Ajoutez une adresse avant d’accepter')
+            ->assertSee('disabled aria-disabled="true"', false);
     }
 
     private function client(): User

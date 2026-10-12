@@ -150,17 +150,10 @@ class QuotationService
                 'created_at' => now(),
             ]);
 
-            $request = ServiceRequest::query()->lockForUpdate()->findOrFail($locked->service_request_id);
-            if ($request->status === ServiceRequestStatus::QUOTED) {
-                $request->forceFill(['status' => ServiceRequestStatus::REJECTED])->save();
-                $request->statusHistories()->create([
-                    'from_status' => ServiceRequestStatus::QUOTED->value,
-                    'to_status' => ServiceRequestStatus::REJECTED->value,
-                    'changed_by' => $client->getKey(),
-                    'reason' => 'Quotation rejected by client',
-                    'created_at' => now(),
-                ]);
-            }
+            $this->requestLifecycle->rejectByClient(
+                $locked->serviceRequest,
+                $client,
+            );
 
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         });
