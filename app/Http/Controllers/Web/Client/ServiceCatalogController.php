@@ -14,20 +14,30 @@ use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ServiceCatalogController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $filters = $request->validate([
+        $validator = Validator::make($request->query(), [
             'search' => ['nullable', 'string', 'max:120'],
             'category' => ['nullable', 'integer', 'min:1'],
             'pricing' => ['nullable', Rule::enum(ServicePricingType::class)],
             'city' => ['nullable', 'string', 'max:80'],
         ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->route('client.services.index')
+                ->withErrors($validator);
+        }
+
+        $filters = $validator->validated();
 
         $services = $this->visibleServicesQuery()
             ->with([

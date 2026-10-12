@@ -25,6 +25,20 @@
             </a>
         </header>
 
+        @if ($errors->any())
+            <div class="client-services-validation-alert" role="alert" aria-live="polite">
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                <div>
+                    <strong>Certains filtres n’ont pas été acceptés.</strong>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        @endif
+
         <section class="client-service-stats" aria-label="Vue d'ensemble">
             <a class="client-service-stat" href="#catalogue-services">
                 <span class="client-service-stat__icon" aria-hidden="true">
