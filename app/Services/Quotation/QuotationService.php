@@ -139,6 +139,130 @@ class QuotationService
         });
     }
 
+    public function acceptClientOffer(Quotation $quotation, User $professional): Quotation
+    {
+        return DB::transaction(function () use ($quotation, $professional): Quotation {
+            $locked = Quotation::query()
+                ->lockForUpdate()
+                ->with('serviceRequest.professional')
+                ->findOrFail($quotation->getKey());
+
+            if ($locked->serviceRequest->professional?->user_id !== $professional->getKey()) {
+                throw ValidationException::withMessages(['quotation' => 'Vous ne pouvez pas décider pour ce devis.']);
+            }
+
+            if (! in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
+                throw ValidationException::withMessages(['status' => 'Ce devis ne peut plus être accepté.']);
+            }
+
+            $offer = QuotationOffer::query()->findOrFail($locked->current_offer_id);
+
+            if ($offer->actor_type !== QuotationOfferActor::CLIENT) {
+                throw ValidationException::withMessages([
+                    'status' => 'La proposition active n’est pas une contre-proposition du client.',
+                ]);
+            }
+
+            if (! $offer->valid_until->isFuture()) {
+                throw ValidationException::withMessages([
+                    'valid_until' => 'La contre-proposition du client a expiré.',
+                ]);
+            }
+
+            $request = ServiceRequest::query()->lockForUpdate()->findOrFail($locked->service_request_id);
+
+            if ($request->status !== ServiceRequestStatus::QUOTED) {
+                throw ValidationException::withMessages([
+                    'status' => 'La demande n’est plus dans un état compatible avec l’acceptation.',
+                ]);
+            }
+
+            if ($request->address_id === null) {
+                throw ValidationException::withMessages([
+                    'address' => 'Le client doit définir une adresse d’exécution avant la création de la commande.',
+                ]);
+            }
+
+            $locked->forceFill([
+                'status' => QuotationStatus::ACCEPTED,
+                'accepted_offer_id' => $offer->getKey(),
+                'accepted_at' => now(),
+            ])->save();
+
+            QuotationEvent::query()->forceCreate([
+                'quotation_id' => $locked->getKey(),
+                'actor_id' => $professional->getKey(),
+                'type' => 'offer_accepted_by_professional',
+                'offer_id' => $offer->getKey(),
+                'metadata' => ['version' => $offer->version],
+                'created_at' => now(),
+            ]);
+
+            $this->requestLifecycle->accept($request, $professional);
+            $this->orderService->createFromAcceptedQuotation($locked, $professional);
+
+            return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events', 'order']);
+        });
+    }
+
+    public function rejectClientOffer(Quotation $quotation, User $professional): Quotation
+    {
+        return DB::transaction(function () use ($quotation, $professional): Quotation {
+            $locked = Quotation::query()
+                ->lockForUpdate()
+                ->with('serviceRequest.professional')
+                ->findOrFail($quotation->getKey());
+
+            if ($locked->serviceRequest->professional?->user_id !== $professional->getKey()) {
+                throw ValidationException::withMessages(['quotation' => 'Vous ne pouvez pas décider pour ce devis.']);
+            }
+
+            if (! in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
+                throw ValidationException::withMessages(['status' => 'Ce devis ne peut plus être refusé.']);
+            }
+
+            $offer = QuotationOffer::query()->findOrFail($locked->current_offer_id);
+
+            if ($offer->actor_type !== QuotationOfferActor::CLIENT) {
+                throw ValidationException::withMessages([
+                    'status' => 'La proposition active n’est pas une contre-proposition du client.',
+                ]);
+            }
+
+            if (! $offer->valid_until->isFuture()) {
+                throw ValidationException::withMessages([
+                    'valid_until' => 'La contre-proposition du client a expiré.',
+                ]);
+            }
+
+            $request = ServiceRequest::query()->lockForUpdate()->findOrFail($locked->service_request_id);
+
+            if ($request->status !== ServiceRequestStatus::QUOTED) {
+                throw ValidationException::withMessages([
+                    'status' => 'La demande n’est plus dans un état compatible avec le refus.',
+                ]);
+            }
+
+            $locked->forceFill([
+                'status' => QuotationStatus::REJECTED,
+                'rejected_at' => now(),
+            ])->save();
+
+            QuotationEvent::query()->forceCreate([
+                'quotation_id' => $locked->getKey(),
+                'actor_id' => $professional->getKey(),
+                'type' => 'counter_offer_rejected_by_professional',
+                'offer_id' => $offer->getKey(),
+                'metadata' => ['version' => $offer->version],
+                'created_at' => now(),
+            ]);
+
+            $this->requestLifecycle->rejectByProfessionalDuringNegotiation($request, $professional);
+
+            return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
+        });
+    }
+
     public function reject(Quotation $quotation, User $client): Quotation
     {
         return DB::transaction(function () use ($quotation, $client): Quotation {
