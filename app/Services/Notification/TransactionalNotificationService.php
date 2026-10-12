@@ -100,6 +100,17 @@ class TransactionalNotificationService
         $this->send($recipient, $title, $message, 'account', $url, 'critical', $idempotencyKey);
     }
 
+    public function accountActivity(
+        User $recipient,
+        string $title,
+        string $message,
+        ?string $url = null,
+        ?string $idempotencyKey = null,
+        string $priority = 'normal',
+    ): void {
+        $this->send($recipient, $title, $message, 'account', $url, $priority, $idempotencyKey);
+    }
+
     private function send(
         User $recipient,
         string $title,
