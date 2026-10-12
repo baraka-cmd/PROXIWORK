@@ -131,7 +131,7 @@ class ClientProfileTest extends TestCase
         $this->actingAs($client)
             ->get('/client/profile/photo')
             ->assertOk()
-            ->assertHeader('Cache-Control', 'private, no-store')
+            ->assertHeader('Cache-Control', 'no-store, private')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
 
         $this->actingAs($otherClient)->get('/client/profile/photo')->assertNotFound();
