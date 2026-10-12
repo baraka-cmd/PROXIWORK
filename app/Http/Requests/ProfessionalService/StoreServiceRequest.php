@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ProfessionalService;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServicePricingType;
 use App\Models\Category;
 use App\Models\Skill;
@@ -25,6 +26,7 @@ class StoreServiceRequest extends FormRequest
             'title' => ['required', 'string', 'min:3', 'max:160'],
             'short_description' => ['nullable', 'string', 'max:500'],
             'description' => ['required', 'string', 'min:20', 'max:10000'],
+            'execution_mode' => ['sometimes', 'required', Rule::enum(ServiceExecutionMode::class)],
             'pricing_type' => ['required', Rule::enum(ServicePricingType::class)],
             'price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_min' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],

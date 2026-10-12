@@ -36,6 +36,7 @@
                 <div><strong>{{ $service->professionalProfile?->user?->name }}</strong><span>{{ $service->professionalProfile?->professional_title }}</span></div>
             </div>
             <dl class="client-definition-list">
+                <div><dt>Mode d’exécution</dt><dd>{{ $service->execution_mode->label() }}</dd></div>
                 <div><dt>Tarification</dt><dd>{{ ucfirst($service->pricing_type->value) }}</dd></div>
                 <div><dt>Devise</dt><dd>{{ $service->currency }}</dd></div>
                 <div><dt>Durée</dt><dd>{{ $service->estimated_duration_minutes ? $service->estimated_duration_minutes.' min' : 'À définir' }}</dd></div>
@@ -75,6 +76,7 @@
 
             <div class="client-form-section">
                 <p class="client-form-section__title">3. Lieu d'intervention</p>
+                @if($service->execution_mode->requiresClientAddress())
                 @if($addresses->isEmpty())
                     <div class="client-form-note"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Aucune adresse enregistrée. Vous pouvez continuer sans adresse et en ajouter une depuis votre espace.</span></div>
                 @else
@@ -86,6 +88,9 @@
                     </div>
                 @endif
                 @error('address_id')<small class="client-field-error">{{ $message }}</small>@enderror
+                @else
+                    <div class="client-form-note"><i class="fa-solid fa-laptop" aria-hidden="true"></i><span>Cette prestation est proposée à distance. Aucune adresse physique ne sera demandée ni jointe à la demande ou à la commande.</span></div>
+                @endif
             </div>
 
             <div class="client-form-actions">

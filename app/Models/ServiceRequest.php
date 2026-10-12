@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServiceRequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,8 +16,12 @@ class ServiceRequest extends Model
 {
     use HasFactory;
 
+    /** Indicates an idempotency replay without persisting transport state to the database. */
+    public bool $idempotencyReplay = false;
+
     protected $fillable = [
         'service_id',
+        'execution_mode',
         'address_id',
         'title',
         'description',
@@ -28,12 +33,14 @@ class ServiceRequest extends Model
 
     protected $attributes = [
         'status' => ServiceRequestStatus::DRAFT->value,
+        'execution_mode' => ServiceExecutionMode::CLIENT_LOCATION->value,
     ];
 
     protected function casts(): array
     {
         return [
             'status' => ServiceRequestStatus::class,
+            'execution_mode' => ServiceExecutionMode::class,
             'budget_min' => 'decimal:2',
             'budget_max' => 'decimal:2',
             'desired_at' => 'datetime',
@@ -59,6 +66,11 @@ class ServiceRequest extends Model
     public function address(): BelongsTo
     {
         return $this->belongsTo(Address::class);
+    }
+
+    public function addressSnapshot(): HasOne
+    {
+        return $this->hasOne(ServiceRequestAddressSnapshot::class);
     }
 
     public function statusHistories(): HasMany

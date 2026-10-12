@@ -51,6 +51,7 @@ class ServiceRequestController extends Controller
             'service',
             'client',
             'address',
+            'addressSnapshot',
             'statusHistories.actor',
             'quotation.currentOffer',
         ]);

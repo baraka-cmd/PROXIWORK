@@ -25,6 +25,7 @@ class ServiceController extends Controller
                 'slug',
                 'short_description',
                 'description',
+                'execution_mode',
                 'pricing_type',
                 'price',
                 'price_min',

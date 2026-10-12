@@ -115,11 +115,11 @@ Route::middleware('auth')->group(function (): void {
         Route::post('profile/email-change/{token}/confirm', [ClientProfileController::class, 'confirmEmailChange'])->middleware('throttle:6,1')->name('profile.email-change.confirm');
         Route::get('addresses', [ClientAddressController::class, 'index'])->name('addresses.index');
         Route::get('addresses/create', [ClientAddressController::class, 'create'])->name('addresses.create');
-        Route::post('addresses', [ClientAddressController::class, 'store'])->name('addresses.store');
+        Route::post('addresses', [ClientAddressController::class, 'store'])->middleware('throttle:10,1')->name('addresses.store');
         Route::get('addresses/{address}/edit', [ClientAddressController::class, 'edit'])->name('addresses.edit');
-        Route::patch('addresses/{address}', [ClientAddressController::class, 'update'])->name('addresses.update');
-        Route::delete('addresses/{address}', [ClientAddressController::class, 'destroy'])->name('addresses.destroy');
-        Route::post('addresses/{address}/default', [ClientAddressController::class, 'makeDefault'])->name('addresses.default');
+        Route::patch('addresses/{address}', [ClientAddressController::class, 'update'])->middleware('throttle:10,1')->name('addresses.update');
+        Route::delete('addresses/{address}', [ClientAddressController::class, 'destroy'])->middleware('throttle:10,1')->name('addresses.destroy');
+        Route::post('addresses/{address}/default', [ClientAddressController::class, 'makeDefault'])->middleware('throttle:10,1')->name('addresses.default');
         Route::get('notifications', [ClientNotificationController::class, 'index'])->name('notifications.index');
         Route::post('notifications/{notification}/read', [ClientNotificationController::class, 'markAsRead'])->name('notifications.read');
         Route::post('notifications/read-all', [ClientNotificationController::class, 'markAllAsRead'])->name('notifications.read-all');

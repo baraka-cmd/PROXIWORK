@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\ProfessionalService;
 
 use App\Enums\CategoryStatus;
+use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Enums\SkillStatus;
@@ -91,7 +92,7 @@ class ProfessionalServiceManager
                 ->lockForUpdate()
                 ->findOrFail($service->professional_profile_id);
 
-            if ($professional->verification_status !== \App\Enums\ProfessionalVerificationStatus::VERIFIED) {
+            if ($professional->verification_status !== ProfessionalVerificationStatus::VERIFIED) {
                 throw ValidationException::withMessages([
                     'professional' => 'Le profil professionnel doit être vérifié avant la publication d’un service.',
                 ]);
@@ -253,6 +254,7 @@ class ProfessionalServiceManager
                 'title',
                 'short_description',
                 'description',
+                'execution_mode',
                 'pricing_type',
                 'price',
                 'price_min',

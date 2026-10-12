@@ -281,9 +281,11 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'status' => 'published',
             'published_at' => now(),
         ]);
+        $address = Address::factory()->for($client)->create();
 
         $this->actingAs($client)->post('/client/requests', [
             'service_id' => $service->id,
+            'address_id' => $address->id,
             'title' => 'Demande depuis le web',
             'description' => 'Je souhaite une prestation avec un périmètre et un résultat clairement définis.',
             'currency' => 'USD',

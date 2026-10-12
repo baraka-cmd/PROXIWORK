@@ -92,10 +92,17 @@
                     @if($order->addressSnapshot->landmark)
                         <span>Repère : {{ $order->addressSnapshot->landmark }}</span>
                     @endif
+                    @if($order->addressSnapshot->access_instructions)
+                        <span><strong>Instructions d’accès :</strong> {{ $order->addressSnapshot->access_instructions }}</span>
+                    @endif
                 </address>
                 <p class="client-order-muted">Il s’agit de la copie de l’adresse enregistrée pour cette commande.</p>
             @else
-                <p class="client-order-muted">Aucune adresse d’exécution enregistrée pour cette commande.</p>
+                @if($order->serviceRequest?->execution_mode?->value === 'remote')
+                    <p class="client-order-muted">Prestation à distance : aucune adresse physique n’est nécessaire ni enregistrée.</p>
+                @else
+                    <p class="client-order-muted">Aucune adresse d’exécution enregistrée pour cette commande.</p>
+                @endif
             @endif
         </section>
     </div>

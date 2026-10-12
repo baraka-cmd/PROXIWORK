@@ -46,7 +46,7 @@
                 <div><dt>Budget minimum</dt><dd>{{ $serviceRequest->budget_min !== null ? number_format((float) $serviceRequest->budget_min, 2, ',', ' ') . ' ' . ($serviceRequest->currency ?? '') : 'Non précisé' }}</dd></div>
                 <div><dt>Budget maximum</dt><dd>{{ $serviceRequest->budget_max !== null ? number_format((float) $serviceRequest->budget_max, 2, ',', ' ') . ' ' . ($serviceRequest->currency ?? '') : 'Non précisé' }}</dd></div>
                 <div><dt>Date souhaitée</dt><dd>{{ $serviceRequest->desired_at?->format('d/m/Y à H:i') ?? 'Flexible / à convenir' }}</dd></div>
-                <div><dt>Lieu de prestation</dt><dd>{{ $serviceRequest->address?->city ?: 'À préciser' }}{{ $serviceRequest->address?->province ? ', '.$serviceRequest->address->province : '' }}</dd></div>
+                <div><dt>Lieu de prestation</dt><dd>{{ $serviceRequest->execution_mode->requiresClientAddress() ? ($serviceRequest->addressSnapshot?->city ?: ($serviceRequest->address?->city ?: 'À préciser')) : 'À distance' }}{{ $serviceRequest->execution_mode->requiresClientAddress() && ($serviceRequest->addressSnapshot?->province ?: $serviceRequest->address?->province) ? ', '.($serviceRequest->addressSnapshot?->province ?: $serviceRequest->address?->province) : '' }}</dd></div>
             </dl>
         </section>
 
@@ -78,7 +78,17 @@
         <section class="client-panel">
             <p class="client-module__eyebrow">LIEU D’EXÉCUTION</p>
             <h2>Adresse de la prestation</h2>
-            <p>Vous pouvez préciser ou modifier l’adresse avant l’acceptation du devis. Le processus actuel exige une adresse valide pour créer la commande à partir d’un devis accepté.</p>
+            @if($serviceRequest->execution_mode->requiresClientAddress())
+            <p>Le lieu affiché ci-dessous est un instantané de cette demande : modifier votre carnet ne le changera pas automatiquement. Avant l’acceptation du devis, vous pouvez choisir une adresse et l’enregistrer à nouveau pour mettre à jour le lieu de cette demande. Le processus actuel exige une adresse valide pour créer la commande.</p>
+            @if($serviceRequest->addressSnapshot)
+                <div class="client-request-location-snapshot">
+                    <strong>{{ $serviceRequest->addressSnapshot->label }}</strong>
+                    <p>{{ $serviceRequest->addressSnapshot->address_line_1 }}{{ $serviceRequest->addressSnapshot->address_line_2 ? ', '.$serviceRequest->addressSnapshot->address_line_2 : '' }}</p>
+                    <p>{{ collect([$serviceRequest->addressSnapshot->neighborhood, $serviceRequest->addressSnapshot->commune, $serviceRequest->addressSnapshot->city, $serviceRequest->addressSnapshot->province, $serviceRequest->addressSnapshot->country_code])->filter()->join(', ') }}</p>
+                    @if($serviceRequest->addressSnapshot->landmark)<p><strong>Repère :</strong> {{ $serviceRequest->addressSnapshot->landmark }}</p>@endif
+                    @if($serviceRequest->addressSnapshot->access_instructions)<p><strong>Instructions d’accès :</strong> {{ $serviceRequest->addressSnapshot->access_instructions }}</p>@endif
+                </div>
+            @endif
             @if($addresses->isEmpty())
                 <div class="client-form-note">
                     <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
@@ -102,6 +112,9 @@
                     @error('address_id')<small class="client-field-error">{{ $message }}</small>@enderror
                     <button class="btn btn-secondary" type="submit">Enregistrer l’adresse</button>
                 </form>
+            @endif
+            @else
+                <div class="client-form-note"><i class="fa-solid fa-laptop" aria-hidden="true"></i><span>Cette demande concerne une prestation à distance. Aucune adresse physique n’est requise ; aucune adresse du carnet n’est partagée avec le professionnel pour cette prestation.</span></div>
             @endif
         </section>
     @endif

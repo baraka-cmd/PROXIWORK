@@ -35,7 +35,7 @@ class OrderService
 
             $request = ServiceRequest::query()
                 ->lockForUpdate()
-                ->with(['service', 'address', 'professional'])
+                ->with(['service', 'address', 'addressSnapshot', 'professional'])
                 ->findOrFail($lockedQuotation->service_request_id);
 
             $isClientActor = $request->client_id === $actor->getKey();
@@ -80,16 +80,23 @@ class OrderService
                 return $existing->load(['items', 'addressSnapshot', 'statusHistories']);
             }
 
-            if ($request->address === null) {
-                throw ValidationException::withMessages([
-                    'address' => 'Une adresse d’exécution est requise pour créer la commande.',
-                ]);
-            }
+            // New requests carry an immutable location snapshot. This fallback
+            // supports legacy/factory-created records that predate snapshot enforcement;
+            // the migration backfills production request history.
+            $addressSnapshot = $request->addressSnapshot ?? $request->address;
 
-            if ($request->address->user_id !== $request->client_id) {
-                throw ValidationException::withMessages([
-                    'address' => 'L’adresse de la demande n’appartient pas au client.',
-                ]);
+            if ($request->execution_mode->requiresClientAddress()) {
+                if ($request->address === null || $addressSnapshot === null) {
+                    throw ValidationException::withMessages([
+                        'address' => 'Une adresse d’exécution valide est requise pour créer la commande.',
+                    ]);
+                }
+
+                if ($request->address->user_id !== $request->client_id) {
+                    throw ValidationException::withMessages([
+                        'address' => 'L’adresse de la demande n’appartient pas au client.',
+                    ]);
+                }
             }
 
             if ($request->professional_id === null) {
@@ -134,24 +141,27 @@ class OrderService
                 'updated_at' => $now,
             ]);
 
-            OrderAddressSnapshot::query()->forceCreate([
-                'order_id' => $order->getKey(),
-                'recipient_name' => $request->address->recipient_name,
-                'contact_phone' => $request->address->contact_phone,
-                'country_code' => $request->address->country_code,
-                'province' => $request->address->province,
-                'city' => $request->address->city,
-                'commune' => $request->address->commune,
-                'neighborhood' => $request->address->neighborhood,
-                'address_line_1' => $request->address->address_line_1,
-                'address_line_2' => $request->address->address_line_2,
-                'landmark' => $request->address->landmark,
-                'postal_code' => $request->address->postal_code,
-                'latitude' => $request->address->latitude,
-                'longitude' => $request->address->longitude,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
+            if ($request->execution_mode->requiresClientAddress()) {
+                OrderAddressSnapshot::query()->forceCreate([
+                    'order_id' => $order->getKey(),
+                    'recipient_name' => $addressSnapshot->recipient_name,
+                    'contact_phone' => $addressSnapshot->contact_phone,
+                    'country_code' => $addressSnapshot->country_code,
+                    'province' => $addressSnapshot->province,
+                    'city' => $addressSnapshot->city,
+                    'commune' => $addressSnapshot->commune,
+                    'neighborhood' => $addressSnapshot->neighborhood,
+                    'address_line_1' => $addressSnapshot->address_line_1,
+                    'address_line_2' => $addressSnapshot->address_line_2,
+                    'landmark' => $addressSnapshot->landmark,
+                    'access_instructions' => $addressSnapshot->access_instructions,
+                    'postal_code' => $addressSnapshot->postal_code,
+                    'latitude' => $addressSnapshot->latitude,
+                    'longitude' => $addressSnapshot->longitude,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
 
             OrderStatusHistory::query()->forceCreate([
                 'order_id' => $order->getKey(),

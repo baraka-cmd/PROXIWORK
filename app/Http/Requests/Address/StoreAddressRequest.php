@@ -28,6 +28,7 @@ class StoreAddressRequest extends FormRequest
             'address_line_1' => ['required', 'string', 'max:255'],
             'address_line_2' => ['sometimes', 'nullable', 'string', 'max:255'],
             'landmark' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'access_instructions' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'postal_code' => ['sometimes', 'nullable', 'string', 'max:32'],
             'latitude' => ['sometimes', 'nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['sometimes', 'nullable', 'numeric', 'between:-180,180'],
@@ -61,7 +62,7 @@ class StoreAddressRequest extends FormRequest
         $fields = [
             'label', 'recipient_name', 'contact_phone', 'country_code',
             'province', 'city', 'commune', 'neighborhood', 'address_line_1',
-            'address_line_2', 'landmark', 'postal_code',
+            'address_line_2', 'landmark', 'access_instructions', 'postal_code',
         ];
 
         $normalized = [];

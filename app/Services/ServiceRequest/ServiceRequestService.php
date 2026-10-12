@@ -8,6 +8,7 @@ use App\Enums\ServiceRequestStatus;
 use App\Models\Address;
 use App\Models\Service;
 use App\Models\ServiceRequest;
+use App\Models\ServiceRequestAddressSnapshot;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
@@ -33,9 +34,10 @@ class ServiceRequestService
                             'service',
                             'professional.user',
                             'address',
+                            'addressSnapshot',
                             'statusHistories.actor',
                         ]);
-                        $existing->setAttribute('_idempotent_replay', true);
+                        $existing->idempotencyReplay = true;
 
                         return $existing;
                     }
@@ -52,12 +54,22 @@ class ServiceRequestService
                     ]);
                 }
 
-                if (($attributes['address_id'] ?? null) !== null && $client->addresses()
-                    ->whereKey($attributes['address_id'])
-                    ->exists() === false) {
-                    throw ValidationException::withMessages([
-                        'address_id' => 'Cette adresse ne vous appartient pas.',
-                    ]);
+                if (! $service->execution_mode->requiresClientAddress()) {
+                    $attributes['address_id'] = null;
+                }
+
+                if (($attributes['address_id'] ?? null) !== null) {
+                    $ownedAddress = Address::query()
+                        ->whereKey($attributes['address_id'])
+                        ->where('user_id', $client->getKey())
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($ownedAddress === null) {
+                        throw ValidationException::withMessages([
+                            'address_id' => 'Cette adresse ne vous appartient pas ou n’est plus disponible.',
+                        ]);
+                    }
                 }
 
                 $this->validateBudget($attributes);
@@ -76,8 +88,13 @@ class ServiceRequestService
                     'idempotency_key' => $idempotencyKey,
                     'client_id' => $client->getKey(),
                     'professional_id' => $service->professionalProfile->getKey(),
+                    'execution_mode' => $service->execution_mode,
                     'status' => ServiceRequestStatus::DRAFT,
                 ]);
+
+                if (($attributes['address_id'] ?? null) !== null) {
+                    $this->syncAddressSnapshot($request, (int) $attributes['address_id'], (int) $client->getKey());
+                }
 
                 $request->statusHistories()->create([
                     'from_status' => null,
@@ -91,9 +108,10 @@ class ServiceRequestService
                     'service',
                     'professional.user',
                     'address',
+                    'addressSnapshot',
                     'statusHistories.actor',
                 ]);
-                $request->setAttribute('_idempotent_replay', false);
+                $request->idempotencyReplay = false;
 
                 return $request;
             }, attempts: 3);
@@ -111,9 +129,10 @@ class ServiceRequestService
                         'service',
                         'professional.user',
                         'address',
+                        'addressSnapshot',
                         'statusHistories.actor',
                     ]);
-                    $existing->setAttribute('_idempotent_replay', true);
+                    $existing->idempotencyReplay = true;
 
                     return $existing;
                 }
@@ -136,13 +155,22 @@ class ServiceRequestService
                 ]);
             }
 
-            if (($attributes['address_id'] ?? null) !== null && Address::query()
-                ->whereKey($attributes['address_id'])
-                ->where('user_id', $locked->client_id)
-                ->exists() === false) {
-                throw ValidationException::withMessages([
-                    'address_id' => 'Cette adresse ne vous appartient pas.',
-                ]);
+            if (! $locked->execution_mode->requiresClientAddress()) {
+                $attributes['address_id'] = null;
+            }
+
+            if (($attributes['address_id'] ?? null) !== null) {
+                $ownedAddress = Address::query()
+                    ->whereKey($attributes['address_id'])
+                    ->where('user_id', $locked->client_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($ownedAddress === null) {
+                    throw ValidationException::withMessages([
+                        'address_id' => 'Cette adresse ne vous appartient pas ou n’est plus disponible.',
+                    ]);
+                }
             }
 
             $this->validateBudget($attributes, $locked);
@@ -157,7 +185,21 @@ class ServiceRequestService
                 'desired_at',
             ])->all());
 
-            return $locked->refresh()->load(['service', 'professional.user', 'address', 'statusHistories.actor']);
+            if (array_key_exists('address_id', $attributes)) {
+                $this->syncAddressSnapshot(
+                    $locked,
+                    $attributes['address_id'] === null ? null : (int) $attributes['address_id'],
+                    (int) $locked->client_id,
+                );
+            }
+
+            return $locked->refresh()->load([
+                'service',
+                'professional.user',
+                'address',
+                'addressSnapshot',
+                'statusHistories.actor',
+            ]);
         });
     }
 
@@ -172,6 +214,12 @@ class ServiceRequestService
                 abort(403, 'Vous ne pouvez pas modifier cette demande.');
             }
 
+            if (! $locked->execution_mode->requiresClientAddress()) {
+                throw ValidationException::withMessages([
+                    'address_id' => 'Cette prestation est à distance et ne nécessite pas d’adresse physique.',
+                ]);
+            }
+
             if (in_array($locked->status, [
                 ServiceRequestStatus::REQUESTED,
                 ServiceRequestStatus::QUOTED,
@@ -184,6 +232,7 @@ class ServiceRequestService
             $address = Address::query()
                 ->whereKey($addressId)
                 ->where('user_id', $client->getKey())
+                ->lockForUpdate()
                 ->first();
 
             if ($address === null) {
@@ -193,11 +242,13 @@ class ServiceRequestService
             }
 
             $locked->forceFill(['address_id' => $address->getKey()])->save();
+            $this->syncAddressSnapshot($locked, (int) $address->getKey(), (int) $client->getKey());
 
             return $locked->refresh()->load([
                 'service',
                 'professional.user',
                 'address',
+                'addressSnapshot',
                 'statusHistories.actor',
                 'quotation.currentOffer',
                 'order',
@@ -350,6 +401,65 @@ class ServiceRequestService
             ->withQueryString();
     }
 
+    /**
+     * Keep the location captured for a service request independent from later
+     * edits to the reusable address book. A pre-acceptance location change
+     * explicitly replaces this snapshot; editing the address book does not.
+     */
+    private function syncAddressSnapshot(ServiceRequest $request, ?int $addressId, int $clientId): void
+    {
+        if ($addressId === null) {
+            $request->addressSnapshot()->delete();
+
+            return;
+        }
+
+        $address = Address::query()
+            ->whereKey($addressId)
+            ->where('user_id', $clientId)
+            ->lockForUpdate()
+            ->first();
+
+        if ($address === null) {
+            throw ValidationException::withMessages([
+                'address_id' => 'Cette adresse ne vous appartient pas ou n’est plus disponible.',
+            ]);
+        }
+
+        $attributes = [
+            'label' => $address->label,
+            'recipient_name' => $address->recipient_name,
+            'contact_phone' => $address->contact_phone,
+            'country_code' => $address->country_code,
+            'province' => $address->province,
+            'city' => $address->city,
+            'commune' => $address->commune,
+            'neighborhood' => $address->neighborhood,
+            'address_line_1' => $address->address_line_1,
+            'address_line_2' => $address->address_line_2,
+            'landmark' => $address->landmark,
+            'access_instructions' => $address->access_instructions,
+            'postal_code' => $address->postal_code,
+            'latitude' => $address->latitude,
+            'longitude' => $address->longitude,
+        ];
+
+        $snapshot = ServiceRequestAddressSnapshot::query()
+            ->where('service_request_id', $request->getKey())
+            ->first();
+
+        if ($snapshot === null) {
+            ServiceRequestAddressSnapshot::query()->forceCreate([
+                'service_request_id' => $request->getKey(),
+                ...$attributes,
+            ]);
+
+            return;
+        }
+
+        $snapshot->forceFill($attributes)->save();
+    }
+
     private function validateBudget(array $attributes, ?ServiceRequest $existing = null): void
     {
         $min = array_key_exists('budget_min', $attributes) ? $attributes['budget_min'] : $existing?->budget_min;
@@ -375,6 +485,7 @@ class ServiceRequestService
             'service.category',
             'professional.user',
             'address',
+            'addressSnapshot',
             'quotation.currentOffer',
             'order',
         ]);

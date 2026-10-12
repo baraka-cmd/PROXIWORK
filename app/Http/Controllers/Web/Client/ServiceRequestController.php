@@ -116,6 +116,7 @@ class ServiceRequestController extends Controller
             'service.category',
             'professional.user',
             'address',
+            'addressSnapshot',
             'statusHistories.actor',
             'quotation.currentOffer',
             'quotation.acceptedOffer',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\ServiceRequest;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
 use App\Models\Address;
@@ -171,6 +172,7 @@ class ServiceRequestApiTest extends TestCase
             'client_id' => $client->id,
             'professional_id' => $profile->id,
             'service_id' => $service->id,
+            'execution_mode' => ServiceExecutionMode::REMOTE,
         ]);
 
         $this->actingAs($client, 'sanctum')
@@ -204,6 +206,7 @@ class ServiceRequestApiTest extends TestCase
             'client_id' => $clientA->id,
             'professional_id' => $profile->id,
             'service_id' => $service->id,
+            'execution_mode' => ServiceExecutionMode::REMOTE,
         ]);
 
         $this->actingAs($clientB, 'sanctum')
@@ -448,6 +451,7 @@ class ServiceRequestApiTest extends TestCase
             'client_id' => $client->id,
             'professional_id' => $profile->id,
             'service_id' => $service->id,
+            'execution_mode' => ServiceExecutionMode::REMOTE,
         ]);
 
         $this->actingAs($client, 'sanctum')

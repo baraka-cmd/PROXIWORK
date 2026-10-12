@@ -51,10 +51,20 @@
         <section class="data-card">
             <h2>Adresse de la commande</h2>
             @if ($order->addressSnapshot)
-                <p>{{ $order->addressSnapshot->address_line ?? $order->addressSnapshot->street ?? 'Adresse enregistrée dans le snapshot.' }}</p>
-                <p class="muted">{{ $order->addressSnapshot->city ?? '' }} {{ $order->addressSnapshot->province ?? '' }}</p>
+                <address class="order-address-snapshot">
+                    @if($order->addressSnapshot->recipient_name)<strong>{{ $order->addressSnapshot->recipient_name }}</strong>@endif
+                    @if($order->addressSnapshot->contact_phone)<span>{{ $order->addressSnapshot->contact_phone }}</span>@endif
+                    <span>{{ $order->addressSnapshot->address_line_1 }}{{ $order->addressSnapshot->address_line_2 ? ', '.$order->addressSnapshot->address_line_2 : '' }}</span>
+                    <span>{{ collect([$order->addressSnapshot->neighborhood, $order->addressSnapshot->commune, $order->addressSnapshot->city, $order->addressSnapshot->province, $order->addressSnapshot->country_code])->filter()->join(', ') }}</span>
+                    @if($order->addressSnapshot->landmark)<span><strong>Repère :</strong> {{ $order->addressSnapshot->landmark }}</span>@endif
+                    @if($order->addressSnapshot->access_instructions)<span><strong>Instructions d’accès :</strong> {{ $order->addressSnapshot->access_instructions }}</span>@endif
+                </address>
             @else
-                <p class="muted">Aucun snapshot d'adresse disponible.</p>
+                @if($order->serviceRequest?->execution_mode?->value === 'remote')
+                    <p class="muted">Prestation à distance : aucune adresse physique du client n’est requise.</p>
+                @else
+                    <p class="muted">Aucun snapshot d'adresse disponible.</p>
+                @endif
             @endif
         </section>
     </div>
