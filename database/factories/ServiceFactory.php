@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
 use App\Models\Category;
@@ -24,7 +25,7 @@ class ServiceFactory extends Factory
             'slug' => fake()->unique()->slug(),
             'short_description' => fake()->sentence(),
             'description' => fake()->paragraphs(2, true),
-            'execution_mode' => \\App\\Enums\\ServiceExecutionMode::CLIENT_LOCATION->value,
+            'execution_mode' => ServiceExecutionMode::CLIENT_LOCATION->value,
             'pricing_type' => ServicePricingType::QUOTE->value,
             'price' => null,
             'price_min' => null,
