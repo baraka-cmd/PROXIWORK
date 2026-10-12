@@ -299,6 +299,31 @@ class NotificationFoundationTest extends TestCase
         $this->assertNull($delivery->fresh()->sent_at);
     }
 
+
+    public function test_local_sms_simulator_records_only_a_masked_recipient_and_never_sends_a_real_sms(): void
+    {
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+        $recipient->profile()->create(['phone' => '+243970001234']);
+        $recipient->notificationPreference()->create(['sms_enabled' => true]);
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            null,
+            'quotation-created:sms-simulation-55',
+        );
+
+        $delivery = NotificationDelivery::query()
+            ->where('user_id', $recipient->id)
+            ->where('channel', 'sms')
+            ->firstOrFail();
+
+        $this->assertSame('SIMULATED', $delivery->status);
+        $this->assertSame('***1234', $delivery->recipient_hint);
+        $this->assertSame('SMS_PROVIDER_NOT_CONFIGURED', $delivery->last_error_code);
+        $this->assertNull($delivery->sent_at);
+    }
+
     public function test_critical_security_alert_keeps_email_delivery_enabled_when_optional_email_is_disabled(): void
     {
         $recipient = User::factory()->create();
