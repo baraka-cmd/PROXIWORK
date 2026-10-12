@@ -22,6 +22,7 @@ class PaymentWebhookService
 {
     public function __construct(
         private readonly CommissionService $commissionService,
+        private readonly PaymentReceiptService $receiptService,
     ) {
         // Dependencies are injected only.
     }
@@ -129,6 +130,7 @@ class PaymentWebhookService
 
             if ($status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($payment->refresh(), $transaction->refresh());
+                $this->receiptService->issueFor($payment->refresh(), $transaction->refresh());
 
                 OrderPaid::dispatch($order);
             }
