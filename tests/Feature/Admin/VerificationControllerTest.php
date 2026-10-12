@@ -29,7 +29,10 @@ class VerificationControllerTest extends TestCase
     public function test_admin_can_open_verification_center_and_start_review(): void
     {
         $admin = $this->moderator();
-        $professional = ProfessionalProfile::factory()->create();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
 
         $this->actingAs($admin)
             ->get(route('admin.verification.index'))
