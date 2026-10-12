@@ -8,6 +8,7 @@ use App\Contracts\Payments\PaymentGateway;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
+use App\Enums\PaymentRefundStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
@@ -346,6 +347,45 @@ class PaymentApiTest extends TestCase
         $this->actingAs($otherClient)
             ->get(route('client.payments.receipt', $payment))
             ->assertNotFound();
+    }
+
+    public function test_client_can_request_refund_review_without_marking_payment_refunded(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'payment-refund-review-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+        $url = route('client.payments.refunds.store', $payment);
+
+        $this->actingAs($client)
+            ->post($url, ['reason' => 'La prestation ne correspond pas aux conditions convenues.'])
+            ->assertRedirect(route('client.payments.show', $payment));
+
+        $this->assertDatabaseCount('payment_refunds', 1);
+        $this->assertDatabaseHas('payment_refunds', [
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'status' => PaymentRefundStatus::REQUESTED->value,
+            'amount' => '500.00',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => PaymentStatus::SUCCEEDED->value,
+        ]);
+
+        $this->post($url, ['reason' => 'Je répète ma demande sans créer de doublon.'])
+            ->assertRedirect(route('client.payments.show', $payment));
+
+        $this->assertDatabaseCount('payment_refunds', 1);
     }
 
     public function test_successful_payment_dispatches_order_paid_event(): void
