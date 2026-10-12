@@ -106,7 +106,7 @@ class QuotationController extends Controller
 
         if (! empty($filters['q'])) {
             $term = $filters['q'];
-            $referenceId = preg_match('/^(?:DEV[-\s]?)?0*(\d+)$/i', $term, $matches) === 1
+            $referenceId = preg_match('/^(?:DEV(?:IS)?[-\s]?)?0*(\d+)$/i', $term, $matches) === 1
                 ? (int) $matches[1]
                 : null;
 
