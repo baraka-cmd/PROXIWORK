@@ -72,7 +72,7 @@
             <div class="client-panel__header">
                 <div>
                     <h2 id="quote-filters-title">Rechercher un devis</h2>
-                    <p>Recherchez par référence, service ou nom public du professionnel.</p>
+                    <p>Recherchez par référence, demande, service ou nom public du professionnel.</p>
                 </div>
                 @if ($hasFilters)
                     <a class="client-filter-clear" href="{{ route('client.quotes.index') }}">Effacer les filtres</a>
@@ -201,6 +201,9 @@
                                 <div>
                                     <p class="client-module__eyebrow">DEVIS-{{ str_pad((string) $quote->id, 6, '0', STR_PAD_LEFT) }}</p>
                                     <h3>{{ $quote->serviceRequest?->service?->title ?? $quote->serviceRequest?->title ?? 'Prestation de service' }}</h3>
+                                    @if ($quote->serviceRequest?->title && $quote->serviceRequest?->title !== $quote->serviceRequest?->service?->title)
+                                        <p class="client-quote-card__request">Demande : {{ $quote->serviceRequest->title }}</p>
+                                    @endif
                                     <p class="client-quote-card__professional">
                                         <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
                                         {{ $professional?->display_name ?: $professional?->user?->name ?: 'Professionnel PROXIWORK' }}
