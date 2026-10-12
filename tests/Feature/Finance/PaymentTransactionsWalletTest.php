@@ -114,6 +114,11 @@ class PaymentTransactionsWalletTest extends TestCase
             'status' => PaymentStatus::SUCCEEDED->value,
         ]);
         $this->assertDatabaseCount('payment_transactions', 1);
+        $this->assertDatabaseCount('payment_receipts', 1);
+        $this->assertDatabaseHas('payment_receipts', [
+            'payment_id' => \App\Models\Payment::query()->where('order_id', $order->id)->value('id'),
+            'mode' => 'simulation',
+        ]);
     }
 
     public function test_client_amount_is_not_authoritative(): void
