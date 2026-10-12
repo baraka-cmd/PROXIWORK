@@ -45,7 +45,7 @@ class PaymentService
         if ($provider === PaymentProvider::FAKE
             && (app()->environment('production') || config('payment.simulation_enabled') !== true)) {
             throw new PaymentGatewayUnavailableException(
-                new \\RuntimeException('Le mode de simulation est désactivé dans cet environnement.')
+                new \RuntimeException('Le mode de simulation est désactivé dans cet environnement.')
             );
         }
 
