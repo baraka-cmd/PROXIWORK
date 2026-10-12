@@ -24,8 +24,8 @@ class PublicProfessionalDirectoryTest extends TestCase
     {
         $this->get(route('public.search'))
             ->assertOk()
-            ->assertViewIs('public.search')
-            ->assertSeeText('Trouvez le bon professionnel pour votre projet.');
+            ->assertViewIs('public.search-services')
+            ->assertSeeText('Trouvez le bon service pour votre projet.');
     }
 
     public function test_professionals_page_is_available_without_authentication(): void
@@ -115,7 +115,7 @@ class PublicProfessionalDirectoryTest extends TestCase
             'published_at' => now(),
         ]);
 
-        $this->get(route('public.search', ['profession' => 'Laravel']))
+        $this->get(route('public.professionals.index', ['profession' => 'Laravel']))
             ->assertOk()
             ->assertSeeText('Développeur Laravel')
             ->assertDontSeeText('Graphiste');
