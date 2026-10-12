@@ -30,6 +30,7 @@ class PaymentService
         private readonly DatabaseManager $database,
         private readonly CommissionService $commissionService,
         private readonly PaymentReceiptService $receiptService,
+        private readonly PaymentEventService $events,
     ) {
         // Dependencies are injected only.
     }
@@ -115,6 +116,8 @@ class PaymentService
                 return $lockedPayment->load('transactions');
             }
 
+            $previousPaymentStatus = $lockedPayment->status->value;
+
             $lockedIntent->forceFill([
                 'status' => $result->status,
                 'provider_reference' => $result->providerReference,
@@ -162,7 +165,16 @@ class PaymentService
 
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $this->commissionService->postForPayment($lockedPayment, $transaction);
-                $this->receiptService->issueFor($lockedPayment->refresh(), $transaction->refresh());
+                $receipt = $this->receiptService->issueFor($lockedPayment->refresh(), $transaction->refresh());
+                $this->events->record(
+                    $transaction,
+                    'payment.confirmed',
+                    $previousPaymentStatus,
+                    PaymentStatus::SUCCEEDED->value,
+                    'simulation',
+                    ['receipt_number' => $receipt->receipt_number],
+                    'payment-confirmed-'.$lockedPayment->getKey(),
+                );
 
                 OrderPaid::dispatch($order);
             }
