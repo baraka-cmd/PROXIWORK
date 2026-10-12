@@ -77,6 +77,60 @@ class QuotationController extends Controller
         return new QuotationResource($accepted);
     }
 
+    public function acceptClientOffer(Request $request, Quotation $quotation): QuotationResource
+    {
+        $this->authorize('acceptClientOffer', $quotation);
+
+        $accepted = $this->quotationService->acceptClientOffer($quotation, $request->user());
+        $accepted->load(['serviceRequest.client', 'order']);
+
+        $this->auditLogService->record(
+            'quotation_client_counter_offer_accepted',
+            $accepted,
+            $request->user(),
+            [
+                'service_request_id' => $accepted->service_request_id,
+                'accepted_offer_id' => $accepted->accepted_offer_id,
+                'order_id' => $accepted->order?->getKey(),
+            ],
+            $request,
+        );
+
+        if ($accepted->serviceRequest->client !== null) {
+            $this->notificationService->clientCounterOfferAccepted(
+                $accepted->serviceRequest->client,
+                route('client.quotes.show', $accepted, true),
+            );
+        }
+
+        return new QuotationResource($accepted);
+    }
+
+    public function rejectClientOffer(Request $request, Quotation $quotation): QuotationResource
+    {
+        $this->authorize('rejectClientOffer', $quotation);
+
+        $rejected = $this->quotationService->rejectClientOffer($quotation, $request->user());
+        $rejected->load('serviceRequest.client');
+
+        $this->auditLogService->record(
+            'quotation_client_counter_offer_rejected',
+            $rejected,
+            $request->user(),
+            ['service_request_id' => $rejected->service_request_id, 'offer_id' => $rejected->current_offer_id],
+            $request,
+        );
+
+        if ($rejected->serviceRequest->client !== null) {
+            $this->notificationService->clientCounterOfferRejected(
+                $rejected->serviceRequest->client,
+                route('client.quotes.show', $rejected, true),
+            );
+        }
+
+        return new QuotationResource($rejected);
+    }
+
     public function reject(Request $request, Quotation $quotation): QuotationResource
     {
         $this->authorize('reject', $quotation);
