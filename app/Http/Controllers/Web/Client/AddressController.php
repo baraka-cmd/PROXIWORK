@@ -93,7 +93,6 @@ class AddressController extends Controller
     public function destroy(Request $request, Address $address): RedirectResponse
     {
         $this->authorize('delete', $address);
-        $addressId = $address->getKey();
         $wasDefault = $address->is_default;
 
         $this->addressService->delete($request->user(), $address);
