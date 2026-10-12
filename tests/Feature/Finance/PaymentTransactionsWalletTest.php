@@ -115,6 +115,10 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
         $this->assertDatabaseCount('payment_transactions', 1);
         $this->assertDatabaseCount('payment_receipts', 1);
+        $this->assertDatabaseHas('payment_events', [
+            'event_type' => 'payment.confirmed',
+            'to_status' => PaymentStatus::SUCCEEDED->value,
+        ]);
         $this->assertDatabaseHas('payment_receipts', [
             'payment_id' => \App\Models\Payment::query()->where('order_id', $order->id)->value('id'),
             'mode' => 'simulation',
