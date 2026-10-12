@@ -39,28 +39,28 @@
 
         <section class="client-quote-statistics" aria-label="Résumé de mes devis">
             <a class="client-quote-stat {{ $activeBucket === 'review' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', array_merge(request()->except(['page']), ['bucket' => 'review'])) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'review']) }}">
                 <span class="client-quote-stat__icon client-quote-stat__icon--review"><i class="fa-solid fa-eye" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">À examiner</span>
                 <strong>{{ $statistics['review'] }}</strong>
                 <small>Une proposition du professionnel attend votre décision</small>
             </a>
             <a class="client-quote-stat {{ $activeBucket === 'negotiating' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', array_merge(request()->except(['page']), ['bucket' => 'negotiating'])) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'negotiating']) }}">
                 <span class="client-quote-stat__icon client-quote-stat__icon--negotiating"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">En négociation</span>
                 <strong>{{ $statistics['negotiating'] }}</strong>
                 <small>Propositions successives à suivre</small>
             </a>
             <a class="client-quote-stat {{ $activeBucket === 'accepted' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', array_merge(request()->except(['page']), ['bucket' => 'accepted'])) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'accepted']) }}">
                 <span class="client-quote-stat__icon client-quote-stat__icon--accepted"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">Acceptés</span>
                 <strong>{{ $statistics['accepted'] }}</strong>
                 <small>Retrouvez la commande associée</small>
             </a>
             <a class="client-quote-stat {{ $activeBucket === 'history' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', array_merge(request()->except(['page']), ['bucket' => 'history'])) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'history']) }}">
                 <span class="client-quote-stat__icon client-quote-stat__icon--history"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">Historique</span>
                 <strong>{{ $statistics['history'] }}</strong>
