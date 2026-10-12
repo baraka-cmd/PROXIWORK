@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ProfessionalService;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServicePricingType;
 use App\Models\Category;
 use App\Models\Service;
@@ -30,6 +31,7 @@ class UpdateServiceRequest extends FormRequest
             'title' => ['sometimes', 'required', 'string', 'min:3', 'max:160'],
             'short_description' => ['sometimes', 'nullable', 'string', 'max:500'],
             'description' => ['sometimes', 'required', 'string', 'min:20', 'max:10000'],
+            'execution_mode' => ['sometimes', 'required', Rule::enum(ServiceExecutionMode::class)],
             'pricing_type' => ['sometimes', 'required', Rule::enum(ServicePricingType::class)],
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_min' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
