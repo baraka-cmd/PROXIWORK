@@ -146,6 +146,7 @@ class OrderService
                 'address_line_1' => $request->address->address_line_1,
                 'address_line_2' => $request->address->address_line_2,
                 'landmark' => $request->address->landmark,
+                'access_instructions' => $request->address->access_instructions,
                 'postal_code' => $request->address->postal_code,
                 'latitude' => $request->address->latitude,
                 'longitude' => $request->address->longitude,
