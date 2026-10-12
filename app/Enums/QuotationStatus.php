@@ -12,4 +12,16 @@ enum QuotationStatus: string
     case REJECTED = 'rejected';
     case EXPIRED = 'expired';
     case WITHDRAWN = 'withdrawn';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::SENT => 'Envoyé au client',
+            self::NEGOTIATING => 'En négociation',
+            self::ACCEPTED => 'Accepté',
+            self::REJECTED => 'Refusé',
+            self::EXPIRED => 'Expiré',
+            self::WITHDRAWN => 'Retiré',
+        };
+    }
 }

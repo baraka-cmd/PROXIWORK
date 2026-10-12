@@ -27,6 +27,7 @@ class StoreServiceRequestRequest extends FormRequest
             'budget_max' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'currency' => ['nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
             'desired_at' => ['nullable', 'date', 'after_or_equal:now'],
+            'idempotency_key' => ['sometimes', 'nullable', 'uuid'],
         ];
     }
 
@@ -44,6 +45,16 @@ class StoreServiceRequestRequest extends FormRequest
             $data['currency'] = strtoupper($data['currency']);
         }
 
+        $idempotencyKey = $this->input('idempotency_key');
+
+        if (! is_string($idempotencyKey) || $idempotencyKey === '') {
+            $idempotencyKey = $this->header('Idempotency-Key');
+        }
+
+        if (is_string($idempotencyKey) && $idempotencyKey !== '') {
+            $data['idempotency_key'] = trim($idempotencyKey);
+        }
+
         $this->merge($data);
     }
 
@@ -51,15 +62,18 @@ class StoreServiceRequestRequest extends FormRequest
     {
         return [function (Validator $validator): void {
             $service = Service::query()
-                ->with('professionalProfile')
+                ->with(['category', 'professionalProfile.user'])
                 ->find($this->integer('service_id'));
 
             if ($service === null) {
                 return;
             }
 
-            if ($service->status->value !== 'published' || $service->published_at === null) {
-                $validator->errors()->add('service_id', 'Le service sélectionné n’est plus disponible.');
+            if (! $service->isRequestableForClient()) {
+                $validator->errors()->add(
+                    'service_id',
+                    'Ce service n’est plus disponible pour recevoir une nouvelle demande.',
+                );
             }
 
             if ($this->filled('address_id')) {

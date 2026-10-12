@@ -6,6 +6,7 @@ namespace Tests\Feature\ServiceRequest;
 
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
+use App\Models\Address;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
@@ -16,6 +17,7 @@ use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class ServiceRequestApiTest extends TestCase
@@ -55,6 +57,54 @@ class ServiceRequestApiTest extends TestCase
             'professional_id' => $profile->id,
             'service_id' => $service->id,
             'status' => ServiceRequestStatus::DRAFT->value,
+        ]);
+
+        $this->assertDatabaseHas('service_request_status_histories', [
+            'service_request_id' => $response->json('data.id'),
+            'from_status' => null,
+            'to_status' => ServiceRequestStatus::DRAFT->value,
+            'changed_by' => $client->id,
+        ]);
+    }
+
+    public function test_repeated_create_request_with_same_idempotency_key_returns_the_existing_draft(): void
+    {
+        [, $profile] = $this->professional();
+        $service = $this->publishedService($profile);
+        $client = $this->client();
+        $key = (string) Str::uuid();
+
+        $payload = [
+            'service_id' => $service->id,
+            'title' => 'Demande protégée contre le double envoi',
+            'description' => 'Le même identifiant doit retrouver la demande initialement enregistrée.',
+            'idempotency_key' => $key,
+        ];
+
+        $first = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests', $payload)
+            ->assertCreated()
+            ->json('data.id');
+
+        $second = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests', [
+                ...$payload,
+                'title' => 'Le second envoi ne doit pas créer une autre demande',
+            ])
+            ->assertOk()
+            ->json('data.id');
+
+        $this->assertSame($first, $second);
+        $this->assertSame(
+            1,
+            ServiceRequest::query()
+                ->where('client_id', $client->id)
+                ->where('idempotency_key', $key)
+                ->count(),
+        );
+        $this->assertDatabaseHas('service_requests', [
+            'id' => $first,
+            'title' => 'Demande protégée contre le double envoi',
         ]);
     }
 
@@ -166,6 +216,63 @@ class ServiceRequestApiTest extends TestCase
 
         $this->actingAs($clientA, 'sanctum')
             ->postJson('/api/v1/service-requests/'.$request->id.'/submit')
+            ->assertForbidden();
+    }
+
+    public function test_client_can_set_only_their_own_execution_address_before_quote_acceptance(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $service = $this->publishedService($profile);
+        $client = $this->client();
+        $otherClient = $this->client();
+        $address = Address::factory()->create(['user_id' => $client->id]);
+        $otherAddress = Address::factory()->create(['user_id' => $otherClient->id]);
+        $request = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'status' => ServiceRequestStatus::REQUESTED,
+        ]);
+        $otherRequest = ServiceRequest::factory()->create([
+            'client_id' => $otherClient->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'status' => ServiceRequestStatus::REQUESTED,
+        ]);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$otherRequest->id.'/address', [
+                'address_id' => $address->id,
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/address', [
+                'address_id' => $otherAddress->id,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['address_id']);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/address', [
+                'address_id' => $address->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.address.id', $address->id)
+            ->assertJsonPath('data.status', 'requested');
+
+        $this->assertDatabaseHas('service_requests', [
+            'id' => $request->id,
+            'address_id' => $address->id,
+            'status' => ServiceRequestStatus::REQUESTED->value,
+        ]);
+
+        $request->forceFill(['status' => ServiceRequestStatus::ACCEPTED])->save();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/address', [
+                'address_id' => $address->id,
+            ])
             ->assertForbidden();
     }
 
@@ -357,6 +464,82 @@ class ServiceRequestApiTest extends TestCase
     public function test_guest_cannot_access_service_requests(): void
     {
         $this->getJson('/api/v1/service-requests')->assertUnauthorized();
+    }
+
+    public function test_client_cannot_create_request_when_category_or_professional_is_not_publicly_eligible(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $service = $this->publishedService($profile);
+        $client = $this->client();
+
+        $service->category->update(['status' => 'inactive']);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests', [
+                'service_id' => $service->id,
+                'title' => 'Demande pour catégorie inactive',
+                'description' => 'Cette demande doit être rejetée si la catégorie est inactive.',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['service_id']);
+
+        $service->category->update(['status' => 'active']);
+        $profile->forceFill(['visibility' => ProfessionalProfile::VISIBILITY_PRIVATE])->save();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests', [
+                'service_id' => $service->id,
+                'title' => 'Demande pour profil privé',
+                'description' => 'Cette demande doit être rejetée si le profil est privé.',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['service_id']);
+
+        $profile->forceFill(['visibility' => ProfessionalProfile::VISIBILITY_PUBLIC])->save();
+        $professional->update(['account_status' => 'suspended']);
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/service-requests', [
+                'service_id' => $service->id,
+                'title' => 'Demande pour compte suspendu',
+                'description' => 'Cette demande doit être rejetée si le compte professionnel est suspendu.',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['service_id']);
+    }
+
+    public function test_client_request_list_supports_database_search_status_and_category_filters(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $service = $this->publishedService($profile);
+        $client = $this->client();
+
+        $firstRequest = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'title' => 'Projet boutique A',
+            'status' => ServiceRequestStatus::DRAFT,
+        ]);
+        ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'title' => 'Projet boutique B',
+            'status' => ServiceRequestStatus::REQUESTED,
+        ]);
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/service-requests?status=draft&search=Projet%20boutique%20A&category_id='.$service->category_id)
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Projet boutique A');
+
+        $this->actingAs($client, 'sanctum')
+            ->getJson('/api/v1/service-requests?search=PW-REQ-'.str_pad((string) $firstRequest->id, 6, '0', STR_PAD_LEFT))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $firstRequest->id);
     }
 
     private function client(): User

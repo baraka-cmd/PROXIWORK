@@ -278,6 +278,38 @@ class QuotationApiTest extends TestCase
             ->assertUnprocessable();
     }
 
+    public function test_accepting_a_quote_without_execution_address_rolls_back_the_whole_transition(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+        $request->forceFill(['address_id' => null])->save();
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['address']);
+
+        $this->assertDatabaseHas('quotations', [
+            'id' => $quotation->id,
+            'status' => QuotationStatus::SENT->value,
+        ]);
+        $this->assertDatabaseHas('service_requests', [
+            'id' => $request->id,
+            'status' => ServiceRequestStatus::QUOTED->value,
+        ]);
+        $this->assertDatabaseMissing('orders', [
+            'quotation_id' => $quotation->id,
+        ]);
+    }
+
     public function test_client_can_reject_quotation_and_request_becomes_rejected(): void
     {
         [$professional, $profile] = $this->professional();
@@ -299,6 +331,13 @@ class QuotationApiTest extends TestCase
         $this->assertDatabaseHas('service_requests', [
             'id' => $request->id,
             'status' => ServiceRequestStatus::REJECTED->value,
+        ]);
+        $this->assertDatabaseHas('service_request_status_histories', [
+            'service_request_id' => $request->id,
+            'from_status' => ServiceRequestStatus::QUOTED->value,
+            'to_status' => ServiceRequestStatus::REJECTED->value,
+            'changed_by' => $client->id,
+            'reason' => 'Devis refusé par le client.',
         ]);
         $this->assertDatabaseHas('quotation_events', [
             'quotation_id' => $quotation->id,

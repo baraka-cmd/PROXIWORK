@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceRequest\IndexServiceRequestRequest;
 use App\Http\Requests\ServiceRequest\RejectServiceRequestRequest;
+use App\Http\Requests\ServiceRequest\SetServiceRequestAddressRequest;
 use App\Http\Requests\ServiceRequest\StoreServiceRequestRequest;
 use App\Http\Requests\ServiceRequest\UpdateServiceRequestRequest;
 use App\Http\Resources\ServiceRequest\ServiceRequestResource;
@@ -36,6 +37,8 @@ class ServiceRequestController extends Controller
         $requests = $this->serviceRequestService->clientRequests(
             $request->user(),
             $request->integer('per_page', 15),
+            null,
+            $request->filters(),
         );
 
         return ServiceRequestResource::collection($requests)->additional([
@@ -51,6 +54,7 @@ class ServiceRequestController extends Controller
         $requests = $this->serviceRequestService->professionalRequests(
             $request->user(),
             $request->integer('per_page', 15),
+            $request->filters(),
         );
 
         return ServiceRequestResource::collection($requests)->additional([
@@ -66,12 +70,23 @@ class ServiceRequestController extends Controller
             $request->validated(),
         );
 
-        $this->auditLogService->record('service_request_created', $serviceRequest, $request->user(), [], $request);
+        $isReplay = $serviceRequest->getAttribute('_idempotent_replay') === true;
+
+        if (! $isReplay) {
+            $this->auditLogService->record('service_request_created', $serviceRequest, $request->user(), [
+                'service_id' => $serviceRequest->service_id,
+                'status' => $serviceRequest->status->value,
+            ], $request);
+        }
+
+        $message = $serviceRequest->status->value === 'draft'
+            ? 'Demande enregistrée comme brouillon.'
+            : 'Demande existante récupérée avec son état actuel.';
 
         return (new ServiceRequestResource($serviceRequest))->additional([
-            'message' => 'Demande créée en brouillon.',
+            'message' => $message,
             'meta' => [],
-        ])->response()->setStatusCode(Response::HTTP_CREATED);
+        ])->response()->setStatusCode($isReplay ? Response::HTTP_OK : Response::HTTP_CREATED);
     }
 
     public function show(Request $request, ServiceRequest $serviceRequest): ServiceRequestResource
@@ -100,10 +115,39 @@ class ServiceRequestController extends Controller
             $request->validated(),
         );
 
-        $this->auditLogService->record('service_request_updated', $serviceRequest, $request->user(), [], $request);
+        $this->auditLogService->record('service_request_updated', $serviceRequest, $request->user(), [
+            'changed_fields' => array_keys($request->validated()),
+            'status' => $serviceRequest->status->value,
+        ], $request);
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande mise à jour avec succès.',
+            'meta' => [],
+        ]);
+    }
+
+    public function setAddress(
+        SetServiceRequestAddressRequest $request,
+        ServiceRequest $serviceRequest,
+    ): ServiceRequestResource {
+        $this->authorize('setAddress', $serviceRequest);
+
+        $serviceRequest = $this->serviceRequestService->setAddress(
+            $serviceRequest,
+            $request->user(),
+            (int) $request->validated('address_id'),
+        );
+
+        $this->auditLogService->record(
+            'service_request_address_updated',
+            $serviceRequest,
+            $request->user(),
+            ['address_id' => $serviceRequest->address_id],
+            $request,
+        );
+
+        return (new ServiceRequestResource($serviceRequest))->additional([
+            'message' => 'Lieu d’exécution enregistré avec succès.',
             'meta' => [],
         ]);
     }

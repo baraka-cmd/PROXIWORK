@@ -9,6 +9,7 @@ use App\Http\Requests\Quotation\StoreQuotationRequest;
 use App\Http\Resources\Quotation\QuotationResource;
 use App\Models\Quotation;
 use App\Models\ServiceRequest;
+use App\Services\Audit\AuditLogService;
 use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\JsonResponse;
@@ -20,6 +21,7 @@ class QuotationController extends Controller
     public function __construct(
         private readonly QuotationService $quotationService,
         private readonly TransactionalNotificationService $notificationService,
+        private readonly AuditLogService $auditLogService,
     ) {}
 
     public function show(Request $request, Quotation $quotation): QuotationResource
@@ -42,6 +44,13 @@ class QuotationController extends Controller
         );
 
         $serviceRequest->load('client');
+        $this->auditLogService->record(
+            'quotation_created',
+            $quotation,
+            $request->user(),
+            ['service_request_id' => $serviceRequest->getKey()],
+            $request,
+        );
         $this->notificationService->quotationCreated($serviceRequest->client);
 
         return (new QuotationResource($quotation))->additional([
@@ -56,6 +65,13 @@ class QuotationController extends Controller
 
         $accepted = $this->quotationService->accept($quotation, $request->user());
         $accepted->load('serviceRequest.professional.user');
+        $this->auditLogService->record(
+            'quotation_accepted',
+            $accepted,
+            $request->user(),
+            ['service_request_id' => $accepted->service_request_id],
+            $request,
+        );
         $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user);
 
         return new QuotationResource($accepted);
@@ -67,6 +83,13 @@ class QuotationController extends Controller
 
         $rejected = $this->quotationService->reject($quotation, $request->user());
         $rejected->load('serviceRequest.professional.user');
+        $this->auditLogService->record(
+            'quotation_rejected',
+            $rejected,
+            $request->user(),
+            ['service_request_id' => $rejected->service_request_id],
+            $request,
+        );
         $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user);
 
         return new QuotationResource($rejected);

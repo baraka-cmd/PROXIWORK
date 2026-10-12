@@ -89,6 +89,7 @@ Route::prefix('v1')->group(function (): void {
             Route::post('/', [ServiceRequestController::class, 'store'])->middleware('role:client');
             Route::get('{serviceRequest}', [ServiceRequestController::class, 'show']);
             Route::patch('{serviceRequest}', [ServiceRequestController::class, 'update'])->middleware('role:client');
+            Route::post('{serviceRequest}/address', [ServiceRequestController::class, 'setAddress'])->middleware('role:client');
             Route::post('{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->middleware('role:client');
             Route::post('{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('role:client');
             Route::post('{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])->middleware('role:professional');

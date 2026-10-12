@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Web\Client;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotation\StoreQuotationOfferRequest;
 use App\Models\Quotation;
+use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Quotation\QuotationNegotiationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +20,8 @@ class QuotationController extends Controller
     public function __construct(
         private readonly QuotationService $quotationService,
         private readonly QuotationNegotiationService $negotiationService,
+        private readonly AuditLogService $auditLogService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function index(Request $request): View
@@ -56,7 +60,17 @@ class QuotationController extends Controller
     public function accept(Request $request, Quotation $quotation): RedirectResponse
     {
         $this->authorize('accept', $quotation);
-        $this->quotationService->accept($quotation, $request->user());
+        $accepted = $this->quotationService->accept($quotation, $request->user());
+        $accepted->load('serviceRequest.professional.user');
+
+        $this->auditLogService->record(
+            'quotation_accepted',
+            $accepted,
+            $request->user(),
+            ['service_request_id' => $accepted->service_request_id],
+            $request,
+        );
+        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user);
 
         return back()->with('success', 'Devis accepté. La commande a été créée.');
     }
@@ -64,7 +78,17 @@ class QuotationController extends Controller
     public function reject(Request $request, Quotation $quotation): RedirectResponse
     {
         $this->authorize('reject', $quotation);
-        $this->quotationService->reject($quotation, $request->user());
+        $rejected = $this->quotationService->reject($quotation, $request->user());
+        $rejected->load('serviceRequest.professional.user');
+
+        $this->auditLogService->record(
+            'quotation_rejected',
+            $rejected,
+            $request->user(),
+            ['service_request_id' => $rejected->service_request_id],
+            $request,
+        );
+        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user);
 
         return back()->with('success', 'Devis refusé.');
     }
@@ -74,11 +98,21 @@ class QuotationController extends Controller
         Quotation $quotation,
     ): RedirectResponse {
         $this->authorize('createOffer', $quotation);
-        $this->negotiationService->counterOffer(
+        $counterOffer = $this->negotiationService->counterOffer(
             $quotation,
             $request->user(),
             $request->validated(),
         );
+        $counterOffer->load('serviceRequest.professional.user');
+
+        $this->auditLogService->record(
+            'quotation_counter_offer_created',
+            $counterOffer,
+            $request->user(),
+            ['service_request_id' => $counterOffer->service_request_id],
+            $request,
+        );
+        $this->notificationService->counterOfferReceived($counterOffer->serviceRequest->professional->user);
 
         return back()->with('success', 'Votre contre-proposition a été envoyée.');
     }
