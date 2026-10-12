@@ -57,7 +57,7 @@ class PaymentReceiptService
                 'issued_at' => now()->toIso8601String(),
             ];
 
-            $serialized = json_encode($snapshot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $serialized = json_encode($this->canonicalize($snapshot), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
 
             return PaymentReceipt::query()->forceCreate([
                 'receipt_number' => 'SIM-'.now()->format('Ymd').'-'.Str::upper(Str::random(12)),
@@ -74,7 +74,7 @@ class PaymentReceiptService
     public function verify(PaymentReceipt $receipt): bool
     {
         $serialized = json_encode(
-            $receipt->payload,
+            $this->canonicalize($receipt->payload),
             JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
         );
 
@@ -88,6 +88,21 @@ class PaymentReceiptService
             && $receipt->payment?->status === PaymentStatus::SUCCEEDED
             && $receipt->transaction?->status === PaymentTransactionStatus::SUCCEEDED
             && $receipt->transaction?->payment_id === $receipt->payment_id;
+    }
+
+    private function canonicalize(array $value): array
+    {
+        foreach ($value as $key => $item) {
+            if (is_array($item)) {
+                $value[$key] = $this->canonicalize($item);
+            }
+        }
+
+        if (! array_is_list($value)) {
+            ksort($value);
+        }
+
+        return $value;
     }
 
     public function findOrIssueFor(Payment $payment): ?PaymentReceipt
