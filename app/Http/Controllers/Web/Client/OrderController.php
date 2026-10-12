@@ -13,19 +13,12 @@ use App\Http\Requests\Order\IndexClientOrdersRequest;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProfessionalProfile;
-use App\Services\Order\OrderService;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(
-        private readonly OrderService $orders,
-    ) {
-        // Dependencies are injected only.
-    }
-
     public function index(IndexClientOrdersRequest $request): View
     {
         $clientId = $request->user()->getKey();
@@ -185,7 +178,7 @@ class OrderController extends Controller
         return view('client.orders.show', compact('order'));
     }
 
-    public function pay(Order $order): View|\Illuminate\Http\RedirectResponse
+    public function pay(Order $order): View|RedirectResponse
     {
         Gate::authorize('pay', $order);
 
