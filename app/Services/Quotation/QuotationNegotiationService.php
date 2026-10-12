@@ -176,5 +176,4 @@ class QuotationNegotiationService
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         }, attempts: 3);
     }
-
 }
