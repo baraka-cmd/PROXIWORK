@@ -6,6 +6,9 @@
 @push('head')
     @vite('resources/css/pages/client/orders-payments.css')
 @endpush
+@push('scripts')
+    @vite('resources/js/pages/client/orders-payments.js')
+@endpush
 
 @php($details = $receipt->payload)
 
