@@ -81,7 +81,7 @@ class QuotationController extends Controller
             'service_request_id' => $serviceRequest->getKey(),
         ], $request);
 
-        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true));
+        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true), 'quotation-created:'.$quotation->getKey());
 
         return redirect()->route('professional.quotes.show', $quotation)->with('success', 'Le devis a été envoyé au client.');
     }
@@ -106,7 +106,7 @@ class QuotationController extends Controller
         );
 
         if ($accepted->serviceRequest->client !== null) {
-            $this->notificationService->clientCounterOfferAccepted($accepted->serviceRequest->client, route('client.quotes.show', $accepted, true));
+            $this->notificationService->clientCounterOfferAccepted($accepted->serviceRequest->client, route('client.quotes.show', $accepted, true), 'client-counter-offer-accepted:'.$accepted->getKey());
         }
 
         if ($accepted->order !== null) {
@@ -134,7 +134,7 @@ class QuotationController extends Controller
         );
 
         if ($rejected->serviceRequest->client !== null) {
-            $this->notificationService->clientCounterOfferRejected($rejected->serviceRequest->client, route('client.quotes.show', $rejected, true));
+            $this->notificationService->clientCounterOfferRejected($rejected->serviceRequest->client, route('client.quotes.show', $rejected, true), 'client-counter-offer-rejected:'.$rejected->getKey());
         }
 
         return redirect()->route('professional.quotes.show', $rejected)
@@ -167,6 +167,7 @@ class QuotationController extends Controller
             $this->notificationService->quotationCreated(
                 $renewed->serviceRequest->client,
                 route('client.quotes.show', $renewed, true),
+                'quotation-renewed:'.$renewed->getKey(),
             );
         }
 
@@ -197,7 +198,7 @@ class QuotationController extends Controller
         );
 
         if ($updated->serviceRequest->client !== null) {
-            $this->notificationService->counterOfferReceived($updated->serviceRequest->client, route('client.quotes.show', $updated, true));
+            $this->notificationService->counterOfferReceived($updated->serviceRequest->client, route('client.quotes.show', $updated, true), 'counter-offer-received:'.$updated->getKey());
         }
 
         return redirect()->route('professional.quotes.show', $updated)
