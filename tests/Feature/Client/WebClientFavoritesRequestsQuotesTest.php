@@ -440,7 +440,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->assertSee('Création du site e-commerce')
             ->assertSee('245,50')
             ->assertDontSee('Dossier confidentiel autre client')
-            ->assertDontSee('DEV-'.str_pad((string) $privateQuote->id, 6, '0', STR_PAD_LEFT));
+            ->assertDontSee('DEVIS-'.str_pad((string) $privateQuote->id, 6, '0', STR_PAD_LEFT));
 
         $response->assertViewHas('statistics', function (array $statistics): bool {
             return $statistics['review'] === 1
@@ -448,6 +448,12 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
                 && $statistics['accepted'] === 0
                 && $statistics['history'] === 0;
         });
+
+        $this->actingAs($client)
+            ->get('/client/quotes?q=DEVIS-'.str_pad((string) $quote->id, 6, '0', STR_PAD_LEFT))
+            ->assertOk()
+            ->assertSee('DEVIS-'.str_pad((string) $quote->id, 6, '0', STR_PAD_LEFT))
+            ->assertDontSee('Dossier confidentiel autre client');
     }
 
     public function test_client_cannot_accept_their_own_counter_offer(): void
