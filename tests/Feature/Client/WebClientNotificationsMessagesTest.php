@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Client;
 
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
