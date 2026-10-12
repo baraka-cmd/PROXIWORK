@@ -52,11 +52,11 @@ class PaymentController extends Controller
         }
 
         if ($payment->status === PaymentStatus::SUCCEEDED) {
-            $notificationService->paymentSucceeded($request->user());
+            $notificationService->paymentSucceeded($request->user(), 'payment-succeeded:'.$payment->getKey());
 
             $payment->loadMissing('order.professional.user');
             if ($payment->order?->professional?->user !== null) {
-                $notificationService->orderConfirmed($payment->order->professional->user);
+                $notificationService->orderConfirmed($payment->order->professional->user, 'order-confirmed:'.$payment->order->getKey());
             }
         }
 
