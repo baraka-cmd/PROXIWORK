@@ -191,10 +191,24 @@ class TransactionalNotificationService
             }
 
             $smsEligible = $priority === 'critical' || in_array($action, ['quotation', 'payment', 'order'], true);
-            if ($preference?->sms_enabled && $smsEligible && app()->environment(['local', 'testing'])) {
+            $smsEnabled = $priority === 'critical' || ($preference?->sms_enabled ?? false);
+
+            if ($smsEnabled && $smsEligible) {
                 $phone = (string) $recipient->profile()->value('phone');
-                $digits = preg_replace('/\\D+/', '', $phone) ?? '';
+                $digits = preg_replace('/\D+/', '', $phone) ?? '';
                 $recipientHint = $digits === '' ? null : '***'.substr($digits, -4);
+                $localSimulation = app()->environment(['local', 'testing']);
+                $providerConfigured = trim((string) config('services.twilio.account_sid')) !== ''
+                    && trim((string) config('services.twilio.auth_token')) !== ''
+                    && trim((string) config('services.twilio.from')) !== '';
+                $status = $recipientHint === null
+                    ? 'FAILED'
+                    : ($localSimulation ? 'SIMULATED' : ($providerConfigured ? 'PENDING' : 'FAILED'));
+                $errorCode = match ($status) {
+                    'SIMULATED' => 'SMS_PROVIDER_NOT_CONFIGURED',
+                    'PENDING' => null,
+                    default => $recipientHint === null ? 'RECIPIENT_PHONE_UNAVAILABLE' : 'SMS_PROVIDER_NOT_CONFIGURED',
+                };
 
                 NotificationDelivery::query()->firstOrCreate(
                     [
@@ -204,11 +218,10 @@ class TransactionalNotificationService
                     [
                         'user_id' => $recipient->getKey(),
                         'recipient_hint' => $recipientHint,
-                        'status' => $recipientHint !== null ? 'SIMULATED' : 'FAILED',
+                        'status' => $status,
                         'attempts' => 0,
-                        'last_error_code' => $recipientHint !== null
-                            ? 'SMS_PROVIDER_NOT_CONFIGURED'
-                            : 'RecipientPhoneUnavailable',
+                        'available_at' => $status === 'PENDING' ? now() : null,
+                        'last_error_code' => $errorCode,
                     ],
                 );
             }
