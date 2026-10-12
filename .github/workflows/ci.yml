@@ -83,7 +83,7 @@ jobs:
             exit 0
           fi
 
-          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
+          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test --diff
 
   mysql-migrations:
     name: Fresh MySQL migration
