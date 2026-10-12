@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace Tests\Feature\Notification;
 
 use App\Jobs\Notifications\SendNotificationEmail;
-use App\Jobs\Notifications\SendNotificationSms;
 use App\Jobs\Notifications\SendNotificationPush;
+use App\Jobs\Notifications\SendNotificationSms;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationDevice;
-use App\Services\Notification\FirebasePushService;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
+use App\Services\Notification\FirebasePushService;
 use App\Services\Notification\TransactionalNotificationService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
@@ -393,7 +395,7 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame('SM123456', $delivery->provider_reference);
         $this->assertSame('***1234', $delivery->recipient_hint);
         $this->assertStringNotContainsString('970001234', $delivery->recipient_hint);
-        Http::assertSent(fn (\Illuminate\Http\Client\Request $request): bool => $request['To'] === '+243970001234');
+        Http::assertSent(fn (ClientRequest $request): bool => $request['To'] === '+243970001234');
     }
 
     public function test_sms_timeout_is_marked_unknown_and_not_automatically_retried(): void
@@ -425,7 +427,7 @@ class NotificationFoundationTest extends TestCase
             'services.twilio.from' => '+15551234567',
         ]);
         Http::fake([
-            'https://api.twilio.com/*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('Simulated timeout'),
+            'https://api.twilio.com/*' => fn () => throw new ConnectionException('Simulated timeout'),
         ]);
 
         (new SendNotificationSms((int) $delivery->id))->handle();
