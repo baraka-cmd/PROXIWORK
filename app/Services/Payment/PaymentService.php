@@ -142,10 +142,12 @@ class PaymentService
                 'cancelled_at' => $result->status === PaymentStatus::CANCELLED ? now() : $lockedPayment->cancelled_at,
             ])->save();
 
+            $orderEligibleForSettlement = false;
             if ($result->status === PaymentStatus::SUCCEEDED) {
                 $order = Order::query()->lockForUpdate()->findOrFail($lockedPayment->order_id);
 
                 if ($order->status === OrderStatus::PENDING_PAYMENT) {
+                    $orderEligibleForSettlement = true;
                     $from = $order->status;
                     $order->forceFill([
                         'status' => OrderStatus::CONFIRMED,
@@ -163,15 +165,25 @@ class PaymentService
                             'payment_transaction_id' => $transaction->getKey(),
                         ],
                     ]);
-                } elseif ($order->status !== OrderStatus::CONFIRMED) {
-                    throw new PaymentConflictException(
-                        'Le paiement est confirmé mais la commande est dans un état incompatible.'
+                } elseif ($order->status === OrderStatus::CONFIRMED) {
+                    $orderEligibleForSettlement = true;
+                } else {
+                    $this->events->record(
+                        $transaction,
+                        'payment.confirmed.order_incompatible',
+                        $order->status->value,
+                        PaymentStatus::SUCCEEDED->value,
+                        'simulation',
+                        ['order_status' => $order->status->value, 'reconciliation_required' => true],
+                        'payment-order-incompatible-'.$lockedPayment->getKey(),
                     );
                 }
             }
 
             if ($result->status === PaymentStatus::SUCCEEDED) {
-                $this->commissionService->postForPayment($lockedPayment, $transaction);
+                if ($orderEligibleForSettlement) {
+                    $this->commissionService->postForPayment($lockedPayment, $transaction);
+                }
                 $receipt = $this->receiptService->issueFor($lockedPayment->refresh(), $transaction->refresh());
                 $this->events->record(
                     $transaction,
@@ -183,7 +195,9 @@ class PaymentService
                     'payment-confirmed-'.$lockedPayment->getKey(),
                 );
 
-                OrderPaid::dispatch($order);
+                if ($orderEligibleForSettlement) {
+                    OrderPaid::dispatch($order);
+                }
             }
 
             return $lockedPayment->refresh()->load('transactions');
