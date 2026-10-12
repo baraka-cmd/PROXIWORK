@@ -47,6 +47,9 @@
         <dl class="client-order-overview__dates">
             <div><dt>Commande créée</dt><dd>{{ optional($order->created_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
             <div><dt>Devis accepté</dt><dd>{{ optional($order->accepted_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
+            @if($order->serviceRequest?->desired_at)
+                <div><dt>Date souhaitée dans la demande</dt><dd>{{ $order->serviceRequest->desired_at->format('d/m/Y à H:i') }}</dd></div>
+            @endif
             <div><dt>Commande confirmée</dt><dd>{{ optional($order->confirmed_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
             <div><dt>Début enregistré</dt><dd>{{ optional($order->started_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
             <div><dt>Fin enregistrée</dt><dd>{{ optional($order->completed_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
@@ -185,6 +188,7 @@
                         <article>
                             <div>
                                 <strong>Transaction #{{ $transaction->id }}</strong>
+                                <span>Résultat : {{ $paymentStatusLabels[$transaction->status->value] ?? $transaction->status->value }}</span>
                                 <span>{{ $transaction->provider_reference ? 'Référence fournisseur : '.$transaction->provider_reference : 'Référence fournisseur non disponible' }}</span>
                                 <small>
                                     @if($transaction->processed_at)
