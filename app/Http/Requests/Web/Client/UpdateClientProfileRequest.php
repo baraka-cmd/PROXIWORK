@@ -17,7 +17,7 @@ class UpdateClientProfileRequest extends FormRequest
     {
         return [
             'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'trim', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:30'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'locale' => ['nullable', 'string', 'max:10'],
