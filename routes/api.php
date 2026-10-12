@@ -101,6 +101,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('quotations/{quotation}/reject', [QuotationController::class, 'reject'])->middleware('role:client');
         Route::post('quotations/{quotation}/accept-client-offer', [QuotationController::class, 'acceptClientOffer'])->middleware('role:professional');
         Route::post('quotations/{quotation}/reject-client-offer', [QuotationController::class, 'rejectClientOffer'])->middleware('role:professional');
+        Route::post('quotations/{quotation}/renew', [QuotationController::class, 'renew'])->middleware('role:professional');
         Route::post('quotations/{quotation}/offers', [QuotationOfferController::class, 'store']);
         Route::prefix('reports')->group(function (): void {
             Route::post('/', [ReportController::class, 'store'])->middleware('throttle:api');
