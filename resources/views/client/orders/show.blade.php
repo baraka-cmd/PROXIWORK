@@ -173,8 +173,8 @@
         @if($order->payment)
             <dl class="client-definition-list client-order-payment-details">
                 <div><dt>Montant enregistré</dt><dd><strong>{{ number_format((float) $order->payment->amount, 2, ',', ' ') }} {{ $order->payment->currency }}</strong></dd></div>
-                <div><dt>Méthode</dt><dd>{{ $order->payment->method->value ?? '—' }}</dd></div>
-                <div><dt>Fournisseur</dt><dd>{{ $order->payment->provider->value ?? '—' }}</dd></div>
+                <div><dt>Méthode</dt><dd>{{ $order->payment->method ?? '—' }}</dd></div>
+                <div><dt>Fournisseur</dt><dd>{{ $order->payment->provider ?? '—' }}</dd></div>
                 <div><dt>Confirmation du paiement</dt><dd>{{ optional($order->payment->paid_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
             </dl>
 
