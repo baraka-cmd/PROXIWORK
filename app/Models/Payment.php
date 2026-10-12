@@ -21,6 +21,8 @@ class Payment extends Model
     {
         return [
             'status' => PaymentStatus::class,
+            'method' => PaymentMethod::class,
+            'provider' => PaymentProvider::class,
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'failed_at' => 'datetime',
@@ -46,6 +48,16 @@ class Payment extends Model
     public function transactions(): HasMany
     {
         return $this->hasMany(PaymentTransaction::class);
+    }
+
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(PaymentReceipt::class);
+    }
+
+    public function refunds(): HasMany
+    {
+        return $this->hasMany(PaymentRefund::class);
     }
 
     public function commission(): HasOne
