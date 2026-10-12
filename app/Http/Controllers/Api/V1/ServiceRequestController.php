@@ -70,7 +70,7 @@ class ServiceRequestController extends Controller
             $request->validated(),
         );
 
-        $isReplay = $serviceRequest->getAttribute('_idempotent_replay') === true;
+        $isReplay = $serviceRequest->idempotencyReplay;
 
         if (! $isReplay) {
             $this->auditLogService->record('service_request_created', $serviceRequest, $request->user(), [
