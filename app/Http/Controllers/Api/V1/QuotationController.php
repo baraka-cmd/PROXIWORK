@@ -54,7 +54,7 @@ class QuotationController extends Controller
             ['service_request_id' => $serviceRequest->getKey()],
             $request,
         );
-        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true));
+        $this->notificationService->quotationCreated($serviceRequest->client, route('client.quotes.show', $quotation, true), 'quotation-created:'.$quotation->getKey());
 
         return (new QuotationResource($quotation))->additional([
             'message' => 'Devis créé et envoyé au client avec succès.',
@@ -75,7 +75,7 @@ class QuotationController extends Controller
             ['service_request_id' => $accepted->service_request_id],
             $request,
         );
-        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true));
+        $this->notificationService->quotationAccepted($accepted->serviceRequest->professional->user, route('professional.quotes.show', $accepted, true), 'quotation-accepted:'.$accepted->getKey());
 
         return new QuotationResource($accepted);
     }
@@ -103,6 +103,7 @@ class QuotationController extends Controller
             $this->notificationService->clientCounterOfferAccepted(
                 $accepted->serviceRequest->client,
                 route('client.quotes.show', $accepted, true),
+                'client-counter-offer-accepted:'.$accepted->getKey(),
             );
         }
 
@@ -128,6 +129,7 @@ class QuotationController extends Controller
             $this->notificationService->clientCounterOfferRejected(
                 $rejected->serviceRequest->client,
                 route('client.quotes.show', $rejected, true),
+                'client-counter-offer-rejected:'.$rejected->getKey(),
             );
         }
 
@@ -160,6 +162,7 @@ class QuotationController extends Controller
             $this->notificationService->quotationCreated(
                 $renewed->serviceRequest->client,
                 route('client.quotes.show', $renewed, true),
+                'quotation-renewed:'.$renewed->getKey(),
             );
         }
 
@@ -182,7 +185,7 @@ class QuotationController extends Controller
             ['service_request_id' => $rejected->service_request_id],
             $request,
         );
-        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true));
+        $this->notificationService->quotationRejected($rejected->serviceRequest->professional->user, route('professional.quotes.show', $rejected, true), 'quotation-rejected:'.$rejected->getKey());
 
         return new QuotationResource($rejected);
     }
