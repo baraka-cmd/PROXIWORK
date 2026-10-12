@@ -71,6 +71,25 @@ class PaymentReceiptService
         }, attempts: 3);
     }
 
+    public function verify(PaymentReceipt $receipt): bool
+    {
+        $serialized = json_encode(
+            $receipt->payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+        );
+
+        if (! hash_equals($receipt->content_hash, hash('sha256', $serialized))) {
+            return false;
+        }
+
+        $receipt->loadMissing(['payment', 'transaction']);
+
+        return $receipt->mode === 'simulation'
+            && $receipt->payment?->status === PaymentStatus::SUCCEEDED
+            && $receipt->transaction?->status === PaymentTransactionStatus::SUCCEEDED
+            && $receipt->transaction?->payment_id === $receipt->payment_id;
+    }
+
     public function findOrIssueFor(Payment $payment): ?PaymentReceipt
     {
         $existing = PaymentReceipt::query()->where('payment_id', $payment->getKey())->first();
