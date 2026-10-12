@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Client;
 
+use App\Models\Address;
 use App\Models\Favorite;
+use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\QuotationOffer;
