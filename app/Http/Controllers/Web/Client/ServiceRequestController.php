@@ -30,7 +30,8 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
-    ) {}
+    ) {
+    }
 
     public function index(IndexServiceRequestRequest $request): View
     {
