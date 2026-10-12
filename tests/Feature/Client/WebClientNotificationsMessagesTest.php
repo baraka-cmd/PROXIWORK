@@ -128,7 +128,8 @@ class WebClientNotificationsMessagesTest extends TestCase
             'push_enabled' => true,
         ]);
     }
-\n    public function test_professional_cannot_access_client_notifications_or_messages(): void
+
+    public function test_professional_cannot_access_client_notifications_or_messages(): void
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
