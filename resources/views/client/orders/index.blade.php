@@ -106,16 +106,6 @@
                 <input id="order-created-to" type="date" name="created_to" value="{{ $filters['created_to'] ?? '' }}" min="{{ $filters['created_from'] ?? '' }}">
             </div>
 
-            <div class="client-field">
-                <label for="order-sort">Trier par</label>
-                <select id="order-sort" name="sort">
-                    <option value="newest" @selected(($filters['sort'] ?? 'newest') === 'newest')>Plus récentes</option>
-                    <option value="oldest" @selected(($filters['sort'] ?? '') === 'oldest')>Plus anciennes</option>
-                    <option value="amount_desc" @selected(($filters['sort'] ?? '') === 'amount_desc')>Montant décroissant</option>
-                    <option value="amount_asc" @selected(($filters['sort'] ?? '') === 'amount_asc')>Montant croissant</option>
-                </select>
-            </div>
-
             @if(filled($filters['bucket'] ?? null))
                 <input type="hidden" name="bucket" value="{{ $filters['bucket'] }}">
             @endif
