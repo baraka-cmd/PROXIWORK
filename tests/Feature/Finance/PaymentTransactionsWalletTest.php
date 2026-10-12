@@ -121,7 +121,7 @@ class PaymentTransactionsWalletTest extends TestCase
             'to_status' => PaymentStatus::SUCCEEDED->value,
         ]);
         $this->assertDatabaseHas('payment_receipts', [
-            'payment_id' => \App\Models\Payment::query()->where('order_id', $order->id)->value('id'),
+            'payment_id' => Payment::query()->where('order_id', $order->id)->value('id'),
             'mode' => 'simulation',
         ]);
     }
