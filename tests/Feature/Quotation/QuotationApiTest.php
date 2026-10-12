@@ -225,6 +225,12 @@ class QuotationApiTest extends TestCase
         $this->actingAs($client, 'sanctum')
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
             ->assertUnprocessable();
+
+        $this->assertSame(
+            1,
+            Order::query()->where('quotation_id', $quotation->id)->count(),
+            'Repeated acceptance attempts must never create a second order.',
+        );
     }
 
     public function test_order_address_is_a_historical_snapshot(): void
