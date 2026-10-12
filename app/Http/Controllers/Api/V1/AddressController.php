@@ -95,7 +95,7 @@ class AddressController extends Controller
             $request,
         );
 
-        return (new AddressResource($address->refresh())->additional([
+        return (new AddressResource($address->refresh()))->additional([
             'success' => true,
             'message' => 'Adresse mise à jour avec succès.',
             'meta' => [],
