@@ -25,7 +25,7 @@ class OrderResource extends JsonResource
             'subtotal' => $this->subtotal,
             'total' => $this->total,
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
-            'address' => $this->whenLoaded('addressSnapshot', fn () => new OrderAddressSnapshotResource($this->addressSnapshot)),
+            'address' => $this->whenLoaded('addressSnapshot', fn () => $this->addressSnapshot ? new OrderAddressSnapshotResource($this->addressSnapshot) : null),
             'status_history' => OrderStatusHistoryResource::collection($this->whenLoaded('statusHistories')),
             'accepted_at' => $this->accepted_at ? Carbon::parse($this->accepted_at)->toISOString() : null,
             'confirmed_at' => $this->confirmed_at ? Carbon::parse($this->confirmed_at)->toISOString() : null,
