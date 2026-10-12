@@ -37,7 +37,7 @@ class ServiceRequestService
                             'addressSnapshot',
                             'statusHistories.actor',
                         ]);
-                        $existing->setAttribute('_idempotent_replay', true);
+                        $existing->idempotencyReplay = true;
 
                         return $existing;
                     }
@@ -106,7 +106,7 @@ class ServiceRequestService
                     'addressSnapshot',
                     'statusHistories.actor',
                 ]);
-                $request->setAttribute('_idempotent_replay', false);
+                $request->idempotencyReplay = false;
 
                 return $request;
             }, attempts: 3);
