@@ -12,6 +12,7 @@ use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +22,10 @@ class ConversationService
 {
     private readonly DatabaseManager $database;
 
-    public function __construct(DatabaseManager $database)
-    {
+    public function __construct(
+        DatabaseManager $database,
+        private readonly TransactionalNotificationService $notificationService,
+    ) {
         $this->database = $database;
     }
 
@@ -178,6 +181,26 @@ class ConversationService
             $conversation->forceFill([
                 'last_message_id' => $message->getKey(),
             ])->save();
+
+            $conversation->loadMissing(['client', 'professional.user']);
+            $recipient = (string) $conversation->client_id === (string) $sender->getKey()
+                ? $conversation->professional?->user
+                : $conversation->client;
+
+            if ($recipient !== null) {
+                $recipientIsClient = (string) $recipient->getKey() === (string) $conversation->client_id;
+                $destination = route(
+                    $recipientIsClient ? 'client.messages.show' : 'professional.messages.show',
+                    $conversation,
+                    true,
+                );
+
+                $this->notificationService->messageReceived(
+                    $recipient,
+                    'message-received:'.$message->getKey(),
+                    $destination,
+                );
+            }
 
             return $message->load('sender');
         }, attempts: 3);
