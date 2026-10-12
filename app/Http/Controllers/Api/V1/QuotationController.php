@@ -23,8 +23,9 @@ class QuotationController extends Controller
         private readonly QuotationService $quotationService,
         private readonly QuotationNegotiationService $negotiationService,
         private readonly AuditLogService $auditLogService,
-    )
-    {}
+    ) {
+        // Dependencies are promoted constructor properties.
+    }
 
     public function show(Request $request, Quotation $quotation): QuotationResource
     {
@@ -53,7 +54,7 @@ class QuotationController extends Controller
             ['service_request_id' => $serviceRequest->getKey()],
             $request,
         );
-        
+
         return (new QuotationResource($quotation))->additional([
             'message' => 'Devis créé et envoyé au client avec succès.',
             'meta' => [],
@@ -73,7 +74,7 @@ class QuotationController extends Controller
             ['service_request_id' => $accepted->service_request_id],
             $request,
         );
-        
+
         return new QuotationResource($accepted);
     }
 
@@ -158,7 +159,7 @@ class QuotationController extends Controller
             ['service_request_id' => $rejected->service_request_id],
             $request,
         );
-        
+
         return new QuotationResource($rejected);
     }
 }
