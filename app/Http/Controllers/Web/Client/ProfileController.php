@@ -11,6 +11,7 @@ use App\Http\Requests\Web\Client\UpdateClientPasswordRequest;
 use App\Http\Requests\Web\Client\UpdateClientProfileRequest;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
+use App\Notifications\EmailAddressChangeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,9 @@ class ProfileController extends Controller
                 ->firstOrFail();
 
             $user->profile()->updateOrCreate([], $data);
+            $user->forceFill([
+                'name' => trim($data['first_name'].' '.$data['last_name']),
+            ])->save();
         });
 
         Log::info('Client profile updated.', [
@@ -180,7 +184,7 @@ class ProfileController extends Controller
         }
 
         try {
-            Notification::route('mail', $pendingEmail)->notify(new \App\Notifications\EmailAddressChangeNotification(
+            Notification::route('mail', $pendingEmail)->notify(new EmailAddressChangeNotification(
                 'Confirmez votre nouvelle adresse e-mail',
                 'Une demande de changement d’adresse e-mail a été effectuée pour votre compte PROXIWORK. L’adresse actuelle reste active tant que vous n’avez pas confirmé ce lien. Le lien expire dans 30 minutes.',
                 route('client.profile.email-change.confirmation', ['token' => $token]),
@@ -210,7 +214,7 @@ class ProfileController extends Controller
         }
 
         try {
-            Notification::route('mail', $user->email)->notify(new \App\Notifications\EmailAddressChangeNotification(
+            Notification::route('mail', $user->email)->notify(new EmailAddressChangeNotification(
                 'Demande de changement d’adresse e-mail',
                 'Une demande de changement d’adresse e-mail a été initiée pour votre compte PROXIWORK. Votre adresse actuelle reste active jusqu’à la confirmation de la nouvelle adresse.',
             ));
@@ -327,7 +331,7 @@ class ProfileController extends Controller
             ->delete();
 
         try {
-            Notification::route('mail', $oldEmail)->notify(new \App\Notifications\EmailAddressChangeNotification(
+            Notification::route('mail', $oldEmail)->notify(new EmailAddressChangeNotification(
                 'Adresse e-mail du compte PROXIWORK modifiée',
                 'L’adresse e-mail de votre compte PROXIWORK a été modifiée après confirmation. Si vous n’êtes pas à l’origine de cette action, contactez le support.',
             ));
