@@ -19,6 +19,7 @@ class Profile extends Model
         'bio',
         'locale',
         'timezone',
+        'avatar_path',
     ];
 
     public function user(): BelongsTo
