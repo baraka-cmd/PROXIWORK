@@ -9,6 +9,7 @@ use App\Jobs\Notifications\SendNotificationSms;
 use App\Jobs\Notifications\SendNotificationPush;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationDevice;
+use App\Services\Notification\FirebasePushService;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Notification\TransactionalNotificationService;
@@ -469,7 +470,7 @@ class NotificationFoundationTest extends TestCase
             ], 200),
         ]);
 
-        (new SendNotificationPush((int) $delivery->id))->handle(app(\App\Services\Notification\FirebasePushService::class));
+        (new SendNotificationPush((int) $delivery->id))->handle(app(FirebasePushService::class));
 
         $this->assertSame('SENT', $delivery->fresh()->status);
         $this->assertSame('projects/proxi-test/messages/1', $delivery->fresh()->provider_reference);
