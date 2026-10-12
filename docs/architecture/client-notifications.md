@@ -19,7 +19,7 @@
 | RETRYING | Échec considéré comme réessayable ; un délai croissant est enregistré. |
 | FAILED | Échec final connu. |
 | UNKNOWN | La connexion a pu tomber après l'acceptation par le fournisseur. Pas de nouvel envoi automatique, afin d'éviter un doublon ; réconciliation requise. |
-| SIMULATED | Le mailer log ou array a enregistré une simulation. Aucun vrai e-mail n'a été envoyé. |
+| SIMULATED | Le mailer log/array ou le simulateur SMS local a enregistré une simulation. Aucun vrai message n'a été envoyé. |
 
 Les erreurs stockent la classe technique, pas le corps du message ni les secrets. Les tentatives abandonnées en état PROCESSING sont marquées UNKNOWN après quinze minutes.
 
@@ -82,7 +82,7 @@ Ces exemples ne prouvent pas que le compte est configuré ni que les messages se
 
 ## SMS et push
 
-Les préférences peuvent être enregistrées, mais aucun fournisseur SMS ou push n'est connecté par cette tranche. Ne pas annoncer qu'un SMS ou une notification push a été envoyé. Avant production, choisir un fournisseur qui prend effectivement en charge les numéros RDC, ajouter la gestion du consentement, les coûts/quotas et les retours de livraison. FCM peut être évalué séparément pour les appareils Web/mobile compatibles.
+En environnement local/testing, les alertes éligibles peuvent créer une ligne SMS SIMULATED avec un numéro masqué ; aucun SMS réel n'est envoyé. En production, aucun fournisseur SMS ou push n'est connecté par cette tranche. Ne pas annoncer qu'un SMS ou une notification push a été envoyé. Avant production, choisir un fournisseur qui prend effectivement en charge les numéros RDC, ajouter la gestion du consentement, les coûts/quotas et les retours de livraison. FCM peut être évalué séparément pour les appareils Web/mobile compatibles.
 
 ## Points opérationnels
 
