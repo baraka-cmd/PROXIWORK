@@ -172,7 +172,7 @@ class QuotationService
                 throw ValidationException::withMessages(['quotation' => 'Vous ne pouvez pas décider pour ce devis.']);
             }
 
-            if (! in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
+            if (!in_array($locked->status, [QuotationStatus::SENT, QuotationStatus::NEGOTIATING], true)) {
                 throw ValidationException::withMessages(['status' => 'Ce devis ne peut plus être accepté.']);
             }
 
