@@ -509,6 +509,74 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->assertSame(2, $quotation->offers()->count());
     }
 
+    public function test_professional_can_accept_client_counter_offer_and_create_one_pending_payment_order(): void
+    {
+        Notification::fake();
+
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'negotiating',
+        ], [
+            'actor_type' => 'client',
+            'version' => 2,
+            'created_by' => $client->id,
+            'valid_until' => now()->addDay(),
+        ]);
+
+        $address = Address::factory()->create(['user_id' => $client->id]);
+        $quotation->serviceRequest->forceFill(['address_id' => $address->id])->save();
+
+        $this->actingAs($professionalUser)
+            ->post('/professional/quotes/'.$quotation->id.'/accept-client-offer')
+            ->assertRedirect();
+
+        $order = Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+
+        $this->assertSame('accepted', $quotation->fresh()->status->value);
+        $this->assertSame('pending_payment', $order->status->value);
+        $this->assertSame((int) $quotation->current_offer_id, (int) $order->accepted_offer_id);
+        $this->assertSame('USD', $order->currency);
+        $this->assertSame('100.00', $order->total);
+        $this->assertSame(1, Order::query()->where('quotation_id', $quotation->id)->count());
+
+        Notification::assertSentTo($client, AccountActivityNotification::class);
+    }
+
+    public function test_client_cannot_change_currency_during_counter_offer(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'status' => 'quoted',
+        ], [
+            'status' => 'sent',
+        ], [
+            'currency' => 'USD',
+            'valid_until' => now()->addDay(),
+        ]);
+
+        $this->actingAs($client)
+            ->post('/client/quotes/'.$quotation->id.'/counter-offer', [
+                'amount' => 900,
+                'currency' => 'CDF',
+                'duration_value' => 4,
+                'duration_unit' => 'days',
+                'description' => 'Je propose une adaptation du périmètre et du calendrier.',
+                'conditions' => null,
+                'valid_until' => now()->addDays(2)->format('Y-m-d H:i:s'),
+            ])
+            ->assertSessionHasErrors('currency');
+
+        $this->assertSame(1, $quotation->offers()->count());
+    }
+
     public function test_overdue_quotations_are_expired_once_and_both_parties_are_notified(): void
     {
         Notification::fake();
@@ -582,7 +650,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'status' => 'sent',
         ], $quotationAttributes));
 
-        $offer = QuotationOffer::factory()->create(array_merge([
+        $offerData = array_merge([
             'quotation_id' => $quotation->id,
             'created_by' => $professionalUser->id,
             'actor_type' => 'professional',
@@ -590,7 +658,24 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'amount' => 100,
             'currency' => 'USD',
             'valid_until' => now()->addDay(),
-        ], $offerAttributes));
+        ], $offerAttributes);
+
+        if ($offerData['actor_type'] === 'client' && $offerData['version'] > 1) {
+            QuotationOffer::factory()->create([
+                'quotation_id' => $quotation->id,
+                'created_by' => $professionalUser->id,
+                'actor_type' => 'professional',
+                'version' => 1,
+                'amount' => 100,
+                'currency' => $offerData['currency'],
+                'description' => 'Proposition initiale du professionnel, conservée dans l’historique.',
+                'duration_value' => 3,
+                'duration_unit' => 'days',
+                'valid_until' => now()->addDay(),
+            ]);
+        }
+
+        $offer = QuotationOffer::factory()->create($offerData);
 
         $quotation->forceFill(['current_offer_id' => $offer->id])->save();
 
