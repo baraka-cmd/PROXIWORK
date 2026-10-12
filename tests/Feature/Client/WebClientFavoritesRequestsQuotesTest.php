@@ -403,7 +403,6 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->assertSee('disabled', false);
     }
 
-
     public function test_client_quotes_dashboard_filters_only_owned_quotes_and_calculates_review_statistics(): void
     {
         $client = $this->client();
