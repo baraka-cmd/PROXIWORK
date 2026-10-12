@@ -65,7 +65,7 @@ class QuotationApiTest extends TestCase
             'id' => $request->id,
             'status' => ServiceRequestStatus::QUOTED->value,
         ]);
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
 
         $this->actingAs($professional, 'sanctum')
             ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $payload)
@@ -131,7 +131,7 @@ class QuotationApiTest extends TestCase
             'created_by' => $client->id,
         ]);
         $this->assertDatabaseCount('quotation_offers', 2);
-        Notification::assertSentTo($professional, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professional->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_professional_can_accept_client_counter_offer_through_api_and_create_order(): void
@@ -175,7 +175,7 @@ class QuotationApiTest extends TestCase
             'total' => 450,
             'status' => OrderStatus::PENDING_PAYMENT->value,
         ]);
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_only_the_current_non_expired_offer_can_be_accepted(): void
@@ -220,7 +220,7 @@ class QuotationApiTest extends TestCase
             'subtotal' => 500,
             'quantity' => 1,
         ]);
-        Notification::assertSentTo($professional, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professional->getKey(), 'type' => AccountActivityNotification::class]);
 
         $this->actingAs($client, 'sanctum')
             ->postJson('/api/v1/quotations/'.$quotation->id.'/accept')
@@ -394,7 +394,7 @@ class QuotationApiTest extends TestCase
             'type' => 'quote_rejected',
             'actor_id' => $client->id,
         ]);
-        Notification::assertSentTo($professional, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professional->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_professional_can_renew_an_expired_quotation_through_api_without_rewriting_history(): void
@@ -438,7 +438,7 @@ class QuotationApiTest extends TestCase
             'subject_id' => $quotation->id,
             'user_id' => $professional->id,
         ]);
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_guest_cannot_access_quotation_api(): void
