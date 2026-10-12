@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\ServiceExecutionMode;
 use App\Enums\ServiceRequestStatus;
 use App\Models\Service;
 use App\Models\ServiceRequest;
@@ -22,7 +23,7 @@ class ServiceRequestFactory extends Factory
             'client_id' => User::factory(),
             'professional_id' => $service->professional_profile_id,
             'service_id' => $service->getKey(),
-            'execution_mode' => \\App\\Enums\\ServiceExecutionMode::CLIENT_LOCATION->value,
+            'execution_mode' => ServiceExecutionMode::CLIENT_LOCATION->value,
             'address_id' => null,
             'title' => fake()->sentence(5),
             'description' => fake()->paragraph(2),
