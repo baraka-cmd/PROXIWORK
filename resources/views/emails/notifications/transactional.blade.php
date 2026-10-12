@@ -17,7 +17,7 @@
             <tr>
                 <td style="padding:28px;">
                     <p style="margin:0 0 22px;font-size:16px;line-height:1.65;">Bonjour,</p>
-                    <p style="margin:0 0 26px;font-size:15px;line-height:1.7;color:#344054;">{{ $message }}</p>
+                    <p style="margin:0 0 26px;font-size:15px;line-height:1.7;color:#344054;">{{ $notificationBody }}</p>
                     @if ($url)
                         <p style="margin:0 0 26px;">
                             <a href="{{ $url }}" style="display:inline-block;padding:12px 18px;background:#153e75;border-radius:8px;color:#ffffff;text-decoration:none;font-weight:700;">Consulter PROXIWORK</a>
