@@ -7,7 +7,6 @@ namespace App\Services\Quotation;
 use App\Enums\QuotationStatus;
 use App\Models\Quotation;
 use App\Models\QuotationEvent;
-use App\Models\User;
 use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Support\Facades\DB;
 
