@@ -133,7 +133,7 @@ Route::prefix('v1')->group(function (): void {
         });
 
         Route::post('notification-devices', [NotificationDeviceController::class, 'store'])->middleware('throttle:20,1');
-        Route::delete('notification-devices', [\App\Http\Controllers\Api\V1\NotificationDeviceController::class, 'destroy'])->middleware('throttle:20,1');
+        Route::delete('notification-devices', [NotificationDeviceController::class, 'destroy'])->middleware('throttle:20,1');
 
         Route::get('conversations', [ConversationController::class, 'index']);
         Route::post('professionals/{professionalProfile}/conversations', [ConversationController::class, 'storeForProfessional'])
