@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\NotificationDevice;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class NotificationDeviceController extends Controller
 {
@@ -18,14 +19,25 @@ class NotificationDeviceController extends Controller
             'platform' => ['required', 'string', 'in:android,ios,web'],
         ]);
 
-        $device = NotificationDevice::query()->updateOrCreate(
-            ['token' => $data['token']],
-            [
-                'user_id' => $request->user()->getKey(),
-                'platform' => $data['platform'],
-                'last_used_at' => now(),
-            ],
-        );
+        $device = DB::transaction(function () use ($data, $request): NotificationDevice {
+            $existing = NotificationDevice::query()
+                ->where('token', $data['token'])
+                ->lockForUpdate()
+                ->first();
+
+            if ($existing !== null && (string) $existing->user_id !== (string) $request->user()->getKey()) {
+                abort(409, 'Cet appareil est déjà associé à un autre compte. Révoquez-le depuis ce compte avant de le réenregistrer.');
+            }
+
+            return NotificationDevice::query()->updateOrCreate(
+                ['token' => $data['token']],
+                [
+                    'user_id' => $request->user()->getKey(),
+                    'platform' => $data['platform'],
+                    'last_used_at' => now(),
+                ],
+            );
+        }, attempts: 3);
 
         return response()->json([
             'message' => 'Appareil de notification enregistré.',
