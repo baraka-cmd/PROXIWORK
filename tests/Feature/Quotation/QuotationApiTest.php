@@ -391,6 +391,50 @@ class QuotationApiTest extends TestCase
         Notification::assertSentTo($professional, AccountActivityNotification::class);
     }
 
+    public function test_professional_can_renew_an_expired_quotation_through_api_without_rewriting_history(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $request = $this->request($client, $profile, $service);
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/service-requests/'.$request->id.'/quotation', $this->offerPayload())
+            ->assertCreated();
+
+        $quotation = Quotation::query()->firstOrFail();
+        $previousOffer = $quotation->currentOffer;
+        QuotationOffer::query()->whereKey($previousOffer->getKey())->update([
+            'valid_until' => now()->subMinute(),
+        ]);
+
+        $this->artisan('quotations:expire')->assertExitCode(0);
+
+        $payload = $this->offerPayload();
+        $payload['amount'] = 525;
+        $payload['valid_until'] = now()->addDays(10)->toISOString();
+
+        $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/quotations/'.$quotation->id.'/renew', $payload)
+            ->assertOk()
+            ->assertJsonPath('data.status', QuotationStatus::SENT->value)
+            ->assertJsonPath('data.current_offer.version', 2)
+            ->assertJsonPath('data.current_offer.amount', '525.00');
+
+        $this->assertSame('500.00', $previousOffer->fresh()->amount);
+        $this->assertDatabaseHas('quotation_events', [
+            'quotation_id' => $quotation->id,
+            'type' => 'quote_renewed',
+            'actor_id' => $professional->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'quotation_renewed',
+            'subject_id' => $quotation->id,
+            'user_id' => $professional->id,
+        ]);
+        Notification::assertSentTo($client, AccountActivityNotification::class);
+    }
+
     public function test_guest_cannot_access_quotation_api(): void
     {
         $this->getJson('/api/v1/quotations/1')->assertUnauthorized();
