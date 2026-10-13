@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\Admin\ProfessionalDocumentController;
 use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
+use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
@@ -73,6 +74,14 @@ Route::middleware(['auth', 'active.account', 'permission:services.view'])->group
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
 });
+Route::middleware(['auth', 'active.account', 'permission:services.view'])->group(function (): void {
+    Route::get('service-realizations/{realization}/file', [AdminServiceRealizationController::class, 'file'])->name('service-realizations.file');
+});
+Route::middleware(['auth', 'active.account', 'permission:services.manage'])->group(function (): void {
+    Route::post('service-realizations/{realization}/approve', [AdminServiceRealizationController::class, 'approve'])->name('service-realizations.approve');
+    Route::post('service-realizations/{realization}/reject', [AdminServiceRealizationController::class, 'reject'])->name('service-realizations.reject');
+});
+
 Route::middleware(['auth', 'active.account'])->group(function (): void {
     Route::post('services/{service}/publish', [ServiceController::class, 'publish'])->middleware('permission:services.manage')->name('services.publish');
     Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])->middleware('permission:services.manage')->name('services.unpublish');
