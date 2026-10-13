@@ -3,6 +3,12 @@
 @section('title', 'Modifier mon profil professionnel — PROXIWORK')
 @section('page_heading', 'Modifier mon profil professionnel')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/professional/profile.css')
+    @endunless
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
