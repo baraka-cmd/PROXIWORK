@@ -22,6 +22,7 @@
 
     <section class="professional-request-filter surface-card" aria-label="Filtrer les demandes reçues">
         <form method="GET" action="{{ route('professional.requests.index') }}">
+            @if(!empty($filters['service_id']))<input type="hidden" name="service_id" value="{{ $filters['service_id'] }}">@endif
             <div class="professional-request-filter__grid">
                 <div>
                     <label for="professional-request-search">Recherche</label>
