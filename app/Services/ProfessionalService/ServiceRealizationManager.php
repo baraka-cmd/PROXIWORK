@@ -83,6 +83,12 @@ class ServiceRealizationManager
         return DB::transaction(function () use ($realization, $reviewer, $note): ServiceRealization {
             $locked = ServiceRealization::query()->whereKey($realization->getKey())->lockForUpdate()->firstOrFail();
 
+            if (! $locked->participation_confirmed) {
+                throw ValidationException::withMessages([
+                    'realization' => 'La déclaration de participation doit être confirmée avant approbation.',
+                ]);
+            }
+
             if (! Storage::disk('local')->exists($locked->path)) {
                 throw ValidationException::withMessages([
                     'realization' => 'Le fichier de cette réalisation est introuvable. Elle ne peut pas être publiée.',
