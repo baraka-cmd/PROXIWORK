@@ -22,7 +22,7 @@ class ServiceRealizationController extends Controller
         private readonly TransactionalNotificationService $notificationService,
     ) {}
 
-    public function file(Request $request, ServiceRealization $realization): BinaryFileResponse
+    public function file(ServiceRealization $realization): BinaryFileResponse
     {
         $this->authorize('adminView', $realization->service);
 
