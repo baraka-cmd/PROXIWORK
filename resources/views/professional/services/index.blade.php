@@ -30,6 +30,7 @@
             ['label' => 'Brouillons', 'value' => $serviceCounts['draft'], 'icon' => 'fa-file-pen'],
             ['label' => 'Dépubliés', 'value' => $serviceCounts['unpublished'], 'icon' => 'fa-eye-slash'],
             ['label' => 'Archivés', 'value' => $serviceCounts['archived'], 'icon' => 'fa-box-archive'],
+            ['label' => 'Preuves en attente', 'value' => $serviceCounts['pending_realizations'], 'icon' => 'fa-hourglass-half'],
         ] as $summary)
             <article class="service-summary-card surface-card">
                 <span class="service-summary-card__icon"><i class="fa-solid {{ $summary['icon'] }}" aria-hidden="true"></i></span>
@@ -102,6 +103,7 @@
                         <div class="service-card__price">{{ $priceLabel }}</div>
                         <div class="service-card__meta">
                             <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i> {{ $service->service_requests_count }} demande(s)</span>
+                            @if($service->pending_realizations_count > 0)<span><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> {{ $service->pending_realizations_count }} preuve(s) en attente</span>@endif
                             @if($service->estimated_duration_minutes)
                                 <span><i class="fa-regular fa-clock" aria-hidden="true"></i> {{ $service->estimated_duration_minutes }} min</span>
                             @endif
