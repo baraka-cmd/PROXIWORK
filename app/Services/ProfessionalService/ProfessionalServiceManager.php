@@ -195,6 +195,37 @@ class ProfessionalServiceManager
         }
     }
 
+    public function replaceImage(ServiceImage $image, UploadedFile $file): ServiceImage
+    {
+        $newPath = $file->store('services/'.$image->service_id, 'public');
+
+        if (! is_string($newPath) || $newPath === '') {
+            throw ValidationException::withMessages([
+                'image' => 'La nouvelle image n’a pas pu être enregistrée. L’image actuelle a été conservée.',
+            ]);
+        }
+
+        $oldPath = $image->path;
+
+        try {
+            $updatedImage = DB::transaction(function () use ($image, $newPath): ServiceImage {
+                $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
+                $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
+                $lockedImage->update(['path' => $newPath]);
+
+                return $lockedImage->refresh();
+            });
+
+            Storage::disk('public')->delete($oldPath);
+
+            return $updatedImage;
+        } catch (\\Throwable $exception) {
+            Storage::disk('public')->delete($newPath);
+
+            throw $exception;
+        }
+    }
+
     public function updateImage(ServiceImage $image, array $attributes): ServiceImage
     {
         return DB::transaction(function () use ($image, $attributes): ServiceImage {
