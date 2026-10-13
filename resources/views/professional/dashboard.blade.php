@@ -165,6 +165,7 @@
                                     @case('messages') <i class="fa-solid fa-comments"></i> @break
                                     @case('notifications') <i class="fa-solid fa-bell"></i> @break
                                     @case('documents') <i class="fa-solid fa-id-card"></i> @break
+                                    @case('withdrawals') <i class="fa-solid fa-money-bill-transfer"></i> @break
                                     @case('profile') <i class="fa-solid fa-user-shield"></i> @break
                                     @default <i class="fa-solid fa-briefcase"></i>
                                 @endswitch
@@ -178,6 +179,7 @@
                                         @case('messages') Messages non lus @break
                                         @case('notifications') Notifications non lues @break
                                         @case('documents') Vérification professionnelle @break
+                                        @case('withdrawals') Retraits en échec @break
                                         @case('profile') État du profil @break
                                         @default Services professionnels
                                     @endswitch
