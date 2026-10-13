@@ -166,6 +166,7 @@
                                     @case('notifications') <i class="fa-solid fa-bell"></i> @break
                                     @case('documents') <i class="fa-solid fa-id-card"></i> @break
                                     @case('withdrawals') <i class="fa-solid fa-money-bill-transfer"></i> @break
+                                    @case('disputes') <i class="fa-solid fa-scale-balanced"></i> @break
                                     @case('profile') <i class="fa-solid fa-user-shield"></i> @break
                                     @default <i class="fa-solid fa-briefcase"></i>
                                 @endswitch
@@ -180,6 +181,7 @@
                                         @case('notifications') Notifications non lues @break
                                         @case('documents') Vérification professionnelle @break
                                         @case('withdrawals') Retraits en échec @break
+                                        @case('disputes') Commandes en litige @break
                                         @case('profile') État du profil @break
                                         @default Services professionnels
                                     @endswitch
