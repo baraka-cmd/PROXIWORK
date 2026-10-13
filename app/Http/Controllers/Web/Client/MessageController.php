@@ -32,12 +32,6 @@ class MessageController extends Controller
         private readonly ConversationService $conversationService,
     ) {}
 
-class MessageController extends Controller
-{
-    public function __construct(
-        private readonly ConversationService $conversationService,
-    ) {}
-
     public function index(Request $request): View
     {
         $filters = $request->validate([
