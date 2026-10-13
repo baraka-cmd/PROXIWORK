@@ -46,11 +46,7 @@ class OrderController extends Controller
             ->latest();
 
         if ($selectedStatus === 'active') {
-            $query->whereIn('status', [
-                OrderStatus::PENDING_PAYMENT->value,
-                OrderStatus::CONFIRMED->value,
-                OrderStatus::IN_PROGRESS->value,
-            ]);
+            $query->whereIn('status', OrderStatus::operationallyActiveValues());
         } elseif ($selectedStatus !== '') {
             $status = OrderStatus::tryFrom($selectedStatus);
 
