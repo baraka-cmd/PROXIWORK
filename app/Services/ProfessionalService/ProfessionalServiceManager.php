@@ -205,18 +205,19 @@ class ProfessionalServiceManager
             ]);
         }
 
-        $oldPath = $image->path;
-
         try {
-            $updatedImage = DB::transaction(function () use ($image, $newPath): ServiceImage {
+            [$updatedImage, $oldPath] = DB::transaction(function () use ($image, $newPath): array {
                 $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
                 $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
+                $oldPath = $lockedImage->path;
                 $lockedImage->update(['path' => $newPath]);
 
-                return $lockedImage->refresh();
+                return [$lockedImage->refresh(), $oldPath];
             });
 
-            Storage::disk('public')->delete($oldPath);
+            if ($oldPath !== $newPath) {
+                Storage::disk('public')->delete($oldPath);
+            }
 
             return $updatedImage;
         } catch (\Throwable $exception) {
@@ -269,11 +270,10 @@ class ProfessionalServiceManager
 
     public function deleteImage(ServiceImage $image): void
     {
-        $path = $image->path;
-
-        DB::transaction(function () use ($image): void {
+        $path = DB::transaction(function () use ($image): string {
             $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
             $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
+            $path = $lockedImage->path;
             $wasCover = $lockedImage->is_cover;
 
             $lockedImage->delete();
@@ -287,6 +287,8 @@ class ProfessionalServiceManager
 
                 $replacement?->update(['is_cover' => true]);
             }
+
+            return $path;
         });
 
         Storage::disk('public')->delete($path);
