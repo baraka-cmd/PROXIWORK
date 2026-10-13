@@ -177,18 +177,29 @@ class ProfessionalDashboardService
     private function profile(ProfessionalProfile $profile): array
     {
         $userProfile = $profile->user->profile;
-        $requiredFields = [
-            'professional_title' => ['label' => 'Spécialité professionnelle', 'value' => $profile->professional_title],
-            'description' => ['label' => 'Description professionnelle', 'value' => $profile->description],
-            'province' => ['label' => 'Province', 'value' => $profile->province],
-            'city' => ['label' => 'Ville', 'value' => $profile->city],
-            'first_name' => ['label' => 'Prénom', 'value' => $userProfile?->first_name],
-            'last_name' => ['label' => 'Nom', 'value' => $userProfile?->last_name],
-            'phone' => ['label' => 'Téléphone', 'value' => $userProfile?->phone],
+        // Keep this score aligned with the existing profile page's seven completion criteria.
+        $completionItems = [
+            'personal' => $userProfile !== null,
+            'profession' => filled($profile->professional_title),
+            'presentation' => filled($profile->description),
+            'service_area' => filled($profile->city) && filled($profile->province),
+            'skills' => (int) $profile->skills_count > 0,
+            'services' => (int) $profile->services_count > 0,
+            'verification' => $profile->verification_status?->value === 'verified',
         ];
-        $missingFields = collect($requiredFields)
-            ->filter(fn (array $field): bool => blank($field['value']))
-            ->pluck('label')
+        $completionLabels = [
+            'personal' => 'Informations personnelles',
+            'profession' => 'Spécialité professionnelle',
+            'presentation' => 'Présentation professionnelle',
+            'service_area' => 'Zone d’intervention (ville et province)',
+            'skills' => 'Compétences professionnelles',
+            'services' => 'Au moins un service',
+            'verification' => 'Vérification professionnelle',
+        ];
+        $missingFields = collect($completionItems)
+            ->filter(fn (bool $complete): bool => ! $complete)
+            ->keys()
+            ->map(fn (string $key): string => $completionLabels[$key])
             ->values()
             ->all();
 
@@ -198,7 +209,7 @@ class ProfessionalDashboardService
             'status' => $profile->status,
             'verification_status' => $profile->verification_status?->value,
             'availability_status' => $profile->availability_status?->value,
-            'profile_completion' => (int) round((count($requiredFields) - count($missingFields)) / count($requiredFields) * 100),
+            'profile_completion' => (int) round((count($completionItems) - count($missingFields)) / count($completionItems) * 100),
             'missing_fields' => $missingFields,
             'user' => [
                 'id' => $profile->user->getKey(),
@@ -433,16 +444,6 @@ class ProfessionalDashboardService
             ]);
         }
 
-        if ($activeOrders > 0) {
-            $actions->push([
-                'type' => 'orders',
-                'priority' => 'normal',
-                'count' => $activeOrders,
-                'message' => $activeOrders.' commande(s) active(s) à suivre.',
-                'url' => route('professional.orders.index'),
-            ]);
-        }
-
         if ($unreadMessages > 0) {
             $actions->push([
                 'type' => 'messages',
@@ -484,6 +485,20 @@ class ProfessionalDashboardService
                 'url' => route('professional.requests.show', $request),
             ]));
 
+        Quotation::query()
+            ->whereHas('serviceRequest', fn (Builder $query) => $query->where('professional_id', $professionalId))
+            ->with('serviceRequest:id,title')
+            ->latest('updated_at')
+            ->limit(5)
+            ->get()
+            ->each(fn (Quotation $quotation) => $events->push([
+                'type' => 'quote',
+                'title' => 'Devis mis à jour',
+                'description' => $quotation->serviceRequest?->title ?? ('Devis #'.$quotation->getKey()),
+                'at' => $quotation->updated_at,
+                'url' => route('professional.quotes.show', $quotation),
+            ]));
+
         Order::query()
             ->where('professional_id', $professionalId)
             ->with('serviceRequest:id,title')
@@ -510,6 +525,37 @@ class ProfessionalDashboardService
                 'description' => $review->rating.'/5',
                 'at' => $review->published_at ?? $review->created_at,
                 'url' => route('professional.reviews'),
+            ]));
+
+        Commission::query()
+            ->where('professional_id', $professionalId)
+            ->where('status', CommissionStatus::POSTED->value)
+            ->latest('posted_at')
+            ->limit(3)
+            ->get()
+            ->each(fn (Commission $commission) => $events->push([
+                'type' => 'revenue',
+                'title' => 'Revenu comptabilisé',
+                'description' => number_format((float) $commission->net_amount, 2, ',', ' ').' '.$commission->currency,
+                'at' => $commission->posted_at,
+                'url' => route('professional.revenues.index', [
+                    'from' => $commission->posted_at?->toDateString(),
+                    'to' => $commission->posted_at?->toDateString(),
+                    'currency' => $commission->currency,
+                ]),
+            ]));
+
+        Withdrawal::query()
+            ->where('professional_id', $professionalId)
+            ->latest('requested_at')
+            ->limit(3)
+            ->get()
+            ->each(fn (Withdrawal $withdrawal) => $events->push([
+                'type' => 'withdrawal',
+                'title' => 'Demande de retrait mise à jour',
+                'description' => number_format((float) $withdrawal->amount, 2, ',', ' ').' '.$withdrawal->currency.' · '.$withdrawal->status->value,
+                'at' => $withdrawal->updated_at ?? $withdrawal->requested_at,
+                'url' => route('professional.withdrawals.show', $withdrawal),
             ]));
 
         return $events->sortByDesc(fn (array $event) => $event['at']?->getTimestamp() ?? 0)->take(6)->values();
