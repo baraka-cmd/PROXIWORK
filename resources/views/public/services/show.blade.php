@@ -3,6 +3,12 @@
 @section('title', $service->title.' — PROXIWORK')
 @section('meta_description', Str::limit($service->short_description ?: $service->description, 155))
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/public/search.css')
+    @endunless
+@endpush
+
 @section('content')
     @php($cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first())
     @php($professional = $service->professionalProfile)
