@@ -61,7 +61,7 @@ class ProfessionalServiceRealizationController extends Controller
         ])->response()->setStatusCode(Response::HTTP_CREATED);
     }
 
-    public function file(Request $request, ServiceRealization $realization): BinaryFileResponse
+    public function file(ServiceRealization $realization): BinaryFileResponse
     {
         $this->authorize('view', $realization->service);
 
