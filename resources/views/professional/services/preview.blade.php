@@ -38,7 +38,7 @@
         <div class="service-preview__body">
             <div class="service-preview__badges">
                 <span class="badge badge--neutral">{{ $service->category->name }}</span>
-                <span class="badge badge--{{ $service->status->value === 'published' ? 'success' : 'warning' }}">{{ ucfirst($service->status->value) }}</span>
+                <span class="badge badge--{{ $service->status->value === 'published' ? 'success' : ($service->status->value === 'archived' ? 'danger' : 'warning') }}">{{ ['draft' => 'Brouillon', 'published' => 'Publié', 'unpublished' => 'Dépublié', 'archived' => 'Archivé'][$service->status->value] ?? 'Statut inconnu' }}</span>
                 <span class="badge badge--neutral">{{ $service->execution_mode->label() }}</span>
             </div>
             <h2>{{ $service->title }}</h2>
