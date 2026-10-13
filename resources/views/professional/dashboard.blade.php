@@ -69,7 +69,7 @@
         $normalized = ltrim($amount, '+-');
         [$whole, $fraction] = array_pad(explode('.', $normalized, 2), 2, '');
         $whole = ltrim($whole, '0') ?: '0';
-        $whole = preg_replace('/\\B(?=(\\d{3})+(?!\\d))/', ' ', $whole) ?? $whole;
+        $whole = preg_replace('/\B(?=(\d{3})+(?!\d))/', ' ', $whole) ?? $whole;
         $fraction = str_pad(substr($fraction, 0, 2), 2, '0');
 
         return ($negative ? '-' : '').$whole.','.$fraction;
