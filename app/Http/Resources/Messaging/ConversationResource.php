@@ -18,6 +18,13 @@ class ConversationResource extends JsonResource
             'id' => $this->getKey(),
             'type' => $this->type->value,
             'status' => $this->status->value,
+            'context' => [
+                'key' => $this->context_key,
+                'service_request_id' => $this->service_request_id,
+                'order_id' => $this->order_id,
+            ],
+            'is_pinned' => (bool) ($this->is_pinned ?? false),
+            'is_archived' => (bool) ($this->is_archived ?? false),
             'client' => $client ? [
                 'id' => $client->getKey(),
                 'name' => $client->name,
