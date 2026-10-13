@@ -20,7 +20,7 @@ class ServiceRealizationManager
     {
         $path = $file->store('service-realizations/'.$service->getKey(), 'local');
 
-        if (! is_string($path) || $path === '') {
+        if (!is_string($path) || $path === '') {
             throw ValidationException::withMessages([
                 'image' => 'La preuve n’a pas pu être enregistrée. Réessayez avec une autre image.',
             ]);
@@ -97,7 +97,7 @@ class ServiceRealizationManager
                 ]);
             }
 
-            if (!Storage::disk('local')->exists($locked->path)) {
+            if (! Storage::disk('local')->exists($locked->path)) {
                 throw ValidationException::withMessages([
                     'realization' => 'Le fichier de cette réalisation est introuvable. Elle ne peut pas être publiée.',
                 ]);
