@@ -3,6 +3,12 @@
 @section('title', 'Mon profil professionnel — PROXIWORK')
 @section('page_heading', 'Mon profil professionnel')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/professional/profile.css')
+    @endunless
+@endpush
+
 @section('content')
     @php
         $personalProfile = $professional->user->profile;
