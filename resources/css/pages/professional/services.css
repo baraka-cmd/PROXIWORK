@@ -23,3 +23,10 @@
 .service-preview__summary{font-size:var(--font-size-lg);color:var(--color-text-muted)}
 .service-preview__price{font-size:var(--font-size-xl);font-weight:var(--font-weight-semibold);margin:var(--space-4) 0}
 .service-preview__body>p{white-space:pre-line}
+
+.image-edit-form{display:grid;gap:var(--space-2);width:100%}
+.image-edit-form__cover{display:flex;align-items:center;gap:var(--space-2)}
+.service-validation-summary{padding:var(--space-5);margin-bottom:var(--space-5);border:1px solid var(--color-danger)}
+.service-validation-summary h2{font-size:var(--font-size-lg);margin-bottom:var(--space-2)}
+.service-validation-summary p{color:var(--color-text-muted)}
+.service-validation-summary ul{margin:var(--space-3) 0 0;padding-left:var(--space-5)}
