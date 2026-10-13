@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class OrderController extends Controller
@@ -24,8 +25,18 @@ class OrderController extends Controller
                 'active',
             ])],
             'from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
-            'to' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'to' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
         ]);
+        if (
+            filled($filters['from'] ?? null)
+            && filled($filters['to'] ?? null)
+            && $filters['to'] < $filters['from']
+        ) {
+            throw ValidationException::withMessages([
+                'to' => 'La date de fin doit être postérieure ou égale à la date de début.',
+            ]);
+        }
+
         $selectedStatus = (string) ($filters['status'] ?? '');
         $profile = $request->user()->professionalProfile()->firstOrFail();
 
