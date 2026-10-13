@@ -7,12 +7,14 @@ namespace App\Http\Controllers\Web;
 use App\Http\Requests\ProfessionalSearchRequest;
 use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
+use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
-use App\Models\Service;
-use App\Models\ProfessionalProfile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PublicSearchController
 {
@@ -37,6 +39,31 @@ class PublicSearchController
         $service = $this->serviceSearchService->findVisible($service->getKey());
 
         return view('public.services.show', compact('service'));
+    }
+
+    public function professionalPhoto(ProfessionalProfile $professional): BinaryFileResponse
+    {
+        // Reuse the public visibility rule before serving an image stored on the private disk.
+        $professional = $this->searchService->findVisible($professional);
+        $path = $professional->user->profile?->avatar_path;
+
+        abort_unless(
+            is_string($path) && $path !== '' && Storage::disk('local')->exists($path),
+            404,
+        );
+
+        $mimeType = Storage::disk('local')->mimeType($path);
+        abort_unless(
+            is_string($mimeType) && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true),
+            404,
+        );
+
+        $response = response()->file(Storage::disk('local')->path($path));
+        $response->headers->set('Content-Type', $mimeType);
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
     }
 
     public function professional(ProfessionalProfile $professional): View
@@ -70,5 +97,4 @@ class PublicSearchController
                 ->get(['id', 'name', 'slug']),
         ];
     }
-
 }
