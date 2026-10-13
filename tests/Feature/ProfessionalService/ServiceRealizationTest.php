@@ -61,6 +61,16 @@ class ServiceRealizationTest extends TestCase
             ->delete(route('professional.services.realizations.destroy', $realization))
             ->assertForbidden();
 
+        $this->actingAs($otherProfessional)
+            ->get(route('admin.services.index'))
+            ->assertForbidden();
+
+        $this->actingAs($otherProfessional)
+            ->post(route('admin.service-realizations.approve', $realization), [
+                'review_note' => 'Tentative non autorisée.',
+            ])
+            ->assertForbidden();
+
         $this->assertDatabaseHas('service_realizations', [
             'id' => $realization->id,
             'status' => ServiceRealization::STATUS_PENDING,
