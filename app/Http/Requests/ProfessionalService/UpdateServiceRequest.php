@@ -29,7 +29,7 @@ class UpdateServiceRequest extends FormRequest
         return [
             'category_id' => ['sometimes', 'required', 'integer', 'exists:categories,id'],
             'title' => ['sometimes', 'required', 'string', 'min:3', 'max:160'],
-            'short_description' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'short_description' => ['sometimes', 'nullable', 'string', 'max:300'],
             'description' => ['sometimes', 'required', 'string', 'min:20', 'max:10000'],
             'included_items' => ['sometimes', 'nullable', 'string', 'max:5000'],
             'excluded_items' => ['sometimes', 'nullable', 'string', 'max:5000'],
