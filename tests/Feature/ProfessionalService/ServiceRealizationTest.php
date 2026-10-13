@@ -91,7 +91,7 @@ class ServiceRealizationTest extends TestCase
         $this->actingAs($owner, 'sanctum')
             ->get('/api/v1/professional/service-realizations/'.$realizationId.'/file')
             ->assertOk()
-            ->assertHeader('Cache-Control', 'private, no-store');
+            ->assertHeader('Cache-Control', 'no-store, private');
     }
 
     public function test_admin_approval_makes_realization_public_only_for_a_visible_service(): void
