@@ -8,6 +8,7 @@ use App\Enums\ConversationStatus;
 use App\Jobs\Notifications\SendNotificationEmail;
 use App\Models\Conversation;
 use App\Models\NotificationDelivery;
+use App\Models\MessageAttachment;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
@@ -273,7 +274,7 @@ class MessagingApiTest extends TestCase
 
         $response->assertCreated()->assertJsonPath('data.attachments.0.name', 'plan.jpg');
         $attachmentId = $response->json('data.attachments.0.id');
-        $attachment = \App\Models\MessageAttachment::query()->findOrFail($attachmentId);
+        $attachment = MessageAttachment::query()->findOrFail($attachmentId);
         Storage::disk('local')->assertExists($attachment->path);
 
         $downloadUrl = $response->json('data.attachments.0.download_url');
