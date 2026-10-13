@@ -240,6 +240,12 @@ class ProfessionalServiceApiTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($professionalA, 'sanctum')
+            ->patchJson('/api/v1/professional/service-images/'.$image, ['alt_text' => 'Image principale du service'])
+            ->assertOk()
+            ->assertJsonPath('data.alt_text', 'Image principale du service')
+            ->assertJsonPath('data.is_cover', true);
+
+        $this->actingAs($professionalA, 'sanctum')
             ->patchJson('/api/v1/professional/service-images/'.$image, ['is_cover' => false])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['is_cover']);
