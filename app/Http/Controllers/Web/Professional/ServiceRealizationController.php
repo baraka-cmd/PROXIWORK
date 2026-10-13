@@ -41,7 +41,7 @@ class ServiceRealizationController extends Controller
         return back()->with('success', 'Réalisation envoyée à la modération. Elle ne sera visible des clients qu’après approbation.');
     }
 
-    public function file(Request $request, ServiceRealization $realization): BinaryFileResponse
+    public function file(ServiceRealization $realization): BinaryFileResponse
     {
         $this->authorize('view', $realization->service);
 
