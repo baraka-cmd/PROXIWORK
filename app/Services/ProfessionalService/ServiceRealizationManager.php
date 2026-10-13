@@ -20,7 +20,7 @@ class ServiceRealizationManager
     {
         $path = $file->store('service-realizations/'.$service->getKey(), 'local');
 
-        if (! is_string($path) || $path === '') {
+        if (is_string($path) === false || $path === '') {
             throw ValidationException::withMessages([
                 'image' => 'La preuve n’a pas pu être enregistrée. Réessayez avec une autre image.',
             ]);
