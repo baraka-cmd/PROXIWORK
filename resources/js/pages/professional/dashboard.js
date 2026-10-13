@@ -35,7 +35,6 @@ if (root && payload) {
         return new Intl.DateTimeFormat(document.documentElement.lang || 'fr-FR', {
             day: label.length === 10 ? '2-digit' : undefined,
             month: 'short',
-            year: label.length === 7 ? undefined : undefined,
         }).format(date);
     };
 
