@@ -78,13 +78,37 @@ class UpdateServiceRequest extends FormRequest
     {
         $data = [];
 
-        foreach (['title', 'short_description', 'description', 'currency'] as $field) {
+        foreach ([
+            'title',
+            'short_description',
+            'description',
+            'included_items',
+            'excluded_items',
+            'client_requirements',
+            'deliverables',
+            'commercial_conditions',
+            'currency',
+        ] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $data[$field] = trim((string) $this->input($field));
             }
         }
 
-        if (array_key_exists('currency', $data)) {
+        foreach ([
+            'short_description',
+            'included_items',
+            'excluded_items',
+            'client_requirements',
+            'deliverables',
+            'commercial_conditions',
+            'currency',
+        ] as $optionalField) {
+            if (array_key_exists($optionalField, $data) && $data[$optionalField] === '') {
+                $data[$optionalField] = null;
+            }
+        }
+
+        if (isset($data['currency'])) {
             $data['currency'] = strtoupper($data['currency']);
         }
 
