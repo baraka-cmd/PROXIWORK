@@ -13,7 +13,6 @@ use App\Http\Requests\ServiceRequest\UpdateServiceRequestRequest;
 use App\Http\Resources\ServiceRequest\ServiceRequestResource;
 use App\Models\ServiceRequest;
 use App\Services\Audit\AuditLogService;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Services\ServiceRequest\ServiceRequestService;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +26,6 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
-        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function clientIndex(IndexServiceRequestRequest $request): AnonymousResourceCollection
@@ -160,10 +158,6 @@ class ServiceRequestController extends Controller
         $serviceRequest = $this->lifecycleService->submit($serviceRequest, $request->user());
 
         $this->auditLogService->record('service_request_submitted', $serviceRequest, $request->user(), [], $request);
-        $this->notificationService->serviceRequestCreated(
-            $serviceRequest->professional->user,
-            $serviceRequest->service->title,
-        );
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande envoyée au professionnel avec succès.',
@@ -178,7 +172,6 @@ class ServiceRequestController extends Controller
         $serviceRequest = $this->lifecycleService->cancel($serviceRequest, $request->user());
 
         $this->auditLogService->record('service_request_cancelled', $serviceRequest, $request->user(), [], $request);
-        $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user);
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande annulée avec succès.',
@@ -201,8 +194,6 @@ class ServiceRequestController extends Controller
         $this->auditLogService->record('service_request_rejected', $serviceRequest, $request->user(), [
             'reason' => $request->validated('reason'),
         ], $request);
-
-        $this->notificationService->serviceRequestRejected($serviceRequest->client);
 
         return (new ServiceRequestResource($serviceRequest))->additional([
             'message' => 'Demande refusée avec succès.',

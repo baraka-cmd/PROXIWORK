@@ -192,7 +192,7 @@ class ServiceRequestApiTest extends TestCase
             'changed_by' => $client->id,
         ]);
 
-        Notification::assertSentTo($professional, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professional->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_client_cannot_submit_twice_or_submit_another_clients_request(): void
@@ -336,7 +336,7 @@ class ServiceRequestApiTest extends TestCase
             'reason' => 'Le délai demandé n’est pas compatible avec mes disponibilités.',
         ]);
 
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_other_professional_cannot_view_or_reject_request(): void

@@ -11,6 +11,7 @@ use App\Models\ProfessionalProfile;
 use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\User;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
@@ -19,6 +20,7 @@ class ReviewService
 {
     public function __construct(
         private readonly DatabaseManager $database,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function create(Order $order, User $client, int $rating, ?string $comment): Review
@@ -81,6 +83,14 @@ class ReviewService
             ]);
 
             $this->refreshProfessionalRating($professional);
+
+            $professionalUser = User::query()->find($professional->user_id);
+            if ($professionalUser !== null) {
+                $this->notificationService->reviewReceived(
+                    $professionalUser,
+                    'review-received:'.$review->getKey(),
+                );
+            }
 
             return $review->load('response');
         }, attempts: 3);

@@ -7,14 +7,16 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Http\Resources\ProfileResource;
-use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function show(Request $request): ProfileResource
@@ -37,14 +39,16 @@ class ProfileController extends Controller
 
         $this->authorize('update', $profile);
 
-        $profile->update($request->validated());
+        DB::transaction(function () use ($profile, $request): void {
+            $profile->update($request->validated());
 
-        $this->auditLogService->record('profile_updated', $profile, $request->user(), [], $request);
-        $request->user()->notify(new AccountActivityNotification(
-            'Profil mis à jour',
-            'Les informations de votre profil ont été mises à jour.',
-            'profile_updated',
-        ));
+            $this->auditLogService->record('profile_updated', $profile, $request->user(), [], $request);
+            $this->notificationService->accountActivity(
+                $request->user(),
+                'Profil mis à jour',
+                'Les informations de votre profil ont été mises à jour.',
+            );
+        });
 
         return (new ProfileResource($profile->refresh()))->additional([
             'message' => 'Profil mis à jour avec succès.',

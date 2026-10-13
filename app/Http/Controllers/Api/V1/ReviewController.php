@@ -15,7 +15,6 @@ use App\Http\Resources\Review\ReviewResponseResource;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\ReviewResponse;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Review\ReviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,7 +23,6 @@ class ReviewController extends Controller
 {
     public function __construct(
         private readonly ReviewService $reviewService,
-        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function store(StoreReviewRequest $request, Order $order): JsonResponse
@@ -37,9 +35,6 @@ class ReviewController extends Controller
         );
 
         $review->loadMissing('professional.user');
-        if ($review->professional?->user !== null) {
-            $this->notificationService->reviewReceived($review->professional->user);
-        }
 
         return response()->json([
             'message' => 'Avis publié avec succès.',

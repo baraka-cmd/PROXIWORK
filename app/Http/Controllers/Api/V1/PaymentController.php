@@ -13,7 +13,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\StorePaymentRequest;
 use App\Http\Resources\Payment\PaymentResource;
 use App\Models\Order;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Payment\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +24,6 @@ class PaymentController extends Controller
         StorePaymentRequest $request,
         Order $order,
         PaymentService $paymentService,
-        TransactionalNotificationService $notificationService,
     ): PaymentResource|JsonResponse {
         $this->authorize('pay', $order);
 
@@ -49,15 +47,6 @@ class PaymentController extends Controller
                 'data' => null,
                 'meta' => [],
             ], Response::HTTP_SERVICE_UNAVAILABLE);
-        }
-
-        if ($payment->status === PaymentStatus::SUCCEEDED) {
-            $notificationService->paymentSucceeded($request->user());
-
-            $payment->loadMissing('order.professional.user');
-            if ($payment->order?->professional?->user !== null) {
-                $notificationService->orderConfirmed($payment->order->professional->user);
-            }
         }
 
         $httpStatus = match ($payment->status) {

@@ -136,7 +136,7 @@ class AuthenticationTest extends TestCase
         $this->assertTrue(Hash::check($newPassword, $user->fresh()->password));
         $this->assertDatabaseCount('personal_access_tokens', 0);
         $this->assertDatabaseHas('audit_logs', ['user_id' => $user->id, 'action' => 'password_reset']);
-        Notification::assertSentTo($user, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $user->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_password_reset_rejects_an_invalid_token_without_changing_credentials(): void

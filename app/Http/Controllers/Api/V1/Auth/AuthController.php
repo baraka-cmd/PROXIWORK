@@ -11,8 +11,8 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
-use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -29,6 +29,7 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -128,26 +129,35 @@ class AuthController extends Controller
 
     public function changePassword(ChangePasswordRequest $request): JsonResponse
     {
-        $user = $request->user();
+        $user = DB::transaction(function () use ($request): User {
+            $user = User::query()
+                ->whereKey($request->user()->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
-            throw ValidationException::withMessages([
-                'current_password' => ['Le mot de passe actuel est incorrect.'],
+            if (! Hash::check($request->string('current_password')->toString(), $user->password)) {
+                throw ValidationException::withMessages([
+                    'current_password' => ['Le mot de passe actuel est incorrect.'],
+                ]);
+            }
+
+            $user->update([
+                'password' => $request->string('password')->toString(),
             ]);
-        }
 
-        $user->update([
-            'password' => $request->string('password')->toString(),
-        ]);
+            $user->tokens()->delete();
 
-        $user->tokens()->delete();
+            $this->auditLogService->record('password_changed', $user, $user, [], $request);
+            $this->notificationService->securityAlert(
+                $user,
+                'Mot de passe modifié',
+                'Votre mot de passe a été modifié et vos anciennes sessions ont été révoquées.',
+                null,
+                'password-changed:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
+            );
 
-        $this->auditLogService->record('password_changed', $user, $user, [], $request);
-        $user->notify(new AccountActivityNotification(
-            'Mot de passe modifié',
-            'Votre mot de passe a été modifié et vos anciennes sessions ont été révoquées.',
-            'password_changed',
-        ));
+            return $user;
+        });
 
         $token = $user->createToken(
             $request->string('device_name')->toString(),
@@ -190,21 +200,30 @@ class AuthController extends Controller
     {
         $resetUser = null;
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) use (&$resetUser): void {
-                $resetUser = $user;
+        $status = DB::transaction(function () use ($request, &$resetUser) {
+            return Password::reset(
+                $request->only('email', 'password', 'password_confirmation', 'token'),
+                function (User $user, string $password) use (&$resetUser): void {
+                    $resetUser = $user;
 
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
+                    $user->forceFill([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60),
+                    ])->save();
 
-                $user->tokens()->delete();
+                    $user->tokens()->delete();
 
-                event(new PasswordReset($user));
-            }
-        );
+                    event(new PasswordReset($user));
+                    $this->notificationService->securityAlert(
+                        $user,
+                        'Mot de passe réinitialisé',
+                        'Votre mot de passe a été réinitialisé avec succès.',
+                        null,
+                        'password-reset:'.$user->getKey().':'.(string) $user->updated_at?->timestamp,
+                    );
+                }
+            );
+        });
 
         if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
             throw ValidationException::withMessages([
@@ -213,11 +232,6 @@ class AuthController extends Controller
         }
 
         $this->auditLogService->record('password_reset', $resetUser, $resetUser, [], $request);
-        $resetUser->notify(new AccountActivityNotification(
-            'Mot de passe réinitialisé',
-            'Votre mot de passe a été réinitialisé avec succès.',
-            'password_reset',
-        ));
 
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',

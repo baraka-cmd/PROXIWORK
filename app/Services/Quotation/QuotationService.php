@@ -12,6 +12,7 @@ use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Order\OrderService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,7 @@ class QuotationService
     public function __construct(
         private readonly ServiceRequestLifecycleService $requestLifecycle,
         private readonly OrderService $orderService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function create(ServiceRequest $serviceRequest, User $professional, array $data): Quotation
@@ -29,7 +31,7 @@ class QuotationService
         return DB::transaction(function () use ($serviceRequest, $professional, $data): Quotation {
             $request = ServiceRequest::query()
                 ->lockForUpdate()
-                ->with('professional')
+                ->with(['professional', 'client'])
                 ->findOrFail($serviceRequest->getKey());
 
             if ($request->status !== ServiceRequestStatus::REQUESTED) {
@@ -69,7 +71,17 @@ class QuotationService
 
             $this->requestLifecycle->markQuoted($request, $professional);
 
-            return $quotation->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
+            $quotation = $quotation->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
+
+            if ($request->client !== null) {
+                $this->notificationService->quotationCreated(
+                    $request->client,
+                    route('client.quotes.show', $quotation, true),
+                    'quotation-created:'.$quotation->getKey(),
+                );
+            }
+
+            return $quotation;
         });
     }
 
@@ -78,7 +90,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $client): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest')
+                ->with(['serviceRequest', 'serviceRequest.professional.user'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->client_id !== $client->getKey()) {
@@ -103,7 +115,7 @@ class QuotationService
                 ]);
             }
 
-            $request = ServiceRequest::query()->lockForUpdate()->findOrFail($locked->service_request_id);
+            $request = ServiceRequest::query()->with('professional.user')->lockForUpdate()->findOrFail($locked->service_request_id);
 
             if ($request->status !== ServiceRequestStatus::QUOTED) {
                 throw ValidationException::withMessages([
@@ -135,6 +147,14 @@ class QuotationService
             $this->requestLifecycle->accept($request, $client);
             $this->orderService->createFromAcceptedQuotation($locked, $client);
 
+            if ($request->professional?->user !== null) {
+                $this->notificationService->quotationAccepted(
+                    $request->professional->user,
+                    route('professional.quotes.show', $locked, true),
+                    'quotation-accepted:'.$locked->getKey(),
+                );
+            }
+
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events', 'order']);
         });
     }
@@ -144,7 +164,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $professional): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest.professional')
+                ->with(['serviceRequest.professional', 'serviceRequest.client'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->professional?->user_id !== $professional->getKey()) {
@@ -201,6 +221,14 @@ class QuotationService
             $this->requestLifecycle->accept($request, $professional);
             $this->orderService->createFromAcceptedQuotation($locked, $professional);
 
+            if ($locked->serviceRequest->client !== null) {
+                $this->notificationService->clientCounterOfferAccepted(
+                    $locked->serviceRequest->client,
+                    route('client.quotes.show', $locked, true),
+                    'client-counter-offer-accepted:'.$locked->getKey(),
+                );
+            }
+
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events', 'order']);
         });
     }
@@ -210,7 +238,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $professional): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest.professional')
+                ->with(['serviceRequest.professional', 'serviceRequest.client'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->professional?->user_id !== $professional->getKey()) {
@@ -259,6 +287,14 @@ class QuotationService
 
             $this->requestLifecycle->rejectByProfessionalDuringNegotiation($request, $professional);
 
+            if ($locked->serviceRequest->client !== null) {
+                $this->notificationService->clientCounterOfferRejected(
+                    $locked->serviceRequest->client,
+                    route('client.quotes.show', $locked, true),
+                    'client-counter-offer-rejected:'.$locked->getKey(),
+                );
+            }
+
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         });
     }
@@ -268,7 +304,7 @@ class QuotationService
         return DB::transaction(function () use ($quotation, $client): Quotation {
             $locked = Quotation::query()
                 ->lockForUpdate()
-                ->with('serviceRequest')
+                ->with(['serviceRequest', 'serviceRequest.professional.user'])
                 ->findOrFail($quotation->getKey());
 
             if ($locked->serviceRequest->client_id !== $client->getKey()) {
@@ -308,6 +344,14 @@ class QuotationService
             ]);
 
             $this->requestLifecycle->rejectByClient($locked->serviceRequest, $client);
+
+            if ($locked->serviceRequest->professional?->user !== null) {
+                $this->notificationService->quotationRejected(
+                    $locked->serviceRequest->professional->user,
+                    route('professional.quotes.show', $locked, true),
+                    'quotation-rejected:'.$locked->getKey(),
+                );
+            }
 
             return $locked->refresh()->load(['currentOffer', 'acceptedOffer', 'offers', 'events']);
         });

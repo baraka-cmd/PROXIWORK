@@ -313,7 +313,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'user_id' => $client->id,
         ]);
 
-        Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professionalUser->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_web_client_quote_rejection_updates_request_history_audit_and_notification(): void
@@ -366,7 +366,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'user_id' => $client->id,
         ]);
 
-        Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professionalUser->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_quote_page_guides_client_to_add_an_address_before_acceptance(): void
@@ -554,7 +554,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->assertSame('100.00', $order->total);
         $this->assertSame(1, Order::query()->where('quotation_id', $quotation->id)->count());
 
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     public function test_client_cannot_change_currency_during_counter_offer(): void
@@ -615,8 +615,8 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'actor_id' => null,
         ]);
 
-        Notification::assertSentTo($client, AccountActivityNotification::class);
-        Notification::assertSentTo($professionalUser, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $professionalUser->getKey(), 'type' => AccountActivityNotification::class]);
 
         $eventCount = QuotationEvent::query()
             ->where('quotation_id', $quotation->id)
@@ -713,7 +713,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'subject_id' => $quotation->id,
             'user_id' => $professionalUser->id,
         ]);
-        Notification::assertSentTo($client, AccountActivityNotification::class);
+        $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
     private function makeQuoteForClient(

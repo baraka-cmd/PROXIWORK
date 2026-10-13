@@ -15,17 +15,14 @@ use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Services\Audit\AuditLogService;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Services\ServiceRequest\ServiceRequestService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
-use Throwable;
 
 class ServiceRequestController extends Controller
 {
@@ -33,8 +30,9 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
-        private readonly TransactionalNotificationService $notificationService,
-    ) {}
+    ) {
+        // Dependencies are promoted constructor properties.
+    }
 
     public function index(IndexServiceRequestRequest $request): View
     {
@@ -183,15 +181,6 @@ class ServiceRequestController extends Controller
             $request,
         );
 
-        $this->notifySafely(
-            fn () => $this->notificationService->serviceRequestCreated(
-                $serviceRequest->professional->user,
-                $serviceRequest->service->title,
-            ),
-            'service_request_submitted',
-            $serviceRequest,
-        );
-
         return back()->with('success', 'Votre demande a été envoyée au professionnel.');
     }
 
@@ -234,29 +223,6 @@ class ServiceRequestController extends Controller
             $request,
         );
 
-        if ($serviceRequest->professional?->user !== null) {
-            $this->notifySafely(
-                fn () => $this->notificationService->serviceRequestCancelled($serviceRequest->professional->user),
-                'service_request_cancelled',
-                $serviceRequest,
-            );
-        }
-
         return back()->with('success', 'Votre demande a été annulée.');
-    }
-
-    private function notifySafely(callable $notification, string $event, ServiceRequest $serviceRequest): void
-    {
-        try {
-            $notification();
-        } catch (Throwable $exception) {
-            // The state transition is already committed; notification failure must not
-            // make the client believe that the business operation itself failed.
-            Log::error('PROXIWORK service request notification failed.', [
-                'event' => $event,
-                'service_request_id' => $serviceRequest->getKey(),
-                'exception' => $exception::class,
-            ]);
-        }
     }
 }

@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\Client\Dashboard\ClientDashboardController;
 use App\Http\Controllers\Api\V1\FavoriteController;
 use App\Http\Controllers\Api\V1\Messaging\ConversationController;
 use App\Http\Controllers\Api\V1\Notification\NotificationController;
+use App\Http\Controllers\Api\V1\NotificationDeviceController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\PaymentWebhookController;
@@ -131,6 +132,9 @@ Route::prefix('v1')->group(function (): void {
             Route::post('withdrawals', [WalletController::class, 'withdraw'])->middleware('throttle:payment');
         });
 
+        Route::post('notification-devices', [NotificationDeviceController::class, 'store'])->middleware('throttle:20,1');
+        Route::delete('notification-devices', [NotificationDeviceController::class, 'destroy'])->middleware('throttle:20,1');
+
         Route::get('conversations', [ConversationController::class, 'index']);
         Route::post('professionals/{professionalProfile}/conversations', [ConversationController::class, 'storeForProfessional'])
             ->middleware('role:client');
@@ -227,8 +231,10 @@ Route::prefix('v1')->group(function (): void {
 
         Route::prefix('notifications')->group(function (): void {
             Route::get('/', [NotificationController::class, 'index']);
-            Route::post('{notification}/read', [NotificationController::class, 'markAsRead']);
             Route::post('read-all', [NotificationController::class, 'markAllAsRead']);
+            Route::post('{notification}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('{notification}/archive', [NotificationController::class, 'archive']);
+            Route::post('{notification}/restore', [NotificationController::class, 'restore']);
             Route::get('preferences', [NotificationController::class, 'preferences']);
             Route::patch('preferences', [NotificationController::class, 'updatePreferences']);
         });
