@@ -38,6 +38,7 @@ class ProfessionalProfile extends Model
     protected $fillable = [
         'professional_title',
         'description',
+        'languages',
         'years_experience',
         'starting_price',
         'currency',
@@ -54,6 +55,7 @@ class ProfessionalProfile extends Model
         return [
             'verification_status' => ProfessionalVerificationStatus::class,
             'availability_status' => ProfessionalAvailabilityStatus::class,
+            'languages' => 'array',
             'rating_average' => 'decimal:2',
             'rating_count' => 'integer',
             'starting_price' => 'decimal:2',

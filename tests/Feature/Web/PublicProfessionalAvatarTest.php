@@ -67,6 +67,7 @@ class PublicProfessionalAvatarTest extends TestCase
             'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
             'verification_status' => ProfessionalVerificationStatus::VERIFIED,
             'description' => null,
+            'languages' => ['Français', 'Swahili'],
         ]);
 
         $category = Category::factory()->create(['status' => 'active']);
@@ -74,13 +75,17 @@ class PublicProfessionalAvatarTest extends TestCase
             'professional_profile_id' => $professional->getKey(),
             'category_id' => $category->getKey(),
             'status' => 'published',
+            'execution_mode' => 'remote',
             'published_at' => now(),
         ]);
 
         $this->get(route('public.professionals.show', $professional))
             ->assertOk()
             ->assertDontSeeText('TEXTE PERSONNEL CONFIDENTIEL')
-            ->assertSeeText('Aucune présentation professionnelle publiée pour le moment.');
+            ->assertSeeText('Aucune présentation professionnelle publiée pour le moment.')
+            ->assertSeeText('Français')
+            ->assertSeeText('Swahili')
+            ->assertSeeText('Modes de prestation : À distance');
     }
 
     public function test_avatar_is_not_served_when_profile_is_private(): void

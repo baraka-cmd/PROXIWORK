@@ -155,7 +155,7 @@ class ProfileController extends Controller
         $identity = array_intersect_key($validated, array_flip(['first_name', 'last_name']));
         $availability = $validated['availability_status'];
         $visibility = $validated['visibility'];
-        unset($validated['first_name'], $validated['last_name'], $validated['availability_status'], $validated['visibility']);
+        unset($validated['first_name'], $validated['last_name'], $validated['availability_status'], $validated['visibility'], $validated['languages_text']);
 
         $user = $request->user();
 

@@ -206,6 +206,37 @@ class ProfessionalProfileManagementTest extends TestCase
             ->assertSessionHasErrors(['longitude']);
     }
 
+    public function test_professional_can_save_and_clear_declared_languages(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = $user->professionalProfile()->create();
+
+        $payload = [
+            'availability_status' => ProfessionalAvailabilityStatus::UNKNOWN->value,
+            'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+            'languages_text' => "Français, swahili\nFrançais, anglais",
+        ];
+
+        $this->actingAs($user)
+            ->patch(route('professional.profile.update'), $payload)
+            ->assertRedirect(route('professional.profile'))
+            ->assertSessionHas('success');
+
+        $this->assertSame(['Français', 'swahili', 'anglais'], $profile->fresh()->languages);
+
+        $this->actingAs($user)
+            ->patch(route('professional.profile.update'), [
+                'availability_status' => ProfessionalAvailabilityStatus::UNKNOWN->value,
+                'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+                'languages_text' => '',
+            ])
+            ->assertRedirect(route('professional.profile'))
+            ->assertSessionHas('success');
+
+        $this->assertSame([], $profile->fresh()->languages);
+    }
+
     public function test_profile_completion_is_independent_from_verification_and_service_publication(): void
     {
         $user = User::factory()->create();

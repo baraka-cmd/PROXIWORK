@@ -27,6 +27,9 @@ class UpdateProfessionalProfileRequest extends FormRequest
             'last_name' => ['nullable', 'string', 'max:100', 'required_with:first_name'],
             'professional_title' => ['nullable', 'string', 'max:160'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'languages_text' => ['nullable', 'string', 'max:1000'],
+            'languages' => ['sometimes', 'array', 'max:12'],
+            'languages.*' => ['string', 'max:60', 'distinct:ignore_case'],
             'years_experience' => ['nullable', 'integer', 'min:0', 'max:80'],
             'starting_price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99', 'required_with:currency'],
             'currency' => ['nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/', 'required_with:starting_price'],
@@ -106,6 +109,19 @@ class UpdateProfessionalProfileRequest extends FormRequest
 
         if ($this->has('currency') && $this->input('currency') !== null) {
             $data['currency'] = strtoupper(trim((string) $this->input('currency')));
+        }
+
+        if (array_key_exists('languages_text', $this->all()) && (is_string($this->input('languages_text')) || $this->input('languages_text') === null)) {
+            $rawLanguages = (string) ($this->input('languages_text') ?? '');
+            $languages = preg_split('/[,;\r\n]+/u', $rawLanguages) ?: [];
+            $languages = collect($languages)
+                ->map(fn (string $language): string => trim($language))
+                ->filter()
+                ->unique(fn (string $language): string => mb_strtolower($language))
+                ->values()
+                ->all();
+
+            $data['languages'] = $languages;
         }
 
         $this->merge($data);
