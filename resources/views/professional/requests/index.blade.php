@@ -4,7 +4,7 @@
 @section('page_heading', 'Demandes de service')
 
 @push('head')
-    @vite('resources/css/pages/client/service-requests.css')
+    @vite('resources/css/pages/professional/requests.css')
 @endpush
 
 @section('content')
@@ -15,6 +15,13 @@
             <p class="page-lead">Consultez les demandes qui vous sont adressées, répondez au client et préparez vos devis.</p>
         </div>
     </div>
+
+    <section class="professional-request-stats" aria-label="Résumé des demandes reçues">
+        <article class="professional-request-stat"><span>Total reçu</span><strong>{{ number_format($statistics['total']) }}</strong><small>Toutes les demandes</small></article>
+        <article class="professional-request-stat"><span>À examiner</span><strong>{{ number_format($statistics['awaiting_review']) }}</strong><small>Demandes en attente du professionnel</small></article>
+        <article class="professional-request-stat"><span>En attente du client</span><strong>{{ number_format($statistics['awaiting_client']) }}</strong><small>Devis transmis ou négociation</small></article>
+        <article class="professional-request-stat"><span>Demandes clôturées</span><strong>{{ number_format($statistics['closed']) }}</strong><small>Refusées ou annulées</small></article>
+    </section>
 
     @if (session('success'))
         <div class="alert alert--success" role="status">{{ session('success') }}</div>
@@ -38,7 +45,9 @@
                     <select id="professional-request-status" name="status">
                         <option value="">Tous les statuts</option>
                         @foreach(\App\Enums\ServiceRequestStatus::cases() as $status)
-                            <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $status->label() }}</option>
+                            @if ($status !== \App\Enums\ServiceRequestStatus::DRAFT)
+                            <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $statusLabels[$status->value] ?? $status->label() }}</option>
+                            @endif
                         @endforeach
                         <option value="closed" @selected(($filters['status'] ?? '') === 'closed')>Clôturées</option>
                     </select>
@@ -102,7 +111,7 @@
                             </td>
                             <td>{{ $serviceRequest->service?->title ?? 'Service indisponible' }}</td>
                             <td>{{ $serviceRequest->client?->name ?? 'Client' }}</td>
-                            <td><span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">{{ $serviceRequest->status->label() }}</span></td>
+                            <td><span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">{{ $statusLabels[$serviceRequest->status->value] ?? $serviceRequest->status->label() }}</span></td>
                             <td>{{ $serviceRequest->requested_at?->format('d/m/Y H:i') ?? $serviceRequest->created_at?->format('d/m/Y H:i') }}</td>
                             <td><a class="button button--ghost button--sm" href="{{ route('professional.requests.show', $serviceRequest) }}">Consulter</a></td>
                         </tr>

@@ -4,7 +4,7 @@
 @section('page_heading', 'Détail de la demande')
 
 @push('head')
-    @vite('resources/css/pages/client/service-requests.css')
+    @vite('resources/css/pages/professional/requests.css')
 @endpush
 
 @section('content')
@@ -93,6 +93,26 @@
             @endif
         </aside>
     </div>
+
+    <section class="surface-card content-card request-attachments-panel">
+        <h2>Pièces jointes du client</h2>
+        <p>Documents privés transmis avec cette demande. Ils sont conservés dans l’historique et ne sont pas publiquement accessibles.</p>
+        @if ($serviceRequest->attachments->isNotEmpty())
+            <ul class="request-attachments-list">
+                @foreach ($serviceRequest->attachments as $attachment)
+                    <li>
+                        <div>
+                            <strong>{{ $attachment->original_name }}</strong>
+                            <small>{{ number_format($attachment->size / 1024, 0, ',', ' ') }} Ko · Ajouté le {{ $attachment->created_at?->format('d/m/Y à H:i') }}</small>
+                        </div>
+                        <a class="button button--ghost" href="{{ route('professional.requests.attachments.download', [$serviceRequest, $attachment]) }}">Télécharger</a>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <p>Aucune pièce jointe n’a été fournie pour cette demande.</p>
+        @endif
+    </section>
 
     <section class="surface-card content-card">
         <h2>Historique de la demande</h2>

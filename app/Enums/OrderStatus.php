@@ -9,6 +9,7 @@ enum OrderStatus: string
     case PENDING_PAYMENT = 'pending_payment';
     case CONFIRMED = 'confirmed';
     case IN_PROGRESS = 'in_progress';
+    case DELIVERY_SUBMITTED = 'delivery_submitted';
     case COMPLETED = 'completed';
     case CANCELLED = 'cancelled';
     case DISPUTED = 'disputed';
@@ -16,7 +17,7 @@ enum OrderStatus: string
     public function isOperationallyActive(): bool
     {
         return match ($this) {
-            self::PENDING_PAYMENT, self::CONFIRMED, self::IN_PROGRESS => true,
+            self::CONFIRMED, self::IN_PROGRESS, self::DELIVERY_SUBMITTED => true,
             default => false,
         };
     }

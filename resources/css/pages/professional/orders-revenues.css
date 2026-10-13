@@ -43,3 +43,27 @@
         width: 100%;
     }
 }
+
+
+/* Operational order workflow */
+.professional-order-workflow { display: grid; gap: 1rem; }
+.professional-order-workflow__notice { padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-muted, #f8fafc); }
+.professional-order-workflow__notice p { margin: .4rem 0 0; }
+.professional-order-workflow__forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.professional-order-workflow__forms form { display: grid; align-content: start; gap: .75rem; }
+.professional-order-workflow textarea { width: 100%; min-height: 7rem; padding: .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text); background: var(--color-surface); font: inherit; }
+.professional-order-workflow textarea:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.professional-order-workflow__summary { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 760px) { .professional-order-workflow__forms { grid-template-columns: 1fr; } }
+
+.professional-order-delivery-files { display: grid; gap: .5rem; padding-left: 1.25rem; overflow-wrap: anywhere; }
+.professional-order-delivery-files a { color: var(--color-primary); text-decoration: underline; text-underline-offset: .2em; }
+
+.professional-order-priorities{margin-block:1.25rem}
+.professional-order-priorities__alert{border-color:var(--color-danger,#dc2626)}
+.professional-order-priorities__alert strong{color:var(--color-danger,#dc2626)}
+.professional-table td small{display:block;margin-top:.25rem}
+
+.professional-order-schedule-form{display:grid;gap:.7rem;padding:1rem;border:1px solid var(--color-border);border-radius:var(--radius-md)}
+.professional-order-schedule-form input,.professional-order-schedule-form textarea{width:100%;min-height:42px;padding:.6rem .7rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:inherit}
+.professional-order-schedule-form input:focus-visible,.professional-order-schedule-form textarea:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}

@@ -16,6 +16,7 @@ use App\Services\Quotation\QuotationNegotiationService;
 use App\Services\Quotation\QuotationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class QuotationController extends Controller
@@ -30,6 +31,10 @@ class QuotationController extends Controller
     {
         $filters = $request->validate([
             'action_required' => ['sometimes', 'boolean'],
+            'status' => ['sometimes', 'nullable', Rule::enum(QuotationStatus::class)],
+            'q' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
+            'to' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
         ]);
 
         $actionRequired = (bool) ($filters['action_required'] ?? false);
@@ -43,12 +48,30 @@ class QuotationController extends Controller
                     ->where('actor_type', QuotationOfferActor::CLIENT->value));
         }
 
-        $quotations = $query
-            ->latest('id')
-            ->paginate(15)
-            ->withQueryString();
+        if (filled($filters['status'] ?? null)) {
+            $query->where('status', $filters['status']);
+        }
 
-        return view('professional.quotes.index', compact('quotations', 'actionRequired'));
+        if (filled($filters['q'] ?? null)) {
+            $term = $filters['q'];
+            $query->whereHas('serviceRequest', function ($requestQuery) use ($term): void {
+                $requestQuery->where(function ($nested) use ($term): void {
+                    $nested->where('title', 'like', '%'.$term.'%')
+                        ->orWhereHas('client', fn ($clientQuery) => $clientQuery->where('name', 'like', '%'.$term.'%'));
+                });
+            });
+        }
+
+        if (filled($filters['from'] ?? null)) {
+            $query->whereDate('created_at', '>=', $filters['from']);
+        }
+        if (filled($filters['to'] ?? null)) {
+            $query->whereDate('created_at', '<=', $filters['to']);
+        }
+
+        $quotations = $query->latest('id')->paginate(15)->withQueryString();
+
+        return view('professional.quotes.index', compact('quotations', 'actionRequired', 'filters'));
     }
 
     public function show(Quotation $quotation): View
@@ -77,7 +100,7 @@ class QuotationController extends Controller
     {
         $this->authorize('create', [Quotation::class, $serviceRequest]);
 
-        abort_unless($serviceRequest->status->value === 'requested' && ! $serviceRequest->quotation()->exists(), 404);
+        abort_if($serviceRequest->status->value !== 'requested' || $serviceRequest->quotation()->exists(), 404);
 
         $serviceRequest->load(['service', 'client']);
 

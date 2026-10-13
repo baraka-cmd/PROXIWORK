@@ -27,6 +27,9 @@ class Order extends Model
             'confirmed_at' => 'datetime',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'scheduled_start_at' => 'datetime',
+            'scheduled_end_at' => 'datetime',
+            'schedule_confirmed_at' => 'datetime',
             'cancelled_at' => 'datetime',
         ];
     }
@@ -59,6 +62,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function deliveryAttachments(): HasMany
+    {
+        return $this->hasMany(OrderDeliveryAttachment::class)->orderBy('created_at')->orderBy('id');
     }
 
     public function statusHistories(): HasMany

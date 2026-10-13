@@ -208,3 +208,22 @@
 .payment-event-item__body strong{font-size:.88rem}
 .payment-event-item__body p{display:flex;gap:.5rem;flex-wrap:wrap;margin:0;color:var(--color-text-muted);font-size:.82rem}
 .payment-event-item__body small{color:var(--color-text-muted);font-size:.78rem}
+
+
+/* Client delivery review */
+.client-order-delivery { display: grid; gap: 1rem; }
+.client-order-delivery__summary { padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-muted, #f8fafc); }
+.client-order-delivery__summary p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.client-order-delivery__actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.client-order-delivery__actions form { display: grid; align-content: start; gap: .75rem; }
+.client-order-delivery__actions textarea { width: 100%; min-height: 7rem; padding: .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text); background: var(--color-surface); font: inherit; }
+.client-order-delivery__actions textarea:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.client-order-delivery-history .timeline-item { display: grid; gap: .35rem; }
+@media (max-width: 700px) { .client-order-delivery__actions { grid-template-columns: 1fr; } }
+
+.client-order-delivery-files { display: grid; gap: .5rem; padding-left: 1.25rem; overflow-wrap: anywhere; }
+.client-order-delivery-files a { color: var(--color-primary); text-decoration: underline; text-underline-offset: .2em; }
+
+.client-order-schedule{display:grid;gap:.85rem}
+.client-order-schedule textarea{width:100%;min-height:6rem;padding:.7rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:inherit}
+.client-order-schedule textarea:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}
