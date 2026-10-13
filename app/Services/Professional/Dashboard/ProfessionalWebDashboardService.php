@@ -98,6 +98,7 @@ class ProfessionalWebDashboardService
         ];
 
         $activeOrders = (clone $orderQuery)->whereIn('status', $activeOrderStatuses)->count();
+        $disputedOrders = (clone $orderQuery)->where('status', OrderStatus::DISPUTED->value)->count();
         $completedOrders = (clone $orderQuery)
             ->where('status', OrderStatus::COMPLETED->value)
             ->whereNotNull('completed_at')
@@ -131,6 +132,7 @@ class ProfessionalWebDashboardService
             $profile,
             $requestsToHandle,
             $quotationsRequiringProfessionalAction,
+            $disputedOrders,
             $failedWithdrawals,
             $unreadMessages,
         );
@@ -163,6 +165,7 @@ class ProfessionalWebDashboardService
                 'requests_to_handle' => $requestsToHandle,
                 'quotations_requiring_action' => $quotationsRequiringProfessionalAction,
                 'active_orders' => $activeOrders,
+                'disputed_orders' => $disputedOrders,
                 'completed_orders' => $completedOrders,
                 'pending_withdrawals' => $pendingWithdrawals,
                 'failed_withdrawals' => $failedWithdrawals,
@@ -408,6 +411,7 @@ class ProfessionalWebDashboardService
         ProfessionalProfile $profile,
         int $requestsToHandle,
         int $quotationsRequiringAction,
+        int $disputedOrders,
         int $failedWithdrawals,
         int $unreadMessages,
     ): Collection {
@@ -477,6 +481,16 @@ class ProfessionalWebDashboardService
                 'priority' => 'normal',
                 'message' => 'Aucun document de vérification n’est enregistré. Consultez les pièces demandées dans votre espace de documents.',
                 'url' => route('professional.documents.index'),
+            ]);
+        }
+
+        if ($disputedOrders > 0) {
+            $actions->push([
+                'type' => 'disputes',
+                'priority' => 'high',
+                'count' => $disputedOrders,
+                'message' => $disputedOrders.' commande(s) en litige nécessitent votre attention.',
+                'url' => route('professional.orders.index', ['status' => OrderStatus::DISPUTED->value]),
             ]);
         }
 
