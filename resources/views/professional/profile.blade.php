@@ -89,6 +89,17 @@
         @endif
     </section>
 
+        @if ($professional->published_services_count === 0)
+            <div class="profile-visibility-notice profile-service-notice" role="status">
+                <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                <div>
+                    <strong>Aucun service publié</strong>
+                    <p>La complétude de votre profil est indépendante du catalogue. Pour apparaître dans l’annuaire, gérez vos offres et publiez au moins un service admissible.</p>
+                    <a class="button button--secondary button--sm" href="{{ route('professional.services.index') }}">Gérer mes services</a>
+                </div>
+            </div>
+        @endif
+
     <div class="professional-profile-grid">
         <section class="surface-card surface-card--md" aria-labelledby="profile-about-heading">
             <div class="surface-card__header"><h2 id="profile-about-heading">Présentation professionnelle</h2></div>
@@ -124,9 +135,8 @@
                     <li class="{{ $completionItems['presentation'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['presentation'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Présentation</li>
                     <li class="{{ $completionItems['service_area'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['service_area'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Ville et province</li>
                     <li class="{{ $completionItems['skills'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['skills'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Au moins une compétence</li>
-                    <li class="{{ $completionItems['services'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['services'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Au moins un service créé</li>
-                </ul>
-                @if (! $completionItems['personal'] || ! $completionItems['profession'] || ! $completionItems['presentation'] || ! $completionItems['service_area'] || ! $completionItems['skills'] || ! $completionItems['services'])
+                        </ul>
+                @if (! $completionItems['personal'] || ! $completionItems['profession'] || ! $completionItems['presentation'] || ! $completionItems['service_area'] || ! $completionItems['skills'])
                     <a class="button button--secondary profile-completion-action" href="{{ route('professional.profile.edit') }}">Compléter les informations manquantes</a>
                 @endif
             </div>
