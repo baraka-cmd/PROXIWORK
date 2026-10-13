@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\\Http\\Requests\\ProfessionalProfile;
+namespace App\Http\Requests\ProfessionalProfile;
 
-use App\\Enums\\ProfessionalAvailabilityStatus;
-use App\\Enums\\ProfessionalVerificationStatus;
-use App\\Models\\ProfessionalProfile;
-use App\\Enums\\ServiceStatus;
-use App\\Models\\User;
-use Illuminate\\Foundation\\Http\\FormRequest;
-use Illuminate\\Validation\\Rule;
-use Illuminate\\Validation\\Validator;
+use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ProfessionalVerificationStatus;
+use App\Models\ProfessionalProfile;
+use App\Enums\ServiceStatus;
+use App\Models\User;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateProfessionalProfileRequest extends FormRequest
 {
