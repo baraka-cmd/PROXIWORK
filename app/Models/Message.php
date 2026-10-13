@@ -16,6 +16,8 @@ class Message extends Model
         'conversation_id',
         'sender_id',
         'body',
+        'idempotency_key',
+        'reply_to_message_id',
     ];
 
     public function conversation(): BelongsTo
@@ -23,8 +25,18 @@ class Message extends Model
         return $this->belongsTo(Conversation::class);
     }
 
+    public function attachments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(MessageAttachment::class);
+    }
+
     public function sender(): BelongsTo
     {
         return $this->belongsTo(User::class, 'sender_id');
+    }
+
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'reply_to_message_id');
     }
 }
