@@ -199,6 +199,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('services/create', [ProfileController::class, 'createService'])->name('services.create');
     Route::post('services', [ProfileController::class, 'storeService'])->name('services.store');
     Route::get('services/{service}/edit', [ProfileController::class, 'editService'])->name('services.edit');
+    Route::get('services/{service}/preview', [ProfileController::class, 'previewService'])->name('services.preview');
     Route::patch('services/{service}', [ProfileController::class, 'updateService'])->name('services.update');
     Route::post('services/{service}/publish', [ProfileController::class, 'publishService'])->name('services.publish');
     Route::post('services/{service}/unpublish', [ProfileController::class, 'unpublishService'])->name('services.unpublish');
