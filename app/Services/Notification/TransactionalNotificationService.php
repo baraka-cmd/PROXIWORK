@@ -84,10 +84,32 @@ class TransactionalNotificationService
 
     public function messageReceived(
         User $recipient,
-        ?string $idempotencyKey = null,
+        int $conversationId,
+        int $messageId,
         ?string $url = null,
     ): void {
-        $this->send($recipient, 'Nouveau message', 'Vous avez reçu un nouveau message.', 'message', $url, 'important', $idempotencyKey);
+        $recentUnread = $recipient->notifications()
+            ->where('data->action', 'message')
+            ->where('data->conversation_id', $conversationId)
+            ->whereNull('read_at')
+            ->where('created_at', '>=', now()->subMinutes(2))
+            ->exists();
+
+        if ($recentUnread) {
+            return;
+        }
+
+        $this->send(
+            $recipient,
+            'Nouveau message',
+            'Vous avez reçu un ou plusieurs nouveaux messages. Ouvrez PROXIWORK pour consulter votre conversation.',
+            'message',
+            $url,
+            'important',
+            'message-received:'.$messageId,
+            $conversationId,
+            120,
+        );
     }
 
     public function reviewReceived(User $recipient, ?string $idempotencyKey = null): void
@@ -124,6 +146,8 @@ class TransactionalNotificationService
         ?string $url = null,
         string $priority = 'normal',
         ?string $idempotencyKey = null,
+        ?int $conversationId = null,
+        int $emailDelaySeconds = 0,
     ): void {
         // URLs identify the underlying business resource when available. Callers
         // should pass an explicit event key for events without a stable resource URL.
@@ -140,6 +164,8 @@ class TransactionalNotificationService
             $url,
             $priority,
             $deduplicationKey,
+            $conversationId,
+            $emailDelaySeconds,
         ): void {
             // Serialize concurrent attempts for the same recipient so the
             // deduplication lookup and insert cannot race each other.
@@ -160,6 +186,7 @@ class TransactionalNotificationService
                         'action' => $action,
                         'url' => $url,
                         'priority' => $priority,
+                        ...($conversationId !== null ? ['conversation_id' => $conversationId] : []),
                     ],
                     'read_at' => null,
                     'archived_at' => null,
@@ -185,7 +212,7 @@ class TransactionalNotificationService
                         'user_id' => $recipient->getKey(),
                         'status' => $validEmail ? 'PENDING' : 'FAILED',
                         'attempts' => 0,
-                        'available_at' => $validEmail ? now() : null,
+                        'available_at' => $validEmail ? now()->addSeconds(max(0, $emailDelaySeconds)) : null,
                         'last_error_code' => $validEmail ? null : 'InvalidRecipientEmail',
                     ],
                 );
