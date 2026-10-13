@@ -3,6 +3,12 @@
 @section('title', $professional->professional_title ?: $professional->user->name.' — PROXIWORK')
 @section('meta_description', Str::limit($professional->description ?: 'Profil professionnel PROXIWORK.', 155))
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/public/professionals.css')
+    @endunless
+@endpush
+
 @section('content')
     @php
         $profile = $professional->user->profile;
