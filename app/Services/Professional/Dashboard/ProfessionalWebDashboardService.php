@@ -230,6 +230,7 @@ class ProfessionalWebDashboardService
                 'id' => $profile->user->getKey(),
                 'name' => $profile->user->name,
                 'account_status' => $profile->user->account_status?->value,
+                'has_avatar' => filled($userProfile?->avatar_path),
             ],
         ];
     }
