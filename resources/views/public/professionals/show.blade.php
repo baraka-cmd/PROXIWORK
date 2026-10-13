@@ -53,6 +53,9 @@
                     @if ($professional->starting_price !== null && $professional->currency)
                         <span><i class="fa-solid fa-tag" aria-hidden="true"></i> Prix indicatif dès {{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}</span>
                     @endif
+                    @if ($executionModes->isNotEmpty())
+                        <span><i class="fa-solid fa-laptop-house" aria-hidden="true"></i> Modes de prestation : {{ $executionModes->join(', ') }}</span>
+                    @endif
                 </div>
             </div>
         </header>
@@ -64,6 +67,17 @@
                     <p class="profile-bio">{{ $professional->description }}</p>
                 @else
                     <p>Aucune présentation professionnelle publiée pour le moment.</p>
+                @endif
+
+                <h2>Langues de communication</h2>
+                @if (! empty($professional->languages))
+                    <div class="public-service-card__skills" aria-label="Langues parlées">
+                        @foreach ($professional->languages as $language)
+                            <span class="badge badge--neutral">{{ $language }}</span>
+                        @endforeach
+                    </div>
+                @else
+                    <p>Langues non renseignées.</p>
                 @endif
 
                 <h2>Compétences</h2>
