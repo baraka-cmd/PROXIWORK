@@ -374,6 +374,7 @@ class ProfileController extends Controller
 
         $services = $profile->services()
             ->with(['category', 'skills', 'images'])
+            ->withCount('serviceRequests')
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
