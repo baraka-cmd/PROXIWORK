@@ -97,7 +97,7 @@ class ServiceRealizationManager
                 ]);
             }
 
-            if (!Storage::disk('local')->exists($locked->path)) {
+            if (! Storage::disk('local')->exists($locked->path)) {
                 throw ValidationException::withMessages([
                     'realization' => 'Le fichier de cette réalisation est introuvable. Elle ne peut pas être publiée.',
                 ]);
