@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceRealization;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use App\Services\ProfessionalService\ServiceRealizationManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class ServiceRealizationController extends Controller
     public function __construct(
         private readonly ServiceRealizationManager $realizationManager,
         private readonly AuditLogService $auditLogService,
+        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function file(Request $request, ServiceRealization $realization): BinaryFileResponse
@@ -62,6 +64,15 @@ class ServiceRealizationController extends Controller
             $request,
         );
 
+        $professional = $realization->service->professionalProfile->user;
+        $this->notificationService->accountActivity(
+            $professional,
+            'Réalisation approuvée',
+            'Une réalisation associée à votre service a été approuvée et pourra être affichée si le service est public.',
+            route('professional.services.edit', $realization->service),
+            'service-realization-review:'.$reviewed->getKey().':'.$reviewed->reviewed_at?->timestamp,
+        );
+
         return back()->with('success', 'Réalisation approuvée. Elle pourra être affichée sur le service si celui-ci est publiquement disponible.');
     }
 
@@ -85,6 +96,15 @@ class ServiceRealizationController extends Controller
             $request->user(),
             ['service_id' => $realization->service_id],
             $request,
+        );
+
+        $professional = $realization->service->professionalProfile->user;
+        $this->notificationService->accountActivity(
+            $professional,
+            'Réalisation à corriger',
+            'Une réalisation associée à votre service a été refusée. Consultez le motif dans la gestion de votre service.',
+            route('professional.services.edit', $realization->service),
+            'service-realization-review:'.$reviewed->getKey().':'.$reviewed->reviewed_at?->timestamp,
         );
 
         return back()->with('success', 'Réalisation refusée. Le motif a été enregistré.');
