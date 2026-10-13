@@ -225,7 +225,7 @@ Route::prefix('v1')->group(function (): void {
             });
         });
 
-        Route::get('professional/service-realizations/{realization}/file', [ProfessionalServiceRealizationController::class, 'file'])->middleware('permission:services.view');
+        Route::get('professional/service-realizations/{realization}/file', [ProfessionalServiceRealizationController::class, 'file'])->middleware('permission:services.view')->name('professional.service-realizations.file');
         Route::delete('professional/service-realizations/{realization}', [ProfessionalServiceRealizationController::class, 'destroy'])->middleware('permission:services.manage');
         Route::patch('professional/service-images/{image}/file', [ProfessionalServiceImageController::class, 'replace'])->middleware('throttle:10,1');
         Route::patch('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'update'])
