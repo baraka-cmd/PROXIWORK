@@ -32,7 +32,7 @@
         <div class="surface-card__header"><div><h2 id="profile-photo-heading">Photo de profil</h2><p class="field-help">La photo est stockée sur le disque privé. Elle n’est diffusée sur le profil public que si celui-ci est effectivement visible.</p></div></div>
         <div class="surface-card__body">
             <div class="profile-photo-editor">
-                @if ($professional->user->profile?->avatar_path && \\Illuminate\\Support\\Facades\\Storage::disk('local')->exists($professional->user->profile->avatar_path))
+                @if ($professional->user->profile?->avatar_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($professional->user->profile->avatar_path))
                     <img class="avatar avatar--xl professional-profile-avatar" src="{{ route('professional.profile.photo') }}" alt="Photo de profil actuelle">
                 @else
                     <span class="avatar avatar--xl professional-profile-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr(trim(($professional->user->profile?->first_name ?? '').' '.($professional->user->profile?->last_name ?? '')) ?: $professional->user->name, 0, 1)) }}</span>
