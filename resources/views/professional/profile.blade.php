@@ -194,6 +194,7 @@
                             <div class="service-mini-card__head"><span class="service-mini-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><span class="badge badge--{{ $service->status->value === 'published' ? 'success' : ($service->status->value === 'draft' ? 'warning' : 'neutral') }}">{{ $service->status->value }}</span></div>
                             <h3>{{ $service->title }}</h3>
                             <p>{{ $service->short_description ?: 'Aucune description courte.' }}</p>
+                            <small class="service-mini-card__mode"><i class="fa-solid fa-laptop-house" aria-hidden="true"></i> {{ $service->execution_mode?->label() ?? 'Mode non renseigné' }}</small>
                             <a href="{{ route('professional.services.edit', $service) }}">Gérer <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                         </article>
                     @endforeach
