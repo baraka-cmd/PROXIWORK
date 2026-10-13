@@ -15,8 +15,8 @@
             'under_review', 'pending' => 'warning',
             default => 'neutral',
         };
-        $isPubliclyVisible = $professional->status === \\App\\Models\\ProfessionalProfile::STATUS_ACTIVE
-            && $professional->visibility === \\App\\Models\\ProfessionalProfile::VISIBILITY_PUBLIC
+        $isPubliclyVisible = $professional->status === \App\Models\ProfessionalProfile::STATUS_ACTIVE
+            && $professional->visibility === \App\Models\ProfessionalProfile::VISIBILITY_PUBLIC
             && $verification === 'verified'
             && $professional->published_services_count > 0
             && $accountStatus === 'active';
@@ -43,7 +43,7 @@
 
     <section class="professional-profile-hero surface-card surface-card--lg" aria-labelledby="professional-profile-identity">
         <div class="professional-profile-identity">
-            @if ($personalProfile?->avatar_path && \\Illuminate\\Support\\Facades\\Storage::disk('local')->exists($personalProfile->avatar_path))
+            @if ($personalProfile?->avatar_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($personalProfile->avatar_path))
                 <img class="avatar avatar--xl professional-profile-avatar" src="{{ route('professional.profile.photo') }}" alt="Photo de profil de {{ $name }}">
             @else
                 <span class="avatar avatar--xl professional-profile-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($name, 0, 1)) }}</span>
