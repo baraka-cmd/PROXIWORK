@@ -63,7 +63,17 @@
     $periodStart = $period === '12m'
         ? $dashboard['generated_at']->startOfMonth()->subMonths(11)->format('Y-m-d')
         : $dashboard['generated_at']->startOfDay()->subDays(['7d' => 6, '30d' => 29, '90d' => 89][$period] ?? 29)->format('Y-m-d');
-    $money = static fn ($amount) => number_format((float) $amount, 2, ',', ' ');
+    $money = static function ($amount): string {
+        $amount = trim((string) $amount);
+        $negative = str_starts_with($amount, '-');
+        $normalized = ltrim($amount, '+-');
+        [$whole, $fraction] = array_pad(explode('.', $normalized, 2), 2, '');
+        $whole = ltrim($whole, '0') ?: '0';
+        $whole = preg_replace('/\\B(?=(\\d{3})+(?!\\d))/', ' ', $whole) ?? $whole;
+        $fraction = str_pad(substr($fraction, 0, 2), 2, '0');
+
+        return ($negative ? '-' : '').$whole.','.$fraction;
+    };
 @endphp
 
 @section('page_actions')
