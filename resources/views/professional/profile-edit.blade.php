@@ -91,6 +91,13 @@
                             <small id="description-help" class="field-help">Présentez votre spécialité, les travaux que vous réalisez et votre approche. 5 000 caractères maximum.</small>
                             @error('description')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
+                        <div class="form-field form-field--full">
+                            <label for="languages_text">Langues parlées</label>
+                            <textarea id="languages_text" name="languages_text" rows="2" maxlength="1000" aria-describedby="languages-help">{{ old('languages_text', implode(', ', $professional->languages ?? [])) }}</textarea>
+                            <small id="languages-help" class="field-help">Séparez les langues par des virgules ou des retours à la ligne. Déclarez uniquement les langues dans lesquelles vous pouvez réellement échanger avec un client. 12 langues maximum, 60 caractères chacune.</small>
+                            @error('languages_text')<p class="form-error">{{ $message }}</p>@enderror
+                            @error('languages.*')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
                         <div class="form-field">
                             <label for="years_experience">Années d’expérience</label>
                             <input id="years_experience" name="years_experience" type="number" min="0" max="80" step="1" value="{{ old('years_experience', $professional->years_experience) }}">
@@ -158,7 +165,7 @@
                                     <option value="{{ $value }}" @selected(old('availability_status', $professional->availability_status?->value ?? 'unknown') === $value)>{{ $label }}</option>
                                 @endforeach
                             </select>
-                            <small class="field-help">Cette préférence n’annule ni ne modifie les commandes déjà acceptées.</small>
+                            <small class="field-help">Cette préférence n’annule ni ne modifie les commandes déjà acceptées. Le mode sur place ou à distance se règle service par service dans le catalogue.</small>
                             @error('availability_status')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                         <div class="form-field">
