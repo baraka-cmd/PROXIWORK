@@ -140,6 +140,52 @@ class ServiceRealizationTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_only_pending_realizations_can_be_reviewed(): void
+    {
+        [$owner, $profile, $service] = $this->professionalService(visible: true);
+
+        $this->actingAs($owner)
+            ->post(route('professional.services.realizations.store', $service), [
+                'image' => UploadedFile::fake()->image('reviewed-work.png'),
+                'caption' => 'Réalisation proposée pour validation',
+                'participation_confirmed' => '1',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $realization = $service->realizations()->firstOrFail();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->post(route('admin.service-realizations.approve', $realization), [
+                'review_note' => 'Réalisation examinée.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($admin)
+            ->post(route('admin.service-realizations.reject', $realization), [
+                'review_note' => 'Cette réalisation ne doit plus être modifiée.',
+            ])
+            ->assertSessionHasErrors('realization');
+
+        $this->assertDatabaseHas('service_realizations', [
+            'id' => $realization->id,
+            'status' => ServiceRealization::STATUS_APPROVED,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.service-realizations.approve', $realization), [
+                'review_note' => 'Nouvelle tentative de validation.',
+            ])
+            ->assertSessionHasErrors('realization');
+
+        $this->assertDatabaseHas('service_realizations', [
+            'id' => $realization->id,
+            'status' => ServiceRealization::STATUS_APPROVED,
+        ]);
+    }
+
     /**
      * @return array{0: User, 1: ProfessionalProfile, 2: Service}
      */
