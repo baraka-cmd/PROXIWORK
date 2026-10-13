@@ -366,6 +366,19 @@ class ProfessionalWebDashboardService
         ];
     }
 
+    private function formatAmount(string $amount): string
+    {
+        $amount = trim($amount);
+        $negative = str_starts_with($amount, '-');
+        $normalized = ltrim($amount, '+-');
+        [$whole, $fraction] = array_pad(explode('.', $normalized, 2), 2, '');
+        $whole = ltrim($whole, '0') ?: '0';
+        $whole = preg_replace('/\\B(?=(\\d{3})+(?!\\d))/', ' ', $whole) ?? $whole;
+        $fraction = str_pad(substr($fraction, 0, 2), 2, '0');
+
+        return ($negative ? '-' : '').$whole.','.$fraction;
+    }
+
     private function toMinorUnits(string $amount): int
     {
         $amount = trim($amount);
@@ -609,7 +622,7 @@ class ProfessionalWebDashboardService
             ->each(fn (Commission $commission) => $events->push([
                 'type' => 'revenue',
                 'title' => 'Revenu comptabilisé',
-                'description' => number_format((float) $commission->net_amount, 2, ',', ' ').' '.$commission->currency,
+                'description' => $this->formatAmount((string) $commission->net_amount).' '.$commission->currency,
                 'at' => $commission->posted_at,
                 'url' => route('professional.revenues.index', [
                     'from' => $commission->posted_at?->toDateString(),
@@ -626,7 +639,7 @@ class ProfessionalWebDashboardService
             ->each(fn (Withdrawal $withdrawal) => $events->push([
                 'type' => 'withdrawal',
                 'title' => 'Demande de retrait mise à jour',
-                'description' => number_format((float) $withdrawal->amount, 2, ',', ' ').' '.$withdrawal->currency.' · '.$withdrawal->status->value,
+                'description' => $this->formatAmount((string) $withdrawal->amount).' '.$withdrawal->currency.' · '.$withdrawal->status->value,
                 'at' => $withdrawal->updated_at ?? $withdrawal->requested_at,
                 'url' => route('professional.withdrawals.show', $withdrawal),
             ]));
