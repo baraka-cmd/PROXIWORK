@@ -47,6 +47,8 @@ class ProfessionalServiceManager
     public function update(Service $service, array $attributes): Service
     {
         return DB::transaction(function () use ($service, $attributes): Service {
+            $service = Service::query()->whereKey($service->getKey())->lockForUpdate()->firstOrFail();
+
             if (array_key_exists('category_id', $attributes)) {
                 $category = Category::query()->lockForUpdate()->findOrFail($attributes['category_id']);
                 $this->ensureCategoryIsActive($category);
@@ -66,6 +68,7 @@ class ProfessionalServiceManager
     public function archive(Service $service): void
     {
         DB::transaction(function () use ($service): void {
+            $service = Service::query()->whereKey($service->getKey())->lockForUpdate()->firstOrFail();
             $service->forceFill([
                 'status' => ServiceStatus::ARCHIVED,
                 'published_at' => null,
@@ -76,7 +79,8 @@ class ProfessionalServiceManager
     public function publish(Service $service): Service
     {
         return DB::transaction(function () use ($service): Service {
-            $service->loadMissing(['category', 'skills', 'images']);
+            $service = Service::query()->whereKey($service->getKey())->lockForUpdate()->firstOrFail();
+            $service->load(['category', 'skills', 'images']);
 
             if ($service->status === ServiceStatus::ARCHIVED) {
                 throw ValidationException::withMessages([
@@ -137,6 +141,8 @@ class ProfessionalServiceManager
     public function unpublish(Service $service): Service
     {
         return DB::transaction(function () use ($service): Service {
+            $service = Service::query()->whereKey($service->getKey())->lockForUpdate()->firstOrFail();
+
             if ($service->status === ServiceStatus::ARCHIVED) {
                 throw ValidationException::withMessages([
                     'status' => 'Un service archivé ne peut pas être dépublié.',
@@ -192,37 +198,38 @@ class ProfessionalServiceManager
     public function updateImage(ServiceImage $image, array $attributes): ServiceImage
     {
         return DB::transaction(function () use ($image, $attributes): ServiceImage {
+            $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
+            $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
             $hasCoverInput = array_key_exists('is_cover', $attributes);
             $isCover = $hasCoverInput && filter_var($attributes['is_cover'], FILTER_VALIDATE_BOOLEAN);
 
             if ($isCover) {
-                $image->service->images()
-                    ->where('id', '!=', $image->getKey())
+                $service->images()
+                    ->where('id', '!=', $lockedImage->getKey())
                     ->update(['is_cover' => false]);
             }
 
-            if ($hasCoverInput && ! $isCover && $image->is_cover) {
-                $replacementExists = $image->service->images()
-                    ->where('id', '!=', $image->getKey())
-                    ->exists();
+            if ($hasCoverInput && ! $isCover && $lockedImage->is_cover) {
+                $replacement = $service->images()
+                    ->where('id', '!=', $lockedImage->getKey())
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->first();
 
-                if ($replacementExists === false) {
+                if ($replacement === null) {
                     throw ValidationException::withMessages([
                         'is_cover' => 'Le service doit conserver une image de couverture.',
                     ]);
                 }
 
-                $replacement = $image->service->images()
-                    ->where('id', '!=', $image->getKey())
-                    ->orderBy('sort_order')
-                    ->orderBy('id')
-                    ->firstOrFail();
                 $replacement->update(['is_cover' => true]);
             }
 
-            $image->update($attributes);
+            $attributes['is_cover'] = $isCover;
+            $lockedImage->update($attributes);
 
-            return $image->refresh();
+            return $lockedImage->refresh();
         });
     }
 
@@ -231,15 +238,17 @@ class ProfessionalServiceManager
         $path = $image->path;
 
         DB::transaction(function () use ($image): void {
-            $wasCover = $image->is_cover;
-            $service = $image->service;
+            $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
+            $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
+            $wasCover = $lockedImage->is_cover;
 
-            $image->delete();
+            $lockedImage->delete();
 
             if ($wasCover) {
                 $replacement = $service->images()
                     ->orderBy('sort_order')
                     ->orderBy('id')
+                    ->lockForUpdate()
                     ->first();
 
                 $replacement?->update(['is_cover' => true]);
