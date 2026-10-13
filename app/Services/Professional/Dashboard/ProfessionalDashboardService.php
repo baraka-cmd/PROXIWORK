@@ -251,10 +251,6 @@ class ProfessionalDashboardService
                 'locked_balance' => (string) $wallet->locked_balance,
             ])->values()->all(),
             'wallet_available_known' => $wallets->isNotEmpty(),
-            'pending_withdrawals' => Withdrawal::query()
-                ->where('professional_id', $professionalId)
-                ->whereIn('status', [WithdrawalStatus::REQUESTED->value, WithdrawalStatus::PROCESSING->value])
-                ->count(),
             'period' => $period,
         ];
     }
@@ -302,7 +298,12 @@ class ProfessionalDashboardService
             ];
         })->values()->all();
 
-        $orderDistribution = collect(OrderStatus::cases())->map(function (OrderStatus $status) use ($orderQuery): array {
+        $orderStatusCounts = (clone $orderQuery)
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $orderDistribution = collect(OrderStatus::cases())->map(function (OrderStatus $status) use ($orderStatusCounts): array {
             return [
                 'status' => $status->value,
                 'label' => match ($status) {
@@ -313,7 +314,7 @@ class ProfessionalDashboardService
                     OrderStatus::CANCELLED => 'Annulées',
                     OrderStatus::DISPUTED => 'En litige',
                 },
-                'count' => (clone $orderQuery)->where('status', $status->value)->count(),
+                'count' => (int) ($orderStatusCounts[$status->value] ?? 0),
             ];
         })->values()->all();
 
