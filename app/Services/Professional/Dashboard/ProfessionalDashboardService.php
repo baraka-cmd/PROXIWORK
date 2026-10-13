@@ -13,12 +13,10 @@ use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
 use App\Enums\WithdrawalStatus;
 use App\Models\Commission;
-use App\Models\ConversationParticipant;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Review;
-use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Models\Wallet;
@@ -50,6 +48,7 @@ class ProfessionalDashboardService
             ->with(['user.profile'])
             ->withCount([
                 'services',
+                'skills',
                 'services as published_services_count' => fn (Builder $query) => $query
                     ->where('status', ServiceStatus::PUBLISHED->value)
                     ->whereNotNull('published_at'),
@@ -99,10 +98,9 @@ class ProfessionalDashboardService
             ->whereBetween('completed_at', [$start, $end])
             ->count();
 
-        $reviewsQuery = Review::query()
+        $reviewSummary = Review::query()
             ->where('professional_id', $professionalId)
-            ->where('status', ReviewStatus::PUBLISHED->value);
-        $reviewSummary = (clone $reviewsQuery)
+            ->where('status', ReviewStatus::PUBLISHED->value)
             ->selectRaw('COUNT(*) as review_count, AVG(rating) as rating_average')
             ->first();
 
@@ -128,7 +126,6 @@ class ProfessionalDashboardService
             $profile,
             $requestsToHandle,
             $quotationsRequiringProfessionalAction,
-            $activeOrders,
             $unreadMessages,
             $unreadNotifications,
         );
@@ -384,7 +381,6 @@ class ProfessionalDashboardService
         ProfessionalProfile $profile,
         int $requestsToHandle,
         int $quotationsRequiringAction,
-        int $activeOrders,
         int $unreadMessages,
         int $unreadNotifications,
     ): Collection {
