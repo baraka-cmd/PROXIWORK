@@ -99,6 +99,11 @@ class ServiceRealizationTest extends TestCase
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff');
 
+        $this->get(route('public.services.show', $service))
+            ->assertOk()
+            ->assertSee('Réalisations approuvées')
+            ->assertSee('Réalisation contrôlée');
+
         $service->forceFill([
             'status' => ServiceStatus::UNPUBLISHED,
             'published_at' => null,
