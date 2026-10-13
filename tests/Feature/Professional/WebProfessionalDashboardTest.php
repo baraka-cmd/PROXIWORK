@@ -155,7 +155,6 @@ class WebProfessionalDashboardTest extends TestCase
             });
     }
 
-
     public function test_dashboard_metrics_only_count_submitted_requests_for_the_authenticated_professional(): void
     {
         $professional = User::factory()->create();
@@ -193,5 +192,4 @@ class WebProfessionalDashboardTest extends TestCase
                     && $dashboard['charts']['top_services'][0]['count'] === 2;
             });
     }
-
 }
