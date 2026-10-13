@@ -80,8 +80,20 @@ class ProfessionalProfileServicesTest extends TestCase
             ->assertSee('Service visible')
             ->assertDontSee('Service secret');
 
+        $ownedService = Service::where('professional_profile_id', $firstProfile->id)->firstOrFail();
+
+        $this->actingAs($firstUser)
+            ->get(route('professional.services.preview', $ownedService))
+            ->assertOk()
+            ->assertSee('Service visible')
+            ->assertSee('Prévisualisation privée');
+
         $this->actingAs($firstUser)
             ->get(route('professional.services.edit', $foreignService))
+            ->assertForbidden();
+
+        $this->actingAs($firstUser)
+            ->get(route('professional.services.preview', $foreignService))
             ->assertForbidden();
     }
 
