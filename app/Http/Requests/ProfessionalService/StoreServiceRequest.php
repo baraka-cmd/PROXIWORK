@@ -24,7 +24,7 @@ class StoreServiceRequest extends FormRequest
         return [
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'title' => ['required', 'string', 'min:3', 'max:160'],
-            'short_description' => ['nullable', 'string', 'max:500'],
+            'short_description' => ['nullable', 'string', 'max:300'],
             'description' => ['required', 'string', 'min:20', 'max:10000'],
             'included_items' => ['nullable', 'string', 'max:5000'],
             'excluded_items' => ['nullable', 'string', 'max:5000'],
