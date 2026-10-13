@@ -281,18 +281,25 @@ class ProfessionalServiceManager
             $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
             $path = $lockedImage->path;
             $wasCover = $lockedImage->is_cover;
-
-            $lockedImage->delete();
+            $replacement = null;
 
             if ($wasCover) {
                 $replacement = $service->images()
+                    ->whereKeyNot($lockedImage->getKey())
                     ->orderBy('sort_order')
                     ->orderBy('id')
                     ->lockForUpdate()
                     ->first();
 
-                $replacement?->update(['is_cover' => true]);
+                if ($replacement === null && $service->status === ServiceStatus::PUBLISHED) {
+                    throw ValidationException::withMessages([
+                        'image' => 'Un service publié doit conserver une couverture. Ajoutez une autre image avant de supprimer celle-ci.',
+                    ]);
+                }
             }
+
+            $lockedImage->delete();
+            $replacement?->update(['is_cover' => true]);
 
             return $path;
         });
