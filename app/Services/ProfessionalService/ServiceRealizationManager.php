@@ -90,7 +90,7 @@ class ServiceRealizationManager
                 ]);
             }
 
-            if (!$locked->participation_confirmed) {
+            if (! $locked->participation_confirmed) {
                 throw ValidationException::withMessages([
                     'realization' => 'La déclaration de participation doit être confirmée avant approbation.',
                 ]);
