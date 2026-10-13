@@ -91,11 +91,7 @@ class ProfessionalWebDashboardService
                 ->where('actor_type', QuotationOfferActor::CLIENT->value))
             ->count();
 
-        $activeOrderStatuses = [
-            OrderStatus::PENDING_PAYMENT->value,
-            OrderStatus::CONFIRMED->value,
-            OrderStatus::IN_PROGRESS->value,
-        ];
+        $activeOrderStatuses = OrderStatus::operationallyActiveValues();
 
         $activeOrders = (clone $orderQuery)->whereIn('status', $activeOrderStatuses)->count();
         $disputedOrders = (clone $orderQuery)->where('status', OrderStatus::DISPUTED->value)->count();
