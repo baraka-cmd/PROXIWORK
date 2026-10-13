@@ -336,6 +336,7 @@ class ProfessionalWebDashboardService
             ->whereNotNull('service_requests.requested_at')
             ->whereBetween('service_requests.requested_at', [$start, $end])
             ->join('services', 'services.id', '=', 'service_requests.service_id')
+            ->whereColumn('services.professional_profile_id', 'service_requests.professional_id')
             ->selectRaw('service_requests.service_id, services.title as service_title, COUNT(*) as requests_count')
             ->groupBy('service_requests.service_id', 'services.title')
             ->orderByDesc('requests_count')
@@ -560,7 +561,9 @@ class ProfessionalWebDashboardService
         ServiceRequest::query()
             ->where('professional_id', $professionalId)
             ->whereNotNull('requested_at')
-            ->with('service:id,title')
+            ->with(['service' => fn (Builder $query) => $query
+                ->where('professional_profile_id', $professionalId)
+                ->select('id', 'title')])
             ->latest('requested_at')
             ->limit(5)
             ->get()
