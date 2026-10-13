@@ -121,7 +121,6 @@ class ProfessionalDashboardService
             $requestsToHandle,
             $quotationsRequiringProfessionalAction,
             $unreadMessages,
-            $unreadNotifications,
         );
 
         return [
@@ -383,7 +382,6 @@ class ProfessionalDashboardService
         int $requestsToHandle,
         int $quotationsRequiringAction,
         int $unreadMessages,
-        int $unreadNotifications,
     ): Collection {
         $actions = collect();
 
@@ -466,16 +464,6 @@ class ProfessionalDashboardService
                 'count' => $unreadMessages,
                 'message' => $unreadMessages.' conversation(s) contient/contiennent des messages non lus.',
                 'url' => route('professional.messages'),
-            ]);
-        }
-
-        if ($unreadNotifications > 0) {
-            $actions->push([
-                'type' => 'notifications',
-                'priority' => 'normal',
-                'count' => $unreadNotifications,
-                'message' => $unreadNotifications.' notification(s) non lue(s).',
-                'url' => route('professional.notifications'),
             ]);
         }
 
