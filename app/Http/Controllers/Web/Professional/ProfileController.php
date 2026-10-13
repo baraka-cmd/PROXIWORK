@@ -436,7 +436,7 @@ class ProfileController extends Controller
         $this->authorize('view', $service);
 
         return view('professional/services/form', [
-            'service' => $service->load(['category', 'skills', 'images']),
+            'service' => $service->load(['category', 'skills', 'images', 'realizations']),
             'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(),
             'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(),
         ]);
@@ -447,7 +447,7 @@ class ProfileController extends Controller
         $this->authorize('view', $service);
 
         return view('professional/services/preview', [
-            'service' => $service->load(['category', 'skills', 'images', 'professionalProfile.user.profile']),
+            'service' => $service->load(['category', 'skills', 'images', 'realizations', 'professionalProfile.user.profile']),
         ]);
     }
 
