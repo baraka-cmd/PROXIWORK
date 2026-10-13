@@ -74,6 +74,17 @@ class MessagingApiTest extends TestCase
             'type' => AccountActivityNotification::class,
         ]);
 
+        $messageNotification = $client->notifications()
+            ->where('data->action', 'message')
+            ->firstOrFail();
+        $this->assertSame((int) $conversation, (int) $messageNotification->data['conversation_id']);
+
+        $mailDelivery = NotificationDelivery::query()
+            ->where('notification_id', $messageNotification->id)
+            ->where('channel', 'mail')
+            ->firstOrFail();
+        $this->assertTrue($mailDelivery->available_at->greaterThanOrEqualTo(now()->addSeconds(110)));
+
         $this->actingAs($client, 'sanctum')
             ->getJson('/api/v1/conversations')
             ->assertOk()
@@ -87,6 +98,38 @@ class MessagingApiTest extends TestCase
             ->getJson('/api/v1/conversations')
             ->assertOk()
             ->assertJsonPath('data.0.unread_count', 0);
+    }
+
+    public function test_multiple_unread_messages_in_short_window_are_grouped_into_one_notification(): void
+    {
+        [$client, $professional] = $this->participants();
+        $conversation = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/professionals/'.$professional->id.'/conversations')
+            ->assertCreated()
+            ->json('data.id');
+        $professionalUser = User::query()->findOrFail($professional->user_id);
+
+        foreach (['Premier message', 'Deuxième message', 'Troisième message'] as $body) {
+            $this->actingAs($professionalUser, 'sanctum')
+                ->postJson('/api/v1/conversations/'.$conversation.'/messages', [
+                    'body' => $body,
+                    'idempotency_key' => (string) Str::uuid(),
+                ])
+                ->assertCreated();
+        }
+
+        $this->assertSame(
+            1,
+            $client->notifications()->where('data->action', 'message')->count(),
+            'Une conversation active doit regrouper les alertes de messages non lus pendant la fenêtre de regroupement.',
+        );
+        $this->assertSame(
+            1,
+            NotificationDelivery::query()
+                ->where('user_id', $client->id)
+                ->where('channel', 'mail')
+                ->count(),
+        );
     }
 
     public function test_unrelated_user_cannot_access_or_send_in_conversation(): void
