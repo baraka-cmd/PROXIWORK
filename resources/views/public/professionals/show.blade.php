@@ -11,7 +11,7 @@
     <main class="page-container public-professional-detail">
         <a class="button button--ghost" href="{{ route('public.professionals.index') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à l’annuaire</a>
         <header class="surface-card public-professional-detail__hero">
-            @if ($profile?->avatar_path && \\Illuminate\\Support\\Facades\\Storage::disk('local')->exists($profile->avatar_path))
+            @if ($profile?->avatar_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($profile->avatar_path))
                 <img class="avatar avatar--xl professional-profile-avatar" src="{{ route('public.professionals.photo', $professional) }}" alt="Photo de {{ $displayName }}" loading="lazy">
             @else
                 <div class="avatar avatar--xl" aria-hidden="true">{{ mb_strtoupper(mb_substr($displayName, 0, 1)) }}</div>
