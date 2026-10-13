@@ -1,18 +1,148 @@
 @extends('layouts.client')
-@section('title','Messages')
+
+@section('title', 'Messages')
+
+@push('head')
+    @vite(['resources/css/pages/client/messages.css'])
+@endpush
+
 @section('content')
-@push('head')@vite('resources/css/pages/client/messages.css')@endpush
-<div class="client-messages-page"><header class="client-module__header"><div><p class="client-module__eyebrow">MESSAGERIE</p><h1>Messages</h1><p>Échangez avec les professionnels avec lesquels vous êtes en relation.</p></div></header>
-<div class="conversation-list client-panel">
-@if($conversations->isEmpty())<div class="message-empty"><i class="fa-regular fa-comments" aria-hidden="true"></i><h2>Aucune conversation</h2><p>Vos conversations apparaîtront ici.</p></div>
-@else
-@foreach($conversations as $conversation)
-<a class="conversation-row {{ $selected === $conversation->id ? 'is-selected' : '' }}" href="{{ route('client.messages.show',$conversation) }}">
-<div class="conversation-avatar">{{ strtoupper(mb_substr(($conversation->professional?->user?->name ?? $conversation->client?->name ?? '?'),0,1)) }}</div>
-<div class="conversation-content"><div class="conversation-top"><strong>{{ $conversation->professional?->user?->name ?? $conversation->client?->name }}</strong>@if($conversation->unread_count)<span class="unread-count">{{ $conversation->unread_count }}</span>@endif</div><p>{{ $conversation->lastMessage?->body ?? 'Nouvelle conversation' }}</p></div>
-<time>{{ optional($conversation->updated_at)->diffForHumans() }}</time>
-</a>
-@endforeach
-@endif
-</div></div>
+    <div class="client-messages-page">
+        <header class="client-module__header messages-page-header">
+            <div>
+                <p class="client-module__eyebrow">COMMUNICATION PROFESSIONNELLE</p>
+                <h1>Messages</h1>
+                <p>Échangez avec vos professionnels. Les décisions officielles restent dans les demandes, devis et commandes.</p>
+            </div>
+        </header>
+
+        @if (session('success'))
+            <div class="client-panel messages-feedback" role="status">{{ session('success') }}</div>
+        @endif
+
+        @if ($errors->any())
+            <div class="client-panel messages-feedback messages-feedback--error" role="alert">
+                <strong>Le message n'a pas pu être traité.</strong>
+                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
+        @endif
+
+        <section class="client-panel messages-filter-panel" aria-label="Rechercher et filtrer les conversations">
+            <form method="GET" action="{{ route('client.messages.index') }}" class="messages-filters">
+                <label>
+                    <span>Recherche</span>
+                    <input type="search" name="q" value="{{ $search }}" maxlength="100"
+                           placeholder="Nom, message ou référence…" autocomplete="off">
+                </label>
+                <label>
+                    <span>Contexte</span>
+                    <select name="category">
+                        <option value="all" @selected($category === 'all')>Tous les contextes</option>
+                        <option value="requests" @selected($category === 'requests')>Demandes</option>
+                        <option value="orders" @selected($category === 'orders')>Commandes</option>
+                        <option value="general" @selected($category === 'general')>Générales</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Messages</span>
+                    <select name="status">
+                        <option value="all" @selected($status === 'all')>Toutes les conversations</option>
+                        <option value="unread" @selected($status === 'unread')>Avec des non-lus</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Emplacement</span>
+                    <select name="archived">
+                        <option value="0" @selected(! $archived)>Boîte de réception</option>
+                        <option value="1" @selected($archived)>Archives</option>
+                    </select>
+                </label>
+                <div class="messages-filter-actions">
+                    <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Rechercher</button>
+                    <a href="{{ route('client.messages.index') }}" class="messages-reset-link">Réinitialiser</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="client-panel conversation-list-panel" aria-label="Liste des conversations">
+            <div class="messages-list-heading">
+                <div>
+                    <h2>{{ $archived ? 'Conversations archivées' : 'Vos conversations' }}</h2>
+                    <p>{{ $conversations->count() }} conversation(s) sur cette page</p>
+                </div>
+            </div>
+
+            @if ($conversations->isEmpty())
+                <div class="message-empty">
+                    <span class="message-empty__icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
+                    <h3>{{ $archived ? 'Aucune conversation archivée' : 'Aucune conversation pour le moment' }}</h3>
+                    <p>{{ $search !== '' ? 'Aucun résultat ne correspond à votre recherche.' : 'Lorsque vous contacterez un professionnel, votre échange apparaîtra ici.' }}</p>
+                    @if ($search !== '' || $category !== 'all' || $status !== 'all' || $archived)
+                        <a class="btn btn-secondary" href="{{ route('client.messages.index') }}">Afficher toutes les conversations</a>
+                    @endif
+                </div>
+            @else
+                <div class="conversation-list">
+                    @foreach ($conversations as $conversation)
+                        @php
+                            $participantName = $conversation->professional?->user?->name ?? 'Professionnel';
+                            $lastMessage = $conversation->lastMessage;
+                            $preview = trim((string) ($lastMessage?->body ?? ''));
+                            if ($preview === '' && $lastMessage?->attachments?->isNotEmpty()) {
+                                $preview = 'Pièce jointe';
+                            }
+                            if ($preview === '') {
+                                $preview = 'Démarrez la conversation';
+                            }
+                        @endphp
+                        <article class="conversation-row {{ $selected === $conversation->id ? 'is-selected' : '' }}">
+                            <a class="conversation-row__main" href="{{ route('client.messages.show', $conversation) }}">
+                                <span class="conversation-avatar" aria-hidden="true">{{ strtoupper(mb_substr($participantName, 0, 1)) }}</span>
+                                <span class="conversation-content">
+                                    <span class="conversation-top">
+                                        <strong>{{ $participantName }}</strong>
+                                        @if ($conversation->unread_count > 0)
+                                            <span class="unread-count" aria-label="{{ $conversation->unread_count }} message(s) non lu(s)">{{ $conversation->unread_count }}</span>
+                                        @endif
+                                    </span>
+                                    <span class="conversation-preview">{{ \Illuminate\Support\Str::limit($preview, 100) }}</span>
+                                    <span class="conversation-tags">
+                                        @if ($conversation->order_id)
+                                            <span class="message-context-tag">Commande #{{ $conversation->order_id }}</span>
+                                        @elseif ($conversation->service_request_id)
+                                            <span class="message-context-tag">Demande #{{ $conversation->service_request_id }}</span>
+                                        @else
+                                            <span class="message-context-tag">Conversation générale</span>
+                                        @endif
+                                        @if ($conversation->is_pinned)
+                                            <span class="message-context-tag"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Épinglée</span>
+                                        @endif
+                                    </span>
+                                </span>
+                                <time datetime="{{ $conversation->updated_at?->toIso8601String() }}">{{ $conversation->updated_at?->diffForHumans() }}</time>
+                            </a>
+                            <div class="conversation-row__actions">
+                                <form method="POST" action="{{ route('client.messages.pin', $conversation) }}">
+                                    @csrf
+                                    <input type="hidden" name="pinned" value="{{ $conversation->is_pinned ? '0' : '1' }}">
+                                    <button class="icon-action" type="submit" aria-label="{{ $conversation->is_pinned ? 'Désépingler' : 'Épingler' }}" title="{{ $conversation->is_pinned ? 'Désépingler' : 'Épingler' }}">
+                                        <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('client.messages.archive', $conversation) }}">
+                                    @csrf
+                                    <input type="hidden" name="archived" value="{{ $archived ? '0' : '1' }}">
+                                    <button class="icon-action" type="submit" aria-label="{{ $archived ? 'Restaurer' : 'Archiver' }}" title="{{ $archived ? 'Restaurer' : 'Archiver' }}">
+                                        <i class="fa-solid {{ $archived ? 'fa-box-open' : 'fa-box-archive' }}" aria-hidden="true"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+
+                <div class="messages-pagination">{{ $conversations->links() }}</div>
+            @endif
+        </section>
+    </div>
 @endsection
