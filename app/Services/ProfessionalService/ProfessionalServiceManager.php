@@ -219,7 +219,7 @@ class ProfessionalServiceManager
             Storage::disk('public')->delete($oldPath);
 
             return $updatedImage;
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             Storage::disk('public')->delete($newPath);
 
             throw $exception;
