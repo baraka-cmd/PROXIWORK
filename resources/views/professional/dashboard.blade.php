@@ -309,7 +309,14 @@
                         <a href="{{ route('professional.revenues.index', ['from' => $periodStart, 'to' => $periodEnd]) }}">Détails <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </div>
                     @if ($dashboard['charts']['revenue']['series'] !== [])
-                        <div class="professional-chart-container"><canvas data-chart="revenue" role="img" aria-label="Graphique des revenus nets par devise et par période"></canvas></div>
+                        <div class="professional-chart-currency">
+                            @foreach ($dashboard['charts']['revenue']['series'] as $revenueSeries)
+                                <div>
+                                    <h4>Revenus en {{ $revenueSeries['label'] }}</h4>
+                                    <div class="professional-chart-container"><canvas data-chart="revenue" data-currency="{{ $revenueSeries['label'] }}" role="img" aria-label="Évolution des revenus nets en {{ $revenueSeries['label'] }}"></canvas></div>
+                                </div>
+                            @endforeach
+                        </div>
                     @else
                         <div class="professional-empty-state"><span class="professional-empty-state__icon"><i class="fa-solid fa-coins" aria-hidden="true"></i></span><strong>Aucun revenu confirmé</strong><p>Le graphique apparaîtra lorsque des commissions auront été comptabilisées.</p></div>
                     @endif
@@ -357,6 +364,9 @@
                                 <span class="professional-timeline__icon" aria-hidden="true">
                                     @if ($event['type'] === 'request') <i class="fa-solid fa-inbox"></i>
                                     @elseif ($event['type'] === 'review') <i class="fa-solid fa-star"></i>
+                                    @elseif ($event['type'] === 'quote') <i class="fa-solid fa-file-invoice-dollar"></i>
+                                    @elseif ($event['type'] === 'revenue') <i class="fa-solid fa-coins"></i>
+                                    @elseif ($event['type'] === 'withdrawal') <i class="fa-solid fa-money-bill-transfer"></i>
                                     @else <i class="fa-solid fa-list-check"></i> @endif
                                 </span>
                                 <div class="professional-timeline__content">
