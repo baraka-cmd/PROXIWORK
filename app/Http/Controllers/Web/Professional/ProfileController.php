@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Professional;
 
 use App\Enums\ProfessionalAvailabilityStatus;
-use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
