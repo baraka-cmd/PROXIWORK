@@ -109,3 +109,9 @@
         grid-template-columns: 1fr;
     }
 }
+
+.public-professional-detail__identity{min-width:0;flex:1}
+.public-professional-detail__identity .professional-meta{margin-top:var(--space-3)}
+.public-professional-detail__identity .professional-meta span{overflow-wrap:anywhere}
+.public-professional-detail__hero .professional-profile-avatar{width:112px;height:112px;object-fit:cover;flex:0 0 auto}
+@media(max-width:600px){.public-professional-detail__hero{align-items:flex-start;flex-direction:column}.public-professional-detail__hero .professional-profile-avatar{width:88px;height:88px}}
