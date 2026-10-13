@@ -41,15 +41,9 @@
         </div>
     </div>
 
-    @if (session('success'))
-        <div class="professional-alert" role="status">
-            <x-success :message="session('success')" />
-        </div>
-    @endif
-
     <section class="professional-profile-hero surface-card surface-card--lg" aria-labelledby="professional-profile-identity">
         <div class="professional-profile-identity">
-            @if ($personalProfile?->avatar_path)
+            @if ($personalProfile?->avatar_path && \\Illuminate\\Support\\Facades\\Storage::disk('local')->exists($personalProfile->avatar_path))
                 <img class="avatar avatar--xl professional-profile-avatar" src="{{ route('professional.profile.photo') }}" alt="Photo de profil de {{ $name }}">
             @else
                 <span class="avatar avatar--xl professional-profile-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($name, 0, 1)) }}</span>
@@ -73,7 +67,7 @@
                     @if ($professional->years_experience !== null)
                         <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i> {{ $professional->years_experience }} an(s) d’expérience</span>
                     @endif
-                    <span><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Inscrit le {{ $professional->created_at?->translatedFormat('j F Y') ?? 'date non disponible' }}</span>
+                    <span><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Inscrit le {{ $professional->user->created_at?->translatedFormat('j F Y') ?? 'date non disponible' }}</span>
                 </div>
             </div>
         </div>
