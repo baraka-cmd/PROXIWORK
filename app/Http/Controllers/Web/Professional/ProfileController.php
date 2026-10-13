@@ -23,8 +23,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProfileController extends Controller
 {
@@ -32,7 +32,6 @@ class ProfileController extends Controller
         private readonly ProfessionalServiceManager $serviceManager,
         private readonly AuditLogService $auditLogService,
     ) {}
-
 
     public function photo(Request $request): BinaryFileResponse
     {
@@ -59,7 +58,6 @@ class ProfileController extends Controller
 
     public function show(Request $request): View
     {
-        
         $professional = $request->user()->professionalProfile()
             ->with([
                 'user.profile',
