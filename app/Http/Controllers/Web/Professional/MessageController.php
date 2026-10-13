@@ -24,8 +24,6 @@ use Illuminate\View\View;
 
 class MessageController extends Controller
 {
-class MessageController extends Controller
-{
     public function index(Request $request, ConversationService $conversationService): View
     {
         $filters = $request->validate([
