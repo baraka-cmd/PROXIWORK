@@ -39,6 +39,31 @@ class PublicSearchController
         return view('public.services.show', compact('service'));
     }
 
+    public function professionalPhoto(ProfessionalProfile $professional): BinaryFileResponse
+    {
+        // Reuse the public visibility rule before serving an image stored on the private disk.
+        $professional = $this->searchService->findVisible($professional);
+        $path = $professional->user->profile?->avatar_path;
+
+        abort_unless(
+            is_string($path) && $path !== '' && Storage::disk('local')->exists($path),
+            404,
+        );
+
+        $mimeType = Storage::disk('local')->mimeType($path);
+        abort_unless(
+            is_string($mimeType) && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true),
+            404,
+        );
+
+        $response = response()->file(Storage::disk('local')->path($path));
+        $response->headers->set('Content-Type', $mimeType);
+        $response->headers->set('Cache-Control', 'public, max-age=300');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
+    }
+
     public function professional(ProfessionalProfile $professional): View
     {
         $professional = $this->searchService->findVisible($professional);
