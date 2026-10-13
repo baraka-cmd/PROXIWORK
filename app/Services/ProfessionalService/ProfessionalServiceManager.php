@@ -214,17 +214,17 @@ class ProfessionalServiceManager
 
                 return [$lockedImage->refresh(), $oldPath];
             });
-
-            if ($oldPath !== $newPath) {
-                Storage::disk('public')->delete($oldPath);
-            }
-
-            return $updatedImage;
         } catch (\Throwable $exception) {
             Storage::disk('public')->delete($newPath);
 
             throw $exception;
         }
+
+        if ($oldPath !== $newPath) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        return $updatedImage;
     }
 
     public function updateImage(ServiceImage $image, array $attributes): ServiceImage
