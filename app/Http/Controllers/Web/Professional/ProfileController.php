@@ -364,17 +364,25 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::enum(ServiceStatus::class)],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ]);
+
+        $serviceCounts = $profile->services()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
 
         $services = $profile->services()
             ->with(['category', 'skills', 'images'])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('short_description', 'like', "%{$search}%");
+                        ->orWhere('short_description', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
                 });
             })
             ->when($validated['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
             ->orderBy('sort_order')
             ->orderByDesc('id')
             ->paginate(12)
@@ -384,6 +392,20 @@ class ProfileController extends Controller
             'services' => $services,
             'filters' => $validated,
             'statuses' => ServiceStatus::cases(),
+            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'serviceCounts' => [
+                'all' => (int) $serviceCounts->sum(),
+                'published' => (int) ($serviceCounts[ServiceStatus::PUBLISHED->value] ?? 0),
+                'draft' => (int) ($serviceCounts[ServiceStatus::DRAFT->value] ?? 0),
+                'unpublished' => (int) ($serviceCounts[ServiceStatus::UNPUBLISHED->value] ?? 0),
+                'archived' => (int) ($serviceCounts[ServiceStatus::ARCHIVED->value] ?? 0),
+            ],
+            'statusLabels' => [
+                ServiceStatus::DRAFT->value => 'Brouillon',
+                ServiceStatus::PUBLISHED->value => 'Publié',
+                ServiceStatus::UNPUBLISHED->value => 'Dépublié',
+                ServiceStatus::ARCHIVED->value => 'Archivé',
+            ],
         ]);
     }
 
