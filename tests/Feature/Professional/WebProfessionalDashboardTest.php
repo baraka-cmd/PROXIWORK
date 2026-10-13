@@ -224,4 +224,39 @@ class WebProfessionalDashboardTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff');
     }
 
+    public function test_dashboard_module_links_accept_the_supported_order_and_quote_filters(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->getKey()]);
+
+        $this->actingAs($professional)
+            ->get('/professional/orders?status=active')
+            ->assertOk()
+            ->assertViewHas('selectedStatus', 'active');
+
+        $this->get('/professional/orders?status=completed&from=2026-10-01&to=2026-10-13')
+            ->assertOk()
+            ->assertViewHas('selectedStatus', 'completed')
+            ->assertViewHas('from', '2026-10-01')
+            ->assertViewHas('to', '2026-10-13');
+
+        $this->get('/professional/quotes?action_required=1')
+            ->assertOk()
+            ->assertViewHas('actionRequired', true);
+    }
+
+    public function test_order_date_filter_rejects_a_reversed_date_range(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->getKey()]);
+
+        $this->actingAs($professional)
+            ->from('/professional/orders')
+            ->get('/professional/orders?from=2026-10-15&to=2026-10-01')
+            ->assertRedirect('/professional/orders')
+            ->assertSessionHasErrors('to');
+    }
+
 }
