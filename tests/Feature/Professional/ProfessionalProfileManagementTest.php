@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Professional;
 
+use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Models\Category;
 use App\Models\ProfessionalProfile;
+use App\Models\Service;
+use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfessionalProfileManagementTest extends TestCase
