@@ -151,7 +151,7 @@
                     <h2 id="professional-priority-title">À traiter maintenant</h2>
                     <p>Les éléments qui demandent une action ou une vérification de votre part.</p>
                 </div>
-                <span class="professional-dashboard__priority-count">{{ $pendingActions->count() }} élément{{ $pendingActions->count() > 1 ? 's' : '' }}</span>
+                <span class="professional-dashboard__priority-count">{{ $pendingActions->count() }} alerte{{ $pendingActions->count() > 1 ? 's' : '' }}</span>
             </div>
 
             @if ($pendingActions->isEmpty())
