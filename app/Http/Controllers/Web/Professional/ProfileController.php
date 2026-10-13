@@ -8,6 +8,7 @@ use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
+use App\Http\Requests\ProfessionalService\ReplaceServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceRequest;
 use App\Http\Requests\ProfessionalService\UpdateServiceImageRequest;
@@ -492,6 +493,13 @@ class ProfileController extends Controller
         $this->serviceManager->addImage($service, $request->file('image'), $request->validated());
 
         return back()->with('success', 'Image ajoutée avec succès.');
+    }
+
+    public function replaceImage(ReplaceServiceImageRequest $request, ServiceImage $image): RedirectResponse
+    {
+        $this->serviceManager->replaceImage($image, $request->file('image'));
+
+        return back()->with('success', 'Image remplacée avec succès.');
     }
 
     public function updateImage(UpdateServiceImageRequest $request, ServiceImage $image): RedirectResponse
