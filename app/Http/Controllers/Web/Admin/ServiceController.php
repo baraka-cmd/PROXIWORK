@@ -41,8 +41,11 @@ class ServiceController extends Controller
     {
         $this->authorize('adminView', $service);
 
+        $service = $this->serviceManager->show($service);
+        $service->loadMissing('realizations.reviewer');
+
         return view('admin.services.show', [
-            'service' => $this->serviceManager->show($service),
+            'service' => $service,
         ]);
     }
 

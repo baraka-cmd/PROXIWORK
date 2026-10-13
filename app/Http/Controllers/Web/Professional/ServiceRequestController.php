@@ -35,7 +35,11 @@ class ServiceRequestController extends Controller
             $filters,
         );
 
-        return view('professional.requests.index', compact('requests', 'filters'));
+        $selectedService = isset($filters['service_id'])
+            ? $request->user()->professionalProfile()->firstOrFail()->services()->whereKey($filters['service_id'])->first()
+            : null;
+
+        return view('professional.requests.index', compact('requests', 'filters', 'selectedService'));
     }
 
     public function show(ServiceRequest $serviceRequest): View

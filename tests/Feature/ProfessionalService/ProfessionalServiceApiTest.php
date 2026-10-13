@@ -10,6 +10,7 @@ use App\Enums\SkillStatus;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
+use App\Models\ServiceImage;
 use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -40,6 +41,9 @@ class ProfessionalServiceApiTest extends TestCase
                 'category_id' => $category->id,
                 'title' => 'Développement Laravel',
                 'description' => 'Je développe des applications Laravel robustes et maintenables.',
+                'included_items' => 'Analyse du besoin et réalisation.',
+                'client_requirements' => 'Fournir les éléments nécessaires au projet.',
+                'deliverables' => 'Application livrée et testée.',
                 'pricing_type' => 'fixed',
                 'price' => 150,
                 'currency' => 'usd',
@@ -47,7 +51,10 @@ class ProfessionalServiceApiTest extends TestCase
             ])
             ->assertCreated()
             ->assertJsonPath('data.title', 'Développement Laravel')
-            ->assertJsonPath('data.currency', 'USD');
+            ->assertJsonPath('data.currency', 'USD')
+            ->assertJsonPath('data.included_items', 'Analyse du besoin et réalisation.')
+            ->assertJsonPath('data.client_requirements', 'Fournir les éléments nécessaires au projet.')
+            ->assertJsonPath('data.deliverables', 'Application livrée et testée.');
 
         $serviceId = $response->json('data.id');
 
@@ -221,6 +228,39 @@ class ProfessionalServiceApiTest extends TestCase
             ->assertJsonPath('data.status', 'unpublished');
     }
 
+    public function test_replacing_service_image_preserves_the_old_file_until_database_update_succeeds(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+        ]);
+
+        $imageId = $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
+                'image' => UploadedFile::fake()->image('cover.png'),
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $image = ServiceImage::query()->findOrFail($imageId);
+        $oldPath = $image->path;
+        Storage::disk('public')->assertExists($oldPath);
+
+        $this->actingAs($professional, 'sanctum')
+            ->patchJson('/api/v1/professional/service-images/'.$imageId.'/file', [
+                'image' => UploadedFile::fake()->image('replacement.webp'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.is_cover', true);
+
+        $image->refresh();
+
+        $this->assertNotSame($oldPath, $image->path);
+        $this->assertTrue($image->is_cover);
+        Storage::disk('public')->assertMissing($oldPath);
+        Storage::disk('public')->assertExists($image->path);
+    }
+
     public function test_service_images_are_owned_and_cover_is_protected(): void
     {
         [$professionalA] = $this->professional();
@@ -240,6 +280,12 @@ class ProfessionalServiceApiTest extends TestCase
             ->assertForbidden();
 
         $this->actingAs($professionalA, 'sanctum')
+            ->patchJson('/api/v1/professional/service-images/'.$image, ['alt_text' => 'Image principale du service'])
+            ->assertOk()
+            ->assertJsonPath('data.alt_text', 'Image principale du service')
+            ->assertJsonPath('data.is_cover', true);
+
+        $this->actingAs($professionalA, 'sanctum')
             ->patchJson('/api/v1/professional/service-images/'.$image, ['is_cover' => false])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['is_cover']);
@@ -251,6 +297,37 @@ class ProfessionalServiceApiTest extends TestCase
         ]);
 
         $this->assertNotSame($serviceA->id, $serviceB->id);
+    }
+
+    public function test_published_service_cannot_lose_its_last_cover_image(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $category = Category::factory()->create(['status' => 'active']);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'category_id' => $category->id,
+            'status' => ServiceStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        $imageId = $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
+                'image' => UploadedFile::fake()->image('only-cover.png'),
+                'is_cover' => true,
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($professional, 'sanctum')
+            ->deleteJson('/api/v1/professional/service-images/'.$imageId)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['image']);
+
+        $this->assertDatabaseHas('service_images', [
+            'id' => $imageId,
+            'service_id' => $service->id,
+            'is_cover' => true,
+        ]);
     }
 
     public function test_service_is_limited_to_eight_images(): void

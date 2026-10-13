@@ -1,13 +1,311 @@
 @extends('layouts.professional')
-@php $editing=$service!==null; @endphp
-@section('title',($editing?'Modifier':'Créer').' un service — PROXIWORK')
-@section('page_heading',($editing?'Modifier':'Créer').' un service')
+
+@php($editing = $service !== null)
+
+@section('title', ($editing ? 'Modifier' : 'Créer').' un service — PROXIWORK')
+@section('page_heading', ($editing ? 'Modifier' : 'Créer').' un service')
+
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/professional/services.css')
+    @endunless
+@endpush
+
 @section('content')
-<div class="dashboard-page-header"><div><p class="eyebrow">Service professionnel</p><h1>{{ $editing?'Modifier le service':'Créer un nouveau service' }}</h1><p class="page-lead">Décrivez une offre claire, choisissez sa tarification et préparez sa publication.</p></div><a class="button button--ghost" href="{{ route('professional.services.index') }}"><i class="fa-solid fa-arrow-left"></i> Retour</a></div>
-<form class="service-form" method="POST" action="{{ $editing?route('professional.services.update',$service):route('professional.services.store') }}">@csrf @if($editing) @method('PATCH') @endif
-<section class="surface-card surface-card--md"><div class="surface-card__header"><h2>1. Informations</h2></div><div class="surface-card__body service-form-grid"><div class="form-field service-form-grid__full"><label class="form-label" for="title">Titre <span class="form-label__required">*</span></label><input class="form-control" id="title" name="title" value="{{ old('title',$service?->title) }}" required maxlength="160"></div><div class="form-field service-form-grid__full"><label class="form-label" for="short_description">Description courte</label><input class="form-control" id="short_description" name="short_description" value="{{ old('short_description',$service?->short_description) }}" maxlength="500"></div><div class="form-field service-form-grid__full"><label class="form-label" for="description">Description complète <span class="form-label__required">*</span></label><textarea class="form-control form-control--textarea" id="description" name="description" required minlength="20" maxlength="10000">{{ old('description',$service?->description) }}</textarea></div><div class="form-field service-form-grid__full"><label class="form-label" for="execution_mode">Mode d’exécution <span class="form-label__required">*</span></label><select class="form-control form-select" id="execution_mode" name="execution_mode" required>@foreach(\App\Enums\ServiceExecutionMode::cases() as $mode)<option value="{{ $mode->value }}" @selected(old('execution_mode',$service?->execution_mode?->value ?? 'client_location')===$mode->value)>{{ $mode->label() }}</option>@endforeach</select><p class="form-help">Les prestations chez le client exigent un lieu d’intervention avant l’envoi de la demande. Les prestations à distance n’exigent pas d’adresse physique.</p></div></div></section>
-<section class="surface-card surface-card--md"><div class="surface-card__header"><h2>2. Catégorisation</h2></div><div class="surface-card__body service-form-grid"><div class="form-field"><label class="form-label" for="category_id">Catégorie <span class="form-label__required">*</span></label><select class="form-control form-select" id="category_id" name="category_id" required><option value="">Choisir...</option>@foreach($categories as $category)<option value="{{ $category->id }}" @selected(old('category_id',$service?->category_id)==$category->id)>{{ $category->name }}</option>@endforeach</select></div><div class="form-field"><label class="form-label" for="skill_ids">Compétences</label><select class="form-control form-select" id="skill_ids" name="skill_ids[]" multiple size="6">@foreach($skills as $skill)<option value="{{ $skill->id }}" @selected(in_array($skill->id,old('skill_ids',$service?->skills->pluck('id')->all()??[])))>{{ $skill->name }}</option>@endforeach</select><p class="form-help">Jusqu’à 10 compétences actives.</p></div></div></section>
-<section class="surface-card surface-card--md"><div class="surface-card__header"><h2>3. Tarification & durée</h2></div><div class="surface-card__body service-form-grid"><div class="form-field"><label class="form-label" for="pricing_type">Type <span class="form-label__required">*</span></label><select class="form-control form-select" id="pricing_type" name="pricing_type" data-pricing-type required>@foreach(\App\Enums\ServicePricingType::cases() as $type)<option value="{{ $type->value }}" @selected(old('pricing_type',$service?->pricing_type->value??'quote')===$type->value)>{{ match($type->value){'fixed'=>'Prix fixe','from'=>'À partir de','range'=>'Fourchette','quote'=>'Sur devis'} }}</option>@endforeach</select></div><div class="form-field" data-price-field><label class="form-label" for="price">Prix</label><input class="form-control" id="price" name="price" type="number" step="0.01" min="0" value="{{ old('price',$service?->price) }}"></div><div class="form-field" data-range-field><label class="form-label" for="price_min">Prix minimum</label><input class="form-control" id="price_min" name="price_min" type="number" step="0.01" min="0" value="{{ old('price_min',$service?->price_min) }}"></div><div class="form-field" data-range-field><label class="form-label" for="price_max">Prix maximum</label><input class="form-control" id="price_max" name="price_max" type="number" step="0.01" min="0" value="{{ old('price_max',$service?->price_max) }}"></div><div class="form-field" data-currency-field><label class="form-label" for="currency">Devise</label><input class="form-control" id="currency" name="currency" maxlength="3" value="{{ old('currency',$service?->currency) }}" placeholder="USD"></div><div class="form-field"><label class="form-label" for="estimated_duration_minutes">Durée estimée (minutes)</label><input class="form-control" id="estimated_duration_minutes" name="estimated_duration_minutes" type="number" min="1" max="525600" value="{{ old('estimated_duration_minutes',$service?->estimated_duration_minutes) }}"></div></div></section>
-<div class="service-form-actions"><a class="button button--ghost" href="{{ route('professional.services.index') }}">Annuler</a><button class="button button--primary" type="submit" data-action-button><i class="fa-solid fa-check"></i> {{ $editing?'Enregistrer':'Créer le service' }}</button></div></form>
-@if($editing)<section class="surface-card surface-card--md professional-section"><div class="surface-card__header"><h2>4. Galerie</h2><p>La publication exige une image de couverture. Maximum 8 images.</p></div><div class="surface-card__body"><form class="image-upload-form" method="POST" action="{{ route('professional.services.images.store',$service) }}" enctype="multipart/form-data">@csrf<div class="form-field"><label class="form-label" for="image">Image</label><input class="form-control" id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" required></div><div class="form-field"><label class="form-label" for="alt_text">Texte alternatif</label><input class="form-control" id="alt_text" name="alt_text" maxlength="160"></div><label class="form-label"><input type="checkbox" name="is_cover" value="1"> Couverture</label><button class="button button--primary" type="submit">Ajouter</button></form>@if($service->images->isNotEmpty())<div class="image-gallery">@foreach($service->images as $image)<div class="image-gallery__item"><img src="{{ Storage::disk('public')->url($image->path) }}" alt="{{ $image->alt_text?:$service->title }}"><span class="badge badge--{{ $image->is_cover?'success':'neutral' }}">{{ $image->is_cover?'Couverture':'Image' }}</span><form method="POST" action="{{ route('professional.services.images.destroy',$image) }}" data-confirm-delete>@csrf @method('DELETE')<button class="button button--danger button--sm" type="submit">Supprimer</button></form></div>@endforeach</div>@endif</div></section>@endif
+    <div class="dashboard-page-header">
+        <div>
+            <p class="eyebrow">Service professionnel</p>
+            <h1>{{ $editing ? 'Modifier le service' : 'Créer un nouveau service' }}</h1>
+            <p class="page-lead">Décrivez une offre claire, choisissez sa tarification et préparez sa publication.</p>
+        </div>
+        <div class="dashboard-page-header__actions">
+            @if($editing)
+                <a class="button button--secondary" href="{{ route('professional.services.preview', $service) }}">Aperçu</a>
+            @endif
+            <a class="button button--ghost" href="{{ route('professional.services.index') }}">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    @if($errors->any())
+        <section class="surface-card service-validation-summary" role="alert" aria-labelledby="service-validation-title">
+            <h2 id="service-validation-title">Certaines informations doivent être corrigées</h2>
+            <p>Les valeurs saisies ont été conservées. Corrigez les éléments suivants puis enregistrez à nouveau.</p>
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
+    <form class="service-form" method="POST" action="{{ $editing ? route('professional.services.update', $service) : route('professional.services.store') }}">
+        @csrf
+        @if($editing)
+            @method('PATCH')
+        @endif
+
+        <section class="surface-card surface-card--md">
+            <div class="surface-card__header">
+                <h2>1. Informations générales</h2>
+            </div>
+            <div class="surface-card__body service-form-grid">
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="title">Titre <span class="form-label__required">*</span></label>
+                    <input class="form-control" id="title" name="title" value="{{ old('title', $service?->title) }}" required maxlength="160">
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="short_description">Description courte</label>
+                    <input class="form-control" id="short_description" name="short_description" value="{{ old('short_description', $service?->short_description) }}" maxlength="300">
+                    <p class="form-help">Un résumé pour aider les clients à comprendre rapidement votre offre.</p>
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="description">Description complète <span class="form-label__required">*</span></label>
+                    <textarea class="form-control form-control--textarea" id="description" name="description" required minlength="20" maxlength="10000" rows="6">{{ old('description', $service?->description) }}</textarea>
+                    <p class="form-help">Expliquez le besoin auquel vous répondez, le travail effectué et les limites de la prestation.</p>
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="execution_mode">Mode d’exécution <span class="form-label__required">*</span></label>
+                    <select class="form-control form-select" id="execution_mode" name="execution_mode" required>
+                        @foreach(\App\Enums\ServiceExecutionMode::cases() as $mode)
+                            <option value="{{ $mode->value }}" @selected(old('execution_mode', $service?->execution_mode?->value ?? 'client_location') === $mode->value)>{{ $mode->label() }}</option>
+                        @endforeach
+                    </select>
+                    <p class="form-help">Les prestations chez le client exigent un lieu d’intervention avant l’envoi de la demande. Les prestations à distance n’exigent pas d’adresse physique.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="surface-card surface-card--md">
+            <div class="surface-card__header">
+                <h2>2. Catégorisation et compétences</h2>
+            </div>
+            <div class="surface-card__body service-form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="category_id">Catégorie <span class="form-label__required">*</span></label>
+                    <select class="form-control form-select" id="category_id" name="category_id" required>
+                        <option value="">Choisir une catégorie</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" @selected(old('category_id', $service?->category_id) == $category->id)>{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="skill_ids">Compétences associées</label>
+                    <select class="form-control form-select" id="skill_ids" name="skill_ids[]" multiple size="6">
+                        @foreach($skills as $skill)
+                            <option value="{{ $skill->id }}" @selected(in_array($skill->id, old('skill_ids', $service?->skills->pluck('id')->all() ?? [])))>{{ $skill->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="form-help">Choisissez jusqu’à 10 compétences actives liées à cette prestation. Cela ne crée pas de nouveau service.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="surface-card surface-card--md">
+            <div class="surface-card__header">
+                <h2>3. Tarification et durée</h2>
+            </div>
+            <div class="surface-card__body service-form-grid">
+                <div class="form-field">
+                    <label class="form-label" for="pricing_type">Type de tarification <span class="form-label__required">*</span></label>
+                    <select class="form-control form-select" id="pricing_type" name="pricing_type" data-pricing-type required>
+                        @foreach(\App\Enums\ServicePricingType::cases() as $type)
+                            <option value="{{ $type->value }}" @selected(old('pricing_type', $service?->pricing_type->value ?? 'quote') === $type->value)>
+                                {{ match($type->value) { 'fixed' => 'Prix fixe', 'from' => 'À partir de', 'range' => 'Fourchette', 'quote' => 'Sur devis' } }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-field" data-price-field>
+                    <label class="form-label" for="price">Prix</label>
+                    <input class="form-control" id="price" name="price" type="number" step="0.01" min="0" value="{{ old('price', $service?->price) }}">
+                </div>
+                <div class="form-field" data-range-field>
+                    <label class="form-label" for="price_min">Prix minimum</label>
+                    <input class="form-control" id="price_min" name="price_min" type="number" step="0.01" min="0" value="{{ old('price_min', $service?->price_min) }}">
+                </div>
+                <div class="form-field" data-range-field>
+                    <label class="form-label" for="price_max">Prix maximum</label>
+                    <input class="form-control" id="price_max" name="price_max" type="number" step="0.01" min="0" value="{{ old('price_max', $service?->price_max) }}">
+                </div>
+                <div class="form-field" data-currency-field>
+                    <label class="form-label" for="currency">Devise</label>
+                    <input class="form-control" id="currency" name="currency" maxlength="3" value="{{ old('currency', $service?->currency) }}" placeholder="USD">
+                </div>
+                <div class="form-field">
+                    <label class="form-label" for="estimated_duration_minutes">Durée estimée (minutes)</label>
+                    <input class="form-control" id="estimated_duration_minutes" name="estimated_duration_minutes" type="number" min="1" max="525600" value="{{ old('estimated_duration_minutes', $service?->estimated_duration_minutes) }}">
+                </div>
+            </div>
+        </section>
+
+        <section class="surface-card surface-card--md">
+            <div class="surface-card__header">
+                <h2>4. Périmètre et conditions</h2>
+                <p>Précisez ce qui est compris dans le prix et ce que le client doit préparer. Ces champs restent facultatifs lorsqu’ils ne s’appliquent pas à votre prestation.</p>
+            </div>
+            <div class="surface-card__body service-form-grid">
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="included_items">Ce qui est inclus</label>
+                    <textarea class="form-control form-control--textarea" id="included_items" name="included_items" rows="3" maxlength="5000">{{ old('included_items', $service?->included_items) }}</textarea>
+                    <p class="form-help">Une action ou un élément par ligne.</p>
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="excluded_items">Ce qui n’est pas inclus</label>
+                    <textarea class="form-control form-control--textarea" id="excluded_items" name="excluded_items" rows="3" maxlength="5000">{{ old('excluded_items', $service?->excluded_items) }}</textarea>
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="client_requirements">Informations ou préparatifs attendus du client</label>
+                    <textarea class="form-control form-control--textarea" id="client_requirements" name="client_requirements" rows="3" maxlength="5000">{{ old('client_requirements', $service?->client_requirements) }}</textarea>
+                    <p class="form-help">Ne demandez que les informations nécessaires à l’exécution de la prestation.</p>
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="deliverables">Livrables ou résultat attendu</label>
+                    <textarea class="form-control form-control--textarea" id="deliverables" name="deliverables" rows="3" maxlength="5000">{{ old('deliverables', $service?->deliverables) }}</textarea>
+                </div>
+                <div class="form-field service-form-grid__full">
+                    <label class="form-label" for="commercial_conditions">Conditions commerciales particulières</label>
+                    <textarea class="form-control form-control--textarea" id="commercial_conditions" name="commercial_conditions" rows="3" maxlength="5000">{{ old('commercial_conditions', $service?->commercial_conditions) }}</textarea>
+                    <p class="form-help">Ces conditions ne doivent pas contredire les règles générales de PROXIWORK.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="service-form-actions">
+            <a class="button button--ghost" href="{{ route('professional.services.index') }}">Annuler</a>
+            <button class="button button--primary" type="submit" data-action-button>
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                {{ $editing ? 'Enregistrer' : 'Créer le service' }}
+            </button>
+        </div>
+    </form>
+
+    @if($editing)
+        <section class="surface-card surface-card--md professional-section">
+            <div class="surface-card__header">
+                <h2>5. Galerie illustrative</h2>
+                <p>La publication exige une image de couverture. Maximum 8 images. Formats acceptés : JPG, PNG ou WebP, 5 Mo maximum par image. Cette galerie présente le service : ne téléversez pas ici de pièce d’identité, de justificatif confidentiel ou de document client. Utilisez le module Documents pour les justificatifs administratifs pris en charge.</p>
+            </div>
+            <div class="surface-card__body">
+                <form class="image-upload-form" method="POST" action="{{ route('professional.services.images.store', $service) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-field">
+                        <label class="form-label" for="image">Image</label>
+                        <input class="form-control" id="image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label" for="alt_text">Texte alternatif</label>
+                        <input class="form-control" id="alt_text" name="alt_text" maxlength="160">
+                    </div>
+                    <label class="form-label"><input type="checkbox" name="is_cover" value="1"> Couverture</label>
+                    <button class="button button--primary" type="submit">Ajouter</button>
+                </form>
+
+                @if($service->images->isNotEmpty())
+                    <div class="image-gallery">
+                        @foreach($service->images as $image)
+                            <article class="image-gallery__item">
+                                <img src="{{ Storage::disk('public')->url($image->path) }}" alt="{{ $image->alt_text ?: $service->title }}" loading="lazy">
+                                <span class="badge badge--{{ $image->is_cover ? 'success' : 'neutral' }}">{{ $image->is_cover ? 'Couverture' : 'Image' }}</span>
+
+                                <form class="image-edit-form" method="POST" action="{{ route('professional.services.images.update', $image) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div class="form-field">
+                                        <label class="form-label" for="alt-text-{{ $image->id }}">Texte alternatif</label>
+                                        <input class="form-control" id="alt-text-{{ $image->id }}" name="alt_text" maxlength="160" value="{{ $image->alt_text }}">
+                                    </div>
+                                    <div class="form-field">
+                                        <label class="form-label" for="sort-order-{{ $image->id }}">Ordre</label>
+                                        <input class="form-control" id="sort-order-{{ $image->id }}" name="sort_order" type="number" min="0" max="1000000" value="{{ $image->sort_order }}">
+                                    </div>
+                                    <label class="form-label image-edit-form__cover">
+                                        <input type="hidden" name="is_cover" value="0">
+                                        <input type="checkbox" name="is_cover" value="1" @checked($image->is_cover)> Image principale
+                                    </label>
+                                    <button class="button button--secondary button--sm" type="submit">Enregistrer</button>
+                                </form>
+
+                                <form class="image-replace-form" method="POST" action="{{ route('professional.services.images.replace', $image) }}" enctype="multipart/form-data">
+                                    @csrf
+                                    @method('PATCH')
+                                    <label class="form-label" for="replace-image-{{ $image->id }}">Remplacer le fichier</label>
+                                    <input class="form-control" id="replace-image-{{ $image->id }}" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" required>
+                                    <button class="button button--secondary button--sm" type="submit">Remplacer l’image</button>
+                                </form>
+
+                                <form method="POST" action="{{ route('professional.services.images.destroy', $image) }}" data-confirm-delete>
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="button button--danger button--sm" type="submit">Supprimer</button>
+                                </form>
+                            </article>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </section>
+
+        <section class="surface-card surface-card--md professional-section">
+            <div class="surface-card__header">
+                <h2>6. Réalisations (preuves de travaux)</h2>
+                <p>Ces fichiers sont privés et restent en attente de modération. Seules les réalisations approuvées peuvent être visibles des clients lorsque le service est public. N’envoyez pas de documents d’identité ni de justificatifs officiels dans cette section.</p>
+            </div>
+            <div class="surface-card__body">
+                <form class="realization-upload-form" method="POST" action="{{ route('professional.services.realizations.store', $service) }}" enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-field">
+                        <label class="form-label" for="realization-image">Photo de réalisation</label>
+                        <input class="form-control" id="realization-image" name="image" type="file" accept=".jpg,.jpeg,.png,.webp" required>
+                        <p class="form-help">JPG, PNG ou WebP, 5 Mo maximum.</p>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label" for="realization-caption">Légende</label>
+                        <input class="form-control" id="realization-caption" name="caption" maxlength="500" value="{{ old('caption') }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label" for="realization-completed-at">Date approximative de réalisation (facultative)</label>
+                        <input class="form-control" id="realization-completed-at" name="completed_at" type="date" value="{{ old('completed_at') }}" max="{{ now()->toDateString() }}">
+                    </div>
+                    <label class="form-label realization-confirmation">
+                        <input type="checkbox" name="participation_confirmed" value="1" @checked(old('participation_confirmed')) required>
+                        Je confirme avoir réalisé ce travail ou y avoir participé, et être autorisé à partager cette image.
+                    </label>
+                    <button class="button button--primary" type="submit">Envoyer à la modération</button>
+                </form>
+
+                @if($service->realizations->isNotEmpty())
+                    <div class="realization-list">
+                        @foreach($service->realizations as $realization)
+                            @php($realizationStatusClass = match($realization->status) { 'approved' => 'success', 'rejected' => 'danger', default => 'warning' })
+                            <article class="realization-card">
+                                <img src="{{ route('professional.services.realizations.file', $realization) }}" alt="{{ $realization->caption }}" loading="lazy">
+                                <div class="realization-card__content">
+                                    <div class="realization-card__header">
+                                        <strong>{{ $realization->caption }}</strong>
+                                        <span class="badge badge--{{ $realizationStatusClass }}">{{ ['pending' => 'En attente', 'approved' => 'Approuvée', 'rejected' => 'Refusée'][$realization->status] ?? $realization->status }}</span>
+                                    </div>
+                                    @if($realization->completed_at)
+                                        <p>Réalisée le {{ $realization->completed_at->format('d/m/Y') }}</p>
+                                    @endif
+                                    @if($realization->review_note)
+                                        <p class="realization-card__review">Retour de modération : {{ $realization->review_note }}</p>
+                                    @endif
+                                    @if($realization->status !== 'approved')
+                                        <form method="POST" action="{{ route('professional.services.realizations.destroy', $realization) }}" data-confirm-delete>
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="button button--danger button--sm" type="submit">Supprimer</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </section>
+    @endif
 @endsection

@@ -8,6 +8,7 @@ use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
+use App\Http\Requests\ProfessionalService\ReplaceServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceRequest;
 use App\Http\Requests\ProfessionalService\UpdateServiceImageRequest;
@@ -16,6 +17,7 @@ use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceImage;
+use App\Models\ServiceRealization;
 use App\Models\Skill;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
@@ -364,17 +366,32 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::enum(ServiceStatus::class)],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ]);
+
+        $pendingRealizationsCount = ServiceRealization::query()
+            ->whereHas('service', fn ($query) => $query->where('professional_profile_id', $profile->getKey()))
+            ->where('status', ServiceRealization::STATUS_PENDING)
+            ->count();
+
+        $serviceCounts = $profile->services()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
 
         $services = $profile->services()
             ->with(['category', 'skills', 'images'])
+            ->withCount('serviceRequests')
+            ->withCount(['realizations as pending_realizations_count' => fn ($query) => $query->where('status', ServiceRealization::STATUS_PENDING)])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
-                        ->orWhere('short_description', 'like', "%{$search}%");
+                        ->orWhere('short_description', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
                 });
             })
             ->when($validated['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
             ->orderBy('sort_order')
             ->orderByDesc('id')
             ->paginate(12)
@@ -384,6 +401,21 @@ class ProfileController extends Controller
             'services' => $services,
             'filters' => $validated,
             'statuses' => ServiceStatus::cases(),
+            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'serviceCounts' => [
+                'all' => (int) $serviceCounts->sum(),
+                'published' => (int) ($serviceCounts[ServiceStatus::PUBLISHED->value] ?? 0),
+                'draft' => (int) ($serviceCounts[ServiceStatus::DRAFT->value] ?? 0),
+                'unpublished' => (int) ($serviceCounts[ServiceStatus::UNPUBLISHED->value] ?? 0),
+                'archived' => (int) ($serviceCounts[ServiceStatus::ARCHIVED->value] ?? 0),
+                'pending_realizations' => $pendingRealizationsCount,
+            ],
+            'statusLabels' => [
+                ServiceStatus::DRAFT->value => 'Brouillon',
+                ServiceStatus::PUBLISHED->value => 'Publié',
+                ServiceStatus::UNPUBLISHED->value => 'Dépublié',
+                ServiceStatus::ARCHIVED->value => 'Archivé',
+            ],
         ]);
     }
 
@@ -409,12 +441,22 @@ class ProfileController extends Controller
 
     public function editService(Request $request, Service $service): View
     {
-        $this->authorize('view', $service);
+        $this->authorize('update', $service);
+        abort_if($service->status === ServiceStatus::ARCHIVED, 404);
 
         return view('professional/services/form', [
-            'service' => $service->load(['category', 'skills', 'images']),
+            'service' => $service->load(['category', 'skills', 'images', 'realizations']),
             'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(),
             'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(),
+        ]);
+    }
+
+    public function previewService(Request $request, Service $service): View
+    {
+        $this->authorize('view', $service);
+
+        return view('professional/services/preview', [
+            'service' => $service->load(['category', 'skills', 'images', 'realizations', 'professionalProfile.user.profile']),
         ]);
     }
 
@@ -460,6 +502,13 @@ class ProfileController extends Controller
         $this->serviceManager->addImage($service, $request->file('image'), $request->validated());
 
         return back()->with('success', 'Image ajoutée avec succès.');
+    }
+
+    public function replaceImage(ReplaceServiceImageRequest $request, ServiceImage $image): RedirectResponse
+    {
+        $this->serviceManager->replaceImage($image, $request->file('image'));
+
+        return back()->with('success', 'Image remplacée avec succès.');
     }
 
     public function updateImage(UpdateServiceImageRequest $request, ServiceImage $image): RedirectResponse

@@ -25,7 +25,10 @@ class RbacSeeder extends Seeder
             'skills.manage' => ['Compétences - administrer', 'skills', 'Créer, modifier et archiver les compétences.'],
             'professional_skills.manage' => ['Compétences professionnelles - gérer', 'skills', 'Associer et retirer les compétences de son profil professionnel.'],
             'services.view' => ['Services - consulter', 'services', 'Consulter les services publiés.'],
-            'services.manage' => ['Services - administrer', 'services', 'Gérer les services.'],
+            'services.manage' => ['Services - administrer', 'services', 'Gérer ses propres services.'],
+            'admin.services.view' => ['Administration - services consulter', 'admin.services', 'Consulter tous les services et leurs preuves de réalisation.'],
+            'admin.services.manage' => ['Administration - services administrer', 'admin.services', 'Publier, dépublier et archiver les services.'],
+            'admin.service_realizations.moderate' => ['Administration - réalisations modérer', 'admin.services', 'Approuver ou rejeter les preuves de réalisation.'],
             'requests.view' => ['Demandes - consulter', 'requests', 'Consulter les demandes de service.'],
             'requests.manage' => ['Demandes - administrer', 'requests', 'Gérer les demandes de service.'],
             'orders.view' => ['Commandes - consulter', 'orders', 'Consulter les commandes.'],
@@ -70,7 +73,7 @@ class RbacSeeder extends Seeder
             ]],
             'moderator' => ['Modérateur', 'Gère la qualité des contenus et les signalements.', true, [
                 'rbac.view', 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
-                'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage',
+                'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage', 'admin.services.view', 'admin.service_realizations.moderate',
             ]],
             'support' => ['Support', 'Assure l’assistance et le suivi des utilisateurs.', true, [
                 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',

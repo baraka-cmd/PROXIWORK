@@ -24,8 +24,13 @@ class StoreServiceRequest extends FormRequest
         return [
             'category_id' => ['required', 'integer', 'exists:categories,id'],
             'title' => ['required', 'string', 'min:3', 'max:160'],
-            'short_description' => ['nullable', 'string', 'max:500'],
+            'short_description' => ['nullable', 'string', 'max:300'],
             'description' => ['required', 'string', 'min:20', 'max:10000'],
+            'included_items' => ['nullable', 'string', 'max:5000'],
+            'excluded_items' => ['nullable', 'string', 'max:5000'],
+            'client_requirements' => ['nullable', 'string', 'max:5000'],
+            'deliverables' => ['nullable', 'string', 'max:5000'],
+            'commercial_conditions' => ['nullable', 'string', 'max:5000'],
             'execution_mode' => ['sometimes', 'required', Rule::enum(ServiceExecutionMode::class)],
             'pricing_type' => ['required', Rule::enum(ServicePricingType::class)],
             'price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
@@ -66,13 +71,37 @@ class StoreServiceRequest extends FormRequest
     {
         $data = [];
 
-        foreach (['title', 'short_description', 'description', 'currency'] as $field) {
+        foreach ([
+            'title',
+            'short_description',
+            'description',
+            'included_items',
+            'excluded_items',
+            'client_requirements',
+            'deliverables',
+            'commercial_conditions',
+            'currency',
+        ] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $data[$field] = trim((string) $this->input($field));
             }
         }
 
-        if (array_key_exists('currency', $data)) {
+        foreach ([
+            'short_description',
+            'included_items',
+            'excluded_items',
+            'client_requirements',
+            'deliverables',
+            'commercial_conditions',
+            'currency',
+        ] as $optionalField) {
+            if (array_key_exists($optionalField, $data) && $data[$optionalField] === '') {
+                $data[$optionalField] = null;
+            }
+        }
+
+        if (isset($data['currency'])) {
             $data['currency'] = strtoupper($data['currency']);
         }
 

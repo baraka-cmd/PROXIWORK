@@ -33,6 +33,11 @@ class Service extends Model
         'slug',
         'short_description',
         'description',
+        'included_items',
+        'excluded_items',
+        'client_requirements',
+        'deliverables',
+        'commercial_conditions',
         'execution_mode',
         'pricing_type',
         'price',
@@ -88,6 +93,11 @@ class Service extends Model
     public function serviceRequests(): HasMany
     {
         return $this->hasMany(ServiceRequest::class);
+    }
+
+    public function realizations(): HasMany
+    {
+        return $this->hasMany(ServiceRealization::class)->latest();
     }
 
     public function scopePublished($query)

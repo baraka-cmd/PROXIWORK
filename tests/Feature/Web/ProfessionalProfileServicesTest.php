@@ -80,8 +80,20 @@ class ProfessionalProfileServicesTest extends TestCase
             ->assertSee('Service visible')
             ->assertDontSee('Service secret');
 
+        $ownedService = Service::where('professional_profile_id', $firstProfile->id)->firstOrFail();
+
+        $this->actingAs($firstUser)
+            ->get(route('professional.services.preview', $ownedService))
+            ->assertOk()
+            ->assertSee('Service visible')
+            ->assertSee('Prévisualisation privée');
+
         $this->actingAs($firstUser)
             ->get(route('professional.services.edit', $foreignService))
+            ->assertForbidden();
+
+        $this->actingAs($firstUser)
+            ->get(route('professional.services.preview', $foreignService))
             ->assertForbidden();
     }
 
@@ -114,5 +126,93 @@ class ProfessionalProfileServicesTest extends TestCase
         $this->actingAs($user)
             ->post(route('professional.services.publish', $service))
             ->assertSessionHasErrors('images');
+    }
+
+    public function test_service_scope_fields_are_saved_for_client_transparency(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $category = Category::factory()->create(['status' => 'active']);
+
+        $this->actingAs($user)->post(route('professional.services.store'), [
+            'category_id' => $category->id,
+            'title' => 'Installation électrique',
+            'short_description' => 'Installation et vérification de luminaires.',
+            'description' => 'Installation de luminaires et vérification du fonctionnement selon le besoin convenu.',
+            'pricing_type' => 'fixed',
+            'price' => '120.00',
+            'currency' => 'USD',
+            'included_items' => "Installation des luminaires\nVérification du fonctionnement",
+            'excluded_items' => 'Achat des luminaires',
+            'client_requirements' => 'Fournir les luminaires avant le rendez-vous.',
+            'deliverables' => 'Luminaires installés et testés.',
+            'commercial_conditions' => 'Tout travail supplémentaire doit être convenu avant exécution.',
+        ])->assertSessionHasNoErrors();
+
+        $service = $profile->services()->firstOrFail();
+
+        $this->assertDatabaseHas('services', [
+            'id' => $service->id,
+            'included_items' => "Installation des luminaires\nVérification du fonctionnement",
+            'excluded_items' => 'Achat des luminaires',
+            'client_requirements' => 'Fournir les luminaires avant le rendez-vous.',
+            'deliverables' => 'Luminaires installés et testés.',
+            'commercial_conditions' => 'Tout travail supplémentaire doit être convenu avant exécution.',
+        ]);
+    }
+
+    public function test_catalogue_filters_by_category_and_counts_real_service_statuses(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $firstCategory = Category::factory()->create(['name' => 'Informatique', 'status' => 'active']);
+        $secondCategory = Category::factory()->create(['name' => 'Plomberie', 'status' => 'active']);
+
+        Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'category_id' => $firstCategory->id,
+            'title' => 'Site web professionnel',
+            'status' => ServiceStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
+        Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'category_id' => $secondCategory->id,
+            'title' => 'Réparation de robinet',
+            'status' => ServiceStatus::DRAFT,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('professional.services.index', ['category_id' => $firstCategory->id]))
+            ->assertOk()
+            ->assertSee('Site web professionnel')
+            ->assertDontSee('Réparation de robinet')
+            ->assertViewHas('serviceCounts', function (array $counts): bool {
+                return $counts['all'] === 2
+                    && $counts['published'] === 1
+                    && $counts['draft'] === 1;
+            });
+    }
+
+    public function test_archived_services_cannot_be_edited_again(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'status' => ServiceStatus::ARCHIVED,
+            'published_at' => null,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('professional.services.edit', $service))
+            ->assertNotFound();
+
+        $this->actingAs($user)
+            ->patch(route('professional.services.update', $service), [])
+            ->assertSessionHasErrors('service');
     }
 }

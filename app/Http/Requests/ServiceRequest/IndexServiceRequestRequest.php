@@ -29,6 +29,7 @@ class IndexServiceRequestRequest extends FormRequest
             'search' => ['sometimes', 'nullable', 'string', 'max:120'],
             'professional_id' => ['sometimes', 'nullable', 'integer', 'min:1', 'exists:professional_profiles,id'],
             'category_id' => ['sometimes', 'nullable', 'integer', 'min:1', 'exists:categories,id'],
+            'service_id' => ['sometimes', 'nullable', 'integer', 'min:1', 'exists:services,id'],
             'from' => ['sometimes', 'nullable', 'date_format:Y-m-d'],
             'to' => ['sometimes', 'nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
             'sort' => ['sometimes', 'nullable', Rule::in(['newest', 'oldest'])],
@@ -38,7 +39,7 @@ class IndexServiceRequestRequest extends FormRequest
     public function filters(): array
     {
         return collect($this->validated())
-            ->only(['status', 'search', 'professional_id', 'category_id', 'from', 'to', 'sort'])
+            ->only(['status', 'search', 'professional_id', 'category_id', 'service_id', 'from', 'to', 'sort'])
             ->all();
     }
 }

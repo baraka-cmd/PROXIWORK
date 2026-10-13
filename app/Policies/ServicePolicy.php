@@ -22,12 +22,17 @@ class ServicePolicy
 
     public function adminView(User $user, Service $service): bool
     {
-        return $user->hasPermissionTo('services.view');
+        return $user->hasPermissionTo('admin.services.view');
     }
 
     public function adminManage(User $user, Service $service): bool
     {
-        return $user->hasPermissionTo('services.manage');
+        return $user->hasPermissionTo('admin.services.manage');
+    }
+
+    public function moderateRealization(User $user, Service $service): bool
+    {
+        return $user->hasPermissionTo('admin.service_realizations.moderate');
     }
 
     public function create(User $user): bool
