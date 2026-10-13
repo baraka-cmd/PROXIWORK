@@ -44,7 +44,7 @@ class ServiceRealizationController extends Controller
 
     public function approve(Request $request, ServiceRealization $realization): RedirectResponse
     {
-        $this->authorize('adminManage', $realization->service);
+        $this->authorize('moderateRealization', $realization->service);
 
         $validated = $request->validate([
             'review_note' => ['nullable', 'string', 'max:2000'],
