@@ -2,6 +2,12 @@
 @php $editing=$service!==null; @endphp
 @section('title',($editing?'Modifier':'Créer').' un service — PROXIWORK')
 @section('page_heading',($editing?'Modifier':'Créer').' un service')
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/professional/services.css')
+    @endunless
+@endpush
+
 @section('content')
 <div class="dashboard-page-header"><div><p class="eyebrow">Service professionnel</p><h1>{{ $editing?'Modifier le service':'Créer un nouveau service' }}</h1><p class="page-lead">Décrivez une offre claire, choisissez sa tarification et préparez sa publication.</p></div>@if($editing)<a class="button button--secondary" href="{{ route('professional.services.preview', $service) }}">Aperçu</a>@endif<a class="button button--ghost" href="{{ route('professional.services.index') }}"><i class="fa-solid fa-arrow-left"></i> Retour</a></div>
 @if($errors->any())
