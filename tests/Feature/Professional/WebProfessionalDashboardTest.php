@@ -110,4 +110,46 @@ class WebProfessionalDashboardTest extends TestCase
             ->assertDontSee('Second professionnel')
             ->assertDontSee('Second métier');
     }
+    public function test_dashboard_uses_a_supported_period_and_shows_honest_empty_states(): void
+    {
+        $professional = User::factory()->create(['name' => 'Professionnel Débutant']);
+        $professional->assignRole('professional');
+
+        ProfessionalProfile::factory()->create([
+            'user_id' => $professional->getKey(),
+            'rating_average' => 0,
+            'rating_count' => 0,
+        ]);
+
+        $this->actingAs($professional)
+            ->get('/professional?period=7d')
+            ->assertOk()
+            ->assertViewHas('dashboard', function (array $dashboard): bool {
+                return $dashboard['period'] === '7d'
+                    && count($dashboard['charts']['activity']['labels']) === 7
+                    && $dashboard['charts']['revenue']['series'] === []
+                    && $dashboard['engagement']['rating_count'] === 0
+                    && $dashboard['finance']['wallet_available_known'] === false;
+            })
+            ->assertSee('7 derniers jours')
+            ->assertSee('Aucun revenu confirmé')
+            ->assertSee('Aucun avis pour le moment')
+            ->assertSee('Aucun portefeuille existant à afficher');
+    }
+
+    public function test_unsupported_dashboard_period_falls_back_to_thirty_days(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->getKey()]);
+
+        $this->actingAs($professional)
+            ->get('/professional?period=all-time')
+            ->assertOk()
+            ->assertViewHas('dashboard', function (array $dashboard): bool {
+                return $dashboard['period'] === '30d'
+                    && count($dashboard['charts']['activity']['labels']) === 30;
+            });
+    }
+
 }
