@@ -152,5 +152,4 @@ class WebProfessionalDashboardTest extends TestCase
                     && count($dashboard['charts']['activity']['labels']) === 30;
             });
     }
-
 }
