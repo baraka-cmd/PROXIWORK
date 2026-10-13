@@ -17,14 +17,18 @@ use App\Models\Category;
 use App\Models\Service;
 use App\Models\ServiceImage;
 use App\Models\Skill;
+use App\Models\ProfessionalProfile;
+use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -126,10 +130,19 @@ class ProfileController extends Controller
             ->with(['user.profile', 'skills'])
             ->firstOrFail();
 
+        $existingSkillIds = $professional->skills->modelKeys();
+        $skills = Skill::query()
+            ->where(function ($query) use ($existingSkillIds): void {
+                $query->where('status', 'active')
+                    ->orWhereIn('id', $existingSkillIds);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'status']);
+
         return view('professional/profile-edit', [
             'professional' => $professional,
-            'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
-            'selectedSkillIds' => $professional->skills->modelKeys(),
+            'skills' => $skills,
+            'selectedSkillIds' => $existingSkillIds,
             'availabilityOptions' => [
                 ProfessionalAvailabilityStatus::UNKNOWN->value => 'Non renseignée',
                 ProfessionalAvailabilityStatus::AVAILABLE->value => 'Disponible pour de nouvelles demandes',
@@ -263,35 +276,53 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'skill_ids' => ['sometimes', 'array', 'max:100'],
             'skill_ids.*' => ['integer', 'distinct', 'exists:skills,id'],
+            'proficiency_levels' => ['sometimes', 'array', 'max:100'],
+            'proficiency_levels.*' => ['nullable', Rule::in(['beginner', 'intermediate', 'advanced', 'expert'])],
+            'skill_years_experience' => ['sometimes', 'array', 'max:100'],
+            'skill_years_experience.*' => ['nullable', 'integer', 'min:0', 'max:80'],
         ]);
 
         $skillIds = array_map('intval', $validated['skill_ids'] ?? []);
-        $activeIds = Skill::query()
-            ->where('status', 'active')
+        $professional = $request->user()->professionalProfile()->firstOrFail();
+        $existing = $professional->skills()
+            ->get()
+            ->keyBy(fn ($skill) => (int) $skill->getKey());
+        $existingIds = $existing->keys()->map(fn ($id) => (int) $id)->all();
+
+        // Active catalogue skills can be added. An archived skill can only remain
+        // attached if it was already associated with this professional.
+        $eligibleIds = Skill::query()
             ->whereIn('id', $skillIds)
+            ->where(function ($query) use ($existingIds): void {
+                $query->where('status', 'active')
+                    ->orWhereIn('id', $existingIds);
+            })
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
 
-        if (count($activeIds) !== count(array_unique($skillIds))) {
+        if (count($eligibleIds) !== count(array_unique($skillIds))) {
             return back()->withErrors([
                 'skill_ids' => 'Une ou plusieurs compétences ne sont plus disponibles. Actualisez la page et réessayez.',
             ])->withInput();
         }
 
-        $professional = $request->user()->professionalProfile()->firstOrFail();
-        $existing = $professional->skills()
-            ->get()
-            ->keyBy(fn ($skill) => (int) $skill->getKey());
-
+        $proficiencyLevels = $validated['proficiency_levels'] ?? [];
+        $skillYears = $validated['skill_years_experience'] ?? [];
         $syncData = [];
 
         foreach ($skillIds as $skillId) {
             $current = $existing->get($skillId);
+            $level = array_key_exists($skillId, $proficiencyLevels)
+                ? $proficiencyLevels[$skillId]
+                : $current?->pivot->proficiency_level;
+            $years = array_key_exists($skillId, $skillYears)
+                ? $skillYears[$skillId]
+                : $current?->pivot->years_experience;
 
             $syncData[$skillId] = [
-                'proficiency_level' => $current?->pivot->proficiency_level,
-                'years_experience' => $current?->pivot->years_experience,
+                'proficiency_level' => $level,
+                'years_experience' => $years === null ? null : (int) $years,
             ];
         }
 
