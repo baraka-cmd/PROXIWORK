@@ -117,6 +117,11 @@ class ProfessionalWebDashboardService
             ])
             ->count();
 
+        $failedWithdrawals = Withdrawal::query()
+            ->where('professional_id', $professionalId)
+            ->where('status', WithdrawalStatus::FAILED->value)
+            ->count();
+
         $unreadMessages = $this->unreadConversationCount($user);
 
         $profileData = $this->profile($profile);
@@ -126,6 +131,7 @@ class ProfessionalWebDashboardService
             $profile,
             $requestsToHandle,
             $quotationsRequiringProfessionalAction,
+            $failedWithdrawals,
             $unreadMessages,
         );
 
@@ -159,6 +165,7 @@ class ProfessionalWebDashboardService
                 'active_orders' => $activeOrders,
                 'completed_orders' => $completedOrders,
                 'pending_withdrawals' => $pendingWithdrawals,
+                'failed_withdrawals' => $failedWithdrawals,
             ],
             'finance' => $finance,
             'charts' => $charts,
@@ -401,6 +408,7 @@ class ProfessionalWebDashboardService
         ProfessionalProfile $profile,
         int $requestsToHandle,
         int $quotationsRequiringAction,
+        int $failedWithdrawals,
         int $unreadMessages,
     ): Collection {
         $actions = collect();
@@ -469,6 +477,16 @@ class ProfessionalWebDashboardService
                 'priority' => 'normal',
                 'message' => 'Aucun document de vérification n’est enregistré. Consultez les pièces demandées dans votre espace de documents.',
                 'url' => route('professional.documents.index'),
+            ]);
+        }
+
+        if ($failedWithdrawals > 0) {
+            $actions->push([
+                'type' => 'withdrawals',
+                'priority' => 'high',
+                'count' => $failedWithdrawals,
+                'message' => $failedWithdrawals.' retrait(s) en échec. Consultez le motif enregistré avant toute nouvelle tentative.',
+                'url' => route('professional.withdrawals'),
             ]);
         }
 
