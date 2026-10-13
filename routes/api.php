@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Professional\Dashboard\ProfessionalDashboardCont
 use App\Http\Controllers\Api\V1\ProfessionalSearchController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceController;
 use App\Http\Controllers\Api\V1\ProfessionalServiceImageController;
+use App\Http\Controllers\Api\V1\ProfessionalServiceRealizationController;
 use App\Http\Controllers\Api\V1\ProfessionalSkillController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\QuotationController;
@@ -219,9 +220,13 @@ Route::prefix('v1')->group(function (): void {
                 Route::post('{service}/publish', [ProfessionalServiceController::class, 'publish']);
                 Route::post('{service}/unpublish', [ProfessionalServiceController::class, 'unpublish']);
                 Route::post('{service}/images', [ProfessionalServiceImageController::class, 'store']);
+                Route::get('{service}/realizations', [ProfessionalServiceRealizationController::class, 'index']);
+                Route::post('{service}/realizations', [ProfessionalServiceRealizationController::class, 'store'])->middleware(['permission:services.manage', 'throttle:6,1']);
             });
         });
 
+        Route::get('professional/service-realizations/{realization}/file', [ProfessionalServiceRealizationController::class, 'file'])->middleware('permission:services.view');
+        Route::delete('professional/service-realizations/{realization}', [ProfessionalServiceRealizationController::class, 'destroy'])->middleware('permission:services.manage');
         Route::patch('professional/service-images/{image}/file', [ProfessionalServiceImageController::class, 'replace'])->middleware('throttle:10,1');
         Route::patch('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'update'])
             ->middleware('role:professional');
