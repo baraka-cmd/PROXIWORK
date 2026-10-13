@@ -206,6 +206,22 @@ class ProfessionalProfileManagementTest extends TestCase
             ->assertSessionHasErrors(['longitude']);
     }
 
+    public function test_profile_completion_is_independent_from_verification_and_service_publication(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $user->professionalProfile()->create();
+
+        $this->actingAs($user)
+            ->get(route('professional.profile'))
+            ->assertOk()
+            ->assertViewHas('completionItems', function (array $items): bool {
+                return array_key_exists('personal', $items)
+                    && ! array_key_exists('verification', $items)
+                    && ! array_key_exists('services', $items);
+            });
+    }
+
     public function test_new_professional_profile_uses_private_safe_defaults(): void
     {
         $user = User::factory()->create();
