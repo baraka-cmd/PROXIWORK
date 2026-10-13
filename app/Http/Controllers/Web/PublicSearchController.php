@@ -97,5 +97,4 @@ class PublicSearchController
                 ->get(['id', 'name', 'slug']),
         ];
     }
-
 }
