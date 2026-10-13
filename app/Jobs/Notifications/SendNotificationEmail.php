@@ -98,6 +98,29 @@ class SendNotificationEmail implements ShouldQueue
             return;
         }
 
+        if (($data['action'] ?? null) === 'message' && is_numeric($data['conversation_id'] ?? null)) {
+            $hasUnreadMessages = DB::table('messages')
+                ->join('conversation_participants as recipient_participant', function ($join) use ($delivery): void {
+                    $join->on('recipient_participant.conversation_id', '=', 'messages.conversation_id')
+                        ->where('recipient_participant.user_id', '=', $delivery->user_id)
+                        ->whereNull('recipient_participant.left_at');
+                })
+                ->where('messages.conversation_id', (int) $data['conversation_id'])
+                ->where('messages.sender_id', '!=', $delivery->user_id)
+                ->whereRaw('messages.id > COALESCE(recipient_participant.last_read_message_id, 0)')
+                ->exists();
+
+            if (! $hasUnreadMessages) {
+                $delivery->update([
+                    'status' => 'SKIPPED',
+                    'processing_at' => null,
+                    'last_error_code' => 'MESSAGE_ALREADY_READ_BEFORE_EMAIL_DELAY',
+                ]);
+
+                return;
+            }
+        }
+
         $message = new TransactionalNotificationMail(
             (string) ($data['title'] ?? 'Notification PROXIWORK'),
             (string) ($data['message'] ?? 'Un événement important est disponible dans votre espace PROXIWORK.'),
