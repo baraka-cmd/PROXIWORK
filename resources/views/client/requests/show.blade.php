@@ -80,6 +80,44 @@
     </div>
 
 
+    <section class="client-panel request-attachments-panel">
+        <div class="client-panel__header">
+            <div>
+                <p class="client-module__eyebrow">DOCUMENTS DU BESOIN</p>
+                <h2>Pièces jointes</h2>
+                <p>Les fichiers restent privés et ne sont accessibles qu’à vous et au professionnel concerné.</p>
+            </div>
+            <span class="request-card__reference">{{ $serviceRequest->attachments->count() }} / 5</span>
+        </div>
+        @if ($serviceRequest->attachments->isNotEmpty())
+            <ul class="request-attachments-list">
+                @foreach ($serviceRequest->attachments as $attachment)
+                    <li>
+                        <div>
+                            <strong>{{ $attachment->original_name }}</strong>
+                            <small>{{ number_format($attachment->size / 1024, 0, ',', ' ') }} Ko · Ajouté le {{ $attachment->created_at?->format('d/m/Y à H:i') }}</small>
+                        </div>
+                        <a class="btn btn-secondary" href="{{ route('client.requests.attachments.download', [$serviceRequest, $attachment]) }}">Télécharger</a>
+                    </li>
+                @endforeach
+            </ul>
+        @else
+            <p class="client-form-note">Aucun document ajouté pour le moment. Vous pouvez joindre des plans, captures, photos ou documents utiles.</p>
+        @endif
+        @if (in_array($serviceRequest->status, [\App\Enums\ServiceRequestStatus::DRAFT, \App\Enums\ServiceRequestStatus::REQUESTED], true) && $serviceRequest->attachments->count() < 5)
+            <form method="POST" action="{{ route('client.requests.attachments.store', $serviceRequest) }}" enctype="multipart/form-data" class="request-attachment-upload">
+                @csrf
+                <label for="request-attachment">Ajouter un document (PDF, JPG, PNG, WEBP, DOC ou DOCX)</label>
+                <input id="request-attachment" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx" required>
+                <small>Maximum 10 Mo par fichier, cinq fichiers par demande.</small>
+                @error('attachment')<span class="client-field-error" role="alert">{{ $message }}</span>@enderror
+                <button class="btn btn-secondary" type="submit">Ajouter la pièce jointe</button>
+            </form>
+        @elseif ($serviceRequest->status === \App\Enums\ServiceRequestStatus::QUOTED)
+            <p class="client-form-note">Les pièces jointes sont verrouillées pendant l’évaluation du devis afin de préserver le périmètre déjà transmis au professionnel.</p>
+        @endif
+    </section>
+
     @if(in_array($serviceRequest->status->value, ['requested', 'quoted'], true))
         <section class="client-panel">
             <p class="client-module__eyebrow">LIEU D’EXÉCUTION</p>

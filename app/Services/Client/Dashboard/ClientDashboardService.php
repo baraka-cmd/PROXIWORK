@@ -8,7 +8,6 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
-use App\Models\Conversation;
 use App\Models\Address;
 use App\Models\Message;
 use App\Models\Order;
@@ -61,6 +60,7 @@ class ClientDashboardService
                 OrderStatus::PENDING_PAYMENT,
                 OrderStatus::CONFIRMED,
                 OrderStatus::IN_PROGRESS,
+                OrderStatus::DELIVERY_SUBMITTED,
                 OrderStatus::DISPUTED,
             ]);
         $actionPayments = Payment::query()

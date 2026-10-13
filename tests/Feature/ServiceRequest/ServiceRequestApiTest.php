@@ -32,6 +32,29 @@ class ServiceRequestApiTest extends TestCase
         Notification::fake();
     }
 
+    public function test_professional_cannot_list_or_open_a_client_draft_request(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $draft = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'title' => 'DRAFT-PRIVATE-CLIENT-ONLY',
+            'status' => ServiceRequestStatus::DRAFT,
+        ]);
+
+        $this->actingAs($professional)
+            ->get(route('professional.requests.index'))
+            ->assertOk()
+            ->assertDontSee('DRAFT-PRIVATE-CLIENT-ONLY');
+
+        $this->actingAs($professional)
+            ->get(route('professional.requests.show', $draft))
+            ->assertForbidden();
+    }
+
     public function test_client_can_create_a_draft_request_for_a_published_service(): void
     {
         [$professional, $profile] = $this->professional();
@@ -377,11 +400,15 @@ class ServiceRequestApiTest extends TestCase
             'client_id' => $clientA->id,
             'professional_id' => $profileA->id,
             'service_id' => $serviceA->id,
+            'status' => ServiceRequestStatus::REQUESTED,
+            'requested_at' => now(),
         ]);
         ServiceRequest::factory()->create([
             'client_id' => $clientB->id,
             'professional_id' => $profileB->id,
             'service_id' => $serviceB->id,
+            'status' => ServiceRequestStatus::REQUESTED,
+            'requested_at' => now(),
         ]);
 
         $this->actingAs($clientA, 'sanctum')

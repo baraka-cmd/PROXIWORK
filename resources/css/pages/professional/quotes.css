@@ -49,3 +49,12 @@
         text-align: center;
     }
 }
+
+.professional-quote-search{padding:1rem;margin:1rem 0;border:1px solid var(--color-border);border-radius:var(--radius-lg);background:var(--color-surface)}
+.professional-quote-search__grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:.85rem}
+.professional-quote-search__grid label{display:grid;gap:.35rem;font-size:.875rem;font-weight:600}
+.professional-quote-search__grid input,.professional-quote-search__grid select{width:100%;min-height:42px;padding:.55rem .7rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:inherit}
+.professional-quote-search__grid input:focus-visible,.professional-quote-search__grid select:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}
+.professional-quote-search__actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1rem}
+@media(max-width:900px){.professional-quote-search__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.professional-quote-search__grid{grid-template-columns:1fr}.professional-quote-search__actions{display:grid;grid-template-columns:1fr}.professional-quote-search__actions>*{width:100%;text-align:center}}

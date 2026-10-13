@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\ServiceRequestStatus;
 use App\Models\ServiceRequest;
 use App\Models\User;
 
@@ -32,7 +33,10 @@ class ServiceRequestPolicy
     public function view(User $user, ServiceRequest $request): bool
     {
         return $request->client_id === $user->getKey()
-            || $request->professional?->user_id === $user->getKey();
+            || (
+                $request->professional?->user_id === $user->getKey()
+                && $request->status !== ServiceRequestStatus::DRAFT
+            );
     }
 
     public function update(User $user, ServiceRequest $request): bool

@@ -121,6 +121,7 @@ class ServiceRequestController extends Controller
             'quotation.offers',
             'quotation.events',
             'order',
+            'attachments.uploader',
         ]);
 
         $conversation = Conversation::query()

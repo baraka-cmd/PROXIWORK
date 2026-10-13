@@ -16,6 +16,39 @@
         </div>
     </div>
 
+    <form class="professional-quote-search surface-card" method="GET" action="{{ route('professional.quotes.index') }}" aria-label="Rechercher et filtrer les devis">
+        @if ($actionRequired)
+            <input type="hidden" name="action_required" value="1">
+        @endif
+        <div class="professional-quote-search__grid">
+            <div>
+                <label for="professional-quote-q">Recherche</label>
+                <input id="professional-quote-q" name="q" type="search" maxlength="120" value="{{ $filters['q'] ?? '' }}" placeholder="Demande ou nom du client">
+            </div>
+            <div>
+                <label for="professional-quote-status">Statut</label>
+                <select id="professional-quote-status" name="status">
+                    <option value="">Tous les statuts</option>
+                    @foreach (\App\Enums\QuotationStatus::cases() as $status)
+                        <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ match($status->value) { 'draft' => 'Brouillon', 'sent' => 'Envoyé au client', 'negotiating' => 'En négociation', 'accepted' => 'Accepté', 'rejected' => 'Refusé', 'expired' => 'Expiré', 'withdrawn' => 'Retiré', default => ucfirst(str_replace('_', ' ', $status->value)) } }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="professional-quote-from">Créé du</label>
+                <input id="professional-quote-from" type="date" name="from" value="{{ $filters['from'] ?? '' }}">
+            </div>
+            <div>
+                <label for="professional-quote-to">Au</label>
+                <input id="professional-quote-to" type="date" name="to" min="{{ $filters['from'] ?? '' }}" value="{{ $filters['to'] ?? '' }}">
+            </div>
+        </div>
+        <div class="professional-quote-search__actions">
+            <button class="button button--primary" type="submit">Appliquer</button>
+            <a class="button button--ghost" href="{{ route('professional.quotes.index', $actionRequired ? ['action_required' => 1] : []) }}">Réinitialiser</a>
+        </div>
+    </form>
+
     <nav class="professional-quote-filters" aria-label="Filtrer les devis">
         <a href="{{ route('professional.quotes.index') }}" class="professional-quote-filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
         <a href="{{ route('professional.quotes.index', ['action_required' => 1]) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
@@ -43,7 +76,7 @@
                                     En attente d'offre
                                 @endif
                             </td>
-                            <td><span class="badge badge--neutral">{{ ucfirst($quotation->status->value) }}</span></td>
+                            <td><span class="badge badge--neutral">{{ match($quotation->status->value) { 'draft' => 'Brouillon', 'sent' => 'Envoyé au client', 'negotiating' => 'En négociation', 'accepted' => 'Accepté', 'rejected' => 'Refusé', 'expired' => 'Expiré', 'withdrawn' => 'Retiré', default => ucfirst(str_replace('_', ' ', $quotation->status->value)) } }}</span></td>
                             <td>{{ $quotation->currentOffer?->valid_until?->format('d/m/Y') ?? '—' }}</td>
                             <td><a class="button button--ghost button--sm" href="{{ route('professional.quotes.show', $quotation) }}">Consulter</a></td>
                         </tr>

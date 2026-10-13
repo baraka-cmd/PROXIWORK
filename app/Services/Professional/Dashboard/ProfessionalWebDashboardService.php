@@ -331,6 +331,7 @@ class ProfessionalWebDashboardService
                     OrderStatus::PENDING_PAYMENT => 'En attente de paiement',
                     OrderStatus::CONFIRMED => 'Confirmées',
                     OrderStatus::IN_PROGRESS => 'En cours',
+                    OrderStatus::DELIVERY_SUBMITTED => 'Livrable à vérifier',
                     OrderStatus::COMPLETED => 'Terminées',
                     OrderStatus::CANCELLED => 'Annulées',
                     OrderStatus::DISPUTED => 'En litige',

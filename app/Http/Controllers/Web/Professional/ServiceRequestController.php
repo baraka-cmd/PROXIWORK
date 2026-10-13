@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
+use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceRequest\IndexServiceRequestRequest;
 use App\Http\Requests\ServiceRequest\RejectServiceRequestRequest;
@@ -29,6 +30,15 @@ class ServiceRequestController extends Controller
     public function index(IndexServiceRequestRequest $request): View
     {
         $filters = $request->filters();
+        $statistics = $this->serviceRequestService->professionalRequestStats($request->user());
+        $statusLabels = [
+            ServiceRequestStatus::DRAFT->value => 'Brouillon',
+            ServiceRequestStatus::REQUESTED->value => 'À examiner',
+            ServiceRequestStatus::CANCELLED->value => 'Annulée par le client',
+            ServiceRequestStatus::QUOTED->value => 'Devis envoyé / décision du client',
+            ServiceRequestStatus::ACCEPTED->value => 'Acceptée — commande associée',
+            ServiceRequestStatus::REJECTED->value => 'Refusée',
+        ];
         $requests = $this->serviceRequestService->professionalRequests(
             $request->user(),
             $request->integer('per_page', 15),
@@ -39,7 +49,7 @@ class ServiceRequestController extends Controller
             ? $request->user()->professionalProfile()->firstOrFail()->services()->whereKey($filters['service_id'])->first()
             : null;
 
-        return view('professional.requests.index', compact('requests', 'filters', 'selectedService'));
+        return view('professional.requests.index', compact('requests', 'filters', 'selectedService', 'statistics', 'statusLabels'));
     }
 
     public function show(ServiceRequest $serviceRequest): View
@@ -58,12 +68,20 @@ class ServiceRequestController extends Controller
             'addressSnapshot',
             'statusHistories.actor',
             'quotation.currentOffer',
+            'attachments.uploader',
         ]);
 
         $conversation = Conversation::query()
-            ->where('client_id', $serviceRequest->client_id)
-            ->where('professional_id', $serviceRequest->professional_id)
+            ->where('service_request_id', $serviceRequest->getKey())
             ->first();
+
+        if ($conversation === null) {
+            $conversation = Conversation::query()
+                ->where('client_id', $serviceRequest->client_id)
+                ->where('professional_id', $serviceRequest->professional_id)
+                ->whereNull('service_request_id')
+                ->first();
+        }
 
         if ($conversation !== null && Gate::allows('view', $conversation) === false) {
             $conversation = null;

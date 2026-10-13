@@ -94,4 +94,9 @@ class ServiceRequest extends Model
     {
         return $this->hasOne(Quotation::class);
     }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ServiceRequestAttachment::class)->orderBy('created_at')->orderBy('id');
+    }
 }

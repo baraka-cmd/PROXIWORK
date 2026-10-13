@@ -282,6 +282,7 @@ class ServiceRequestService
     public function professionalRequests(User $professionalUser, int $perPage = 15, array $filters = [])
     {
         $query = $this->baseQuery()
+            ->where('status', '!=', ServiceRequestStatus::DRAFT->value)
             ->whereHas('professional', fn (Builder $profile) => $profile
                 ->where('user_id', $professionalUser->getKey()));
 
@@ -295,6 +296,33 @@ class ServiceRequestService
      *
      * @return array<string, int>
      */
+    /**
+     * @return array<string, int>
+     */
+    public function professionalRequestStats(User $professionalUser): array
+    {
+        $counts = ServiceRequest::query()
+            ->where('status', '!=', ServiceRequestStatus::DRAFT->value)
+            ->whereHas('professional', fn (Builder $profile) => $profile
+                ->where('user_id', $professionalUser->getKey()))
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        return [
+            'total' => (int) $counts->sum(),
+            'awaiting_review' => (int) ($counts[ServiceRequestStatus::REQUESTED->value] ?? 0),
+            'awaiting_client' => (int) ($counts[ServiceRequestStatus::QUOTED->value] ?? 0),
+            'accepted' => (int) ($counts[ServiceRequestStatus::ACCEPTED->value] ?? 0),
+            'rejected' => (int) ($counts[ServiceRequestStatus::REJECTED->value] ?? 0),
+            'cancelled' => (int) ($counts[ServiceRequestStatus::CANCELLED->value] ?? 0),
+            'closed' => (int) (
+                ($counts[ServiceRequestStatus::REJECTED->value] ?? 0)
+                + ($counts[ServiceRequestStatus::CANCELLED->value] ?? 0)
+            ),
+        ];
+    }
+
     public function clientRequestStats(User $client): array
     {
         $counts = ServiceRequest::query()

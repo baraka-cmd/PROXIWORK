@@ -12,6 +12,7 @@
         'pending_payment' => 'En attente de paiement',
         'confirmed' => 'Confirmée / planifiée',
         'in_progress' => 'En cours',
+        'delivery_submitted' => 'Livrable à vérifier',
         'completed' => 'Terminée',
         'cancelled' => 'Annulée',
         'disputed' => 'Contestée',
@@ -256,5 +257,157 @@
     <footer class="client-action-bar client-order-footer">
         <a class="btn btn-secondary" href="{{ route('client.orders.index') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour aux commandes</a>
     </footer>
+
+
+    @php
+        $latestScheduleEvent = $order->statusHistories->last(
+            fn ($history) => in_array(data_get($history->metadata, 'event'), ['schedule_proposed', 'schedule_confirmed', 'schedule_change_requested'], true)
+        );
+        $latestDelivery = $order->statusHistories->last(
+            fn ($history) => ($history->to_status?->value ?? $history->to_status) === 'delivery_submitted'
+                && data_get($history->metadata, 'event') === 'delivery_submitted'
+        );
+    @endphp
+
+    @if (session('success'))
+        <div class="alert alert--success" role="status">{{ session('success') }}</div>
+    @endif
+    @if ($errors->any())
+        <div class="alert alert--error" role="alert">
+            <strong>Votre action n’a pas pu être enregistrée.</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
+
+    @if ($order->schedule_confirmed_at)
+        <section class="client-panel client-order-schedule">
+            <p class="client-module__eyebrow">PLANIFICATION</p>
+            <h2>Planning confirmé</h2>
+            <p>Début convenu : <strong>{{ $order->scheduled_start_at?->format('d/m/Y à H:i') ?? '—' }}</strong></p>
+            <p>Fin prévue : <strong>{{ $order->scheduled_end_at?->format('d/m/Y à H:i') ?? '—' }}</strong></p>
+            <p class="muted">Confirmé le {{ $order->schedule_confirmed_at->format('d/m/Y à H:i') }}.</p>
+            @if ($order->status === \App\Enums\OrderStatus::CONFIRMED)
+                <form method="POST" action="{{ route('client.orders.request-schedule-change', $order) }}">
+                    @csrf
+                    <label for="schedule-change-reason">Demander une modification</label>
+                    <textarea id="schedule-change-reason" name="reason" rows="3" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea>
+                    @error('reason')<small class="field-error">{{ $message }}</small>@enderror
+                    <button class="btn btn-secondary" type="submit" data-confirm-submit="Demander une modification du planning convenu ?">Demander une modification</button>
+                </form>
+            @endif
+        </section>
+    @elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED && data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_proposed')
+        <section class="client-panel client-order-schedule">
+            <p class="client-module__eyebrow">PLANIFICATION À CONFIRMER</p>
+            <h2>Le professionnel propose ces dates</h2>
+            <p>Début proposé : <strong>{{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</strong></p>
+            <p>Fin prévue : <strong>{{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</strong></p>
+            @if (filled(data_get($latestScheduleEvent->metadata, 'note')))
+                <p>{{ data_get($latestScheduleEvent->metadata, 'note') }}</p>
+            @endif
+            <div class="client-order-delivery__actions">
+                <form method="POST" action="{{ route('client.orders.confirm-schedule', $order) }}">
+                    @csrf
+                    <button class="btn btn-primary" type="submit" data-confirm-submit="Confirmer ces dates de réalisation ?">Confirmer le planning</button>
+                </form>
+                <form method="POST" action="{{ route('client.orders.request-schedule-change', $order) }}">
+                    @csrf
+                    <label for="schedule-change-reason">Dates ou conditions à modifier</label>
+                    <textarea id="schedule-change-reason" name="reason" rows="3" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea>
+                    @error('reason')<small class="field-error">{{ $message }}</small>@enderror
+                    <button class="btn btn-secondary" type="submit">Demander une modification</button>
+                </form>
+            </div>
+        </section>
+    @elseif (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested')
+        <section class="client-panel client-order-schedule">
+            <h2>Modification du planning demandée</h2>
+            <p>Le professionnel doit proposer de nouvelles dates. L’ancien planning reste conservé dans l’historique.</p>
+        </section>
+    @endif
+
+    @if ($order->status === \App\Enums\OrderStatus::DELIVERY_SUBMITTED)
+        <section class="client-panel client-order-delivery">
+            <p class="client-module__eyebrow">RÉCEPTION DE LA PRESTATION</p>
+            <h2>Le professionnel a soumis le résultat</h2>
+            <p>Vérifiez le travail décrit ci-dessous. Confirmez la réception si le résultat correspond à ce qui a été convenu, ou demandez une correction en précisant les éléments à reprendre.</p>
+            @if ($latestDelivery)
+                <div class="client-order-delivery__summary">
+                    <h3>Résumé du livrable</h3>
+                    <p>{{ data_get($latestDelivery->metadata, 'delivery_summary') }}</p>
+                    <p class="muted">Soumis le {{ $latestDelivery->created_at?->format('d/m/Y à H:i') ?? '—' }}</p>
+                    @php($latestAttachmentIds = data_get($latestDelivery->metadata, 'attachment_ids', []))
+                    @if ($order->deliveryAttachments->whereIn('id', $latestAttachmentIds)->isNotEmpty())
+                        <h3>Fichiers remis</h3>
+                        <ul class="client-order-delivery-files">
+                            @foreach ($order->deliveryAttachments->whereIn('id', $latestAttachmentIds) as $attachment)
+                                <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}">{{ $attachment->original_name }}</a> <span class="muted">({{ number_format($attachment->size_bytes / 1024, 1, ',', ' ') }} Ko)</span></li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
+            @endif
+            <div class="client-order-delivery__actions">
+                <form method="POST" action="{{ route('client.orders.accept-delivery', $order) }}">
+                    @csrf
+                    <button class="btn btn-primary" type="submit" data-confirm-submit="Confirmer que vous avez reçu la prestation ? Cette action clôturera la commande.">Confirmer la réception</button>
+                </form>
+                <form method="POST" action="{{ route('client.orders.request-delivery-changes', $order) }}">
+                    @csrf
+                    <label for="delivery-change-reason">Corrections demandées</label>
+                    <textarea id="delivery-change-reason" name="reason" rows="4" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea>
+                    @error('reason')<small class="field-error">{{ $message }}</small>@enderror
+                    <button class="btn btn-secondary" type="submit" data-confirm-submit="Envoyer cette demande de correction au professionnel ?">Demander une correction</button>
+                </form>
+            </div>
+        </section>
+    @endif
+
+    <section class="client-panel client-order-delivery-history">
+        <h2>Suivi de réalisation</h2>
+        @forelse ($order->statusHistories->filter(fn ($history) => filled(data_get($history->metadata, 'event'))) as $event)
+            <article class="timeline-item">
+                <strong>
+                    @switch(data_get($event->metadata, 'event'))
+                        @case('schedule_proposed') Planning proposé @break
+                        @case('schedule_confirmed') Planning confirmé @break
+                        @case('schedule_change_requested') Modification du planning demandée @break
+                        @case('work_started') Prestation démarrée @break
+                        @case('delivery_submitted') Résultat soumis @break
+                        @case('delivery_accepted') Réception confirmée @break
+                        @case('delivery_changes_requested') Correction demandée @break
+                        @case('work_blocked') Difficulté signalée @break
+                        @default Mise à jour de la commande
+                    @endswitch
+                </strong>
+                <span>{{ $event->created_at?->format('d/m/Y à H:i') ?? '—' }}</span>
+                @if (filled(data_get($event->metadata, 'delivery_summary')))
+                    <p>{{ data_get($event->metadata, 'delivery_summary') }}</p>
+                @endif
+                @if (data_get($event->metadata, 'event') === 'schedule_proposed')
+                    <p>Début proposé : {{ \Carbon\CarbonImmutable::parse(data_get($event->metadata, 'proposed_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    <p>Fin prévue : {{ \Carbon\CarbonImmutable::parse(data_get($event->metadata, 'proposed_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    @if (filled(data_get($event->metadata, 'note')))<p>{{ data_get($event->metadata, 'note') }}</p>@endif
+                @endif
+                @php($eventAttachmentIds = data_get($event->metadata, 'attachment_ids', []))
+                @if (is_array($eventAttachmentIds) && $eventAttachmentIds !== [])
+                    <ul class="client-order-delivery-files">
+                        @foreach ($order->deliveryAttachments->whereIn('id', $eventAttachmentIds) as $attachment)
+                            <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}">{{ $attachment->original_name }}</a></li>
+                        @endforeach
+                    </ul>
+                @endif
+                @if (filled(data_get($event->metadata, 'description')))
+                    <p>{{ data_get($event->metadata, 'description') }}</p>
+                @endif
+                @if (filled(data_get($event->metadata, 'reason')))
+                    <p><strong>Motif :</strong> {{ data_get($event->metadata, 'reason') }}</p>
+                @endif
+            </article>
+        @empty
+            <p class="muted">Aucune mise à jour de réalisation pour le moment.</p>
+        @endforelse
+    </section>
+
 </div>
 @endsection

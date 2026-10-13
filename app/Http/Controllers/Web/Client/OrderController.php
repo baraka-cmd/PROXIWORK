@@ -10,10 +10,15 @@ use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Order\IndexClientOrdersRequest;
+use App\Http\Requests\Order\RequestOrderDeliveryChangesRequest;
+use App\Http\Requests\Order\RequestOrderScheduleChangeRequest;
 use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\ProfessionalProfile;
+use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
+use App\Services\Order\OrderWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -32,7 +37,7 @@ class OrderController extends Controller
         $statistics = [
             'total' => (clone $ownedOrders)->count(),
             'active' => (clone $ownedOrders)
-                ->whereIn('status', [OrderStatus::CONFIRMED->value, OrderStatus::IN_PROGRESS->value])
+                ->whereIn('status', [OrderStatus::CONFIRMED->value, OrderStatus::IN_PROGRESS->value, OrderStatus::DELIVERY_SUBMITTED->value])
                 ->count(),
             'pending_payment' => (clone $ownedOrders)
                 ->where('status', OrderStatus::PENDING_PAYMENT->value)
@@ -53,6 +58,7 @@ class OrderController extends Controller
                 'active' => $query->whereIn('status', [
                     OrderStatus::CONFIRMED->value,
                     OrderStatus::IN_PROGRESS->value,
+                    OrderStatus::DELIVERY_SUBMITTED->value,
                 ]),
                 'pending_payment' => $query->where('status', OrderStatus::PENDING_PAYMENT->value),
                 'completed' => $query->where('status', OrderStatus::COMPLETED->value),
@@ -125,6 +131,7 @@ class OrderController extends Controller
             OrderStatus::PENDING_PAYMENT->value => 'En attente de paiement',
             OrderStatus::CONFIRMED->value => 'Confirmée / planifiée',
             OrderStatus::IN_PROGRESS->value => 'En cours',
+            OrderStatus::DELIVERY_SUBMITTED->value => 'Livrable à vérifier',
             OrderStatus::COMPLETED->value => 'Terminée',
             OrderStatus::CANCELLED->value => 'Annulée',
             OrderStatus::DISPUTED->value => 'Contestée',
@@ -163,6 +170,7 @@ class OrderController extends Controller
             'quotation',
             'acceptedOffer',
             'statusHistories',
+            'deliveryAttachments',
             'addressSnapshot',
             'payment.transactions',
         ]);
@@ -201,5 +209,98 @@ class OrderController extends Controller
             'providers' => PaymentProvider::cases(),
             'simulationEnabled' => config('payment.simulation_enabled') === true && app()->environment('production') === false,
         ]);
+    }
+
+    public function confirmSchedule(Request $request, Order $order, OrderWorkflowService $workflowService, AuditLogService $auditLogService, TransactionalNotificationService $notificationService): RedirectResponse
+    {
+        Gate::authorize('view', $order);
+        $updated = $workflowService->confirmSchedule($order, $request->user());
+
+        $auditLogService->record('order_schedule_confirmed', $updated, $request->user(), [
+            'order_id' => $updated->getKey(),
+        ], $request);
+        if ($updated->professional?->user !== null) {
+            $notificationService->accountActivity(
+                $updated->professional->user,
+                'Planning confirmé',
+                'Le client a confirmé les dates proposées pour votre commande.',
+                route('professional.orders.show', $updated),
+                'order-schedule-confirmed:'.$updated->getKey(),
+                'important',
+            );
+        }
+
+        return redirect()->route('client.orders.show', $updated)
+            ->with('success', 'Le planning est confirmé par les deux parties.');
+    }
+
+    public function requestScheduleChange(RequestOrderScheduleChangeRequest $request, Order $order, OrderWorkflowService $workflowService, AuditLogService $auditLogService, TransactionalNotificationService $notificationService): RedirectResponse
+    {
+        Gate::authorize('view', $order);
+        $updated = $workflowService->requestScheduleChange($order, $request->user(), $request->validated('reason'));
+
+        $auditLogService->record('order_schedule_change_requested', $updated, $request->user(), [
+            'order_id' => $updated->getKey(),
+            'reason' => $request->validated('reason'),
+        ], $request);
+        if ($updated->professional?->user !== null) {
+            $notificationService->accountActivity(
+                $updated->professional->user,
+                'Modification du planning demandée',
+                'Le client a demandé une modification du planning. Proposez de nouvelles dates depuis la commande.',
+                route('professional.orders.show', $updated),
+                'order-schedule-change-requested:'.$updated->getKey().':'.$updated->statusHistories()->latest('id')->value('id'),
+                'important',
+            );
+        }
+
+        return redirect()->route('client.orders.show', $updated)
+            ->with('success', 'Votre demande de modification du planning a été envoyée.');
+    }
+
+    public function acceptDelivery(Request $request, Order $order, OrderWorkflowService $workflowService, AuditLogService $auditLogService, TransactionalNotificationService $notificationService): RedirectResponse
+    {
+        Gate::authorize('view', $order);
+        $updated = $workflowService->acceptDelivery($order, $request->user());
+
+        $auditLogService->record('order_delivery_accepted', $updated, $request->user(), [
+            'order_id' => $updated->getKey(),
+        ], $request);
+        if ($updated->professional?->user !== null) {
+            $notificationService->accountActivity(
+                $updated->professional->user,
+                'Livrable accepté',
+                'Le client a confirmé la réception de votre prestation.',
+                route('professional.orders.show', $updated),
+                'order-delivery-accepted:'.$updated->getKey(),
+                'important',
+            );
+        }
+
+        return redirect()->route('client.orders.show', $updated)
+            ->with('success', 'La réception du livrable est confirmée. La commande est maintenant terminée.');
+    }
+
+    public function requestDeliveryChanges(RequestOrderDeliveryChangesRequest $request, Order $order, OrderWorkflowService $workflowService, AuditLogService $auditLogService, TransactionalNotificationService $notificationService): RedirectResponse
+    {
+        Gate::authorize('view', $order);
+        $updated = $workflowService->requestDeliveryChanges($order, $request->user(), $request->validated('reason'));
+
+        $auditLogService->record('order_delivery_changes_requested', $updated, $request->user(), [
+            'order_id' => $updated->getKey(),
+        ], $request);
+        if ($updated->professional?->user !== null) {
+            $notificationService->accountActivity(
+                $updated->professional->user,
+                'Correction demandée',
+                'Le client a demandé une correction du livrable. Consultez le détail de la commande.',
+                route('professional.orders.show', $updated),
+                'order-delivery-changes-requested:'.$updated->getKey().':'.$updated->statusHistories()->latest('id')->value('id'),
+                'important',
+            );
+        }
+
+        return redirect()->route('client.orders.show', $updated)
+            ->with('success', 'Votre demande de correction a été envoyée au professionnel.');
     }
 }

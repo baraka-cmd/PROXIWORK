@@ -14,12 +14,22 @@
         </div>
     </div>
 
+    <section class="summary-grid professional-order-priorities" aria-label="Résumé de l’activité des commandes">
+        <article class="data-card metric-card"><span>Commandes confirmées</span><strong>{{ number_format($statistics['confirmed']) }}</strong><small>À planifier ou rendez-vous convenu</small></article>
+        <article class="data-card metric-card"><span>En réalisation</span><strong>{{ number_format($statistics['in_progress']) }}</strong><small>Travaux en cours</small></article>
+        <article class="data-card metric-card"><span>À faire réceptionner</span><strong>{{ number_format($statistics['delivery_submitted']) }}</strong><small>Décision du client attendue</small></article>
+        <article class="data-card metric-card"><span>En attente de paiement</span><strong>{{ number_format($statistics['pending_payment']) }}</strong><small>Le démarrage reste bloqué</small></article>
+        @if ($statistics['disputed'] > 0)
+            <article class="data-card metric-card professional-order-priorities__alert"><span>Contestées</span><strong>{{ number_format($statistics['disputed']) }}</strong><small>Suivi nécessaire</small></article>
+        @endif
+    </section>
+
     <nav class="filter-bar" aria-label="Filtrer les commandes par état">
         <a href="{{ route('professional.orders.index', array_filter(['from' => $from, 'to' => $to])) }}" class="filter-chip {{ $selectedStatus === '' ? 'is-active' : '' }}">Toutes</a>
         <a href="{{ route('professional.orders.index', array_filter(['status' => 'active', 'from' => $from, 'to' => $to])) }}" class="filter-chip {{ $selectedStatus === 'active' ? 'is-active' : '' }}">Actives</a>
         @foreach ($statuses as $status)
             <a href="{{ route('professional.orders.index', array_filter(['status' => $status->value, 'from' => $from, 'to' => $to])) }}" class="filter-chip {{ $selectedStatus === $status->value ? 'is-active' : '' }}">
-                {{ str_replace('_', ' ', ucfirst($status->value)) }}
+                {{ $statusLabels[$status->value] ?? str_replace('_', ' ', ucfirst($status->value)) }}
             </a>
         @endforeach
     </nav>
@@ -59,9 +69,9 @@
                             <tr>
                                 <td><strong>#{{ $order->id }}</strong></td>
                                 <td>{{ $order->client?->name ?? 'Client' }}</td>
-                                <td><span class="status-badge">{{ str_replace('_', ' ', $order->status->value) }}</span></td>
+                                <td><span class="status-badge">{{ $statusLabels[$order->status->value] ?? str_replace('_', ' ', $order->status->value) }}</span></td>
                                 <td>{{ number_format((float) $order->total, 2) }} {{ $order->currency ?? '' }}</td>
-                                <td>{{ $order->created_at?->format('d/m/Y') }}</td>
+                                <td>{{ $order->created_at?->format('d/m/Y') }}@if($order->serviceRequest?->desired_at)<small class="table-secondary">Souhait client : {{ $order->serviceRequest->desired_at->format('d/m/Y') }}</small>@endif</td>
                                 <td><a class="button button--secondary button--small" href="{{ route('professional.orders.show', $order) }}">Voir</a></td>
                             </tr>
                         @endforeach
