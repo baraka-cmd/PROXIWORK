@@ -90,7 +90,6 @@ class ProfileController extends Controller
             'presentation' => filled($professional->description),
             'service_area' => filled($professional->city) && filled($professional->province),
             'skills' => $professional->skills_count > 0,
-            'services' => $professional->services_count > 0,
         ];
 
         return view('professional/profile', [
