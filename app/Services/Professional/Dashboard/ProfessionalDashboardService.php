@@ -209,6 +209,7 @@ class ProfessionalDashboardService
             'user' => [
                 'id' => $profile->user->getKey(),
                 'name' => $profile->user->name,
+                'email' => $profile->user->email,
                 'account_status' => $profile->user->account_status?->value,
                 'profile' => $userProfile?->only([
                     'first_name',
