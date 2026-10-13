@@ -83,7 +83,7 @@ class ProfessionalSearchService
             ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
             ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
             ->with([
-                'user:id,name,email',
+                'user:id,name',
                 'user.profile',
                 'skills' => fn ($skills) => $skills->where('status', 'active'),
                 'services' => fn ($services) => $services
