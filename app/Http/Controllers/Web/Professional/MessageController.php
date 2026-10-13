@@ -60,7 +60,7 @@ class MessageController extends Controller
         ConversationService $conversationService,
     ): View {
         $this->authorize('view', $conversation);
-        if (! $request->filled('cursor')) {
+        if ($request->filled('cursor') === false) {
             $conversationService->markAsRead($conversation, $request->user());
         }
         $conversation = $conversationService->showForUser($conversation, $request->user());
