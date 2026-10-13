@@ -137,9 +137,17 @@ Route::middleware('auth')->group(function (): void {
             ->middleware('throttle:20,1')
             ->name('notifications.restore');
         Route::get('messages', [ClientMessageController::class, 'index'])->name('messages.index');
+        Route::post('professionals/{professionalProfile}/messages', [ClientMessageController::class, 'start'])->middleware('throttle:message-send')->name('messages.start');
+        Route::get('messages/attachments/{attachment}', [ClientMessageController::class, 'downloadAttachment'])->name('messages.attachments.download');
+        Route::get('messages/{conversation}/updates', [ClientMessageController::class, 'updates'])->middleware('throttle:60,1')->name('messages.updates');
         Route::get('messages/{conversation}', [ClientMessageController::class, 'show'])->name('messages.show');
-        Route::post('messages/{conversation}', [ClientMessageController::class, 'store'])->name('messages.store');
-        Route::post('messages/{conversation}/read', [ClientMessageController::class, 'read'])->name('messages.read');
+        Route::post('messages/{conversation}', [ClientMessageController::class, 'store'])->middleware('throttle:message-send')->name('messages.store');
+        Route::post('messages/{conversation}/read', [ClientMessageController::class, 'read'])->middleware('throttle:30,1')->name('messages.read');
+        Route::post('messages/{conversation}/read-receipts', [ClientMessageController::class, 'toggleReadReceipts'])->middleware('throttle:30,1')->name('messages.read-receipts');
+        Route::post('messages/{conversation}/pin', [ClientMessageController::class, 'togglePin'])->middleware('throttle:30,1')->name('messages.pin');
+        Route::post('messages/{conversation}/archive', [ClientMessageController::class, 'toggleArchive'])->middleware('throttle:30,1')->name('messages.archive');
+        Route::post('messages/{conversation}/block', [ClientMessageController::class, 'block'])->middleware('throttle:10,1')->name('messages.block');
+        Route::post('messages/{conversation}/messages/{message}/report', [ClientMessageController::class, 'reportMessage'])->middleware('throttle:10,1')->name('messages.report');
         Route::get('services', [ServiceCatalogController::class, 'index'])
             ->name('services.index');
     });
@@ -204,9 +212,16 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews');
     Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('throttle:10,1')->name('reviews.respond');
     Route::get('messages', [MessageController::class, 'index'])->name('messages');
+    Route::get('messages/attachments/{attachment}', [MessageController::class, 'downloadAttachment'])->name('messages.attachments.download');
+    Route::get('messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('throttle:60,1')->name('messages.updates');
     Route::get('messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
-    Route::post('messages/{conversation}', [MessageController::class, 'store'])->middleware('throttle:10,1')->name('messages.store');
-    Route::post('messages/{conversation}/read', [MessageController::class, 'read'])->name('messages.read');
+    Route::post('messages/{conversation}', [MessageController::class, 'store'])->middleware('throttle:message-send')->name('messages.store');
+    Route::post('messages/{conversation}/read', [MessageController::class, 'read'])->middleware('throttle:30,1')->name('messages.read');
+    Route::post('messages/{conversation}/read-receipts', [MessageController::class, 'toggleReadReceipts'])->middleware('throttle:30,1')->name('messages.read-receipts');
+    Route::post('messages/{conversation}/pin', [MessageController::class, 'togglePin'])->middleware('throttle:30,1')->name('messages.pin');
+    Route::post('messages/{conversation}/archive', [MessageController::class, 'toggleArchive'])->middleware('throttle:30,1')->name('messages.archive');
+    Route::post('messages/{conversation}/block', [MessageController::class, 'block'])->middleware('throttle:10,1')->name('messages.block');
+    Route::post('messages/{conversation}/messages/{message}/report', [MessageController::class, 'reportMessage'])->middleware('throttle:10,1')->name('messages.report');
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->middleware('throttle:10,1')->name('notifications.read-all');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->middleware('throttle:20,1')->name('notifications.read');

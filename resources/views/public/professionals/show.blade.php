@@ -16,7 +16,19 @@
         </header>
         <div class="public-professional-detail__grid">
             <section class="surface-card public-professional-detail__main"><h2>Présentation</h2><p>{{ $professional->description ?: ($profile?->bio ?: 'Aucune présentation publiée.') }}</p><h2>Compétences</h2><div class="public-service-card__skills">@forelse($professional->skills as $skill)<span class="badge badge--neutral">{{ $skill->name }}</span>@empty<p>Aucune compétence publiée.</p>@endforelse</div><h2>Services publiés</h2><div class="public-profile-services">@forelse($professional->services as $service)<article><h3><a href="{{ route('public.services.show', $service) }}">{{ $service->title }}</a></h3><p>{{ Str::limit($service->short_description ?: $service->description, 120) }}</p></article>@empty<p>Aucun service publié.</p>@endforelse</div><h2>Avis publiés</h2><div class="public-profile-reviews">@forelse($professional->reviews as $review)<article><strong>{{ $review->rating }}/5</strong><p>{{ $review->comment }}</p><small>{{ $review->client?->name ?: 'Client PROXIWORK' }}</small></article>@empty<p>Aucun avis publié pour le moment.</p>@endforelse</div></section>
-            <aside class="surface-card public-professional-detail__aside"><span class="eyebrow">RÉPUTATION</span>@if($professional->rating_count > 0)<h2>{{ number_format((float)$professional->rating_average, 1, ',', ' ') }}/5</h2><p>{{ $professional->rating_count }} avis publiés</p>@else<h2>Aucun avis</h2><p>Ce professionnel n’a pas encore reçu d’avis publié.</p>@endif @auth @if(auth()->user()->hasRole('client'))<form method="POST" action="{{ route('client.favorites.store', $professional) }}">@csrf @method('PUT')<button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button></form>@endif @else<a class="button button--secondary" href="{{ route('login') }}">Se connecter pour ajouter aux favoris</a>@endauth</aside>
+            <aside class="surface-card public-professional-detail__aside"><span class="eyebrow">RÉPUTATION</span>@if($professional->rating_count > 0)<h2>{{ number_format((float)$professional->rating_average, 1, ',', ' ') }}/5</h2><p>{{ $professional->rating_count }} avis publiés</p>@else<h2>Aucun avis</h2><p>Ce professionnel n’a pas encore reçu d’avis publié.</p>@endif
+                @auth
+                    @if(auth()->user()->hasRole('client'))
+                        <form method="POST" action="{{ route('client.messages.start', $professional) }}" class="public-professional-contact">
+                            @csrf
+                            <button class="button button--primary" type="submit"><i class="fa-regular fa-comments" aria-hidden="true"></i> Contacter ce professionnel</button>
+                        </form>
+                        <form method="POST" action="{{ route('client.favorites.store', $professional) }}">@csrf @method('PUT')<button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button></form>
+                    @endif
+                @else
+                    <a class="button button--primary" href="{{ route('login') }}">Se connecter pour contacter ce professionnel</a>
+                    <a class="button button--secondary" href="{{ route('login') }}">Se connecter pour ajouter aux favoris</a>
+                @endauth</aside>
         </div>
     </main>
 @endsection
