@@ -103,13 +103,9 @@
                             @error('starting_price')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                         <div class="form-field">
-                            <label for="currency">Devise du prix indicatif</label>
-                            <select id="currency" name="currency">
-                                <option value="">Choisir une devise</option>
-                                @foreach (['USD' => 'USD — Dollar américain', 'CDF' => 'CDF — Franc congolais', 'EUR' => 'EUR — Euro'] as $code => $label)
-                                    <option value="{{ $code }}" @selected(old('currency', $professional->currency) === $code)>{{ $label }}</option>
-                                @endforeach
-                            </select>
+                            <label for="currency">Code de devise du prix indicatif</label>
+                            <input id="currency" name="currency" type="text" minlength="3" maxlength="3" pattern="[A-Za-z]{3}" autocapitalize="characters" autocomplete="off" placeholder="USD" value="{{ old('currency', $professional->currency) }}" aria-describedby="currency-help">
+                            <small id="currency-help" class="field-help">Saisissez le code de devise ISO à trois lettres, par exemple USD, CDF ou EUR. Le serveur enregistre le code en majuscules.</small>
                             @error('currency')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                     </div>
