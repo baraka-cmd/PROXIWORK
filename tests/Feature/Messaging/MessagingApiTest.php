@@ -7,18 +7,18 @@ namespace Tests\Feature\Messaging;
 use App\Enums\ConversationStatus;
 use App\Jobs\Notifications\SendNotificationEmail;
 use App\Models\Conversation;
-use App\Models\NotificationDelivery;
 use App\Models\MessageAttachment;
+use App\Models\NotificationDelivery;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class MessagingApiTest extends TestCase
