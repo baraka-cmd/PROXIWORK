@@ -41,6 +41,9 @@ class ProfessionalServiceApiTest extends TestCase
                 'category_id' => $category->id,
                 'title' => 'Développement Laravel',
                 'description' => 'Je développe des applications Laravel robustes et maintenables.',
+                'included_items' => 'Analyse du besoin et réalisation.',
+                'client_requirements' => 'Fournir les éléments nécessaires au projet.',
+                'deliverables' => 'Application livrée et testée.',
                 'pricing_type' => 'fixed',
                 'price' => 150,
                 'currency' => 'usd',
@@ -48,7 +51,10 @@ class ProfessionalServiceApiTest extends TestCase
             ])
             ->assertCreated()
             ->assertJsonPath('data.title', 'Développement Laravel')
-            ->assertJsonPath('data.currency', 'USD');
+            ->assertJsonPath('data.currency', 'USD')
+            ->assertJsonPath('data.included_items', 'Analyse du besoin et réalisation.')
+            ->assertJsonPath('data.client_requirements', 'Fournir les éléments nécessaires au projet.')
+            ->assertJsonPath('data.deliverables', 'Application livrée et testée.');
 
         $serviceId = $response->json('data.id');
 
