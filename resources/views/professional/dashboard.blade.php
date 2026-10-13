@@ -442,6 +442,8 @@
                 <div><span>Favoris reçus</span><strong>{{ $engagement['received_favorites'] }}</strong></div>
                 <div><span>Notifications non lues</span><strong>{{ $notifications['unread'] }}</strong></div>
                 <div><span>Vérification</span><strong class="professional-service-summary__text">{{ $verificationLabels[$verification] ?? 'Non renseignée' }}</strong></div>
+                <div><span>Documents en attente</span><strong>{{ $dashboard['documents']['pending'] }}</strong></div>
+                <div><span>Documents rejetés</span><strong>{{ $dashboard['documents']['rejected'] }}</strong></div>
             </div>
             @if ($services['published'] === 0)
                 <div class="professional-dashboard-card__notice professional-dashboard-card__notice--warning">
