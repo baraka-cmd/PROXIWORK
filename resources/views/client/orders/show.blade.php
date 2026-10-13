@@ -243,6 +243,13 @@
             </div>
         @else
             <p class="client-order-muted">Aucune conversation liée à cette commande n’est disponible pour votre compte.</p>
+            @if ($order->professional)
+                <form method="POST" action="{{ route('client.messages.start', $order->professional) }}">
+                    @csrf
+                    <input type="hidden" name="order_id" value="{{ $order->id }}">
+                    <button class="btn btn-secondary" type="submit"><i class="fa-regular fa-message" aria-hidden="true"></i> Démarrer une conversation pour cette commande</button>
+                </form>
+            @endif
         @endif
     </section>
 
