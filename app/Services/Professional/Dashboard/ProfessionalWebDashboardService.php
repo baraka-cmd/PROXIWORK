@@ -26,6 +26,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProfessionalWebDashboardService
 {
@@ -185,6 +186,17 @@ class ProfessionalWebDashboardService
     private function profile(ProfessionalProfile $profile): array
     {
         $userProfile = $profile->user->profile;
+        $avatarPath = $userProfile?->avatar_path;
+        $hasAvatar = is_string($avatarPath)
+            && $avatarPath !== ''
+            && Storage::disk('local')->exists($avatarPath);
+
+        if ($hasAvatar) {
+            $mimeType = Storage::disk('local')->mimeType($avatarPath);
+            $hasAvatar = is_string($mimeType)
+                && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true);
+        }
+
         // Keep this score aligned with the existing profile page's seven completion criteria.
         $completionItems = [
             'personal' => $userProfile !== null,
@@ -226,7 +238,7 @@ class ProfessionalWebDashboardService
                 'id' => $profile->user->getKey(),
                 'name' => $profile->user->name,
                 'account_status' => $profile->user->account_status?->value,
-                'has_avatar' => filled($userProfile?->avatar_path),
+                'has_avatar' => $hasAvatar,
             ],
         ];
     }
