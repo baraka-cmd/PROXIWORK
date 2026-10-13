@@ -3,6 +3,12 @@
 @section('title', 'Aperçu du service — PROXIWORK')
 @section('page_heading', 'Aperçu du service')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/professional/services.css')
+    @endunless
+@endpush
+
 @section('content')
     @php
         $cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first();
