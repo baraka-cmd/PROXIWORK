@@ -143,6 +143,21 @@
         </section>
     </div>
 
+    <section class="surface-card surface-card--md professional-section" aria-labelledby="profile-languages-heading">
+        <div class="surface-card__header professional-section-header"><div><h2 id="profile-languages-heading">Langues de communication</h2><p>Les langues sont déclarées par le professionnel et ne font pas l’objet d’une vérification automatique.</p></div><a class="button button--ghost button--sm" href="{{ route('professional.profile.edit') }}">Modifier</a></div>
+        <div class="surface-card__body">
+            @if (! empty($professional->languages))
+                <div class="skill-list">
+                    @foreach ($professional->languages as $language)
+                        <span class="badge badge--neutral">{{ $language }}</span>
+                    @endforeach
+                </div>
+            @else
+                <p class="field-help">Aucune langue renseignée pour le moment.</p>
+            @endif
+        </div>
+    </section>
+
     <section class="surface-card surface-card--md professional-section" aria-labelledby="profile-skills-heading">
         <div class="surface-card__header professional-section-header">
             <div><h2 id="profile-skills-heading">Compétences</h2><p>Les compétences décrivent votre expertise ; elles ne créent pas automatiquement une offre commerciale.</p></div>
