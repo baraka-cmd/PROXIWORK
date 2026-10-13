@@ -1126,3 +1126,11 @@
         padding: var(--space-4);
     }
 }
+
+.professional-dashboard__avatar-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+}
