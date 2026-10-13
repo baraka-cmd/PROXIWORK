@@ -195,5 +195,4 @@ class ProfessionalProfileServicesTest extends TestCase
                     && $counts['draft'] === 1;
             });
     }
-
 }
