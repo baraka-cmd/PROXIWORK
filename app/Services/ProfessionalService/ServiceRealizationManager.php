@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\ProfessionalService;
 
 use App\Enums\ServiceStatus;
+use Illuminate\Auth\Access\AuthorizationException;
 use App\Models\Service;
 use App\Models\ServiceRealization;
 use App\Models\User;
@@ -60,7 +61,7 @@ class ServiceRealizationManager
                 ->firstOrFail();
 
             if ($locked->service->professionalProfile->user_id !== $owner->getKey()) {
-                abort(403);
+                throw new AuthorizationException('Vous ne pouvez pas supprimer une réalisation qui ne vous appartient pas.');
             }
 
             if ($locked->status === ServiceRealization::STATUS_APPROVED) {
