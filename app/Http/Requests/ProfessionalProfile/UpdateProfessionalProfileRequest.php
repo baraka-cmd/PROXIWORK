@@ -7,7 +7,7 @@ namespace App\\Http\\Requests\\ProfessionalProfile;
 use App\\Enums\\ProfessionalAvailabilityStatus;
 use App\\Enums\\ProfessionalVerificationStatus;
 use App\\Models\\ProfessionalProfile;
-use App\\Models\\Service;
+use App\\Enums\\ServiceStatus;
 use App\\Models\\User;
 use Illuminate\\Foundation\\Http\\FormRequest;
 use Illuminate\\Validation\\Rule;
@@ -77,7 +77,7 @@ class UpdateProfessionalProfileRequest extends FormRequest
                 }
 
                 $hasPublishedService = $professional->services()
-                    ->where('status', Service::STATUS_PUBLISHED)
+                    ->where('status', ServiceStatus::PUBLISHED->value)
                     ->whereNotNull('published_at')
                     ->exists();
 
