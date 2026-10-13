@@ -2,10 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\ProfessionalProfile;
+namespace App\\Http\\Requests\\ProfessionalProfile;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
+use App\\Enums\\ProfessionalAvailabilityStatus;
+use App\\Enums\\ProfessionalVerificationStatus;
+use App\\Models\\ProfessionalProfile;
+use App\\Models\\Service;
+use App\\Models\\User;
+use Illuminate\\Foundation\\Http\\FormRequest;
+use Illuminate\\Validation\\Rule;
+use Illuminate\\Validation\\Validator;
 
 class UpdateProfessionalProfileRequest extends FormRequest
 {
@@ -17,6 +23,8 @@ class UpdateProfessionalProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'first_name' => ['nullable', 'string', 'max:100', 'required_with:last_name'],
+            'last_name' => ['nullable', 'string', 'max:100', 'required_with:first_name'],
             'professional_title' => ['nullable', 'string', 'max:160'],
             'description' => ['nullable', 'string', 'max:5000'],
             'years_experience' => ['nullable', 'integer', 'min:0', 'max:80'],
@@ -28,6 +36,11 @@ class UpdateProfessionalProfileRequest extends FormRequest
             'service_radius_km' => ['nullable', 'integer', 'min:1', 'max:500'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'availability_status' => ['required', Rule::enum(ProfessionalAvailabilityStatus::class)],
+            'visibility' => ['required', Rule::in([
+                ProfessionalProfile::VISIBILITY_PUBLIC,
+                ProfessionalProfile::VISIBILITY_PRIVATE,
+            ])],
         ];
     }
 
@@ -41,6 +54,41 @@ class UpdateProfessionalProfileRequest extends FormRequest
                         'Les coordonnées latitude et longitude doivent être fournies ensemble.',
                     );
                 }
+
+                if ($validator->errors()->isNotEmpty()
+                    || $this->input('visibility') !== ProfessionalProfile::VISIBILITY_PUBLIC) {
+                    return;
+                }
+
+                $user = $this->user();
+
+                if (! $user instanceof User) {
+                    return;
+                }
+
+                $professional = $user->professionalProfile()->first();
+
+                // A profile that is already public may still be edited if an administrator
+                // has since changed its eligibility. Public visibility is checked when
+                // the professional explicitly switches a private profile to public.
+                if ($professional === null
+                    || $professional->visibility === ProfessionalProfile::VISIBILITY_PUBLIC) {
+                    return;
+                }
+
+                $hasPublishedService = $professional->services()
+                    ->where('status', Service::STATUS_PUBLISHED)
+                    ->whereNotNull('published_at')
+                    ->exists();
+
+                if ($professional->status !== ProfessionalProfile::STATUS_ACTIVE
+                    || $professional->verification_status !== ProfessionalVerificationStatus::VERIFIED
+                    || ! $hasPublishedService) {
+                    $validator->errors()->add(
+                        'visibility',
+                        'La visibilité publique nécessite un profil actif et vérifié ainsi qu’au moins un service publié.',
+                    );
+                }
             },
         ];
     }
@@ -49,7 +97,7 @@ class UpdateProfessionalProfileRequest extends FormRequest
     {
         $data = [];
 
-        foreach (['professional_title', 'description', 'province', 'city', 'commune'] as $field) {
+        foreach (['first_name', 'last_name', 'professional_title', 'description', 'province', 'city', 'commune'] as $field) {
             if ($this->has($field) && $this->input($field) !== null) {
                 $data[$field] = trim((string) $this->input($field));
             }
