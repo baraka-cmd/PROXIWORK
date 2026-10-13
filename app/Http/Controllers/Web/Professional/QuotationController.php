@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
+use App\Enums\QuotationOfferActor;
+use App\Enums\QuotationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Quotation\StoreQuotationOfferRequest;
 use App\Http\Requests\Quotation\StoreQuotationRequest;
@@ -26,14 +28,27 @@ class QuotationController extends Controller
 
     public function index(Request $request): View
     {
-        $quotations = Quotation::query()
+        $filters = $request->validate([
+            'action_required' => ['sometimes', 'boolean'],
+        ]);
+
+        $actionRequired = (bool) ($filters['action_required'] ?? false);
+        $query = Quotation::query()
             ->whereHas('serviceRequest.professional', fn ($query) => $query->where('user_id', $request->user()->getKey()))
-            ->with(['serviceRequest.service', 'serviceRequest.client', 'currentOffer'])
+            ->with(['serviceRequest.service', 'serviceRequest.client', 'currentOffer']);
+
+        if ($actionRequired) {
+            $query->where('status', QuotationStatus::NEGOTIATING->value)
+                ->whereHas('currentOffer', fn ($offerQuery) => $offerQuery
+                    ->where('actor_type', QuotationOfferActor::CLIENT->value));
+        }
+
+        $quotations = $query
             ->latest('id')
             ->paginate(15)
             ->withQueryString();
 
-        return view('professional.quotes.index', compact('quotations'));
+        return view('professional.quotes.index', compact('quotations', 'actionRequired'));
     }
 
     public function show(Quotation $quotation): View
