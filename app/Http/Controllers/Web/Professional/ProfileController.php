@@ -69,7 +69,8 @@ class ProfileController extends Controller
                 'services',
                 'services as published_services_count' => fn ($query) => $query
                     ->where('status', ServiceStatus::PUBLISHED->value)
-                    ->whereNotNull('published_at'),
+                    ->whereNotNull('published_at')
+                    ->whereHas('category', fn ($query) => $query->where('status', 'active')),
             ])
             ->firstOrFail();
 
