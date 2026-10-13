@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Client;
 
+use App\Enums\ReportPriority;
+use App\Enums\ReportStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Messaging\ReportMessageRequest;
 use App\Http\Requests\Messaging\StoreConversationRequest;
@@ -14,10 +16,8 @@ use App\Models\Message;
 use App\Models\MessageAttachment;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
-use App\Models\ServiceRequest;
 use App\Models\Report;
-use App\Enums\ReportPriority;
-use App\Enums\ReportStatus;
+use App\Models\ServiceRequest;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,8 +30,13 @@ class MessageController extends Controller
 {
     public function __construct(
         private readonly ConversationService $conversationService,
-    ) {
-    }
+    ) {}
+
+class MessageController extends Controller
+{
+    public function __construct(
+        private readonly ConversationService $conversationService,
+    ) {}
 
     public function index(Request $request): View
     {
