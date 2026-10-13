@@ -4,19 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1\Messaging;
 
-use App\Http\Controllers\Controller;
 use App\Enums\ReportPriority;
 use App\Enums\ReportStatus;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\Messaging\ReportMessageRequest;
 use App\Http\Requests\Messaging\StoreConversationRequest;
 use App\Http\Requests\Messaging\StoreMessageRequest;
 use App\Http\Resources\Messaging\ConversationResource;
 use App\Http\Resources\Messaging\MessageResource;
 use App\Models\Conversation;
-use App\Models\MessageAttachment;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use App\Models\Message;
+use App\Models\MessageAttachment;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Report;
@@ -24,6 +22,16 @@ use App\Models\ServiceRequest;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+
+class ConversationController extends Controller
+{
+    public function __construct(
+        private readonly ConversationService $conversationService,
+    ) {
+        // Dependencies are injected by Laravel.
+    }
 
 class ConversationController extends Controller
 {
