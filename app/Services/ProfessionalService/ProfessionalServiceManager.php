@@ -48,6 +48,7 @@ class ProfessionalServiceManager
     {
         return DB::transaction(function () use ($service, $attributes): Service {
             $service = Service::query()->whereKey($service->getKey())->lockForUpdate()->firstOrFail();
+            $this->ensureServiceIsEditable($service);
 
             if (array_key_exists('category_id', $attributes)) {
                 $category = Category::query()->lockForUpdate()->findOrFail($attributes['category_id']);
@@ -169,6 +170,8 @@ class ProfessionalServiceManager
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                $this->ensureServiceIsEditable($lockedService);
+
                 if ($lockedService->images()->count() >= 8) {
                     throw ValidationException::withMessages([
                         'image' => 'Un service ne peut pas contenir plus de 8 images.',
@@ -208,6 +211,7 @@ class ProfessionalServiceManager
         try {
             [$updatedImage, $oldPath] = DB::transaction(function () use ($image, $newPath): array {
                 $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
+                $this->ensureServiceIsEditable($service);
                 $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
                 $oldPath = $lockedImage->path;
                 $lockedImage->update(['path' => $newPath]);
@@ -231,6 +235,7 @@ class ProfessionalServiceManager
     {
         return DB::transaction(function () use ($image, $attributes): ServiceImage {
             $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
+            $this->ensureServiceIsEditable($service);
             $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
             $hasCoverInput = array_key_exists('is_cover', $attributes);
             $isCover = $hasCoverInput && filter_var($attributes['is_cover'], FILTER_VALIDATE_BOOLEAN);
@@ -272,8 +277,9 @@ class ProfessionalServiceManager
     {
         $path = DB::transaction(function () use ($image): string {
             $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
+            $this->ensureServiceIsEditable($service);
             $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
-            $path = $lockedImage->path;
+            $path = $lockedImage->path
             $wasCover = $lockedImage->is_cover;
 
             $lockedImage->delete();
@@ -342,6 +348,15 @@ class ProfessionalServiceManager
         if ($activeCount !== count(array_unique($skillIds))) {
             throw ValidationException::withMessages([
                 'skill_ids' => 'Toutes les compétences sélectionnées doivent être actives.',
+            ]);
+        }
+    }
+
+    private function ensureServiceIsEditable(Service $service): void
+    {
+        if ($service->status === ServiceStatus::ARCHIVED) {
+            throw ValidationException::withMessages([
+                'service' => 'Un service archivé est conservé pour son historique et ne peut plus être modifié.',
             ]);
         }
     }
