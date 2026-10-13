@@ -285,16 +285,21 @@ class ProfessionalDashboardService
 
         $revenueCurrencies = $revenueRows->pluck('currency')->unique()->sort()->values();
         $revenueSeries = $revenueCurrencies->map(function (string $currency) use ($revenueRows, $labels, $monthly): array {
-            $values = array_fill(0, count($labels), 0.0);
+            // Aggregate decimal money in integer minor units to avoid floating-point sums.
+            $minorValues = array_fill(0, count($labels), 0);
             foreach ($revenueRows->where('currency', $currency) as $row) {
                 $key = $monthly ? CarbonImmutable::parse($row->bucket)->format('Y-m') : (string) $row->bucket;
                 $index = array_search($key, $labels, true);
                 if ($index !== false) {
-                    $values[$index] += (float) $row->amount;
+                    $minorValues[$index] += $this->toMinorUnits((string) $row->amount);
                 }
             }
 
-            return ['label' => $currency, 'data' => $values];
+            // Chart.js consumes numeric values; conversion happens only at the presentation boundary.
+            return [
+                'label' => $currency,
+                'data' => array_map(static fn (int $minor): float => $minor / 100, $minorValues),
+            ];
         })->values()->all();
 
         $orderDistribution = collect(OrderStatus::cases())->map(function (OrderStatus $status) use ($orderQuery): array {
@@ -346,6 +351,18 @@ class ProfessionalDashboardService
             'order_distribution' => $orderDistribution,
             'top_services' => $topServices,
         ];
+    }
+
+    private function toMinorUnits(string $amount): int
+    {
+        $amount = trim($amount);
+        $negative = str_starts_with($amount, '-');
+        $normalized = ltrim($amount, '+-');
+        [$whole, $fraction] = array_pad(explode('.', $normalized, 2), 2, '');
+        $fraction = str_pad(substr($fraction, 0, 2), 2, '0');
+        $minor = ((int) $whole * 100) + (int) $fraction;
+
+        return $negative ? -$minor : $minor;
     }
 
     private function countByDate(Builder $query, string $dateColumn, bool $monthly): array
