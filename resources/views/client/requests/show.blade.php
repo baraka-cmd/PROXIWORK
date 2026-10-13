@@ -66,9 +66,15 @@
                     <i class="fa-regular fa-message" aria-hidden="true"></i> Ouvrir la conversation
                 </a>
             @else
-                <a class="btn btn-secondary" href="{{ route('client.messages.index') }}">
-                    <i class="fa-regular fa-message" aria-hidden="true"></i> Accéder à la messagerie
-                </a>
+                @if ($serviceRequest->professional)
+                    <form method="POST" action="{{ route('client.messages.start', $serviceRequest->professional) }}">
+                        @csrf
+                        <input type="hidden" name="service_request_id" value="{{ $serviceRequest->id }}">
+                        <button class="btn btn-secondary" type="submit"><i class="fa-regular fa-message" aria-hidden="true"></i> Contacter au sujet de cette demande</button>
+                    </form>
+                @else
+                    <a class="btn btn-secondary" href="{{ route('client.messages.index') }}"><i class="fa-regular fa-message" aria-hidden="true"></i> Accéder à la messagerie</a>
+                @endif
             @endif
         </aside>
     </div>
