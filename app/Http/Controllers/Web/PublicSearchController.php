@@ -58,7 +58,7 @@ class PublicSearchController
 
         $response = response()->file(Storage::disk('local')->path($path));
         $response->headers->set('Content-Type', $mimeType);
-        $response->headers->set('Cache-Control', 'public, max-age=300');
+        $response->headers->set('Cache-Control', 'private, no-store');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
 
         return $response;
