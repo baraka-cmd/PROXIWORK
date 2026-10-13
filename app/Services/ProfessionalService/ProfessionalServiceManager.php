@@ -285,7 +285,7 @@ class ProfessionalServiceManager
 
             if ($wasCover) {
                 $replacement = $service->images()
-                    ->whereKeyNot($lockedImage->getKey())
+                    ->where('id', '!=', $lockedImage->getKey())
                     ->orderBy('sort_order')
                     ->orderBy('id')
                     ->lockForUpdate()
