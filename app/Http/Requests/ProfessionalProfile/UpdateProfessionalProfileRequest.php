@@ -6,8 +6,8 @@ namespace App\Http\Requests\ProfessionalProfile;
 
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
-use App\Models\ProfessionalProfile;
 use App\Enums\ServiceStatus;
+use App\Models\ProfessionalProfile;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
