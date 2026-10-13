@@ -222,6 +222,7 @@ Route::prefix('v1')->group(function (): void {
             });
         });
 
+        Route::patch('professional/service-images/{image}/file', [ProfessionalServiceImageController::class, 'replace'])->middleware('throttle:10,1');
         Route::patch('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'update'])
             ->middleware('role:professional');
         Route::delete('professional/service-images/{image}', [ProfessionalServiceImageController::class, 'destroy'])
