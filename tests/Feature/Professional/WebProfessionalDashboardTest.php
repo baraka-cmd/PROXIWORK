@@ -13,6 +13,8 @@ use App\Models\ServiceRequest;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class WebProfessionalDashboardTest extends TestCase
@@ -192,4 +194,34 @@ class WebProfessionalDashboardTest extends TestCase
                     && $dashboard['charts']['top_services'][0]['count'] === 2;
             });
     }
+
+    public function test_professional_dashboard_uses_private_avatar_route_when_photo_exists(): void
+    {
+        Storage::fake('local');
+
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->getKey()]);
+        $avatarPath = UploadedFile::fake()
+            ->image('avatar.png')
+            ->store('professional-avatars/'.$professional->getKey(), 'local');
+
+        $professional->profile()->create([
+            'first_name' => 'Aline',
+            'last_name' => 'Kabeya',
+            'avatar_path' => $avatarPath,
+        ]);
+
+        $this->actingAs($professional)
+            ->get('/professional')
+            ->assertOk()
+            ->assertSee(route('professional.profile.photo'), false);
+
+        $this->get(route('professional.profile.photo'))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/png')
+            ->assertHeader('Cache-Control', 'private, no-store')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+    }
+
 }
