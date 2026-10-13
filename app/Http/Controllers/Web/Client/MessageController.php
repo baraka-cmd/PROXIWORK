@@ -30,7 +30,8 @@ class MessageController extends Controller
 {
     public function __construct(
         private readonly ConversationService $conversationService,
-    ) {}
+    ) {
+    }
 
     public function index(Request $request): View
     {
@@ -87,7 +88,7 @@ class MessageController extends Controller
         $this->authorize('view', $model);
 
         // Only the newest page is considered read; loading historical pages must not clear unread state.
-        if (!$request->filled('cursor')) {
+        if (! $request->filled('cursor')) {
             $this->conversationService->markAsRead($model, $request->user());
         }
         $conversationData = $this->conversationService->showForUser($model, $request->user());
