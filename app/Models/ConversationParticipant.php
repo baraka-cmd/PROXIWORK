@@ -19,6 +19,8 @@ class ConversationParticipant extends Pivot
         'last_read_message_id',
         'joined_at',
         'left_at',
+        'pinned_at',
+        'archived_at',
     ];
 
     protected function casts(): array
@@ -26,6 +28,8 @@ class ConversationParticipant extends Pivot
         return [
             'joined_at' => 'datetime',
             'left_at' => 'datetime',
+            'pinned_at' => 'datetime',
+            'archived_at' => 'datetime',
         ];
     }
 
