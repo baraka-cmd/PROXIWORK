@@ -12,6 +12,11 @@
         </div>
     </div>
 
+    <nav class="filter-bar" aria-label="Filtrer les devis">
+        <a href="{{ route('professional.quotes.index') }}" class="filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
+        <a href="{{ route('professional.quotes.index', ['action_required' => 1]) }}" class="filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
+    </nav>
+
     @if ($quotations->isEmpty())
         <x-empty-state
             title="Aucun devis envoyé"
