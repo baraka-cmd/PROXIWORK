@@ -24,7 +24,7 @@
         @endforeach
     </nav>
 
-    <form class="filter-bar" method="GET" action="{{ route('professional.orders.index') }}" aria-label="Filtrer les commandes par date">
+    <form class="filter-bar professional-order-date-filters" method="GET" action="{{ route('professional.orders.index') }}" aria-label="Filtrer les commandes par date">
         @if ($selectedStatus !== '')
             <input type="hidden" name="status" value="{{ $selectedStatus }}">
         @endif
