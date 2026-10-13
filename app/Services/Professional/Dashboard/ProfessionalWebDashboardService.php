@@ -513,7 +513,7 @@ class ProfessionalWebDashboardService
                 'priority' => 'high',
                 'count' => $failedWithdrawals,
                 'message' => $failedWithdrawals.' retrait(s) en échec. Consultez le motif enregistré avant toute nouvelle tentative.',
-                'url' => route('professional.withdrawals'),
+                'url' => route('professional.withdrawals', ['status' => WithdrawalStatus::FAILED->value]),
             ]);
         }
 
