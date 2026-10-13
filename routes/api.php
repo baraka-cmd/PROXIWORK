@@ -140,9 +140,15 @@ Route::prefix('v1')->group(function (): void {
             ->middleware('role:client');
         Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
         Route::get('conversations/{conversation}/messages', [ConversationController::class, 'messages']);
+        Route::post('conversations/{conversation}/messages/{message}/report', [ConversationController::class, 'reportMessage'])->middleware('throttle:10,1');
+        Route::get('conversations/{conversation}/attachments/{attachment}', [ConversationController::class, 'downloadAttachment']);
         Route::post('conversations/{conversation}/messages', [ConversationController::class, 'storeMessage'])
             ->middleware('throttle:message-send');
-        Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead']);
+        Route::post('conversations/{conversation}/read', [ConversationController::class, 'markAsRead'])->middleware('throttle:30,1');
+        Route::post('conversations/{conversation}/read-receipts', [ConversationController::class, 'setReadReceipts'])->middleware('throttle:30,1');
+        Route::post('conversations/{conversation}/pin', [ConversationController::class, 'pin'])->middleware('throttle:30,1');
+        Route::post('conversations/{conversation}/archive', [ConversationController::class, 'archive'])->middleware('throttle:30,1');
+        Route::post('conversations/{conversation}/block', [ConversationController::class, 'block'])->middleware('throttle:10,1');
 
         Route::get('favorites', [FavoriteController::class, 'index'])->middleware('role:client');
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store'])->middleware('role:client');
