@@ -561,7 +561,7 @@ class ProfessionalWebDashboardService
         ServiceRequest::query()
             ->where('professional_id', $professionalId)
             ->whereNotNull('requested_at')
-            ->with(['service' => fn (Builder $query) => $query
+            ->with(['service' => fn ($query) => $query
                 ->where('professional_profile_id', $professionalId)
                 ->select('id', 'title')])
             ->latest('requested_at')
