@@ -69,8 +69,14 @@ class PublicSearchController
     public function professional(ProfessionalProfile $professional): View
     {
         $professional = $this->searchService->findVisible($professional);
+        $executionModes = $professional->services
+            ->map(fn ($service) => $service->execution_mode)
+            ->filter()
+            ->unique()
+            ->map(fn ($mode) => $mode->label())
+            ->values();
 
-        return view('public.professionals.show', compact('professional'));
+        return view('public.professionals.show', compact('professional', 'executionModes'));
     }
 
     public function professionals(ProfessionalSearchRequest $request): View
