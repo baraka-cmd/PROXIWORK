@@ -66,6 +66,7 @@
                 <div class="professional-meta">
                     <span><i class="fa-solid fa-user-check" aria-hidden="true"></i> Compte : {{ $accountStatus === 'active' ? 'Actif' : str_replace('_', ' ', $accountStatus) }}</span>
                     <span><i class="fa-solid fa-id-card" aria-hidden="true"></i> Profil : {{ $profileStatusLabels[$professional->status] ?? $professional->status }}</span>
+                    <span><i class="fa-solid fa-calendar-check" aria-hidden="true"></i> Disponibilité : {{ $availabilityLabels[$professional->availability_status?->value ?? 'unknown'] ?? 'Non renseignée' }}</span>
                     <span><i class="fa-solid fa-eye" aria-hidden="true"></i> Visibilité : {{ $visibilityLabels[$professional->visibility] ?? $professional->visibility }}</span>
                     @if ($professional->city || $professional->province)
                         <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ collect([$professional->city, $professional->province])->filter()->join(', ') }}</span>
