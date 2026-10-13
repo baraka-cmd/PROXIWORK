@@ -67,6 +67,33 @@ class ServiceRealizationTest extends TestCase
         ]);
     }
 
+    public function test_api_can_list_and_upload_private_service_realizations(): void
+    {
+        [$owner, $profile, $service] = $this->professionalService();
+
+        $response = $this->actingAs($owner, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->id.'/realizations', [
+                'image' => UploadedFile::fake()->image('api-realization.png'),
+                'caption' => 'Travail effectué et testé',
+                'participation_confirmed' => true,
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.status', ServiceRealization::STATUS_PENDING)
+            ->assertJsonPath('data.file_url', route('professional.service-realizations.file', $service->realizations()->value('id')));
+
+        $realizationId = $response->json('data.id');
+
+        $this->actingAs($owner, 'sanctum')
+            ->getJson('/api/v1/professional/services/'.$service->id.'/realizations')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $realizationId);
+
+        $this->actingAs($owner, 'sanctum')
+            ->get('/api/v1/professional/service-realizations/'.$realizationId.'/file')
+            ->assertOk()
+            ->assertHeader('Cache-Control', 'private, no-store');
+    }
+
     public function test_admin_approval_makes_realization_public_only_for_a_visible_service(): void
     {
         [$owner, $profile, $service] = $this->professionalService(visible: true);
