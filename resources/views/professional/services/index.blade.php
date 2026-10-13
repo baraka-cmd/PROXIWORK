@@ -110,6 +110,7 @@
                         <p class="service-card__updated">Dernière modification : {{ $service->updated_at->format('d/m/Y') }}</p>
                     </div>
                     <div class="service-card__footer">
+                        <a class="button button--ghost button--sm" href="{{ route('professional.services.preview', $service) }}">Aperçu</a>
                         <a class="button button--ghost button--sm" href="{{ route('professional.services.edit', $service) }}">Modifier</a>
                         @if($service->status->value === 'published')
                             <form method="POST" action="{{ route('professional.services.unpublish', $service) }}" data-action-form>
