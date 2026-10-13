@@ -268,7 +268,7 @@ class ProfessionalDashboardService
             ? collect(range(0, 11))->map(fn (int $offset) => $start->addMonths($offset)->format('Y-m'))->all()
             : collect(range(0, self::PERIODS[$period] - 1))->map(fn (int $offset) => $start->addDays($offset)->format('Y-m-d'))->all();
 
-        $requestsByDate = $this->countByDate((clone $requestQuery)->whereBetween('created_at', [$start, $end]), 'created_at', $monthly);
+        $requestsByDate = $this->countByDate((clone $requestQuery)->whereNotNull('requested_at')->whereBetween('requested_at', [$start, $end]), 'requested_at', $monthly);
         $ordersByDate = $this->countByDate((clone $orderQuery)->whereBetween('created_at', [$start, $end]), 'created_at', $monthly);
         $completedByDate = $this->countByDate(
             (clone $orderQuery)->where('status', OrderStatus::COMPLETED->value)->whereNotNull('completed_at')->whereBetween('completed_at', [$start, $end]),
@@ -316,7 +316,8 @@ class ProfessionalDashboardService
 
         $topServices = ServiceRequest::query()
             ->where('service_requests.professional_id', $professionalId)
-            ->whereBetween('service_requests.created_at', [$start, $end])
+            ->whereNotNull('service_requests.requested_at')
+            ->whereBetween('service_requests.requested_at', [$start, $end])
             ->join('services', 'services.id', '=', 'service_requests.service_id')
             ->selectRaw('service_requests.service_id, services.title as service_title, COUNT(*) as requests_count')
             ->groupBy('service_requests.service_id', 'services.title')
@@ -371,6 +372,7 @@ class ProfessionalDashboardService
             ->join('messages as m', 'm.conversation_id', '=', 'cp.conversation_id')
             ->where('cp.user_id', $user->getKey())
             ->whereNull('cp.left_at')
+            ->whereNull('cp.archived_at')
             ->where('m.sender_id', '!=', $user->getKey())
             ->whereRaw('m.id > COALESCE(cp.last_read_message_id, 0)')
             ->distinct()
@@ -487,15 +489,16 @@ class ProfessionalDashboardService
 
         ServiceRequest::query()
             ->where('professional_id', $professionalId)
+            ->whereNotNull('requested_at')
             ->with('service:id,title')
-            ->latest('created_at')
+            ->latest('requested_at')
             ->limit(5)
             ->get()
             ->each(fn (ServiceRequest $request) => $events->push([
                 'type' => 'request',
                 'title' => 'Demande de service reçue',
                 'description' => $request->service?->title ?? $request->title,
-                'at' => $request->created_at,
+                'at' => $request->requested_at,
                 'url' => route('professional.requests.show', $request),
             ]));
 
