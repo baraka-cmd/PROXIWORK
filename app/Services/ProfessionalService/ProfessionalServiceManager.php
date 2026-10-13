@@ -226,7 +226,10 @@ class ProfessionalServiceManager
                 $replacement->update(['is_cover' => true]);
             }
 
-            $attributes['is_cover'] = $isCover;
+            if ($hasCoverInput) {
+                $attributes['is_cover'] = $isCover;
+            }
+
             $lockedImage->update($attributes);
 
             return $lockedImage->refresh();
