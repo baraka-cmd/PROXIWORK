@@ -17,6 +17,7 @@ use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceImage;
+use App\Models\ServiceRealization;
 use App\Models\Skill;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
@@ -368,6 +369,11 @@ class ProfileController extends Controller
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
         ]);
 
+        $pendingRealizationsCount = ServiceRealization::query()
+            ->whereHas('service', fn ($query) => $query->where('professional_profile_id', $profile->getKey()))
+            ->where('status', ServiceRealization::STATUS_PENDING)
+            ->count();
+
         $serviceCounts = $profile->services()
             ->selectRaw('status, COUNT(*) as aggregate')
             ->groupBy('status')
@@ -376,6 +382,7 @@ class ProfileController extends Controller
         $services = $profile->services()
             ->with(['category', 'skills', 'images'])
             ->withCount('serviceRequests')
+            ->withCount(['realizations as pending_realizations_count' => fn ($query) => $query->where('status', ServiceRealization::STATUS_PENDING)])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
@@ -401,6 +408,7 @@ class ProfileController extends Controller
                 'draft' => (int) ($serviceCounts[ServiceStatus::DRAFT->value] ?? 0),
                 'unpublished' => (int) ($serviceCounts[ServiceStatus::UNPUBLISHED->value] ?? 0),
                 'archived' => (int) ($serviceCounts[ServiceStatus::ARCHIVED->value] ?? 0),
+                'pending_realizations' => $pendingRealizationsCount,
             ],
             'statusLabels' => [
                 ServiceStatus::DRAFT->value => 'Brouillon',
