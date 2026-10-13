@@ -79,6 +79,7 @@ class UpdateProfessionalProfileRequest extends FormRequest
                 $hasPublishedService = $professional->services()
                     ->where('status', ServiceStatus::PUBLISHED->value)
                     ->whereNotNull('published_at')
+                    ->whereHas('category', fn ($query) => $query->where('status', 'active'))
                     ->exists();
 
                 if ($professional->status !== ProfessionalProfile::STATUS_ACTIVE
