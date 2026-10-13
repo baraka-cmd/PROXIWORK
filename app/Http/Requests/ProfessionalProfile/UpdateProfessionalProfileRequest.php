@@ -111,8 +111,9 @@ class UpdateProfessionalProfileRequest extends FormRequest
             $data['currency'] = strtoupper(trim((string) $this->input('currency')));
         }
 
-        if ($this->has('languages_text') && is_string($this->input('languages_text'))) {
-            $languages = preg_split('/[,;\\r\\n]+/u', $this->input('languages_text')) ?: [];
+        if (array_key_exists('languages_text', $this->all()) && (is_string($this->input('languages_text')) || $this->input('languages_text') === null)) {
+            $rawLanguages = (string) ($this->input('languages_text') ?? '');
+            $languages = preg_split('/[,;\r\n]+/u', $rawLanguages) ?: [];
             $languages = collect($languages)
                 ->map(fn (string $language): string => trim($language))
                 ->filter()
