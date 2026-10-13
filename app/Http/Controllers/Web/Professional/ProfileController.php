@@ -441,6 +441,15 @@ class ProfileController extends Controller
         ]);
     }
 
+    public function previewService(Request $request, Service $service): View
+    {
+        $this->authorize('view', $service);
+
+        return view('professional/services/preview', [
+            'service' => $service->load(['category', 'skills', 'images', 'professionalProfile.user.profile']),
+        ]);
+    }
+
     public function updateService(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
         $this->authorize('update', $service);
