@@ -159,7 +159,7 @@ class NotificationFoundationTest extends TestCase
         $service->quotationAccepted($recipient);
         $service->paymentSucceeded($recipient);
         $service->orderConfirmed($recipient);
-        $service->messageReceived($recipient);
+        $service->messageReceived($recipient, 123, 456);
         $service->reviewReceived($recipient);
 
         $this->assertSame(7, $recipient->notifications()->count());
