@@ -279,7 +279,7 @@ class ProfessionalServiceManager
             $service = Service::query()->whereKey($image->service_id)->lockForUpdate()->firstOrFail();
             $this->ensureServiceIsEditable($service);
             $lockedImage = $service->images()->whereKey($image->getKey())->lockForUpdate()->firstOrFail();
-            $path = $lockedImage->path
+            $path = $lockedImage->path;
             $wasCover = $lockedImage->is_cover;
 
             $lockedImage->delete();
