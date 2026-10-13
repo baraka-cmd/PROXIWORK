@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ProfessionalService\ReplaceServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceImageRequest;
 use App\Http\Requests\ProfessionalService\UpdateServiceImageRequest;
 use App\Http\Resources\ProfessionalService\ServiceImageResource;
@@ -34,6 +35,16 @@ class ProfessionalServiceImageController extends Controller
             'message' => 'Image ajoutée avec succès.',
             'meta' => [],
         ])->response()->setStatusCode(Response::HTTP_CREATED);
+    }
+
+    public function replace(ReplaceServiceImageRequest $request, ServiceImage $image): ServiceImageResource
+    {
+        $image = $this->serviceManager->replaceImage($image, $request->file('image'));
+
+        return (new ServiceImageResource($image))->additional([
+            'message' => 'Image remplacée avec succès.',
+            'meta' => [],
+        ]);
     }
 
     public function update(UpdateServiceImageRequest $request, ServiceImage $image): ServiceImageResource
