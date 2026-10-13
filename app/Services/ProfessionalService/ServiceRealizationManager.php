@@ -84,6 +84,12 @@ class ServiceRealizationManager
         return DB::transaction(function () use ($realization, $reviewer, $note): ServiceRealization {
             $locked = ServiceRealization::query()->whereKey($realization->getKey())->lockForUpdate()->firstOrFail();
 
+            if ($locked->status !== ServiceRealization::STATUS_PENDING) {
+                throw ValidationException::withMessages([
+                    'realization' => 'Seules les réalisations en attente peuvent être modérées.',
+                ]);
+            }
+
             if (!$locked->participation_confirmed) {
                 throw ValidationException::withMessages([
                     'realization' => 'La déclaration de participation doit être confirmée avant approbation.',
@@ -111,6 +117,12 @@ class ServiceRealizationManager
     {
         return DB::transaction(function () use ($realization, $reviewer, $note): ServiceRealization {
             $locked = ServiceRealization::query()->whereKey($realization->getKey())->lockForUpdate()->firstOrFail();
+
+            if ($locked->status !== ServiceRealization::STATUS_PENDING) {
+                throw ValidationException::withMessages([
+                    'realization' => 'Seules les réalisations en attente peuvent être modérées.',
+                ]);
+            }
 
             $locked->forceFill([
                 'status' => ServiceRealization::STATUS_REJECTED,
