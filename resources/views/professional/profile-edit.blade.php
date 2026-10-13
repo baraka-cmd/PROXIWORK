@@ -214,10 +214,12 @@
                                             <option value="{{ $level }}" @selected($levelValue === $level)>{{ $levelLabel }}</option>
                                         @endforeach
                                     </select>
+                                    @error('proficiency_levels.'.$skill->id)<p class="form-error">{{ $message }}</p>@enderror
                                 </div>
                                 <div class="form-field">
                                     <label for="skill-years-{{ $skill->id }}">Années dans cette compétence</label>
                                     <input id="skill-years-{{ $skill->id }}" type="number" min="0" max="80" step="1" name="skill_years_experience[{{ $skill->id }}]" value="{{ $yearsValue }}">
+                                    @error('skill_years_experience.'.$skill->id)<p class="form-error">{{ $message }}</p>@enderror
                                 </div>
                             </div>
                         </article>
