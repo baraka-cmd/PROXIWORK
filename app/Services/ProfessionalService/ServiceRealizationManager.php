@@ -91,7 +91,7 @@ class ServiceRealizationManager
             }
 
             // A submitted file alone is not sufficient: the professional must attest to their participation.
-            if (! $locked->participation_confirmed) {
+            if ($locked->participation_confirmed === false) {
                 throw ValidationException::withMessages([
                     'realization' => 'La déclaration de participation doit être confirmée avant approbation.',
                 ]);
