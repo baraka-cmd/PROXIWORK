@@ -23,8 +23,8 @@
 
     @if ($quotations->isEmpty())
         <x-empty-state
-            title="Aucun devis envoyé"
-            description="Lorsqu'une demande reçoit votre proposition, le devis apparaîtra ici."
+            :title="$actionRequired ? 'Aucun devis à traiter' : 'Aucun devis envoyé'"
+            :description="$actionRequired ? 'Aucune contre-proposition client ne nécessite actuellement votre réponse.' : 'Lorsqu’une demande reçoit votre proposition, le devis apparaîtra ici.'"
             icon="fa-solid fa-file-invoice-dollar"
         />
     @else
