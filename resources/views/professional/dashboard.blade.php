@@ -97,7 +97,13 @@
 
         <section class="professional-dashboard__welcome" aria-labelledby="professional-dashboard-welcome-title">
             <div class="professional-dashboard__identity">
-                <div class="professional-dashboard__avatar" aria-hidden="true">{{ $initials !== '' ? $initials : 'P' }}</div>
+                <div class="professional-dashboard__avatar" aria-hidden="true">
+                    @if ($profile['user']['has_avatar'])
+                        <img class="professional-dashboard__avatar-image" src="{{ route('professional.profile.photo') }}" alt="">
+                    @else
+                        {{ $initials !== '' ? $initials : 'P' }}
+                    @endif
+                </div>
                 <div class="professional-dashboard__welcome-copy">
                     <span class="professional-dashboard__eyebrow">ESPACE PROFESSIONNEL</span>
                     <h2 id="professional-dashboard-welcome-title">Bonjour {{ $displayName }} <span aria-hidden="true">👋</span></h2>
