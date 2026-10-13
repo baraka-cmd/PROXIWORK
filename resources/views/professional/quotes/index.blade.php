@@ -3,6 +3,10 @@
 @section('title', 'Mes devis — PROXIWORK')
 @section('page_heading', 'Mes devis')
 
+@push('head')
+    @vite(['resources/css/pages/professional/quotes.css'])
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
@@ -12,10 +16,15 @@
         </div>
     </div>
 
+    <nav class="professional-quote-filters" aria-label="Filtrer les devis">
+        <a href="{{ route('professional.quotes.index') }}" class="professional-quote-filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
+        <a href="{{ route('professional.quotes.index', ['action_required' => 1]) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
+    </nav>
+
     @if ($quotations->isEmpty())
         <x-empty-state
-            title="Aucun devis envoyé"
-            description="Lorsqu'une demande reçoit votre proposition, le devis apparaîtra ici."
+            :title="$actionRequired ? 'Aucun devis à traiter' : 'Aucun devis envoyé'"
+            :description="$actionRequired ? 'Aucune contre-proposition client ne nécessite actuellement votre réponse.' : 'Lorsqu’une demande reçoit votre proposition, le devis apparaîtra ici.'"
             icon="fa-solid fa-file-invoice-dollar"
         />
     @else

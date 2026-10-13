@@ -14,14 +14,32 @@
         </div>
     </div>
 
-    <div class="filter-bar" aria-label="Filtrer les commandes">
-        <a href="{{ route('professional.orders.index') }}" class="filter-chip {{ $selectedStatus === '' ? 'is-active' : '' }}">Toutes</a>
+    <nav class="filter-bar" aria-label="Filtrer les commandes par état">
+        <a href="{{ route('professional.orders.index', array_filter(['from' => $from, 'to' => $to])) }}" class="filter-chip {{ $selectedStatus === '' ? 'is-active' : '' }}">Toutes</a>
+        <a href="{{ route('professional.orders.index', array_filter(['status' => 'active', 'from' => $from, 'to' => $to])) }}" class="filter-chip {{ $selectedStatus === 'active' ? 'is-active' : '' }}">Actives</a>
         @foreach ($statuses as $status)
-            <a href="{{ route('professional.orders.index', ['status' => $status->value]) }}" class="filter-chip {{ $selectedStatus === $status->value ? 'is-active' : '' }}">
+            <a href="{{ route('professional.orders.index', array_filter(['status' => $status->value, 'from' => $from, 'to' => $to])) }}" class="filter-chip {{ $selectedStatus === $status->value ? 'is-active' : '' }}">
                 {{ str_replace('_', ' ', ucfirst($status->value)) }}
             </a>
         @endforeach
-    </div>
+    </nav>
+
+    <form class="filter-bar professional-order-date-filters" method="GET" action="{{ route('professional.orders.index') }}" aria-label="Filtrer les commandes par date">
+        @if ($selectedStatus !== '')
+            <input type="hidden" name="status" value="{{ $selectedStatus }}">
+        @endif
+        <label for="orders-from">Du
+            <input id="orders-from" type="date" name="from" value="{{ $from }}">
+        </label>
+        <label for="orders-to">Au
+            <input id="orders-to" type="date" name="to" value="{{ $to }}">
+        </label>
+        <button class="button button--secondary button--sm" type="submit">Appliquer les dates</button>
+        @if ($from !== '' || $to !== '')
+            <a class="button button--ghost button--sm" href="{{ route('professional.orders.index', $selectedStatus !== '' ? ['status' => $selectedStatus] : []) }}">Effacer les dates</a>
+        @endif
+    </form>
+    <p class="page-description">Pour les commandes terminées, les dates filtrent la date de fin de prestation. Pour les autres états, elles filtrent la date de création.</p>
 
     @if ($orders->isEmpty())
         <div class="empty-state">

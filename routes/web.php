@@ -185,6 +185,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('quotes/{quotation}/counter-offer', [ProfessionalQuotationController::class, 'counterOffer'])->middleware('throttle:10,1')->name('quotes.counter-offer');
     Route::post('quotes/{quotation}/renew', [ProfessionalQuotationController::class, 'renew'])->middleware('throttle:10,1')->name('quotes.renew');
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('profile/photo', [ProfileController::class, 'photo'])->name('profile.photo');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('documents', [ProfessionalDocumentController::class, 'index'])->name('documents.index');

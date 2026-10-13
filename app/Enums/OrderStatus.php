@@ -12,4 +12,23 @@ enum OrderStatus: string
     case COMPLETED = 'completed';
     case CANCELLED = 'cancelled';
     case DISPUTED = 'disputed';
+
+    public function isOperationallyActive(): bool
+    {
+        return match ($this) {
+            self::PENDING_PAYMENT, self::CONFIRMED, self::IN_PROGRESS => true,
+            default => false,
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function operationallyActiveValues(): array
+    {
+        return array_map(
+            static fn (self $status): string => $status->value,
+            array_filter(self::cases(), static fn (self $status): bool => $status->isOperationallyActive()),
+        );
+    }
 }
