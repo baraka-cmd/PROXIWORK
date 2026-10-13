@@ -10,8 +10,8 @@ use App\Models\Category;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
-use App\Models\Service;
 use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use Illuminate\View\View;
 
 class PublicSearchController
