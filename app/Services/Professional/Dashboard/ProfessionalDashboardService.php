@@ -485,7 +485,9 @@ class ProfessionalDashboardService
             ]);
         }
 
-        return $actions->values();
+        return $actions
+            ->sortBy(fn (array $action): int => ($action['priority'] ?? 'normal') === 'high' ? 0 : 1)
+            ->values();
     }
 
     private function recentActivity(int $professionalId): Collection
