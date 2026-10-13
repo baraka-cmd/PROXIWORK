@@ -211,6 +211,13 @@ class ProfileController extends Controller
 
         $user = $request->user();
         $newPath = $validated['avatar']->store('professional-avatars/'.$user->getKey(), 'local');
+
+        if (! is_string($newPath) || $newPath === '') {
+            return back()->withErrors([
+                'avatar' => 'La photo n’a pas pu être enregistrée. Réessayez avec une autre image.',
+            ]);
+        }
+
         $oldPath = $user->profile()->value('avatar_path');
 
         try {
