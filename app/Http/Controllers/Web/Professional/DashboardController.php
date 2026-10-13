@@ -17,7 +17,8 @@ class DashboardController extends Controller
 
     public function __invoke(Request $request): View
     {
-        $dashboard = $this->dashboardService->getFor($request->user());
+        $period = (string) $request->query('period', '30d');
+        $dashboard = $this->dashboardService->getFor($request->user(), $period);
 
         return view('professional.dashboard', compact('dashboard'));
     }
