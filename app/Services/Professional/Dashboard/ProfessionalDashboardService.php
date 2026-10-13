@@ -98,12 +98,6 @@ class ProfessionalDashboardService
             ->whereBetween('completed_at', [$start, $end])
             ->count();
 
-        $reviewSummary = Review::query()
-            ->where('professional_id', $professionalId)
-            ->where('status', ReviewStatus::PUBLISHED->value)
-            ->selectRaw('COUNT(*) as review_count, AVG(rating) as rating_average')
-            ->first();
-
         $wallets = Wallet::query()
             ->where('professional_id', $professionalId)
             ->orderBy('currency')
@@ -141,8 +135,9 @@ class ProfessionalDashboardService
             ],
             'engagement' => [
                 'received_favorites' => (int) $profile->received_favorites_count,
-                'rating_average' => $reviewSummary?->rating_average === null ? null : (float) $reviewSummary->rating_average,
-                'rating_count' => (int) ($reviewSummary?->review_count ?? 0),
+                // These cached aggregates are maintained by ReviewService from published reviews.
+                'rating_average' => $profile->rating_average === null ? null : (float) $profile->rating_average,
+                'rating_count' => (int) $profile->rating_count,
             ],
             'notifications' => [
                 'unread' => $unreadNotifications,
@@ -206,6 +201,9 @@ class ProfessionalDashboardService
             'status' => $profile->status,
             'verification_status' => $profile->verification_status?->value,
             'availability_status' => $profile->availability_status?->value,
+            // Preserve the established API dashboard response contract.
+            'rating_average' => $profile->rating_average,
+            'rating_count' => (int) $profile->rating_count,
             'profile_completion' => (int) round((count($completionItems) - count($missingFields)) / count($completionItems) * 100),
             'missing_fields' => $missingFields,
             'user' => [
@@ -388,24 +386,6 @@ class ProfessionalDashboardService
     ): Collection {
         $actions = collect();
 
-        $profileIsComplete = $profile->user->profile !== null
-            && filled($profile->professional_title)
-            && filled($profile->description)
-            && filled($profile->city)
-            && filled($profile->province)
-            && (int) $profile->skills_count > 0
-            && (int) $profile->services_count > 0
-            && $profile->verification_status?->value === 'verified';
-
-        if (! $profileIsComplete && $profile->status !== ProfessionalProfile::STATUS_SUSPENDED) {
-            $actions->push([
-                'type' => 'profile',
-                'priority' => 'normal',
-                'message' => 'Votre profil est complété à '.$this->profile($profile)['profile_completion'].' %. Consultez les éléments qui restent à renseigner.',
-                'url' => route('professional.profile.edit'),
-            ]);
-        }
-
         if ($profile->status === ProfessionalProfile::STATUS_SUSPENDED) {
             $actions->push([
                 'type' => 'profile',
@@ -428,6 +408,24 @@ class ProfessionalDashboardService
                 'priority' => 'normal',
                 'message' => 'Publiez au moins un service pour apparaître dans le catalogue.',
                 'url' => route('professional.services.index'),
+            ]);
+        }
+
+        $profileIsComplete = $profile->user->profile !== null
+            && filled($profile->professional_title)
+            && filled($profile->description)
+            && filled($profile->city)
+            && filled($profile->province)
+            && (int) $profile->skills_count > 0
+            && (int) $profile->services_count > 0
+            && $profile->verification_status?->value === 'verified';
+
+        if (! $profileIsComplete && $profile->status !== ProfessionalProfile::STATUS_SUSPENDED) {
+            $actions->push([
+                'type' => 'profile',
+                'priority' => 'normal',
+                'message' => 'Votre profil est complété à '.$this->profile($profile)['profile_completion'].' %. Consultez les éléments qui restent à renseigner.',
+                'url' => route('professional.profile.edit'),
             ]);
         }
 
