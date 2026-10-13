@@ -384,7 +384,7 @@
 
             <section class="professional-dashboard-card" aria-labelledby="upcoming-orders-title">
                 <div class="professional-dashboard-card__header">
-                    <div><span class="professional-dashboard-card__eyebrow">ORGANISATION</span><h2 id="upcoming-orders-title">Prochaines prestations</h2><p>Dates souhaitées renseignées dans les demandes associées aux commandes actives.</p></div>
+                    <div><span class="professional-dashboard-card__eyebrow">ORGANISATION</span><h2 id="upcoming-orders-title">Dates souhaitées à venir</h2><p>Dates souhaitées renseignées dans les demandes associées aux commandes actives.</p></div>
                     <a href="{{ route('professional.orders.index') }}">Toutes les commandes <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                 </div>
                 @if ($dashboard['upcoming_orders']->isEmpty())
@@ -400,7 +400,7 @@
                                 <div class="professional-upcoming-list__copy">
                                     <a href="{{ $upcoming['url'] }}"><strong>{{ $upcoming['title'] }}</strong></a>
                                     <span>{{ $upcoming['reference'] }}</span>
-                                    <small>{{ $upcoming['status'] === 'confirmed' ? 'Confirmée' : 'En cours' }} · {{ $upcoming['desired_at']?->format('H:i') }}</small>
+                                    <small>{{ $upcoming['status'] === 'confirmed' ? 'Commande confirmée' : 'Prestation en cours' }} · {{ $upcoming['desired_at']?->format('H:i') }}</small>
                                 </div>
                                 <a class="professional-upcoming-list__open" href="{{ $upcoming['url'] }}" aria-label="Ouvrir {{ $upcoming['reference'] }}"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                             </li>
