@@ -14,6 +14,7 @@ class ServiceRealizationResource extends JsonResource
         return [
             'id' => $this->getKey(),
             'service_id' => $this->service_id,
+            'file_url' => route('professional.service-realizations.file', $this->getKey()),
             'caption' => $this->caption,
             'completed_at' => $this->completed_at?->toDateString(),
             'participation_confirmed' => $this->participation_confirmed,
