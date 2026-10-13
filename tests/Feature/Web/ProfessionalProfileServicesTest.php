@@ -195,4 +195,24 @@ class ProfessionalProfileServicesTest extends TestCase
                     && $counts['draft'] === 1;
             });
     }
+    public function test_archived_services_cannot_be_edited_again(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'status' => ServiceStatus::ARCHIVED,
+            'published_at' => null,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('professional.services.edit', $service))
+            ->assertNotFound();
+
+        $this->actingAs($user)
+            ->patch(route('professional.services.update', $service), [])
+            ->assertSessionHasErrors('service');
+    }
+
 }
