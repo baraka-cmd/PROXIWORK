@@ -7,7 +7,6 @@ namespace Tests\Feature\Client;
 use App\Models\Conversation;
 use App\Models\MessageAttachment;
 use App\Models\ProfessionalProfile;
-use App\Models\Report;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
