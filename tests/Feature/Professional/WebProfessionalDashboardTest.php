@@ -258,6 +258,4 @@ class WebProfessionalDashboardTest extends TestCase
             ->assertRedirect('/professional/orders')
             ->assertSessionHasErrors('to');
     }
-
-
 }
