@@ -21,7 +21,9 @@ use App\Services\Audit\AuditLogService;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -30,6 +32,30 @@ class ProfileController extends Controller
         private readonly ProfessionalServiceManager $serviceManager,
         private readonly AuditLogService $auditLogService,
     ) {}
+
+
+    public function photo(Request $request): BinaryFileResponse
+    {
+        $path = $request->user()->profile()->value('avatar_path');
+
+        abort_unless(
+            is_string($path) && $path !== '' && Storage::disk('local')->exists($path),
+            404,
+        );
+
+        $mimeType = Storage::disk('local')->mimeType($path);
+        abort_unless(
+            is_string($mimeType) && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true),
+            404,
+        );
+
+        $response = response()->file(Storage::disk('local')->path($path));
+        $response->headers->set('Content-Type', $mimeType);
+        $response->headers->set('Cache-Control', 'private, no-store');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
+    }
 
     public function show(Request $request): View
     {
