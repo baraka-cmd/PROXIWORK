@@ -95,6 +95,11 @@ class Service extends Model
         return $this->hasMany(ServiceRequest::class);
     }
 
+    public function realizations(): HasMany
+    {
+        return $this->hasMany(ServiceRealization::class)->latest();
+    }
+
     public function scopePublished($query)
     {
         return $query
