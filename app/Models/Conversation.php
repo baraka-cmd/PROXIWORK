@@ -21,6 +21,7 @@ class Conversation extends Model
         'status',
         'client_id',
         'professional_id',
+        'context_key',
         'service_request_id',
         'order_id',
         'last_message_id',
@@ -62,7 +63,7 @@ class Conversation extends Model
     public function participants(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'conversation_participants')
-            ->withPivot(['last_read_message_id', 'joined_at', 'left_at'])
+            ->withPivot(['last_read_message_id', 'joined_at', 'left_at', 'pinned_at', 'archived_at'])
             ->withTimestamps();
     }
 
