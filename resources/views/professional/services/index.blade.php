@@ -120,7 +120,7 @@
                     <div class="service-card__footer">
                         <a class="button button--ghost button--sm" href="{{ route('professional.services.preview', $service) }}">Aperçu</a>
                         <a class="button button--ghost button--sm" href="{{ route('professional.requests.index', ['service_id' => $service->id]) }}">Demandes</a>
-                        <a class="button button--ghost button--sm" href="{{ route('professional.services.edit', $service) }}">Modifier</a>
+                        @if($service->status->value !== 'archived')<a class="button button--ghost button--sm" href="{{ route('professional.services.edit', $service) }}">Modifier</a>@endif
                         @if($service->status->value === 'published')
                             <form method="POST" action="{{ route('professional.services.unpublish', $service) }}" data-action-form>
                                 @csrf
