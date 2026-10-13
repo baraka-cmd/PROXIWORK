@@ -534,7 +534,7 @@ class ProfessionalWebDashboardService
                 'priority' => 'high',
                 'count' => $quotationsRequiringAction,
                 'message' => $quotationsRequiringAction.' devis en négociation attend(ent) votre réponse.',
-                'url' => route('professional.quotes.index'),
+                'url' => route('professional.quotes.index', ['action_required' => 1]),
             ]);
         }
 
