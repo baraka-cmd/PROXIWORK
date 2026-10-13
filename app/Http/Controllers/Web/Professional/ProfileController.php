@@ -441,7 +441,8 @@ class ProfileController extends Controller
 
     public function editService(Request $request, Service $service): View
     {
-        $this->authorize('view', $service);
+        $this->authorize('update', $service);
+        abort_if($service->status === ServiceStatus::ARCHIVED, 404);
 
         return view('professional/services/form', [
             'service' => $service->load(['category', 'skills', 'images', 'realizations']),
