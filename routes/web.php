@@ -205,6 +205,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('services/{service}/unpublish', [ProfileController::class, 'unpublishService'])->name('services.unpublish');
     Route::delete('services/{service}', [ProfileController::class, 'archiveService'])->name('services.archive');
     Route::post('services/{service}/images', [ProfileController::class, 'addImage'])->name('services.images.store');
+    Route::patch('service-images/{image}/file', [ProfileController::class, 'replaceImage'])->middleware('throttle:10,1')->name('services.images.replace');
     Route::patch('service-images/{image}', [ProfileController::class, 'updateImage'])->name('services.images.update');
     Route::delete('service-images/{image}', [ProfileController::class, 'deleteImage'])->name('services.images.destroy');
     Route::get('orders', [ProfessionalOrderController::class, 'index'])->name('orders.index');
