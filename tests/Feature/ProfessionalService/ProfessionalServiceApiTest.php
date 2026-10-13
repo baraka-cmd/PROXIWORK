@@ -299,6 +299,37 @@ class ProfessionalServiceApiTest extends TestCase
         $this->assertNotSame($serviceA->id, $serviceB->id);
     }
 
+    public function test_published_service_cannot_lose_its_last_cover_image(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $category = Category::factory()->create(['status' => 'active']);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'category_id' => $category->id,
+            'status' => ServiceStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
+
+        $imageId = $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
+                'image' => UploadedFile::fake()->image('only-cover.png'),
+                'is_cover' => true,
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($professional, 'sanctum')
+            ->deleteJson('/api/v1/professional/service-images/'.$imageId)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['image']);
+
+        $this->assertDatabaseHas('service_images', [
+            'id' => $imageId,
+            'service_id' => $service->id,
+            'is_cover' => true,
+        ]);
+    }
+
     public function test_service_is_limited_to_eight_images(): void
     {
         [$professional] = $this->professional();
