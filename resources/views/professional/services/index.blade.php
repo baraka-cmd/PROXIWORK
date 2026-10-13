@@ -3,6 +3,12 @@
 @section('title', 'Mes services — PROXIWORK')
 @section('page_heading', 'Mes services')
 
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/professional/services.css')
+    @endunless
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
