@@ -90,13 +90,13 @@ class ServiceRealizationManager
                 ]);
             }
 
-            if (! $locked->participation_confirmed) {
+            if (!$locked->participation_confirmed) {
                 throw ValidationException::withMessages([
                     'realization' => 'La déclaration de participation doit être confirmée avant approbation.',
                 ]);
             }
 
-            if (!Storage::disk('local')->exists($locked->path)) {
+            if (! Storage::disk('local')->exists($locked->path)) {
                 throw ValidationException::withMessages([
                     'realization' => 'Le fichier de cette réalisation est introuvable. Elle ne peut pas être publiée.',
                 ]);
