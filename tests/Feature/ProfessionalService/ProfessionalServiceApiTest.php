@@ -10,6 +10,7 @@ use App\Enums\SkillStatus;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
+use App\Models\ServiceImage;
 use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -219,6 +220,39 @@ class ProfessionalServiceApiTest extends TestCase
             ->postJson('/api/v1/professional/services/'.$service->id.'/unpublish')
             ->assertOk()
             ->assertJsonPath('data.status', 'unpublished');
+    }
+
+    public function test_replacing_service_image_preserves_the_old_file_until_database_update_succeeds(): void
+    {
+        [$professional, $profile] = $this->professional();
+        $service = Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+        ]);
+
+        $imageId = $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->id.'/images', [
+                'image' => UploadedFile::fake()->image('cover.png'),
+            ])
+            ->assertCreated()
+            ->json('data.id');
+
+        $image = ServiceImage::query()->findOrFail($imageId);
+        $oldPath = $image->path;
+        Storage::disk('public')->assertExists($oldPath);
+
+        $this->actingAs($professional, 'sanctum')
+            ->patchJson('/api/v1/professional/service-images/'.$imageId.'/file', [
+                'image' => UploadedFile::fake()->image('replacement.webp'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.is_cover', true);
+
+        $image->refresh();
+
+        $this->assertNotSame($oldPath, $image->path);
+        $this->assertTrue($image->is_cover);
+        Storage::disk('public')->assertMissing($oldPath);
+        Storage::disk('public')->assertExists($image->path);
     }
 
     public function test_service_images_are_owned_and_cover_is_protected(): void
