@@ -14,6 +14,11 @@
                 <div class="public-service-detail__media">@if($cover)<img src="{{ asset('storage/'.$cover->path) }}" alt="{{ $cover->alt_text ?: $service->title }}">@else<span><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>@endif</div>
                 <p class="eyebrow">{{ $service->category->name }}</p><h1>{{ $service->title }}</h1><p>{{ $service->description }}</p>
                 @if($service->skills->isNotEmpty())<div class="public-service-card__skills">@foreach($service->skills as $skill)<span class="badge badge--neutral">{{ $skill->name }}</span>@endforeach</div>@endif
+                @foreach([['included_items','Ce qui est inclus'],['excluded_items','Ce qui n’est pas inclus'],['client_requirements','Ce que le client doit préparer'],['deliverables','Résultat ou livrables attendus'],['commercial_conditions','Conditions particulières']] as [$field,$label])
+                    @if(filled($service->{$field}))
+                        <section class="public-service-detail__scope"><h2>{{ $label }}</h2><p>{{ $service->{$field} }}</p></section>
+                    @endif
+                @endforeach
             </section>
             <aside class="surface-card public-service-detail__aside"><span class="eyebrow">PRESTATION</span><span class="badge badge--neutral">{{ $service->execution_mode->label() }}</span><h2>@if($service->pricing_type->value === 'quote') Sur devis @elseif($service->pricing_type->value === 'range') {{ number_format((float)$service->price_min, 2, ',', ' ') }}–{{ number_format((float)$service->price_max, 2, ',', ' ') }} {{ $service->currency }} @else {{ number_format((float)$service->price, 2, ',', ' ') }} {{ $service->currency }} @endif</h2><p>Proposé par <strong>{{ $name }}</strong>@if($professional->city), {{ $professional->city }}@endif</p><a class="button button--primary" href="{{ route('client.requests.create', ['service' => $service->id]) }}">Demander ce service</a>
                 @auth
