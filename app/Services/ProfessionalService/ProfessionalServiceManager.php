@@ -192,13 +192,16 @@ class ProfessionalServiceManager
     public function updateImage(ServiceImage $image, array $attributes): ServiceImage
     {
         return DB::transaction(function () use ($image, $attributes): ServiceImage {
-            if (($attributes['is_cover'] ?? false) === true) {
+            $hasCoverInput = array_key_exists('is_cover', $attributes);
+            $isCover = $hasCoverInput && filter_var($attributes['is_cover'], FILTER_VALIDATE_BOOLEAN);
+
+            if ($isCover) {
                 $image->service->images()
                     ->where('id', '!=', $image->getKey())
                     ->update(['is_cover' => false]);
             }
 
-            if (array_key_exists('is_cover', $attributes) && $attributes['is_cover'] === false && $image->is_cover) {
+            if ($hasCoverInput && ! $isCover && $image->is_cover) {
                 $replacementExists = $image->service->images()
                     ->where('id', '!=', $image->getKey())
                     ->exists();
