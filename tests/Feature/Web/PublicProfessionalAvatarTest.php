@@ -52,6 +52,37 @@ class PublicProfessionalAvatarTest extends TestCase
             ->assertHeader('X-Content-Type-Options', 'nosniff');
     }
 
+    public function test_public_profile_does_not_expose_the_personal_bio_as_professional_presentation(): void
+    {
+        $user = User::factory()->create(['account_status' => 'active']);
+        $user->profile()->create([
+            'first_name' => 'Professionnel',
+            'last_name' => 'Public',
+            'bio' => 'TEXTE PERSONNEL CONFIDENTIEL',
+        ]);
+
+        $professional = ProfessionalProfile::factory()->create([
+            'user_id' => $user->getKey(),
+            'status' => ProfessionalProfile::STATUS_ACTIVE,
+            'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+            'verification_status' => ProfessionalVerificationStatus::VERIFIED,
+            'description' => null,
+        ]);
+
+        $category = Category::factory()->create(['status' => 'active']);
+        Service::factory()->create([
+            'professional_profile_id' => $professional->getKey(),
+            'category_id' => $category->getKey(),
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $this->get(route('public.professionals.show', $professional))
+            ->assertOk()
+            ->assertDontSeeText('TEXTE PERSONNEL CONFIDENTIEL')
+            ->assertSeeText('Aucune présentation professionnelle publiée pour le moment.');
+    }
+
     public function test_avatar_is_not_served_when_profile_is_private(): void
     {
         Storage::fake('local');
