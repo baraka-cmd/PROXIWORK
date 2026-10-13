@@ -6,8 +6,10 @@ namespace Tests\Feature\Professional;
 
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\ServiceRequestStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
+use App\Models\ServiceRequest;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -152,4 +154,44 @@ class WebProfessionalDashboardTest extends TestCase
                     && count($dashboard['charts']['activity']['labels']) === 30;
             });
     }
+
+
+    public function test_dashboard_metrics_only_count_submitted_requests_for_the_authenticated_professional(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->getKey()]);
+        $service = Service::factory()->create(['professional_profile_id' => $profile->getKey()]);
+
+        ServiceRequest::factory()->count(2)->create([
+            'professional_id' => $profile->getKey(),
+            'service_id' => $service->getKey(),
+            'status' => ServiceRequestStatus::REQUESTED->value,
+            'requested_at' => now(),
+        ]);
+
+        $otherProfessional = User::factory()->create();
+        $otherProfessional->assignRole('professional');
+        $otherProfile = ProfessionalProfile::factory()->create(['user_id' => $otherProfessional->getKey()]);
+        $otherService = Service::factory()->create(['professional_profile_id' => $otherProfile->getKey()]);
+
+        ServiceRequest::factory()->create([
+            'professional_id' => $otherProfile->getKey(),
+            'service_id' => $otherService->getKey(),
+            'status' => ServiceRequestStatus::REQUESTED->value,
+            'requested_at' => now(),
+        ]);
+
+        $this->actingAs($professional)
+            ->get('/professional?period=30d')
+            ->assertOk()
+            ->assertViewHas('dashboard', function (array $dashboard) use ($service): bool {
+                return $dashboard['operations']['requests_to_handle'] === 2
+                    && array_sum($dashboard['charts']['activity']['requests']) === 2
+                    && count($dashboard['charts']['top_services']) === 1
+                    && $dashboard['charts']['top_services'][0]['service_id'] === $service->getKey()
+                    && $dashboard['charts']['top_services'][0]['count'] === 2;
+            });
+    }
+
 }
