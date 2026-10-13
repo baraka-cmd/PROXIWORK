@@ -33,12 +33,6 @@ class ConversationController extends Controller
         // Dependencies are injected by Laravel.
     }
 
-class ConversationController extends Controller
-{
-    public function __construct(
-        private readonly ConversationService $conversationService,
-    ) {}
-
     public function index(Request $request): JsonResponse
     {
         $filters = $request->validate([
