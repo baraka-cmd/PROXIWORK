@@ -386,6 +386,24 @@ class ProfessionalDashboardService
     ): Collection {
         $actions = collect();
 
+        $profileIsComplete = $profile->user->profile !== null
+            && filled($profile->professional_title)
+            && filled($profile->description)
+            && filled($profile->city)
+            && filled($profile->province)
+            && (int) $profile->skills_count > 0
+            && (int) $profile->services_count > 0
+            && $profile->verification_status?->value === 'verified';
+
+        if (! $profileIsComplete && $profile->status !== ProfessionalProfile::STATUS_SUSPENDED) {
+            $actions->push([
+                'type' => 'profile',
+                'priority' => 'normal',
+                'message' => 'Votre profil est complété à '.$this->profile($profile)['profile_completion'].' %. Consultez les éléments qui restent à renseigner.',
+                'url' => route('professional.profile.edit'),
+            ]);
+        }
+
         if ($profile->status === ProfessionalProfile::STATUS_SUSPENDED) {
             $actions->push([
                 'type' => 'profile',
