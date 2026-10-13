@@ -233,7 +233,7 @@
                 </a>
             </div>
 
-            <div class="professional-dashboard__stats professional-dashboard__stats--three">
+            <div class="professional-dashboard__stats professional-dashboard__stats--four">
                 <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.reviews') }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--accent"><i class="fa-solid fa-star" aria-hidden="true"></i></span>
                     <span class="professional-stat-card__body"><span>Note moyenne</span>
@@ -252,6 +252,10 @@
                 <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.messages', ['status' => 'unread']) }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--primary"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span>
                     <span class="professional-stat-card__body"><span>Conversations non lues</span><strong>{{ $notifications['messages_unread'] }}</strong><small>Conversations accessibles avec messages non lus</small></span>
+                </a>
+                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.notifications') }}">
+                    <span class="professional-stat-card__icon professional-stat-card__icon--info"><i class="fa-solid fa-bell" aria-hidden="true"></i></span>
+                    <span class="professional-stat-card__body"><span>Notifications non lues</span><strong>{{ $notifications['unread'] }}</strong><small>Informations à consulter, pas nécessairement une action métier</small></span>
                 </a>
             </div>
         </section>
