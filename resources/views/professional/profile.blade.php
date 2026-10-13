@@ -1,12 +1,192 @@
 @extends('layouts.professional')
-@section('title','Mon profil professionnel — PROXIWORK')
-@section('page_heading','Mon profil professionnel')
+
+@section('title', 'Mon profil professionnel — PROXIWORK')
+@section('page_heading', 'Mon profil professionnel')
+
 @section('content')
-@php $name=$professional->user->profile?trim($professional->user->profile->first_name.' '.$professional->user->profile->last_name):$professional->user->name; $statusClass=match($professional->verification_status?->value){'verified'=>'success','rejected'=>'danger','under_review','pending'=>'warning',default=>'neutral'}; $availability=$professional->availability_status?->value??'unknown'; @endphp
-<div class="dashboard-page-header"><div><p class="eyebrow">Identité professionnelle</p><h1>Votre profil public</h1><p class="page-lead">Présentez clairement votre expertise, votre disponibilité et vos services aux clients.</p></div><div class="dashboard-page-header__actions"><a class="button button--secondary" href="{{ route('professional.profile.edit') }}"><i class="fa-solid fa-pen"></i> Modifier le profil</a><a class="button button--primary" href="{{ route('professional.services.create') }}"><i class="fa-solid fa-plus"></i> Ajouter un service</a></div></div>
-<section class="professional-profile-hero surface-card surface-card--lg"><div class="professional-profile-identity"><span class="avatar avatar--xl" aria-hidden="true">{{ strtoupper(substr($name,0,1)) }}</span><div><div class="professional-profile-title-row"><h2>{{ $name }}</h2><span class="badge badge--{{ $statusClass }}"><i class="fa-solid fa-circle-check"></i> {{ $professional->verification_status?->value==='verified'?'Vérifié':str_replace('_',' ',$professional->verification_status?->value??'pending') }}</span></div><p class="professional-title">{{ $professional->professional_title ?: 'Titre professionnel à compléter' }}</p><div class="professional-meta">@if($professional->city || $professional->province)<span><i class="fa-solid fa-location-dot"></i> {{ $professional->city }}{{ $professional->province?', '.$professional->province:'' }}</span>@endif @if($professional->years_experience !== null)<span><i class="fa-solid fa-briefcase"></i> {{ $professional->years_experience }} an(s) d’expérience</span>@endif @if($professional->starting_price !== null)<span><i class="fa-solid fa-tag"></i> Dès {{ number_format((float)$professional->starting_price, 2) }} {{ $professional->currency }}</span>@endif<span><i class="fa-solid fa-circle"></i> {{ $availabilityLabels[$availability]??'Non renseignée' }}</span><span><i class="fa-solid fa-star"></i> {{ number_format((float)$professional->rating_average,1) }} ({{ $professional->rating_count }})</span></div></div></div></section>
-<div class="professional-profile-grid"><section class="surface-card surface-card--md"><div class="surface-card__header"><h2>À propos</h2></div><div class="surface-card__body">@if($professional->description || $professional->user->profile?->bio)<p class="profile-bio">{{ $professional->description ?: $professional->user->profile->bio }}</p>@else<div class="state-empty state-empty--compact"><div><span class="state-empty__icon"><i class="fa-regular fa-file-lines"></i></span><h2>Présentation vide</h2><p>Complétez votre présentation professionnelle pour aider les clients à comprendre votre expertise.</p></div></div>@endif</div></section>
-<section class="surface-card surface-card--md"><div class="surface-card__header"><h2>Complétude du profil</h2></div><div class="surface-card__body"><div class="completion-score"><strong>{{ $completionPercentage }}%</strong><span>profil complété</span></div><div class="completion-track"><span style="width:{{ $completionPercentage }}%"></span></div><ul class="completion-list"><li class="{{ $completionItems['personal']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['personal']?'fa-circle-check':'fa-circle' }}"></i> Informations personnelles</li><li class="{{ $completionItems['profession']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['profession']?'fa-circle-check':'fa-circle' }}"></i> Titre professionnel</li><li class="{{ $completionItems['presentation']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['presentation']?'fa-circle-check':'fa-circle' }}"></i> Présentation professionnelle</li><li class="{{ $completionItems['service_area']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['service_area']?'fa-circle-check':'fa-circle' }}"></i> Zone de service</li><li class="{{ $completionItems['skills']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['skills']?'fa-circle-check':'fa-circle' }}"></i> Compétences</li><li class="{{ $completionItems['services']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['services']?'fa-circle-check':'fa-circle' }}"></i> Au moins un service</li><li class="{{ $completionItems['verification']?'is-complete':'' }}"><i class="fa-solid {{ $completionItems['verification']?'fa-circle-check':'fa-circle' }}"></i> Vérification</li></ul></div></section></div>
-<section class="surface-card surface-card--md professional-section"><div class="surface-card__header professional-section-header"><div><h2>Compétences</h2><p>Compétences actuellement associées au profil.</p></div><span class="badge badge--primary">{{ $professional->skills_count }} compétence(s)</span></div><div class="surface-card__body">@if($professional->skills->isNotEmpty())<div class="skill-list">@foreach($professional->skills as $skill)<div class="skill-item"><div class="skill-item__top"><strong>{{ $skill->name }}</strong><span>{{ $skill->pivot->proficiency_level ?: 'Niveau non renseigné' }}</span></div>@if($skill->pivot->years_experience)<small>{{ $skill->pivot->years_experience }} an(s) d’expérience</small>@endif</div>@endforeach</div>@else<div class="state-empty state-empty--compact"><div><span class="state-empty__icon"><i class="fa-solid fa-code"></i></span><h2>Aucune compétence</h2><p>Ajoutez des compétences pour qualifier votre expertise.</p></div></div>@endif</div></section>
-<section class="surface-card surface-card--md professional-section"><div class="surface-card__header professional-section-header"><div><h2>Services</h2><p>Vos services les plus récents.</p></div><a class="button button--ghost button--sm" href="{{ route('professional.services.index') }}">Gérer les services</a></div><div class="surface-card__body">@if($professional->services->isNotEmpty())<div class="service-mini-grid">@foreach($professional->services as $service)<article class="service-mini-card"><div class="service-mini-card__head"><span class="service-mini-icon"><i class="fa-solid fa-layer-group"></i></span><span class="badge badge--{{ $service->status->value==='published'?'success':($service->status->value==='draft'?'warning':'neutral') }}">{{ $service->status->value }}</span></div><h3>{{ $service->title }}</h3><p>{{ $service->short_description ?: 'Aucune description courte.' }}</p><a href="{{ route('professional.services.edit',$service) }}">Gérer <i class="fa-solid fa-arrow-right"></i></a></article>@endforeach</div>@else<div class="state-empty state-empty--compact"><div><span class="state-empty__icon"><i class="fa-solid fa-layer-group"></i></span><h2>Aucun service</h2><p>Créez votre première offre pour apparaître dans le catalogue.</p><a class="button button--primary" href="{{ route('professional.services.create') }}">Créer un service</a></div></div>@endif</div></section>
+    @php
+        $personalProfile = $professional->user->profile;
+        $name = trim(($personalProfile?->first_name ?? '').' '.($personalProfile?->last_name ?? '')) ?: $professional->user->name;
+        $verification = $professional->verification_status?->value ?? 'pending';
+        $accountStatus = $professional->user->account_status?->value ?? 'unknown';
+        $statusClass = match ($verification) {
+            'verified' => 'success',
+            'rejected' => 'danger',
+            'under_review', 'pending' => 'warning',
+            default => 'neutral',
+        };
+        $isPubliclyVisible = $professional->status === \\App\\Models\\ProfessionalProfile::STATUS_ACTIVE
+            && $professional->visibility === \\App\\Models\\ProfessionalProfile::VISIBILITY_PUBLIC
+            && $verification === 'verified'
+            && $professional->published_services_count > 0
+            && $accountStatus === 'active';
+    @endphp
+
+    <div class="dashboard-page-header">
+        <div>
+            <p class="eyebrow">Identité professionnelle</p>
+            <h1>Votre profil professionnel</h1>
+            <p class="page-lead">Gérez votre présentation, vos compétences, votre disponibilité et les informations visibles par les clients.</p>
+            <p class="profile-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ now()->translatedFormat('l j F Y') }}</p>
+        </div>
+        <div class="dashboard-page-header__actions">
+            @if ($isPubliclyVisible)
+                <a class="button button--secondary" href="{{ route('public.professionals.show', $professional) }}" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Voir mon profil public
+                </a>
+            @endif
+            <a class="button button--primary" href="{{ route('professional.profile.edit') }}">
+                <i class="fa-solid fa-pen" aria-hidden="true"></i> Modifier le profil
+            </a>
+        </div>
+    </div>
+
+    @if (session('success'))
+        <div class="professional-alert" role="status">
+            <x-success :message="session('success')" />
+        </div>
+    @endif
+
+    <section class="professional-profile-hero surface-card surface-card--lg" aria-labelledby="professional-profile-identity">
+        <div class="professional-profile-identity">
+            @if ($personalProfile?->avatar_path)
+                <img class="avatar avatar--xl professional-profile-avatar" src="{{ route('professional.profile.photo') }}" alt="Photo de profil de {{ $name }}">
+            @else
+                <span class="avatar avatar--xl professional-profile-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($name, 0, 1)) }}</span>
+            @endif
+            <div class="professional-profile-identity__content">
+                <div class="professional-profile-title-row">
+                    <h2 id="professional-profile-identity">{{ $name }}</h2>
+                    <span class="badge badge--{{ $statusClass }}">
+                        <i class="fa-solid {{ $verification === 'verified' ? 'fa-circle-check' : 'fa-shield-halved' }}" aria-hidden="true"></i>
+                        Vérification : {{ $verificationLabels[$verification] ?? 'À confirmer' }}
+                    </span>
+                </div>
+                <p class="professional-title">{{ $professional->professional_title ?: 'Titre professionnel à compléter' }}</p>
+                <div class="professional-meta">
+                    <span><i class="fa-solid fa-user-check" aria-hidden="true"></i> Compte : {{ $accountStatus === 'active' ? 'Actif' : str_replace('_', ' ', $accountStatus) }}</span>
+                    <span><i class="fa-solid fa-id-card" aria-hidden="true"></i> Profil : {{ $profileStatusLabels[$professional->status] ?? $professional->status }}</span>
+                    <span><i class="fa-solid fa-eye" aria-hidden="true"></i> Visibilité : {{ $visibilityLabels[$professional->visibility] ?? $professional->visibility }}</span>
+                    @if ($professional->city || $professional->province)
+                        <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ collect([$professional->city, $professional->province])->filter()->join(', ') }}</span>
+                    @endif
+                    @if ($professional->years_experience !== null)
+                        <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i> {{ $professional->years_experience }} an(s) d’expérience</span>
+                    @endif
+                    <span><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i> Inscrit le {{ $professional->created_at?->translatedFormat('j F Y') ?? 'date non disponible' }}</span>
+                </div>
+            </div>
+        </div>
+        @if (! $isPubliclyVisible)
+            <div class="profile-visibility-notice" role="status">
+                <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                <div>
+                    <strong>Votre profil n’est pas actuellement visible dans l’annuaire public.</strong>
+                    <p>La visibilité effective dépend du compte actif, du profil actif, de la vérification administrative, de la préférence de visibilité et d’au moins un service publié.</p>
+                </div>
+            </div>
+        @endif
+    </section>
+
+    <div class="professional-profile-grid">
+        <section class="surface-card surface-card--md" aria-labelledby="profile-about-heading">
+            <div class="surface-card__header"><h2 id="profile-about-heading">Présentation professionnelle</h2></div>
+            <div class="surface-card__body">
+                @if (filled($professional->description))
+                    <p class="profile-bio">{{ $professional->description }}</p>
+                @else
+                    <div class="state-empty state-empty--compact">
+                        <div>
+                            <span class="state-empty__icon"><i class="fa-regular fa-file-lines" aria-hidden="true"></i></span>
+                            <h3>Présentation à compléter</h3>
+                            <p>Expliquez votre spécialité, les types de travaux que vous réalisez et votre expérience réelle.</p>
+                            <a class="button button--secondary" href="{{ route('professional.profile.edit') }}#professional-description">Ajouter une présentation</a>
+                        </div>
+                    </div>
+                @endif
+                @if ($professional->starting_price !== null)
+                    <p class="profile-price"><span>Prix indicatif de départ</span><strong>{{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}</strong></p>
+                    <p class="field-help">Ce prix est indicatif ; les prix contractuels restent définis par vos services et devis.</p>
+                @endif
+            </div>
+        </section>
+
+        <section class="surface-card surface-card--md" aria-labelledby="profile-completion-heading">
+            <div class="surface-card__header"><h2 id="profile-completion-heading">Complétude du profil</h2></div>
+            <div class="surface-card__body">
+                <div class="completion-score"><strong>{{ $completionPercentage }}%</strong><span>des éléments essentiels renseignés</span></div>
+                <div class="completion-track" role="progressbar" aria-label="Complétude du profil" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $completionPercentage }}"><span style="width:{{ $completionPercentage }}%"></span></div>
+                <p class="field-help">La complétude mesure les informations renseignées. Elle ne signifie pas que le compte ou les documents sont vérifiés.</p>
+                <ul class="completion-list">
+                    <li class="{{ $completionItems['personal'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['personal'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Prénom et nom</li>
+                    <li class="{{ $completionItems['profession'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['profession'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Titre professionnel</li>
+                    <li class="{{ $completionItems['presentation'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['presentation'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Présentation</li>
+                    <li class="{{ $completionItems['service_area'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['service_area'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Ville et province</li>
+                    <li class="{{ $completionItems['skills'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['skills'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Au moins une compétence</li>
+                    <li class="{{ $completionItems['services'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['services'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Au moins un service créé</li>
+                </ul>
+                @if (! $completionItems['personal'] || ! $completionItems['profession'] || ! $completionItems['presentation'] || ! $completionItems['service_area'] || ! $completionItems['skills'] || ! $completionItems['services'])
+                    <a class="button button--secondary profile-completion-action" href="{{ route('professional.profile.edit') }}">Compléter les informations manquantes</a>
+                @endif
+            </div>
+        </section>
+    </div>
+
+    <section class="surface-card surface-card--md professional-section" aria-labelledby="profile-skills-heading">
+        <div class="surface-card__header professional-section-header">
+            <div><h2 id="profile-skills-heading">Compétences</h2><p>Les compétences décrivent votre expertise ; elles ne créent pas automatiquement une offre commerciale.</p></div>
+            <a class="button button--ghost button--sm" href="{{ route('professional.profile.edit') }}#professional-skills">Gérer les compétences</a>
+        </div>
+        <div class="surface-card__body">
+            @if ($professional->skills->isNotEmpty())
+                <div class="skill-list">
+                    @foreach ($professional->skills as $skill)
+                        <article class="skill-item">
+                            <div class="skill-item__top"><strong>{{ $skill->name }}</strong><span>{{ $skill->pivot->proficiency_level ? ucfirst($skill->pivot->proficiency_level) : 'Niveau non renseigné' }}</span></div>
+                            @if ($skill->pivot->years_experience !== null)
+                                <small>{{ $skill->pivot->years_experience }} an(s) d’expérience déclarée</small>
+                            @endif
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <div class="state-empty state-empty--compact"><div><span class="state-empty__icon"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span><h3>Aucune compétence associée</h3><p>Sélectionnez les compétences réellement maîtrisées dans le catalogue disponible.</p><a class="button button--primary" href="{{ route('professional.profile.edit') }}#professional-skills">Ajouter des compétences</a></div></div>
+            @endif
+        </div>
+    </section>
+
+    <section class="surface-card surface-card--md professional-section" aria-labelledby="profile-services-heading">
+        <div class="surface-card__header professional-section-header">
+            <div><h2 id="profile-services-heading">Services</h2><p>Le catalogue reste géré dans son propre module.</p></div>
+            <a class="button button--ghost button--sm" href="{{ route('professional.services.index') }}">Gérer les services</a>
+        </div>
+        <div class="surface-card__body">
+            @if ($professional->services->isNotEmpty())
+                <div class="service-mini-grid">
+                    @foreach ($professional->services as $service)
+                        <article class="service-mini-card">
+                            <div class="service-mini-card__head"><span class="service-mini-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><span class="badge badge--{{ $service->status->value === 'published' ? 'success' : ($service->status->value === 'draft' ? 'warning' : 'neutral') }}">{{ $service->status->value }}</span></div>
+                            <h3>{{ $service->title }}</h3>
+                            <p>{{ $service->short_description ?: 'Aucune description courte.' }}</p>
+                            <a href="{{ route('professional.services.edit', $service) }}">Gérer <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                        </article>
+                    @endforeach
+                </div>
+            @else
+                <div class="state-empty state-empty--compact"><div><span class="state-empty__icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><h3>Aucun service</h3><p>Créez une offre depuis le catalogue des services pour commencer à présenter vos prestations.</p><a class="button button--primary" href="{{ route('professional.services.create') }}">Créer un service</a></div></div>
+            @endif
+        </div>
+    </section>
+
+    <section class="surface-card surface-card--md professional-section" aria-labelledby="profile-verification-heading">
+        <div class="surface-card__header professional-section-header"><div><h2 id="profile-verification-heading">Vérification et documents</h2><p>La vérification est gérée par le processus administratif, pas par ce formulaire.</p></div><a class="button button--secondary button--sm" href="{{ route('professional.documents.index') }}">Gérer mes documents</a></div>
+        <div class="surface-card__body">
+            <p><strong>État actuel :</strong> {{ $verificationLabels[$verification] ?? 'À confirmer' }}</p>
+            @if ($verification !== 'verified')
+                <p class="field-help">Transmettez les justificatifs demandés via le module Documents. L’envoi d’un document ne signifie pas qu’il a été vérifié.</p>
+            @else
+                <p class="field-help">Votre statut est marqué comme vérifié par le système. Ne modifiez pas cet état depuis le profil.</p>
+            @endif
+        </div>
+    </section>
 @endsection
