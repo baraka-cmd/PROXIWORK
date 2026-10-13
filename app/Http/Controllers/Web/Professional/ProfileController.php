@@ -59,14 +59,7 @@ class ProfileController extends Controller
     public function show(Request $request): View
     {
         $professional = $request->user()->professionalProfile()
-            ->with([
-                'user.profile',
-                'skills',
-                'services' => fn ($query) => $query
-                    ->with(['category', 'skills', 'images'])
-                    ->orderBy('sort_order')
-                    ->orderByDesc('id'),
-            ])
+            ->with(['user.profile', 'skills'])
             ->withCount([
                 'skills',
                 'services',
@@ -76,59 +69,251 @@ class ProfileController extends Controller
             ])
             ->firstOrFail();
 
-        // Limiter l'affichage aux six premiers services après leur chargement.
-        // Cela évite la requête ROW_NUMBER() générée par Laravel.
+        // Charger uniquement les six services affichés, sans hydrater tout le catalogue.
         $professional->setRelation(
             'services',
-            $professional->services->take(6)->values()
+            $professional->services()
+                ->with(['category', 'skills', 'images'])
+                ->orderBy('sort_order')
+                ->orderByDesc('id')
+                ->limit(6)
+                ->get(),
         );
 
         $completionItems = [
-            'personal' => $professional->user->profile !== null,
+            'personal' => filled($professional->user->profile?->first_name)
+                && filled($professional->user->profile?->last_name),
             'profession' => filled($professional->professional_title),
             'presentation' => filled($professional->description),
             'service_area' => filled($professional->city) && filled($professional->province),
             'skills' => $professional->skills_count > 0,
             'services' => $professional->services_count > 0,
-            'verification' => $professional->verification_status === ProfessionalVerificationStatus::VERIFIED,
         ];
 
         return view('professional/profile', [
             'professional' => $professional,
             'completionItems' => $completionItems,
-            'completionPercentage' => (int) round((count(array_filter($completionItems)) / count($completionItems)) * 100),
+            'completionPercentage' => (int) round(
+                (count(array_filter($completionItems)) / count($completionItems)) * 100,
+            ),
             'availabilityLabels' => [
                 ProfessionalAvailabilityStatus::UNKNOWN->value => 'Non renseignée',
                 ProfessionalAvailabilityStatus::AVAILABLE->value => 'Disponible',
                 ProfessionalAvailabilityStatus::UNAVAILABLE->value => 'Indisponible',
+            ],
+            'visibilityLabels' => [
+                'public' => 'Préférence publique',
+                'private' => 'Privé',
+            ],
+            'profileStatusLabels' => [
+                ProfessionalProfile::STATUS_DRAFT => 'Brouillon',
+                ProfessionalProfile::STATUS_ACTIVE => 'Actif',
+                ProfessionalProfile::STATUS_SUSPENDED => 'Suspendu',
+                ProfessionalProfile::STATUS_CLOSED => 'Fermé',
+            ],
+            'verificationLabels' => [
+                'pending' => 'En attente',
+                'under_review' => 'En cours d’examen',
+                'verified' => 'Vérifié',
+                'rejected' => 'Refusé',
             ],
         ]);
     }
 
     public function edit(Request $request): View
     {
-        $professional = $request->user()->professionalProfile()->firstOrFail();
+        $professional = $request->user()->professionalProfile()
+            ->with(['user.profile', 'skills'])
+            ->firstOrFail();
 
         return view('professional/profile-edit', [
             'professional' => $professional,
+            'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'selectedSkillIds' => $professional->skills->modelKeys(),
+            'availabilityOptions' => [
+                ProfessionalAvailabilityStatus::UNKNOWN->value => 'Non renseignée',
+                ProfessionalAvailabilityStatus::AVAILABLE->value => 'Disponible pour de nouvelles demandes',
+                ProfessionalAvailabilityStatus::UNAVAILABLE->value => 'Indisponible temporairement',
+            ],
         ]);
     }
 
     public function update(UpdateProfessionalProfileRequest $request): RedirectResponse
     {
-        $professional = $request->user()->professionalProfile()->firstOrFail();
-        $professional->fill($request->validated())->save();
+        $validated = $request->validated();
+        $identity = array_intersect_key($validated, array_flip(['first_name', 'last_name']));
+        $availability = $validated['availability_status'];
+        $visibility = $validated['visibility'];
+        unset($validated['first_name'], $validated['last_name'], $validated['availability_status'], $validated['visibility']);
+
+        $user = $request->user();
+
+        DB::transaction(function () use ($user, $identity, $validated, $availability, $visibility): void {
+            $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
+            $professional = $lockedUser->professionalProfile()->lockForUpdate()->firstOrFail();
+
+            if ($identity !== []) {
+                $profile = $lockedUser->profile()->firstOrCreate([]);
+                $profile->fill($identity)->save();
+
+                $firstName = trim((string) $profile->first_name);
+                $lastName = trim((string) $profile->last_name);
+
+                if ($firstName !== '' && $lastName !== '') {
+                    $lockedUser->forceFill(['name' => $firstName.' '.$lastName])->save();
+                }
+            }
+
+            $professional->fill($validated);
+            $professional->forceFill([
+                'availability_status' => $availability,
+                'visibility' => $visibility,
+            ])->save();
+        });
+
+        $professional = $user->professionalProfile()->firstOrFail();
 
         $this->auditLogService->record(
             'professional_profile_updated',
             $professional,
-            $request->user(),
-            [],
+            $user,
+            ['fields' => array_values(array_unique(array_merge(array_keys($identity), array_keys($validated), ['availability_status', 'visibility'])))],
             $request,
         );
 
         return redirect()->route('professional.profile')
             ->with('success', 'Votre profil professionnel a été mis à jour.');
+    }
+
+    public function storePhoto(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'avatar' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+                'dimensions:max_width=2000,max_height=2000',
+            ],
+        ]);
+
+        $user = $request->user();
+        $newPath = $validated['avatar']->store('professional-avatars/'.$user->getKey(), 'local');
+        $oldPath = $user->profile()->value('avatar_path');
+
+        try {
+            DB::transaction(function () use ($user, $newPath): void {
+                $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
+                $profile = $lockedUser->profile()->firstOrCreate([]);
+                $profile->forceFill(['avatar_path' => $newPath])->save();
+            });
+        } catch (Throwable $exception) {
+            Storage::disk('local')->delete($newPath);
+            throw $exception;
+        }
+
+        if (is_string($oldPath) && $oldPath !== '' && $oldPath !== $newPath) {
+            Storage::disk('local')->delete($oldPath);
+        }
+
+        $this->auditLogService->record(
+            'professional_profile_photo_updated',
+            $user->professionalProfile()->firstOrFail(),
+            $user,
+            [],
+            $request,
+        );
+
+        return redirect()->route('professional.profile.edit')
+            ->with('success', 'Photo de profil mise à jour.');
+    }
+
+    public function destroyPhoto(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $oldPath = $user->profile()->value('avatar_path');
+
+        DB::transaction(function () use ($user): void {
+            $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
+            $profile = $lockedUser->profile()->first();
+
+            if ($profile !== null) {
+                $profile->forceFill(['avatar_path' => null])->save();
+            }
+        });
+
+        if (is_string($oldPath) && $oldPath !== '') {
+            Storage::disk('local')->delete($oldPath);
+        }
+
+        $this->auditLogService->record(
+            'professional_profile_photo_removed',
+            $user->professionalProfile()->firstOrFail(),
+            $user,
+            [],
+            $request,
+        );
+
+        return redirect()->route('professional.profile.edit')
+            ->with('success', 'Photo de profil supprimée.');
+    }
+
+    public function updateSkills(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'skill_ids' => ['sometimes', 'array', 'max:100'],
+            'skill_ids.*' => ['integer', 'distinct', 'exists:skills,id'],
+        ]);
+
+        $skillIds = array_map('intval', $validated['skill_ids'] ?? []);
+        $activeIds = Skill::query()
+            ->where('status', 'active')
+            ->whereIn('id', $skillIds)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (count($activeIds) !== count(array_unique($skillIds))) {
+            return back()->withErrors([
+                'skill_ids' => 'Une ou plusieurs compétences ne sont plus disponibles. Actualisez la page et réessayez.',
+            ])->withInput();
+        }
+
+        $professional = $request->user()->professionalProfile()->firstOrFail();
+        $existing = $professional->skills()
+            ->get()
+            ->keyBy(fn ($skill) => (int) $skill->getKey());
+
+        $syncData = [];
+
+        foreach ($skillIds as $skillId) {
+            $current = $existing->get($skillId);
+
+            $syncData[$skillId] = [
+                'proficiency_level' => $current?->pivot->proficiency_level,
+                'years_experience' => $current?->pivot->years_experience,
+            ];
+        }
+
+        DB::transaction(function () use ($professional, $syncData): void {
+            $lockedProfessional = $professional->newQuery()
+                ->whereKey($professional->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $lockedProfessional->skills()->sync($syncData);
+        });
+
+        $this->auditLogService->record(
+            'professional_profile_skills_updated',
+            $professional,
+            $request->user(),
+            ['skill_count' => count($syncData)],
+            $request,
+        );
+
+        return redirect()->route('professional.profile.edit')
+            ->with('success', 'Vos compétences ont été mises à jour.');
     }
 
     public function services(Request $request): View
