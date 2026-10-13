@@ -27,6 +27,12 @@
         ->take(2)
         ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
         ->implode('');
+    $profileStatusLabels = [
+        'draft' => 'Profil en préparation',
+        'active' => 'Profil professionnel actif',
+        'suspended' => 'Profil professionnel suspendu',
+        'closed' => 'Profil professionnel fermé',
+    ];
     $verificationLabels = [
         'pending' => 'En attente',
         'under_review' => 'En cours de vérification',
@@ -91,9 +97,17 @@
                             <i class="fa-solid fa-circle" aria-hidden="true"></i>
                             {{ $accountLabels[$profile['user']['account_status'] ?? ''] ?? 'État du compte non renseigné' }}
                         </span>
+                        <span class="professional-dashboard__status {{ ($profile['status'] ?? '') === 'active' ? 'is-positive' : 'is-caution' }}">
+                            <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                            {{ $profileStatusLabels[$profile['status'] ?? ''] ?? 'État du profil non renseigné' }}
+                        </span>
                         <span class="professional-dashboard__status {{ $verification === 'verified' ? 'is-positive' : 'is-caution' }}">
                             <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
                             {{ $verificationLabels[$verification] ?? 'Vérification non renseignée' }}
+                        </span>
+                        <span class="professional-dashboard__status {{ $availability === 'available' ? 'is-positive' : 'is-caution' }}">
+                            <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                            {{ $availabilityLabels[$availability] ?? 'Disponibilité non renseignée' }}
                         </span>
                         <span class="professional-dashboard__status">
                             <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
