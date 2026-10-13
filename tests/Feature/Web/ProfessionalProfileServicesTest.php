@@ -195,6 +195,7 @@ class ProfessionalProfileServicesTest extends TestCase
                     && $counts['draft'] === 1;
             });
     }
+
     public function test_archived_services_cannot_be_edited_again(): void
     {
         $user = User::factory()->create();
@@ -214,5 +215,4 @@ class ProfessionalProfileServicesTest extends TestCase
             ->patch(route('professional.services.update', $service), [])
             ->assertSessionHasErrors('service');
     }
-
 }
