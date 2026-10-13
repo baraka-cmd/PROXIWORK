@@ -378,6 +378,10 @@ class ServiceRequestService
                 ->where('category_id', (int) $filters['category_id']));
         }
 
+        if (isset($filters['service_id']) && $filters['service_id'] !== '') {
+            $query->where('service_id', (int) $filters['service_id']);
+        }
+
         if (isset($filters['from']) && $filters['from'] !== '') {
             $query->whereDate('created_at', '>=', $filters['from']);
         }
