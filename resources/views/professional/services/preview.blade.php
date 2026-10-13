@@ -73,6 +73,20 @@
                 </section>
             @endif
 
+            @if($service->realizations->where('status', 'approved')->isNotEmpty())
+                <section class="public-service-detail__scope">
+                    <h3>Réalisations approuvées</h3>
+                    <div class="realization-public-grid">
+                        @foreach($service->realizations->where('status', 'approved') as $realization)
+                            <figure class="realization-public-card">
+                                <img src="{{ route('professional.services.realizations.file', $realization) }}" alt="{{ $realization->caption }}" loading="lazy">
+                                <figcaption>{{ $realization->caption }}</figcaption>
+                            </figure>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
             <section class="public-service-detail__scope">
                 <h3>Présentation du professionnel</h3>
                 <p>{{ $professionalName }}@if($professional->city), {{ $professional->city }}@endif</p>
