@@ -236,17 +236,17 @@
                     <span class="professional-stat-card__body"><span>Demandes à traiter</span><strong>{{ $operations['requests_to_handle'] }}</strong><small>Demandes en attente du professionnel</small></span>
                     <i class="professional-stat-card__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                 </a>
-                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.quotes.index') }}">
+                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.quotes.index', ['action_required' => 1]) }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--accent"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></span>
                     <span class="professional-stat-card__body"><span>Devis à traiter</span><strong>{{ $operations['quotations_requiring_action'] }}</strong><small>Contre-propositions du client à examiner</small></span>
                     <i class="professional-stat-card__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                 </a>
-                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.orders.index') }}">
+                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.orders.index', ['status' => 'active']) }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--info"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
                     <span class="professional-stat-card__body"><span>Commandes actives</span><strong>{{ $operations['active_orders'] }}</strong><small>À suivre selon leur état réel</small></span>
                     <i class="professional-stat-card__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
                 </a>
-                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.orders.index', ['status' => 'completed']) }}">
+                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.orders.index', ['status' => 'completed', 'from' => $periodStart, 'to' => $periodEnd]) }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
                     <span class="professional-stat-card__body"><span>Prestations terminées</span><strong>{{ $operations['completed_orders'] }}</strong><small>{{ $dashboard['period_label'] }}</small></span>
                     <i class="professional-stat-card__arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
