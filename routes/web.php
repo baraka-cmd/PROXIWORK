@@ -188,7 +188,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::get('profile/photo', [ProfileController::class, 'photo'])->name('profile.photo');
     Route::post('profile/photo', [ProfileController::class, 'storePhoto'])->middleware('throttle:6,1')->name('profile.photo.store');
-    Route::delete('profile/photo', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+    Route::delete('profile/photo', [ProfileController::class, 'destroyPhoto'])->middleware('throttle:10,1')->name('profile.photo.destroy');
     Route::patch('profile/skills', [ProfileController::class, 'updateSkills'])->middleware('throttle:10,1')->name('profile.skills.update');
     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
