@@ -477,7 +477,7 @@ class NotificationFoundationTest extends TestCase
         $this->assertSame('SENT', $delivery->fresh()->status);
         $this->assertSame('projects/proxi-test/messages/1', $delivery->fresh()->provider_reference);
         $this->assertNotNull($device->fresh()->last_used_at);
-        Http::assertSent(fn (\Illuminate\Http\Client\Request $request): bool => str_contains($request->url(), 'fcm.googleapis.com')
+        Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'fcm.googleapis.com')
             && $request['message']['token'] === $device->token);
     }
 
