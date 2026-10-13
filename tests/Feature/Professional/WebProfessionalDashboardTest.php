@@ -110,6 +110,7 @@ class WebProfessionalDashboardTest extends TestCase
             ->assertDontSee('Second professionnel')
             ->assertDontSee('Second métier');
     }
+
     public function test_dashboard_uses_a_supported_period_and_shows_honest_empty_states(): void
     {
         $professional = User::factory()->create(['name' => 'Professionnel Débutant']);
