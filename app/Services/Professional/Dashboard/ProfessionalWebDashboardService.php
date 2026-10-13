@@ -14,6 +14,7 @@ use App\Enums\ServiceStatus;
 use App\Enums\WithdrawalStatus;
 use App\Models\Commission;
 use App\Models\Order;
+use App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Review;
@@ -49,6 +50,11 @@ class ProfessionalWebDashboardService
             ->withCount([
                 'services',
                 'skills',
+                'documents',
+                'documents as pending_documents_count' => fn (Builder $query) => $query
+                    ->where('status', ProfessionalDocument::STATUS_PENDING),
+                'documents as rejected_documents_count' => fn (Builder $query) => $query
+                    ->where('status', ProfessionalDocument::STATUS_REJECTED),
                 'services as published_services_count' => fn (Builder $query) => $query
                     ->where('status', ServiceStatus::PUBLISHED->value)
                     ->whereNotNull('published_at'),
@@ -131,6 +137,11 @@ class ProfessionalWebDashboardService
                 'draft' => (int) $profile->draft_services_count,
                 'unpublished' => (int) $profile->unpublished_services_count,
                 'archived' => (int) $profile->archived_services_count,
+            ],
+            'documents' => [
+                'total' => (int) $profile->documents_count,
+                'pending' => (int) $profile->pending_documents_count,
+                'rejected' => (int) $profile->rejected_documents_count,
             ],
             'engagement' => [
                 'received_favorites' => (int) $profile->received_favorites_count,
@@ -437,11 +448,26 @@ class ProfessionalWebDashboardService
             ]);
         }
 
-        if ($profile->verification_status?->value === 'rejected') {
+        if ((int) $profile->rejected_documents_count > 0) {
             $actions->push([
                 'type' => 'documents',
                 'priority' => 'high',
-                'message' => 'La vérification a été rejetée. Consultez vos documents et les informations demandées.',
+                'count' => (int) $profile->rejected_documents_count,
+                'message' => (int) $profile->rejected_documents_count.' document(s) rejeté(s). Consultez la note de vérification et transmettez une version corrigée si nécessaire.',
+                'url' => route('professional.documents.index'),
+            ]);
+        } elseif ($profile->verification_status?->value === 'rejected') {
+            $actions->push([
+                'type' => 'documents',
+                'priority' => 'high',
+                'message' => 'La vérification professionnelle a été rejetée. Consultez les instructions dans votre espace de documents.',
+                'url' => route('professional.documents.index'),
+            ]);
+        } elseif ((int) $profile->documents_count === 0 && $profile->verification_status?->value !== 'verified') {
+            $actions->push([
+                'type' => 'documents',
+                'priority' => 'normal',
+                'message' => 'Aucun document de vérification n’est enregistré. Consultez les pièces demandées dans votre espace de documents.',
                 'url' => route('professional.documents.index'),
             ]);
         }
