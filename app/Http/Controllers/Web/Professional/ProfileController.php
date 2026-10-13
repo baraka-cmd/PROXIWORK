@@ -218,13 +218,14 @@ class ProfileController extends Controller
             ]);
         }
 
-        $oldPath = $user->profile()->value('avatar_path');
-
         try {
-            DB::transaction(function () use ($user, $newPath): void {
+            $oldPath = DB::transaction(function () use ($user, $newPath): ?string {
                 $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
                 $profile = $lockedUser->profile()->firstOrCreate([]);
+                $oldPath = $profile->avatar_path;
                 $profile->forceFill(['avatar_path' => $newPath])->save();
+
+                return is_string($oldPath) ? $oldPath : null;
             });
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($newPath);
@@ -250,15 +251,18 @@ class ProfileController extends Controller
     public function destroyPhoto(Request $request): RedirectResponse
     {
         $user = $request->user();
-        $oldPath = $user->profile()->value('avatar_path');
-
-        DB::transaction(function () use ($user): void {
+        $oldPath = DB::transaction(function () use ($user): ?string {
             $lockedUser = User::query()->whereKey($user->getKey())->lockForUpdate()->firstOrFail();
             $profile = $lockedUser->profile()->first();
 
-            if ($profile !== null) {
-                $profile->forceFill(['avatar_path' => null])->save();
+            if ($profile === null) {
+                return null;
             }
+
+            $oldPath = $profile->avatar_path;
+            $profile->forceFill(['avatar_path' => null])->save();
+
+            return is_string($oldPath) ? $oldPath : null;
         });
 
         if (is_string($oldPath) && $oldPath !== '') {
