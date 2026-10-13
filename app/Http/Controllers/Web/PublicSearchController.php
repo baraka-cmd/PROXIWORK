@@ -37,6 +37,7 @@ class PublicSearchController
     public function service(Service $service): View
     {
         $service = $this->serviceSearchService->findVisible($service->getKey());
+        $service->loadMissing(['realizations' => fn ($query) => $query->where('status', 'approved')]);
 
         return view('public.services.show', compact('service'));
     }
