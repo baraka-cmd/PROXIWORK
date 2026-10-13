@@ -269,13 +269,15 @@
                         <span>Solde disponible au retrait</span>
                         @forelse ($finance['wallets'] as $wallet)
                             <strong class="professional-stat-card__money">{{ $money($wallet['available_balance']) }} <small>{{ $wallet['currency'] }}</small></strong>
+                            <small>En attente : {{ $money($wallet['pending_balance']) }} {{ $wallet['currency'] }}</small>
+                            <small>Réservé : {{ $money($wallet['locked_balance']) }} {{ $wallet['currency'] }}</small>
                         @empty
                             <strong class="professional-stat-card__empty-value">—</strong><small>Aucun portefeuille existant à afficher</small>
                         @endforelse
                         <small>Solde disponible enregistré dans le portefeuille</small>
                     </span>
                 </a>
-                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.withdrawals', ['status' => 'requested']) }}">
+                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.withdrawals') }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--accent"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i></span>
                     <span class="professional-stat-card__body"><span>Retraits en cours</span><strong>{{ $operations['pending_withdrawals'] }}</strong><small>Demandés ou en traitement</small></span>
                 </a>
