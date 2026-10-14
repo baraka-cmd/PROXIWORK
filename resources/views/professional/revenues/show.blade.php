@@ -28,7 +28,7 @@
             <dl class="revenue-detail-grid">
                 <div><dt>Référence</dt><dd>COM-{{ $commission->id }}</dd></div>
                 <div><dt>Commande</dt><dd>{{ $commission->order?->order_number ?? '#'.$commission->order_id }}</dd></div>
-                <div><dt>Service</dt><dd>{{ $commission->order?->items->first()?->service_title ?? 'Service indisponible' }}</dd></div>
+                <div><dt>Service</dt><dd>{{ $serviceTitle }}</dd></div>
                 <div><dt>Date de comptabilisation</dt><dd>{{ $commission->posted_at?->format('d/m/Y H:i') ?? '—' }}</dd></div>
                 <div><dt>Montant brut</dt><dd>{{ number_format((float) $commission->gross_amount, 2, ',', ' ') }} {{ $commission->currency }}</dd></div>
                 <div><dt>Taux enregistré</dt><dd>{{ number_format((float) $commission->commission_rate, 2, ',', ' ') }} %</dd></div>
