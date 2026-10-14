@@ -167,8 +167,9 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->get(route('professional.revenues.export', ['period' => '30d']));
 
         $export->assertOk();
-        $this->assertStringContainsString('RFD-TEST-0001', $export->streamedContent());
-        $this->assertStringNotContainsString('RFD-PENDING-0002', $export->streamedContent());
+        $csv = $export->streamedContent();
+        $this->assertStringContainsString('RFD-TEST-0001', $csv);
+        $this->assertStringNotContainsString('RFD-PENDING-0002', $csv);
     }
 
     public function test_multi_service_order_commission_is_not_falsely_attributed_to_the_lowest_service_id(): void
