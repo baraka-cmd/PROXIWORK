@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Professional\Revenue;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -46,6 +47,17 @@ class ProfessionalRevenueFilterRequest extends FormRequest
 
                 if (! $this->filled('to')) {
                     $validator->errors()->add('to', 'La date de fin est obligatoire pour une période personnalisée.');
+                }
+
+                if ($this->filled('from') && $this->filled('to')
+                    && ! $validator->errors()->has('from')
+                    && ! $validator->errors()->has('to')) {
+                    $start = CarbonImmutable::createFromFormat('!Y-m-d', (string) $this->input('from'));
+                    $end = CarbonImmutable::createFromFormat('!Y-m-d', (string) $this->input('to'));
+
+                    if ($start !== false && $end !== false && $start->diffInDays($end) > 365) {
+                        $validator->errors()->add('to', 'La période personnalisée ne peut pas dépasser 366 jours. Choisissez une période plus courte.');
+                    }
                 }
             }
         });
