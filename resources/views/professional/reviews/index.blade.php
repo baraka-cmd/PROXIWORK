@@ -292,7 +292,7 @@
                             @csrf
                             <label for="response-{{ $review->id }}">Répondre à cet avis</label>
                             <textarea id="response-{{ $review->id }}" name="response" maxlength="2000" minlength="1" rows="3" required placeholder="Remerciez le client ou expliquez avec calme comment vous prenez son retour en compte."></textarea>
-                            <small>Votre réponse sera publique. Ne partagez aucune coordonnée ni information privée sur le client ou sa commande.</small>
+                            <small>Votre réponse sera publique. Ne partagez aucune coordonnée ni information privée sur le client ou sa commande. Pour les détails confidentiels, poursuivez dans la <a href="{{ route('professional.messages') }}">messagerie PROXIWORK</a>.</small>
                             <button class="button button--secondary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Publier la réponse</button>
                         </form>
                     @endif
