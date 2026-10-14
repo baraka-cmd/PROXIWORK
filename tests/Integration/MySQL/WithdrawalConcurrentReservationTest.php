@@ -19,13 +19,12 @@ class WithdrawalConcurrentReservationTest extends TestCase
 {
     public function test_two_concurrent_requests_cannot_reserve_more_than_the_available_balance(): void
     {
-        if (DB::connection()->getDriverName() !== 'mysql') {
-            $this->markTestSkipped('Ce test de concurrence exige MySQL/InnoDB.');
-        }
+        $this->assertSame('mysql', DB::connection()->getDriverName(), 'Ce test de concurrence doit être exécuté contre MySQL/InnoDB.');
 
-        if (! function_exists('pcntl_fork') || ! function_exists('stream_socket_pair')) {
-            $this->markTestSkipped('Le runner doit prendre en charge pcntl_fork et les sockets Unix.');
-        }
+        $this->assertTrue(
+            function_exists('pcntl_fork') && function_exists('stream_socket_pair'),
+            'Le runner MySQL doit prendre en charge pcntl_fork et les sockets Unix pour tester deux demandes réellement concurrentes.',
+        );
 
         $this->seed(RbacSeeder::class);
 
