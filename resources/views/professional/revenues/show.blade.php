@@ -86,6 +86,31 @@
             </div>
         </section>
 
+        <section class="revenue-card">
+            <h2>Remboursements associés</h2>
+            <p class="revenue-muted">Les demandes et remboursements sont affichés à partir du dossier de paiement lié à cette commission. Une demande n’est pas une sortie de fonds confirmée; un remboursement confirmé ne constitue pas, à lui seul, une écriture de correction de commission ou de portefeuille.</p>
+            @if ($commission->payment?->refunds?->isNotEmpty())
+                <div class="revenue-table-wrap">
+                    <table class="revenue-table">
+                        <thead><tr><th>Référence</th><th>Demandé le</th><th>Traité le</th><th>Montant</th><th>État</th></tr></thead>
+                        <tbody>
+                            @foreach ($commission->payment->refunds as $refund)
+                                <tr>
+                                    <td>{{ $refund->reference }}</td>
+                                    <td>{{ $refund->requested_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td>{{ $refund->processed_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</td>
+                                    <td><span class="revenue-status {{ $refund->status->value === 'succeeded' ? '' : 'revenue-status--reversed' }}">{{ match ($refund->status->value) { 'requested' => 'Demandé', 'processing' => 'En traitement', 'succeeded' => 'Confirmé', 'failed' => 'Échoué', 'rejected' => 'Refusé', 'cancelled' => 'Annulé', default => $refund->status->value } }}</span></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="revenue-empty">Aucun dossier de remboursement associé à ce paiement.</p>
+            @endif
+        </section>
+
         <nav class="revenue-related-links" aria-label="Autres pages financières">
             <a href="{{ route('professional.wallet') }}">Consulter le portefeuille</a>
             <a href="{{ route('professional.withdrawals') }}">Consulter les retraits</a>
