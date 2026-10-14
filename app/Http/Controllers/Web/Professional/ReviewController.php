@@ -20,11 +20,9 @@ class ReviewController extends Controller
         $professional = $request->user()->professionalProfile()->firstOrFail();
 
         $filters = $request->validate([\n            'rating' => ['nullable', 'integer', 'between:1,5'],\n            'status' => ['nullable', 'in:published,hidden'],\n            'sort' => ['nullable', 'in:latest,oldest,highest,lowest'],\n            'from' => ['nullable', 'date', 'before_or_equal:to'],\n            'to' => ['nullable', 'date', 'after_or_equal:from'],\n            'service_id' => ['nullable', 'integer', 'min:1'],\n            'response' => ['nullable', 'in:answered,unanswered'],\n            'comment' => ['nullable', 'in:with,without'],\n            'search' => ['nullable', 'string', 'max:120'],\n            'period' => ['nullable', 'in:7,30,90'],\n        ]);\n\n        $rating = isset($filters['rating']) ? (int) $filters['rating'] : null;
-        $status = $request->filled('status')
-            ? ReviewStatus::tryFrom((string) $request->string('status'))
-            : null;
+        $status = isset($filters['status']) ? ReviewStatus::tryFrom($filters['status']) : null;
 
-        $sort = (string) $request->input('sort', 'latest');
+        $sort = $filters['sort'] ?? 'latest';
 
         $reviews = $reviewService->listForProfessional(
             $professional,
@@ -32,13 +30,25 @@ class ReviewController extends Controller
             $status,
             $sort,
             15,
-        );
+            $filters['from'] ?? null,
+            $filters['to'] ?? null,
+            isset($filters['service_id']) ? (int) $filters['service_id'] : null,
+            isset($filters['response']) ? $filters['response'] === 'answered' : null,
+            isset($filters['comment']) ? $filters['comment'] === 'with' : null,
+            $filters['search'] ?? null,
+        )->withQueryString();
+
+        $services = $professional->services()->orderBy('title')->get(['id', 'title']);
+        $summary = $reviewService->reputationSummary($professional, (int) ($filters['period'] ?? 30));
 
         return view('professional.reviews.index', [
             'reviews' => $reviews,
             'rating' => $rating,
             'status' => $status,
             'sort' => $sort,
+            'filters' => $filters,
+            'services' => $services,
+            'summary' => $summary,
         ]);
     }
 
