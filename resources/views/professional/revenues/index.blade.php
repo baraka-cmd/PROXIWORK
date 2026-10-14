@@ -87,7 +87,7 @@
                     $paymentRow = $confirmedPayments->firstWhere('currency', $currency);
                     $pendingRow = $pendingBalances->firstWhere('currency', $currency);
                     $series = collect($evolution)->firstWhere('currency', $currency);
-                    $servicesForCurrency = $serviceBreakdown->where('currency', $currency)->values();
+                    $servicesForCurrency = $serviceBreakdown->where('currency', $currency)->take(10)->values();
                     $serviceChartPayload = [
                         'labels' => $servicesForCurrency->pluck('service_title')->all(),
                         'values' => $servicesForCurrency->map(fn ($row) => (float) $row->net_amount)->all(),
