@@ -289,7 +289,7 @@ class ModerationService
         };
     }
 
-    private function hideReview(Model $target, User $actor, ?string $reason): void
+    private function hideReview(Model $target, User $actor, ?string $reason): bool
     {
         if (! $target instanceof Review) {
             throw ValidationException::withMessages([
@@ -306,7 +306,7 @@ class ModerationService
 
         $professional = ProfessionalProfile::query()->find($target->professional_id);
         if ($professional === null) {
-            return;
+            return true;
         }
 
         $summary = Review::query()
@@ -328,6 +328,8 @@ class ModerationService
                 'review-moderation:'.$target->getKey().':'.ReviewStatus::HIDDEN->value,
             );
         }
+
+        return true;
     }
 
     private function suspendUser(Model $target): void
