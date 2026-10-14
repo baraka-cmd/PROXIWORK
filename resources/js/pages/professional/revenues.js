@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }],
             },
             options: {
+                indexAxis: canvas.dataset.chartType === 'bar' ? 'y' : 'x',
                 responsive: true,
                 maintainAspectRatio: false,
                 interaction: { intersect: false, mode: 'index' },
@@ -48,14 +49,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (context) => context.dataset.label + ': ' + numberFormat.format(context.parsed.y) + ' ' + (payload.currency || ''),
+                            label: (context) => context.dataset.label + ': ' + numberFormat.format(canvas.dataset.chartType === 'bar' ? context.parsed.x : context.parsed.y) + ' ' + (payload.currency || ''),
                         },
                     },
                 },
-                scales: {
-                    y: { beginAtZero: true, ticks: { callback: (value) => numberFormat.format(value) } },
-                    x: { grid: { display: false } },
-                },
+                scales: canvas.dataset.chartType === 'bar'
+                    ? {
+                        x: { beginAtZero: true, ticks: { callback: (value) => numberFormat.format(value) } },
+                        y: { grid: { display: false } },
+                    }
+                    : {
+                        y: { beginAtZero: true, ticks: { callback: (value) => numberFormat.format(value) } },
+                        x: { grid: { display: false } },
+                    },
             },
         });
     });
