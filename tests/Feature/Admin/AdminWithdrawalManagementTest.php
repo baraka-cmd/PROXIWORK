@@ -134,7 +134,7 @@ class AdminWithdrawalManagementTest extends TestCase
             ->where('action', 'admin.withdrawal.destination.viewed')
             ->firstOrFail();
 
-        $this->assertStringNotContainsString('243970123456', json_encode($log->metadata, JSON_THROW_ON_ERROR));
+        $this->assertStringNotContainsString('243970123456', \json_encode($log->metadata, JSON_THROW_ON_ERROR));
     }
 
     private function createWithdrawal(): array
