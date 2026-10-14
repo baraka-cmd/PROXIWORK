@@ -53,6 +53,47 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_withdrawal_form_defaults_to_an_active_currency_and_hides_inactive_wallets(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+
+        $inactiveWallet = app(WalletService::class)->getOrCreate($profile, 'USD');
+        $inactiveWallet->forceFill(['status' => 'suspended'])->save();
+
+        $activeWallet = app(WalletService::class)->getOrCreate($profile, 'CDF');
+        $activeWallet->forceFill(['available_balance' => '125000.00'])->save();
+
+        $this->actingAs($user)
+            ->get(route('professional.withdrawals.create'))
+            ->assertOk()
+            ->assertViewIs('professional.withdrawals.create')
+            ->assertSee('125 000,00 CDF')
+            ->assertSee('value="CDF"', false)
+            ->assertDontSee('value="USD"', false);
+
+        $this->actingAs($user)
+            ->get(route('professional.withdrawals.create', ['currency' => 'USD']))
+            ->assertRedirect(route('professional.withdrawals'))
+            ->assertSessionHas('status');
+    }
+
+    public function test_withdrawal_form_does_not_assume_a_usd_wallet_exists(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $wallet = app(WalletService::class)->getOrCreate($profile, 'CDF');
+        $wallet->forceFill(['available_balance' => '50000.00'])->save();
+
+        $this->actingAs($user)
+            ->get(route('professional.withdrawals.create'))
+            ->assertOk()
+            ->assertSee('50 000,00 CDF')
+            ->assertSee('value="CDF"', false);
+    }
+
     public function test_professional_can_request_withdrawal_and_amount_is_locked(): void
     {
         $user = User::factory()->create();
