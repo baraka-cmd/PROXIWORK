@@ -21,7 +21,8 @@ Audit initial et contrat d'architecture du point 35, mis à jour au fil de l'imp
 - Les montants affichés et le récapitulatif client ne passent pas par des nombres flottants. Les frais et le net restent non renseignés tant qu'un barème fiable n'existe pas.
 - Le moyen de retrait sélectionné est une préférence de traitement manuel; aucun fournisseur de versement réel n'est appelé.
 - Chaque transition significative crée une notification Laravel `database` au professionnel dans la même transaction que le statut et le registre. Les notifications indiquent la référence, le statut et son explication sans devenir une source de vérité financière; aucun email, SMS ou push n'est supposé configuré.
-- Une contrainte unique en base sur `(provider, provider_transaction_id)` complète le contrôle applicatif et empêche deux retraits du même canal de partager une référence externe, y compris lors de traitements concurrents. Si des doublons historiques existent, l'installation de la contrainte doit être précédée d'un rapprochement manuel.
+- Une contrainte unique en base sur `(provider, provider_transaction_id)` complète le contrôle applicatif et empêche deux retraits du même canal de partager une référence externe, y compris lors de traitements concurrents. Si des doublons historiques existent, l'installation de la contrainte échoue et exige un rapprochement manuel avant nouvelle tentative.
+- Si une clé d'idempotence du registre ou de l'historique existe déjà avec un contenu différent, le service refuse la transition et laisse la transaction annuler toute modification de solde; il ne réutilise pas silencieusement une écriture incompatible.
 
 ## Périmètre de code audité
 
@@ -53,7 +54,7 @@ Les constats ci-dessous expliquent pourquoi le point 35 a été ouvert. Ils sont
 8. **Résolu pour les nouvelles demandes :** la destination est chiffrée par le cast Laravel et masquée à l'écran professionnel. Les anciennes destinations déjà stockées en clair ne sont pas automatiquement rechiffrées par cette migration; leur accès doit être traité dans une opération de migration séparée et contrôlée.
 9. **Résolu dans la branche :** le formatage monétaire des vues utilise un formateur décimal sans `float`.
 10. **Décisions métier toujours bloquantes :** aucun minimum/maximum métier, plafond quotidien/périodique, barème de frais, délai contractuel ou vérification d'identité n'est prouvé. Le workflow admin manuel existe, mais ne remplace pas ces décisions.
-11. **État des tests de la branche :** des tests couvrent les transitions, les mouvements par compartiment, l'idempotence, les annulations, les résultats ambigus, les destinations chiffrées/masquées, les permissions admin, le support, les notifications et l'immutabilité Eloquent du registre. La CI exécute aussi les tests financiers ciblés contre MySQL 8.4. Cela valide le comportement sur le moteur réel et la contrainte d'unicité, mais ne remplace pas encore un test de stress multi-processus sur deux demandes simultanées.
+11. **État des tests de la branche :** des tests couvrent les transitions, les mouvements par compartiment, l'idempotence, les annulations, les résultats ambigus, les destinations chiffrées/masquées, les permissions admin, le support, les notifications et l'immutabilité Eloquent du registre. La CI exécute les tests financiers ciblés contre MySQL 8.4, dont un test multi-processus qui lance simultanément deux demandes de 70 sur un solde de 100 et vérifie qu'une seule réservation réussit. Ce test couvre le scénario critique de sur-réservation, sans prétendre remplacer un test de charge général.
 
 ## Garde-fous non négociables
 
