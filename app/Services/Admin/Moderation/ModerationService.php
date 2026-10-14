@@ -17,7 +17,6 @@ use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Review\ReviewService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -28,7 +27,6 @@ class ModerationService
 {
     public function __construct(
         private AuditLogService $audit,
-        private TransactionalNotificationService $notifications,
         private ReviewService $reviewService,
     ) {}
 
