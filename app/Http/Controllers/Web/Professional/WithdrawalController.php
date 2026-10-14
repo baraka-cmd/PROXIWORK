@@ -102,26 +102,52 @@ class WithdrawalController extends Controller
     public function create(Request $request): View|RedirectResponse
     {
         $profile = $this->professionalProfile($request);
-        $currency = strtoupper((string) $request->query('currency', 'USD'));
+
+        // Only active wallets are eligible for a new request. Pick an actual
+        // available currency instead of assuming USD exists for every account.
+        $currencies = Wallet::query()
+            ->where('professional_id', $profile->getKey())
+            ->where('status', 'active')
+            ->orderBy('currency')
+            ->pluck('currency');
+
+        if ($currencies->isEmpty()) {
+            return redirect()->route('professional.withdrawals')
+                ->with('status', 'Aucun portefeuille actif ne permet actuellement de demander un retrait.');
+        }
+
+        $requestedCurrency = $request->query('currency');
+
+        if ($requestedCurrency !== null && ! is_string($requestedCurrency)) {
+            throw ValidationException::withMessages([
+                'currency' => 'La devise sélectionnée est invalide.',
+            ]);
+        }
+
+        $currency = $requestedCurrency === null
+            ? (string) $currencies->first()
+            : strtoupper(trim($requestedCurrency));
+
         $this->validateCurrency($currency);
+
+        if (! $currencies->contains($currency)) {
+            return redirect()->route('professional.withdrawals')
+                ->with('status', 'Aucun portefeuille actif ne correspond à la devise sélectionnée.');
+        }
 
         // A GET request must never create a financial account.
         $wallet = Wallet::query()
             ->where('professional_id', $profile->getKey())
             ->where('currency', $currency)
+            ->where('status', 'active')
             ->first();
 
         if ($wallet === null) {
             return redirect()->route('professional.withdrawals')
-                ->with('status', 'Aucun portefeuille n’existe pour cette devise. Un portefeuille est créé uniquement par un flux financier autorisé.');
+                ->with('status', 'Le portefeuille sélectionné n’est plus actif. Aucun retrait n’a été créé.');
         }
 
         $this->authorize('view', $wallet);
-
-        $currencies = Wallet::query()
-            ->where('professional_id', $profile->getKey())
-            ->orderBy('currency')
-            ->pluck('currency');
 
         return view('professional.withdrawals.create', compact('wallet', 'currencies'));
     }
