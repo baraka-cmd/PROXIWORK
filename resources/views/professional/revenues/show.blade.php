@@ -20,7 +20,7 @@
         <section class="revenue-card">
             <div class="revenue-detail__headline">
                 <div>
-                    <span class="revenue-muted">Revenu net comptabilisé</span>
+                    <span class="revenue-muted">Montant net enregistré</span>
                     <strong>{{ number_format((float) $commission->net_amount, 2, ',', ' ') }} {{ $commission->currency }}</strong>
                 </div>
                 <span class="revenue-status">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</span>
