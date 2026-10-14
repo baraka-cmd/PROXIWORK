@@ -10,7 +10,6 @@ use App\Models\Commission;
 use App\Models\ProfessionalProfile;
 use App\Models\WalletTransaction;
 use App\Services\Professional\RevenueAnalyticsService;
-use Illuminate\Http\StreamedResponse;
 use Illuminate\View\View;
 
 class RevenueController extends Controller
@@ -53,7 +52,7 @@ class RevenueController extends Controller
     public function export(
         ProfessionalRevenueFilterRequest $request,
         RevenueAnalyticsService $analytics,
-    ): StreamedResponse {
+    ) {
         $professional = $this->professionalProfile($request);
         $query = $analytics->exportQuery($professional, $request->filters());
 
