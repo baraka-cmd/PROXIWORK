@@ -235,7 +235,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('orders/{order}/submit-delivery', [ProfessionalOrderController::class, 'submitDelivery'])->middleware('throttle:10,1')->name('orders.submit-delivery');
     Route::post('orders/{order}/report-blocker', [ProfessionalOrderController::class, 'reportBlocker'])->middleware('throttle:10,1')->name('orders.report-blocker');
     Route::get('revenues', [RevenueController::class, 'index'])->name('revenues.index');
-    Route::get('revenues/export', [RevenueController::class, 'export'])->name('revenues.export');
+    Route::get('revenues/export', [RevenueController::class, 'export'])->middleware('throttle:30,1')->name('revenues.export');
     Route::get('revenues/{commission}', [RevenueController::class, 'show'])->whereNumber('commission')->name('revenues.show');
     Route::get('wallet', [ProfessionalWalletController::class, 'index'])->name('wallet');
     Route::get('withdrawals', [ProfessionalWithdrawalController::class, 'index'])->name('withdrawals');
