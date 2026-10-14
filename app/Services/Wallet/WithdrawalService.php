@@ -238,7 +238,7 @@ class WithdrawalService
             $referenceAlreadyUsed = Withdrawal::query()
                 ->where('provider', $locked->provider)
                 ->where('provider_transaction_id', $providerTransactionId)
-                ->whereKeyNot($locked->getKey())
+                ->where('id', '<>', $locked->getKey())
                 ->exists();
 
             if ($referenceAlreadyUsed) {
