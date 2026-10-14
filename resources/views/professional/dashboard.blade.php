@@ -265,9 +265,9 @@
                         @endif
                     </span>
                 </a>
-                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.reviews') }}">
-                    <span class="professional-stat-card__icon professional-stat-card__icon--info"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
-                    <span class="professional-stat-card__body"><span>Avis reçus</span><strong>{{ $engagement['rating_count'] }}</strong><small>Avis actuellement publiés</small></span>
+                <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.reviews', ['response' => 'unanswered']) }}">
+                    <span class="professional-stat-card__icon professional-stat-card__icon--info"><i class="fa-solid fa-reply" aria-hidden="true"></i></span>
+                    <span class="professional-stat-card__body"><span>Avis à traiter</span><strong>{{ $engagement['unanswered_reviews_count'] }}</strong><small>Avis publiés sans réponse visible</small></span>
                 </a>
                 <a class="professional-stat-card professional-stat-card--link" href="{{ route('professional.messages', ['status' => 'unread']) }}">
                     <span class="professional-stat-card__icon professional-stat-card__icon--primary"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span>
