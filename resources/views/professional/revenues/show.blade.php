@@ -14,7 +14,7 @@
                 <h1>Détail de l’opération COM-{{ $commission->id }}</h1>
                 <p class="revenue-muted">Montants issus de la commission enregistrée côté serveur. Aucune modification financière n’est possible ici.</p>
             </div>
-            <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.index') }}">Retour aux revenus</a>
+            <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.index', request()->query()) }}">Retour aux revenus</a>
         </header>
 
         <section class="revenue-card">
