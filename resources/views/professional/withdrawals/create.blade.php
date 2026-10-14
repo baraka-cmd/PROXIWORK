@@ -71,7 +71,7 @@
             @error('confirm_request')<small class="field-error">{{ $message }}</small>@enderror
             <div class="form-actions">
                 <a class="button button--secondary" href="{{ route('professional.wallet',['currency'=>$wallet->currency]) }}">Retour au portefeuille</a>
-                <button class="button button--primary" type="submit" data-withdrawal-submit @disabled(strtolower((string)$wallet->status) !== 'active' || (float)$wallet->available_balance <= 0)>
+                <button class="button button--primary" type="submit" data-withdrawal-submit @disabled(strtolower((string)$wallet->status) !== 'active' )>
                     <i class="fa-solid fa-lock" aria-hidden="true"></i> Réserver le montant
                 </button>
             </div>
