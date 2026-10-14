@@ -205,7 +205,7 @@ class ReviewService
             $professional = ProfessionalProfile::query()->find($lockedResponse->professional_id);
             $professionalUser = $professional === null ? null : User::query()->find($professional->user_id);
             if ($professionalUser !== null) {
-                $this->notificationService->reviewModerationUpdated(
+                $this->notificationService->reviewResponseModerationUpdated(
                     $professionalUser,
                     $status->value,
                     'review-response-moderation:'.$lockedResponse->getKey().':'.$status->value,
