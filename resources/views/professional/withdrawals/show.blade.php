@@ -43,7 +43,7 @@
             <div class="alert alert--success" role="status"><strong>Retrait confirmé.</strong><p>La référence de preuve enregistrée est conservée pour le rapprochement financier.</p></div>
         @endif
         @if($withdrawal->status === \App\Enums\WithdrawalStatus::REQUESTED)
-            <form method="POST" action="{{ route('professional.withdrawals.cancel', $withdrawal) }}" class="withdrawal-cancel-form">
+            <form method="POST" action="{{ route('professional.withdrawals.cancel', $withdrawal) }}" class="withdrawal-cancel-form" data-withdrawal-cancel>
                 @csrf
                 <p>Annuler libérera la réservation une seule fois. Cette action est disponible uniquement avant le début du traitement.</p>
                 <button class="button button--danger" type="submit"><i class="fa-solid fa-ban" aria-hidden="true"></i> Annuler cette demande</button>
