@@ -6,8 +6,8 @@ namespace Tests\Feature\Finance;
 
 use App\Models\ProfessionalProfile;
 use App\Models\User;
-use App\Models\Withdrawal;
 use App\Models\WalletTransaction;
+use App\Models\Withdrawal;
 use App\Models\WithdrawalStatusHistory;
 use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
@@ -86,7 +86,7 @@ class WithdrawalLedgerImmutabilityTest extends TestCase
     }
 
     /**
-     * @return array{0: ProfessionalProfile, 1: \App\Models\Withdrawal}
+     * @return array{0: ProfessionalProfile, 1: Withdrawal}
      */
     private function createWithdrawal(): array
     {
