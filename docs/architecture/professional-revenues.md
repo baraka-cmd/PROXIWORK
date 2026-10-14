@@ -19,7 +19,11 @@ La date d'une commission, celle du paiement confirmé et celle de la fin de comm
 
 ## Autorisation et export
 
-Le profil professionnel est résolu depuis l'utilisateur authentifié. Les requêtes de commissions sont toujours limitées à ce profil. La page de détail applique le même périmètre et renvoie une réponse 404 si l'opération appartient à un autre professionnel. L'export CSV reprend les filtres validés, utilise le même périmètre professionnel, est diffusé sans cache et protège les colonnes textuelles contre les formules de tableur.
+Le profil professionnel est résolu depuis l'utilisateur authentifié. Les requêtes de commissions sont toujours limitées à ce profil. La page de détail applique le même périmètre et renvoie une réponse 404 si l'opération appartient à un autre professionnel. L'export CSV reprend les filtres validés de période, devise, service, commande, état et référence; il indique la période et la devise demandées, utilise le même périmètre professionnel, est diffusé sans cache et protège les colonnes textuelles contre les formules de tableur. La recherche par référence et le filtre d'état s'appliquent à l'historique et à l'export, pas aux indicateurs agrégés.
+
+## Filtres non disponibles faute de registre de mouvements complet
+
+Le filtre par nature de mouvement (revenu, remboursement, ajustement) ne peut pas encore couvrir toutes les natures de façon fiable : la table consultable dans cette version contient les commissions et non un registre unifié de toutes les écritures financières. L'historique affiche donc explicitement les commissions, au lieu d'inventer des lignes de remboursement ou d'ajustement.
 
 ## Limites financières identifiées avant certification
 
