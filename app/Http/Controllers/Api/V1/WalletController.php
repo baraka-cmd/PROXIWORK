@@ -9,7 +9,7 @@ use App\Http\Requests\Wallet\StoreWithdrawalRequest;
 use App\Http\Resources\Wallet\WalletResource;
 use App\Http\Resources\Wallet\WithdrawalResource;
 use App\Models\ProfessionalProfile;
-use App\Services\Wallet\WalletService;
+use App\Models\Wallet;
 use App\Services\Wallet\WithdrawalService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -17,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class WalletController extends Controller
 {
-    public function show(Request $request, WalletService $walletService): WalletResource
+    public function show(Request $request): WalletResource
     {
         $profile = ProfessionalProfile::query()->where('user_id', $request->user()->getKey())->firstOrFail();
         $currency = strtoupper((string) $request->query('currency', 'USD'));
@@ -26,7 +26,12 @@ class WalletController extends Controller
             throw ValidationException::withMessages(['currency' => 'Devise invalide.']);
         }
 
-        return new WalletResource($walletService->getOrCreate($profile, $currency));
+        return new WalletResource(
+            Wallet::query()
+                ->where('professional_id', $profile->getKey())
+                ->where('currency', $currency)
+                ->firstOrFail()
+        );
     }
 
     public function withdraw(
