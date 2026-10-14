@@ -206,7 +206,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->streamedContent();
 
         $this->assertStringContainsString('RFD-TEST-0001', $refundCsv);
-        $this->assertStringNotContainsString('COM-'.$commission->getKey(), $refundCsv);
+        $this->assertStringNotContainsString('Revenu après commission', $refundCsv);
     }
 
     public function test_multi_service_order_commission_is_not_falsely_attributed_to_the_lowest_service_id(): void
