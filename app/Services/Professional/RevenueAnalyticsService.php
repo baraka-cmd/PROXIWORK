@@ -49,6 +49,12 @@ class RevenueAnalyticsService
             ->paginate(15)
             ->withQueryString();
 
+        $commissions->through(function (Commission $commission): Commission {
+            $commission->setAttribute('service_display_title', $this->serviceLabelForOrder($commission->order));
+
+            return $commission;
+        });
+
         $currencies = Commission::query()
             ->where('professional_id', $professional->getKey())
             ->when($filters['currency'] ?? null, fn (Builder $query, string $currency) => $query->where('currency', $currency))
@@ -106,6 +112,30 @@ class RevenueAnalyticsService
             ->with(['order.items'])
             ->orderBy('commissions.posted_at')
             ->orderBy('commissions.id');
+    }
+
+    public function serviceLabelForOrder(?Order $order): string
+    {
+        if ($order === null) {
+            return 'Service indisponible';
+        }
+
+        $items = $order->items;
+        if ($items->isEmpty()) {
+            return 'Service indisponible';
+        }
+
+        $identities = $items->map(
+            fn ($item): string => $item->service_id !== null
+                ? 'id:'.$item->service_id
+                : 'title:'.trim((string) $item->service_title),
+        )->filter(fn (string $identity): bool => $identity !== 'title:')->unique();
+
+        if ($identities->count() > 1) {
+            return 'Commande multi-services — ventilation indisponible';
+        }
+
+        return (string) ($items->first()?->service_title ?: 'Service indisponible');
     }
 
     public function exportRefundQuery(ProfessionalProfile $professional, array $filters): QueryBuilder
