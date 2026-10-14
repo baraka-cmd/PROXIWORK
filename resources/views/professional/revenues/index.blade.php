@@ -110,9 +110,9 @@
                             <small>Montants des paiements associés aux commissions comptabilisées, avant frais de plateforme.</small>
                         </article>
                         <article class="revenue-metric">
-                            <span class="revenue-metric__label">Paiements confirmés</span>
+                            <span class="revenue-metric__label">Paiements confirmés · montants initiaux</span>
                             <strong>{{ number_format((float) ($paymentRow->paid_amount ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
-                            <small>{{ $paymentRow->payments_count ?? 0 }} paiement(s) confirmé(s) rattaché(s) à une commission comptabilisée.</small>
+                            <small>{{ $paymentRow->payments_count ?? 0 }} paiement(s) dont la réception est confirmée sur la période. Les remboursements sont affichés séparément; ce montant n’est pas le net après remboursements.</small>
                         </article>
                         <article class="revenue-metric">
                             <span class="revenue-metric__label">Frais de plateforme</span>
