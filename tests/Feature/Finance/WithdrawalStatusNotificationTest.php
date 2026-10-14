@@ -7,12 +7,11 @@ namespace Tests\Feature\Finance;
 use App\Enums\WithdrawalStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
-use App\Notifications\WithdrawalStatusChanged;
 use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class WithdrawalStatusNotificationTest extends TestCase
@@ -24,10 +23,9 @@ class WithdrawalStatusNotificationTest extends TestCase
         parent::setUp();
 
         $this->seed(RbacSeeder::class);
-        Notification::fake();
     }
 
-    public function test_each_significant_status_transition_notifies_the_professional(): void
+    public function test_each_significant_status_transition_persists_a_database_notification_once(): void
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
@@ -45,39 +43,47 @@ class WithdrawalStatusNotificationTest extends TestCase
             'withdraw-notification-test-0001',
         );
 
-        Notification::assertSentTo(
-            $user,
-            WithdrawalStatusChanged::class,
-            static fn (WithdrawalStatusChanged $notification): bool => $notification->status === WithdrawalStatus::REQUESTED
-                && $notification->withdrawalId === $withdrawal->getKey(),
-        );
-
         $service->markProcessing($withdrawal, $user->getKey(), 'Le traitement manuel a commencé.');
-        Notification::assertSentTo(
-            $user,
-            WithdrawalStatusChanged::class,
-            static fn (WithdrawalStatusChanged $notification): bool => $notification->status === WithdrawalStatus::PROCESSING,
-        );
-
         $service->markReviewRequired($withdrawal, 'La confirmation externe est encore ambiguë.', $user->getKey());
-        Notification::assertSentTo(
-            $user,
-            WithdrawalStatusChanged::class,
-            static fn (WithdrawalStatusChanged $notification): bool => $notification->status === WithdrawalStatus::REVIEW_REQUIRED,
-        );
-
         $service->markFailed(
             $withdrawal,
             'PROVIDER_CONFIRMED_FAILURE',
             'Le résultat négatif a été confirmé par la vérification manuelle.',
             $user->getKey(),
         );
-        Notification::assertSentTo(
-            $user,
-            WithdrawalStatusChanged::class,
-            static fn (WithdrawalStatusChanged $notification): bool => $notification->status === WithdrawalStatus::FAILED,
+        // Repeated delivery of the same terminal operation must not notify twice.
+        $service->markFailed(
+            $withdrawal,
+            'PROVIDER_CONFIRMED_FAILURE',
+            'Le résultat négatif a été confirmé par la vérification manuelle.',
+            $user->getKey(),
         );
 
-        Notification::assertSentToTimes($user, WithdrawalStatusChanged::class, 4);
+        $notifications = DB::table('notifications')
+            ->where('notifiable_type', User::class)
+            ->where('notifiable_id', $user->getKey())
+            ->get();
+
+        $this->assertCount(4, $notifications);
+
+        $payloads = $notifications->map(
+            static fn (object $row): array => json_decode($row->data, true, 512, JSON_THROW_ON_ERROR),
+        );
+
+        $this->assertEqualsCanonicalizing(
+            [
+                WithdrawalStatus::REQUESTED->value,
+                WithdrawalStatus::PROCESSING->value,
+                WithdrawalStatus::REVIEW_REQUIRED->value,
+                WithdrawalStatus::FAILED->value,
+            ],
+            $payloads->pluck('status')->all(),
+        );
+
+        $this->assertTrue($payloads->every(
+            static fn (array $payload): bool => $payload['kind'] === 'withdrawal_status_changed'
+                && $payload['withdrawal_id'] === $withdrawal->getKey()
+                && $payload['url'] === route('professional.withdrawals.show', $withdrawal),
+        ));
     }
 }
