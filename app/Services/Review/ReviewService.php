@@ -21,6 +21,7 @@ class ReviewService
     public function __construct(
         private readonly DatabaseManager $database,
         private readonly TransactionalNotificationService $notificationService,
+        private readonly AuditLogService $auditLogService,
     ) {}
 
     public function create(Order $order, User $client, int $rating, ?string $comment): Review
@@ -83,6 +84,7 @@ class ReviewService
             ]);
 
             $this->refreshProfessionalRating($professional);
+            $this->auditLogService->record('review.created', $review, $client, ['order_id' => $lockedOrder->getKey()]);
 
             $professionalUser = User::query()->find($professional->user_id);
             if ($professionalUser !== null) {
@@ -136,6 +138,8 @@ class ReviewService
                 'status' => ReviewStatus::PUBLISHED,
             ]);
 
+            $this->auditLogService->record('review.response_published', $record, $professionalUser, ['review_id' => $lockedReview->getKey()]);
+
             return $record;
         }, attempts: 3);
     }
@@ -160,6 +164,7 @@ class ReviewService
                 ->findOrFail($lockedReview->professional_id);
 
             $this->refreshProfessionalRating($professional);
+            $this->auditLogService->record('review.moderated', $lockedReview, $moderator, ['status' => $status->value, 'reason' => $reason]);
 
             return $lockedReview->refresh()->load('response');
         }, attempts: 3);
@@ -176,6 +181,7 @@ class ReviewService
                 'moderated_at' => now(),
                 'moderation_reason' => $reason,
             ])->save();
+            $this->auditLogService->record('review.response_moderated', $lockedResponse, $moderator, ['status' => $status->value, 'reason' => $reason]);
 
             return $lockedResponse->refresh();
         }, attempts: 3);
