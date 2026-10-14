@@ -36,6 +36,7 @@ class ReviewController extends Controller
             ->route('client.orders.show', $order)
             ->with('success', 'Merci ! Votre avis a été publié et contribue à une réputation fiable sur PROXIWORK.');
     }
+
     public function reportResponse(
         StoreReportRequest $request,
         Order $order,
