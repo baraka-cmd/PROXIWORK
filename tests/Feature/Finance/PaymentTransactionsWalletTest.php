@@ -773,4 +773,38 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
+
+    public function test_wallet_credit_idempotency_key_rejects_a_changed_amount(): void
+    {
+        [, $professional] = $this->professional();
+        $service = app(WalletService::class);
+
+        $service->creditPending(
+            professional: $professional,
+            amount: '10.00',
+            currency: 'USD',
+            type: WalletTransactionType::EARNING,
+            idempotencyKey: 'wallet-credit-fingerprint-0001',
+        );
+
+        try {
+            $service->creditPending(
+                professional: $professional,
+                amount: '11.00',
+                currency: 'USD',
+                type: WalletTransactionType::EARNING,
+                idempotencyKey: 'wallet-credit-fingerprint-0001',
+            );
+            $this->fail('A credit idempotency key cannot be reused with a different amount.');
+        } catch (PaymentConflictException $exception) {
+            $this->assertStringContainsString('déjà utilisée pour une autre opération', $exception->getMessage());
+        }
+
+        $this->assertDatabaseCount('wallet_transactions', 1);
+        $this->assertDatabaseHas('wallets', [
+            'professional_id' => $professional->id,
+            'pending_balance' => '10.00',
+        ]);
+    }
+
 }
