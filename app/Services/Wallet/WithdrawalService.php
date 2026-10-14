@@ -235,6 +235,16 @@ class WithdrawalService
                 throw new PaymentConflictException('Un retrait doit être en traitement ou à vérifier avant confirmation.');
             }
 
+            $referenceAlreadyUsed = Withdrawal::query()
+                ->where('provider', $locked->provider)
+                ->where('provider_transaction_id', $providerTransactionId)
+                ->whereKeyNot($locked->getKey())
+                ->exists();
+
+            if ($referenceAlreadyUsed) {
+                throw new PaymentConflictException('Cette référence de paiement est déjà associée à un autre retrait.');
+            }
+
             $lockedBefore = $this->minor((string) $wallet->locked_balance);
             $value = $this->minor((string) $locked->amount);
 
