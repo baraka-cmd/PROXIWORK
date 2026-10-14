@@ -53,7 +53,7 @@ Les constats ci-dessous expliquent pourquoi le point 35 a été ouvert. Ils sont
 8. **Résolu pour les nouvelles demandes :** la destination est chiffrée par le cast Laravel et masquée à l'écran professionnel. Les anciennes destinations déjà stockées en clair ne sont pas automatiquement rechiffrées par cette migration; leur accès doit être traité dans une opération de migration séparée et contrôlée.
 9. **Résolu dans la branche :** le formatage monétaire des vues utilise un formateur décimal sans `float`.
 10. **Décisions métier toujours bloquantes :** aucun minimum/maximum métier, plafond quotidien/périodique, barème de frais, délai contractuel ou vérification d'identité n'est prouvé. Le workflow admin manuel existe, mais ne remplace pas ces décisions.
-11. **État des tests de la branche :** des tests couvrent les transitions, les mouvements par compartiment, l'idempotence, les annulations, les résultats ambigus, les destinations chiffrées/masquées, les permissions admin, le support et l'immutabilité Eloquent du registre. Les tests SQLite ne constituent pas à eux seuls une preuve de concurrence multi-connexion en MySQL; cette limite doit rester explicite.
+11. **État des tests de la branche :** des tests couvrent les transitions, les mouvements par compartiment, l'idempotence, les annulations, les résultats ambigus, les destinations chiffrées/masquées, les permissions admin, le support, les notifications et l'immutabilité Eloquent du registre. La CI exécute aussi les tests financiers ciblés contre MySQL 8.4. Cela valide le comportement sur le moteur réel et la contrainte d'unicité, mais ne remplace pas encore un test de stress multi-processus sur deux demandes simultanées.
 
 ## Garde-fous non négociables
 
