@@ -202,6 +202,16 @@ class ReviewService
             ])->save();
             $this->auditLogService->record('review.response_moderated', $lockedResponse, $moderator, ['status' => $status->value, 'reason' => $reason], $request);
 
+            $professional = ProfessionalProfile::query()->find($lockedResponse->professional_id);
+            $professionalUser = $professional === null ? null : User::query()->find($professional->user_id);
+            if ($professionalUser !== null) {
+                $this->notificationService->reviewModerationUpdated(
+                    $professionalUser,
+                    $status->value,
+                    'review-response-moderation:'.$lockedResponse->getKey().':'.$status->value,
+                );
+            }
+
             return $lockedResponse->refresh();
         }, attempts: 3);
     }
