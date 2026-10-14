@@ -39,6 +39,7 @@ L'historique est paginé à 15 écritures par page. Les filtres sont validés c�
 - Les montants visibles sont formatés à partir de leur représentation décimale, sans conversion en nombre flottant.
 - L'écran expose séparément disponible, en attente et bloqué/réservé.
 - L'état vide, les erreurs de filtre, l'état de portefeuille non actif et l'avertissement de limites du registre sont explicitement présentés.
+- L'action de demande de retrait n'est pas affichée lorsque le portefeuille n'est pas actif ; le service de retrait doit également faire respecter cette règle côté serveur dans le point dédié.
 - L'historique affiché est celui des écritures actuellement enregistrées ; il n'est pas présenté comme un relevé comptable certifié.
 
 ## Sécurité
