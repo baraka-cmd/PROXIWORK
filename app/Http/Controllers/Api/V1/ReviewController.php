@@ -32,6 +32,7 @@ class ReviewController extends Controller
             client: $request->user(),
             rating: (int) $request->validated('rating'),
             comment: $request->validated('comment'),
+            request: $request,
         );
 
         $review->loadMissing('professional.user');
@@ -59,6 +60,7 @@ class ReviewController extends Controller
             moderator: $request->user(),
             status: ReviewStatus::from($request->validated('status')),
             reason: $request->validated('reason'),
+            request: $request,
         );
 
         return new ReviewResource($review);
@@ -88,6 +90,7 @@ class ReviewController extends Controller
             review: $review,
             professionalUser: $request->user(),
             response: $request->validated('response'),
+            request: $request,
         );
 
         return response()->json([
