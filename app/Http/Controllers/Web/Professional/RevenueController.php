@@ -85,7 +85,7 @@ class RevenueController extends Controller
                 'Date de correction',
             ], ',', '"', '');
 
-            $query->chunk(500, function ($commissions) use ($output): void {
+            $query->chunk(500, function ($commissions) use ($output, $analytics): void {
                 foreach ($commissions as $commission) {
                     $serviceTitle = $analytics->serviceLabelForOrder($commission->order);
                     $orderReference = $commission->order?->order_number
