@@ -268,7 +268,7 @@ class ReviewService
         }
 
         if ($search !== null && trim($search) !== '') {
-            $term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($search)).'%';
+            $term = '%'.trim($search).'%';
             $query->where(fn ($match) => $match->where('comment', 'like', $term)->orWhereHas('client', fn ($client) => $client->where('name', 'like', $term)));
         }
 
