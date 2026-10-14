@@ -138,6 +138,43 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_csv_export_is_private_and_uses_the_professional_revenue_endpoint(): void
+    {
+        [$professional, $order] = $this->financialScenario();
+
+        $payment = Payment::query()->forceCreate([
+            'order_id' => $order->getKey(),
+            'client_id' => $order->client_id,
+            'method' => PaymentMethod::MOBILE_MONEY,
+            'provider' => PaymentProvider::FAKE,
+            'status' => PaymentStatus::SUCCEEDED,
+            'currency' => 'USD',
+            'amount' => '500.00',
+            'paid_at' => now(),
+        ]);
+
+        Commission::query()->forceCreate([
+            'order_id' => $order->getKey(),
+            'payment_id' => $payment->getKey(),
+            'professional_id' => $order->professional_id,
+            'gross_amount' => '500.00',
+            'commission_rate' => '10.00',
+            'commission_amount' => '50.00',
+            'net_amount' => '450.00',
+            'currency' => 'USD',
+            'calculation_type' => 'percentage',
+            'status' => 'posted',
+            'posted_at' => now(),
+        ]);
+
+        $this->actingAs($professional)
+            ->get(route('professional.revenues.export', ['period' => '30d']))
+            ->assertOk()
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8')
+            ->assertHeader('cache-control', 'private, no-store, max-age=0')
+            ->assertHeader('x-content-type-options', 'nosniff');
+    }
+
     public function test_custom_period_requires_both_dates_and_rejects_reversed_ranges(): void
     {
         $professional = $this->professional();
