@@ -64,6 +64,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
             'provider' => 'mobile_money',
             'destination' => '0000000000',
             'idempotency_key' => 'web-'.Str::random(32),
+            'confirm_request' => '1',
         ]);
 
         $withdrawal = Withdrawal::query()->latest('id')->firstOrFail();
@@ -120,6 +121,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
             'test-'.Str::random(32),
         );
 
+        app(WithdrawalService::class)->markProcessing($withdrawal);
         app(WithdrawalService::class)->markFailed($withdrawal, 'provider_failed', 'Test failure');
 
         $wallet->refresh();
