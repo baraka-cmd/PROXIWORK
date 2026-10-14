@@ -25,6 +25,7 @@ class ReviewController extends Controller
             client: $request->user(),
             rating: (int) $request->validated('rating'),
             comment: $request->validated('comment'),
+            request: $request,
         );
 
         return redirect()
