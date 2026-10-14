@@ -147,6 +147,7 @@ class ReviewService
                 $this->notificationService->reviewResponseReceived(
                     $client,
                     'review-response:'.$record->getKey(),
+                    (int) $lockedReview->order_id,
                 );
             }
 
