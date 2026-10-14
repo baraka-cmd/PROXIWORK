@@ -184,6 +184,60 @@ class ProfessionalReviewListingTest extends TestCase
         }
     }
 
+    public function test_reputation_summary_excludes_hidden_reviews_and_reports_distribution_and_response_state(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $firstOrder = $this->createOrder($client, $user, $professional);
+        $secondOrder = $this->createOrder($client, $user, $professional);
+        $hiddenOrder = $this->createOrder($client, $user, $professional);
+
+        $firstReview = Review::query()->where('order_id', $firstOrder->id)->firstOrFail();
+        $firstReview->forceFill([
+            'rating' => 5,
+            'status' => ReviewStatus::PUBLISHED,
+            'published_at' => now()->subDays(2),
+        ])->save();
+
+        $secondReview = Review::query()->where('order_id', $secondOrder->id)->firstOrFail();
+        $secondReview->forceFill([
+            'rating' => 3,
+            'status' => ReviewStatus::PUBLISHED,
+            'published_at' => now()->subDays(1),
+        ])->save();
+
+        Review::query()->where('order_id', $hiddenOrder->id)->update([
+            'rating' => 1,
+            'status' => ReviewStatus::HIDDEN->value,
+            'published_at' => null,
+        ]);
+
+        app(ReviewService::class)->respond($firstReview, $user, 'Merci pour votre retour.');
+
+        $summary = app(ReviewService::class)->reputationSummary($professional, 7);
+
+        $this->assertSame(2, $summary['total']);
+        $this->assertSame(4.0, $summary['average']);
+        $this->assertSame(1, $summary['distribution'][5]);
+        $this->assertSame(1, $summary['distribution'][3]);
+        $this->assertSame(0, $summary['distribution'][1]);
+        $this->assertSame(1, $summary['answered']);
+        $this->assertSame(1, $summary['unanswered']);
+
+        $unanswered = app(ReviewService::class)->listForProfessional(
+            $professional,
+            hasResponse: false,
+            perPage: 10,
+        );
+        $this->assertCount(2, $unanswered->items());
+        $this->assertNotContains($firstReview->id, collect($unanswered->items())->pluck('id')->all());
+    }
+
     private function createOrder(
         User $client,
         User $professionalUser,
