@@ -210,11 +210,24 @@ class WebProfessionalNotificationsTest extends TestCase
             ],
         ]);
 
+        $professional->notifications()->create([
+            'id' => (string) Str::uuid(),
+            'type' => 'account_activity',
+            'data' => [
+                'title' => 'Lien malformé',
+                'message' => 'Une URL malformée ne doit pas casser la page.',
+                'action' => 'order',
+                'url' => 'http://[',
+            ],
+        ]);
+
         $this->actingAs($professional)
             ->get(route('professional.notifications'))
             ->assertOk()
             ->assertSee('Lien externe non autorisé')
-            ->assertDontSee('href="https://evil.example/phishing"', false);
+            ->assertSee('Lien malformé')
+            ->assertDontSee('href="https://evil.example/phishing"', false)
+            ->assertDontSee('href="http://["', false);
     }
 
     public function test_professional_can_update_external_notification_preferences_without_disabling_database_history(): void
