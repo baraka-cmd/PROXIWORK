@@ -31,6 +31,7 @@ class ProfessionalRevenueFilterRequest extends FormRequest
             'currency' => ['nullable', 'regex:/^[A-Za-z]{3}$/'],
             'service_id' => ['nullable', 'integer', 'min:1'],
             'order_id' => ['nullable', 'integer', 'min:1'],
+            'reference' => ['nullable', 'string', 'max:64'],
             'status' => ['sometimes', 'string', Rule::in(['all', 'posted', 'reversed'])],
         ];
     }
@@ -57,6 +58,9 @@ class ProfessionalRevenueFilterRequest extends FormRequest
         $filters['status'] = $filters['status'] ?? 'all';
         $filters['currency'] = isset($filters['currency']) && $filters['currency'] !== ''
             ? strtoupper($filters['currency'])
+            : null;
+        $filters['reference'] = isset($filters['reference']) && trim($filters['reference']) !== ''
+            ? trim($filters['reference'])
             : null;
 
         return $filters;
