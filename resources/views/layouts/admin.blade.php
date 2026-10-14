@@ -59,12 +59,12 @@
                 <span>Paiements</span>
             </a>
 
-            @can('admin.withdrawals.manage')
+            @if(auth()->user()?->hasPermissionTo('admin.withdrawals.manage'))
                 <a class="dashboard-nav-link" data-nav-link href="{{ route('admin.withdrawals.index') }}">
                     <i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>
                     <span>Retraits professionnels</span>
                 </a>
-            @endcan
+            @endif
         </section>
 
         <section class="dashboard-nav-section">
