@@ -21,7 +21,7 @@ class RevenueAnalyticsService
     public function dashboard(ProfessionalProfile $professional, array $filters): array
     {
         [$start, $end, $periodLabel] = $this->period($filters);
-        $base = $this->commissionQuery($professional, $filters, $start, $end, false);
+        $base = $this->commissionQuery($professional, $filters, $start, $end, false, false);
         $posted = (clone $base)->where('commissions.status', CommissionStatus::POSTED->value);
 
         $summary = (clone $posted)
@@ -109,6 +109,7 @@ class RevenueAnalyticsService
         CarbonImmutable $start,
         CarbonImmutable $end,
         bool $includeStatus = true,
+        bool $includeReference = true,
     ): Builder {
         return Commission::query()
             ->where('commissions.professional_id', $professional->getKey())
@@ -197,7 +198,7 @@ class RevenueAnalyticsService
             ? "strftime('{$format}', commissions.posted_at)"
             : "DATE_FORMAT(commissions.posted_at, '{$format}')";
 
-        $rows = $this->commissionQuery($professional, $filters, $start, $end, false)
+        $rows = $this->commissionQuery($professional, $filters, $start, $end, false, false)
             ->where('commissions.status', CommissionStatus::POSTED->value)
             ->selectRaw("commissions.currency, {$periodExpression} as period_key, SUM(commissions.net_amount) as net_amount")
             ->groupBy('commissions.currency', 'period_key')
