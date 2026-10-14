@@ -231,5 +231,4 @@ class WebProfessionalNotificationsTest extends TestCase
             'push_enabled' => false,
         ]);
     }
-
 }
