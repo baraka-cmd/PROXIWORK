@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Enums\WithdrawalStatus;
+use App\Models\AuditLog;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use App\Models\Withdrawal;
-use App\Services\Wallet\WithdrawalService;
 use App\Services\Wallet\WalletService;
+use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -129,7 +130,7 @@ class AdminWithdrawalManagementTest extends TestCase
             'subject_id' => $withdrawal->id,
         ]);
 
-        $log = \App\Models\AuditLog::query()
+        $log = AuditLog::query()
             ->where('action', 'admin.withdrawal.destination.viewed')
             ->firstOrFail();
 
