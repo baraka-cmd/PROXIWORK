@@ -131,3 +131,16 @@ jobs:
           php artisan migrate --force
           php artisan db:seed --force
           php artisan db:seed --force
+
+      - name: Run financial regression tests against MySQL
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: proxiwork_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          vendor/bin/phpunit tests/Feature/Finance
+          vendor/bin/phpunit tests/Feature/Professional/WebProfessionalWalletWithdrawalsTest.php
+          vendor/bin/phpunit tests/Feature/Admin/AdminWithdrawalManagementTest.php
