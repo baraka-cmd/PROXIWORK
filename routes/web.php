@@ -238,7 +238,8 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('withdrawals', [ProfessionalWithdrawalController::class, 'store'])->middleware('throttle:payment')->name('withdrawals.store');
     Route::get('withdrawals/{withdrawal}', [ProfessionalWithdrawalController::class, 'show'])->name('withdrawals.show');
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews');
-    Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('throttle:10,1')->name('reviews.respond');\n    Route::post('reviews/{review}/report', [ReviewController::class, 'report'])->middleware('throttle:5,1')->name('reviews.report');
+    Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('throttle:10,1')->name('reviews.respond');
+    Route::post('reviews/{review}/report', [ReviewController::class, 'report'])->middleware('throttle:5,1')->name('reviews.report');
     Route::get('messages', [MessageController::class, 'index'])->name('messages');
     Route::get('messages/attachments/{attachment}', [MessageController::class, 'downloadAttachment'])->name('messages.attachments.download');
     Route::get('messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('throttle:60,1')->name('messages.updates');
