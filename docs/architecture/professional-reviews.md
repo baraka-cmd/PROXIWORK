@@ -43,6 +43,7 @@ La page professionnelle ne révèle pas le nom complet du client. Elle n'affiche
 
 - La réponse est validée côté serveur et protégée par une politique d'autorisation.
 - Les soumissions sont limitées en débit et le formulaire désactive le bouton après soumission pour réduire les doubles clics. La contrainte unique sur `review_responses.review_id` demeure la garantie d'intégrité.
+- Le client dispose d'un formulaire web dans le détail de sa commande terminée, en plus de l'API existante. Le formulaire n'est proposé que si aucun avis n'existe déjà; le service métier reste l'autorité finale.
 - La publication d'un avis notifie le professionnel; une réponse publiée notifie le client; les décisions de modération notifiables informent le professionnel.
 - Les événements de création, réponse et modération sont journalisés dans le système d'audit existant.
 - Un même signalement ouvert par le même déclarant pour la même cible est refusé afin de réduire les doublons accidentels.
