@@ -114,12 +114,13 @@ class TransactionalNotificationService
 
     public function reviewReceived(User $recipient, ?string $idempotencyKey = null): void
     {
-        $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review', null, 'normal', $idempotencyKey);
+        $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review', '/professional/reviews', 'normal', $idempotencyKey);
     }
 
-    public function reviewResponseReceived(User $recipient, ?string $idempotencyKey = null): void
+    public function reviewResponseReceived(User $recipient, ?string $idempotencyKey = null, ?int $orderId = null): void
     {
-        $this->send($recipient, 'Réponse à votre avis', 'Le professionnel a répondu à votre avis. Consultez votre espace PROXIWORK pour lire sa réponse.', 'review', null, 'normal', $idempotencyKey);
+        $url = $orderId !== null ? '/client/orders/'.$orderId : '/client/orders';
+        $this->send($recipient, 'Réponse à votre avis', 'Le professionnel a répondu à votre avis. Consultez votre espace PROXIWORK pour lire sa réponse.', 'review', $url, 'normal', $idempotencyKey);
     }
 
     public function reviewModerationUpdated(User $recipient, string $status, ?string $idempotencyKey = null): void
@@ -128,7 +129,7 @@ class TransactionalNotificationService
             ? 'Après examen, un avis concernant votre profil est de nouveau publié.'
             : 'Après examen, un avis concernant votre profil a été masqué par la modération.';
 
-        $this->send($recipient, 'Mise à jour de modération', $message, 'review', null, 'normal', $idempotencyKey);
+        $this->send($recipient, 'Mise à jour de modération', $message, 'review', '/professional/reviews', 'normal', $idempotencyKey);
     }
 
     public function reviewResponseModerationUpdated(User $recipient, string $status, ?string $idempotencyKey = null): void
