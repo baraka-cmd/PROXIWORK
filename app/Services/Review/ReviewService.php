@@ -236,7 +236,6 @@ class ReviewService
 
         $query = Review::query()
             ->with([
-                'client:id,name',
                 'response',
                 'order:id,service_request_id',
                 'order.serviceRequest:id,service_id',
@@ -278,7 +277,10 @@ class ReviewService
 
         if ($search !== null && trim($search) !== '') {
             $term = '%'.trim($search).'%';
-            $query->where(fn ($match) => $match->where('comment', 'like', $term)->orWhereHas('client', fn ($client) => $client->where('name', 'like', $term)));
+            $query->where(fn ($match) => $match
+                ->where('comment', 'like', $term)
+                ->orWhereHas('order.serviceRequest.service', fn ($service) => $service->where('title', 'like', $term))
+            );
         }
 
         match ($sort) {
