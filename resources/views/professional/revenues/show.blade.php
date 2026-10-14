@@ -100,7 +100,7 @@
                                     <td>{{ $refund->requested_at?->format('d/m/Y H:i') ?? '—' }}</td>
                                     <td>{{ $refund->processed_at?->format('d/m/Y H:i') ?? '—' }}</td>
                                     <td>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</td>
-                                    <td><span class="revenue-status {{ $refund->status->value === 'succeeded' ? '' : 'revenue-status--reversed' }}">{{ match ($refund->status->value) { 'requested' => 'Demandé', 'processing' => 'En traitement', 'succeeded' => 'Confirmé', 'failed' => 'Échoué', 'rejected' => 'Refusé', 'cancelled' => 'Annulé', default => $refund->status->value } }}</span></td>
+                                    <td><span class="revenue-status {{ in_array($refund->status->value, ['requested', 'processing'], true) ? 'revenue-status--pending' : (in_array($refund->status->value, ['failed', 'rejected', 'cancelled'], true) ? 'revenue-status--reversed' : '') }}">{{ match ($refund->status->value) { 'requested' => 'Demandé', 'processing' => 'En traitement', 'succeeded' => 'Confirmé', 'failed' => 'Échoué', 'rejected' => 'Refusé', 'cancelled' => 'Annulé', default => $refund->status->value } }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
