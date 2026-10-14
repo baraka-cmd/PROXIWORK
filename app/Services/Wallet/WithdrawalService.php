@@ -617,6 +617,24 @@ class WithdrawalService
             ->first();
 
         if ($existing !== null) {
+            $sameOperation = $existing->type === WalletTransactionType::WITHDRAWAL
+                && $existing->direction === $direction
+                && $existing->currency === $withdrawal->currency
+                && $this->minor((string) $existing->amount) === $amount
+                && $this->minor((string) $existing->balance_before) === $before
+                && $this->minor((string) $existing->balance_after) === $after
+                && $existing->balance_bucket === $bucket
+                && $existing->reference_type === Withdrawal::class
+                && (int) $existing->reference_id === (int) $withdrawal->getKey()
+                && $existing->description === $description
+                && $existing->metadata === ($metadata === [] ? null : $metadata);
+
+            if (! $sameOperation) {
+                throw new PaymentConflictException(
+                    'Une écriture de registre portant cette clé d’idempotence contient des données différentes; un rapprochement est requis.'
+                );
+            }
+
             return $existing;
         }
 
@@ -654,6 +672,21 @@ class WithdrawalService
             ->first();
 
         if ($existing !== null) {
+            $existingActorId = $existing->actor_user_id === null ? null : (int) $existing->actor_user_id;
+            $expectedMetadata = $metadata === [] ? null : $metadata;
+            $sameTransition = $existing->from_status === $from
+                && $existing->to_status === $to
+                && $existing->actor_type === $actorType
+                && $existingActorId === $actorUserId
+                && $existing->reason === $reason
+                && $existing->metadata === $expectedMetadata;
+
+            if (! $sameTransition) {
+                throw new PaymentConflictException(
+                    'Une transition d’état portant cette clé d’idempotence contient des données différentes; un rapprochement est requis.'
+                );
+            }
+
             return $existing;
         }
 
