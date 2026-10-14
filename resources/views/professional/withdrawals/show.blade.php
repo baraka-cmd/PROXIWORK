@@ -71,6 +71,35 @@
         @endif
     </section>
 
+    @if($supportTickets->isNotEmpty())
+        <section class="data-card" aria-labelledby="withdrawal-support-history-title">
+            <div class="data-card__header"><div><span class="eyebrow">ASSISTANCE</span><h3 id="withdrawal-support-history-title">Conversation avec le support</h3></div></div>
+            @foreach($supportTickets as $ticket)
+                <article class="withdrawal-support-ticket">
+                    <div class="withdrawal-support-ticket__header"><strong>Ticket #{{ $ticket->getKey() }} — {{ $ticket->subject }}</strong><span class="status-badge status-badge--neutral">{{ str_replace('_', ' ', $ticket->status->value) }}</span></div>
+                    <div class="withdrawal-support-messages">
+                        @foreach($ticket->messages as $message)
+                            <div class="withdrawal-support-message {{ (int)$message->sender_id === (int)auth()->id() ? 'withdrawal-support-message--own' : '' }}">
+                                <strong>{{ (int)$message->sender_id === (int)auth()->id() ? 'Vous' : ($message->sender?->name ?? 'Support') }}</strong>
+                                <small>{{ $message->created_at?->format('d/m/Y H:i') }}</small>
+                                <p>{{ $message->body }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($ticket->status->value !== 'closed')
+                        <form method="POST" action="{{ route('professional.withdrawals.support.message', [$withdrawal, $ticket]) }}" class="finance-form withdrawal-support-reply">
+                            @csrf
+                            <div class="form-field"><label for="support-reply-{{ $ticket->getKey() }}">Votre réponse</label><textarea id="support-reply-{{ $ticket->getKey() }}" name="body" rows="3" minlength="10" maxlength="10000" required></textarea></div>
+                            <button class="button button--secondary button--small" type="submit">Répondre au ticket</button>
+                        </form>
+                    @else
+                        <p class="finance-note">Ce ticket est fermé. Si le problème persiste, vous pouvez ouvrir un nouveau signalement.</p>
+                    @endif
+                </article>
+            @endforeach
+        </section>
+    @endif
+
     <section class="data-card" aria-labelledby="withdrawal-support-title">
         <div class="data-card__header"><div><span class="eyebrow">ASSISTANCE</span><h3 id="withdrawal-support-title">Signaler un problème</h3></div></div>
         <p class="finance-note">Le ticket sera lié à cette demande de retrait pour permettre au support de retrouver son statut et son historique. N’inscrivez pas de mot de passe, code PIN ou autre secret de paiement dans votre message.</p>
