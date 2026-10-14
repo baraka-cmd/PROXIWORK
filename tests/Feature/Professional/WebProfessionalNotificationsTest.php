@@ -138,6 +138,7 @@ class WebProfessionalNotificationsTest extends TestCase
 
         $this->assertNull($notification->fresh()->read_at);
     }
+
     public function test_professional_can_search_filter_and_archive_only_own_notifications(): void
     {
         $professional = User::factory()->create();
