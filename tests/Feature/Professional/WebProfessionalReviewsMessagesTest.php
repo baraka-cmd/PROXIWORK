@@ -186,6 +186,68 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_professional_can_report_an_abusive_review_on_their_own_profile(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+
+        $this->actingAs($professional)
+            ->post(route('professional.reviews.report', $review), [
+                'target_type' => 'review',
+                'target_id' => $review->id,
+                'reason_code' => 'ABUSIVE_CONTENT',
+                'description' => 'Le commentaire contient des insultes ciblées.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reports', [
+            'reporter_id' => $professional->id,
+            'target_type' => Review::class,
+            'target_id' => $review->id,
+            'reason_code' => 'ABUSIVE_CONTENT',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_professional_cannot_report_a_review_belonging_to_another_professional(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $otherProfessional = User::factory()->create();
+        $otherProfessional->assignRole('professional');
+        $otherProfile = ProfessionalProfile::factory()->create(['user_id' => $otherProfessional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $otherProfessional, $otherProfile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+
+        $this->actingAs($professional)
+            ->post(route('professional.reviews.report', $review), [
+                'target_type' => 'review',
+                'target_id' => $review->id,
+                'reason_code' => 'FRAUD',
+            ])
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('reports', [
+            'reporter_id' => $professional->id,
+            'target_id' => $review->id,
+            'reason_code' => 'FRAUD',
+        ]);
+    }
+
     private function createCompletedOrder(
         User $client,
         User $professionalUser,
