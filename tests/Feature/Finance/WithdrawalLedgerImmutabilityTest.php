@@ -6,6 +6,7 @@ namespace Tests\Feature\Finance;
 
 use App\Models\ProfessionalProfile;
 use App\Models\User;
+use App\Models\Withdrawal;
 use App\Models\WalletTransaction;
 use App\Models\WithdrawalStatusHistory;
 use App\Services\Wallet\WalletService;
@@ -27,7 +28,7 @@ class WithdrawalLedgerImmutabilityTest extends TestCase
 
     public function test_wallet_ledger_entries_cannot_be_updated_or_deleted(): void
     {
-        [$profile, $withdrawal] = $this->createWithdrawal();
+        [, $withdrawal] = $this->createWithdrawal();
 
         $transaction = WalletTransaction::query()
             ->where('reference_type', $withdrawal::class)
