@@ -8,7 +8,6 @@ use App\Enums\WithdrawalStatus;
 use App\Models\AuditLog;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
-use App\Models\Wallet;
 use App\Models\Withdrawal;
 use App\Services\Wallet\WithdrawalService;
 use App\Services\Wallet\WalletService;
