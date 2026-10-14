@@ -87,6 +87,17 @@ class WalletService
                     ->first();
 
                 if ($existing !== null) {
+                    if (
+                        $this->minor((string) $existing->amount) !== $this->minor($amount)
+                        || $existing->currency !== strtoupper($currency)
+                        || $existing->type !== $type
+                        || $existing->direction !== WalletTransactionDirection::CREDIT
+                        || $existing->reference_type !== $referenceType
+                        || $existing->reference_id !== $referenceId
+                    ) {
+                        throw new PaymentConflictException('La clé d’idempotence du crédit est déjà utilisée pour une autre opération.');
+                    }
+
                     return $existing;
                 }
             }
@@ -147,10 +158,30 @@ class WalletService
             $legacy = $existing->firstWhere('idempotency_key', $idempotencyKey);
 
             if ($existingAvailable !== null) {
+                if (
+                    $this->minor((string) $existingAvailable->amount) !== $this->minor($amount)
+                    || $existingAvailable->currency !== strtoupper($currency)
+                    || $existingAvailable->direction !== WalletTransactionDirection::CREDIT
+                    || $existingAvailable->reference_type !== $referenceType
+                    || $existingAvailable->reference_id !== $referenceId
+                ) {
+                    throw new PaymentConflictException('La clé d’idempotence de libération est déjà utilisée pour une autre opération.');
+                }
+
                 return $existingAvailable;
             }
 
             if ($legacy !== null) {
+                if (
+                    $this->minor((string) $legacy->amount) !== $this->minor($amount)
+                    || $legacy->currency !== strtoupper($currency)
+                    || $legacy->direction !== WalletTransactionDirection::CREDIT
+                    || $legacy->reference_type !== $referenceType
+                    || $legacy->reference_id !== $referenceId
+                ) {
+                    throw new PaymentConflictException('La clé d’idempotence de libération est déjà utilisée pour une autre opération.');
+                }
+
                 return $legacy;
             }
 
