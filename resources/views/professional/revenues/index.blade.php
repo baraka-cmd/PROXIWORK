@@ -147,7 +147,7 @@
                         <div class="revenue-card__header">
                             <div>
                                 <h2>Revenus nets par service</h2>
-                                <p class="revenue-muted">Les barres utilisent les commissions comptabilisées. Un revenu élevé n’est pas une mesure du bénéfice après les coûts du professionnel.</p>
+                                <p class="revenue-muted">Les barres utilisent les commissions comptabilisées. Les commandes contenant plusieurs services sont regroupées dans « Commande multi-services — ventilation indisponible » : leur commission complète n’est pas attribuée artificiellement à un seul service. Un revenu élevé n’est pas une mesure du bénéfice après les coûts du professionnel.</p>
                             </div>
                         </div>
                         @if ($servicesForCurrency->isNotEmpty())
