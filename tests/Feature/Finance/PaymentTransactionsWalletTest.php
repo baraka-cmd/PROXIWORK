@@ -645,7 +645,7 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
-public function test_pending_release_records_both_buckets_and_is_idempotent(): void
+    public function test_pending_release_records_both_buckets_and_is_idempotent(): void
     {
         [, $professional] = $this->professional();
         $service = app(WalletService::class);
