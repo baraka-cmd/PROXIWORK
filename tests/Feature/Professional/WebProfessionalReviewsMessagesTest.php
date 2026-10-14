@@ -186,6 +186,41 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_client_can_review_a_completed_order_from_the_web_order_detail(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile, createReview: false);
+
+        $this->actingAs($client)
+            ->get(route('client.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Évaluer cette prestation')
+            ->assertSee('Publier mon avis');
+
+        $this->actingAs($client)
+            ->post(route('client.orders.review.store', $order), [
+                'rating' => 4,
+                'comment' => 'Prestation sérieuse et communication claire.',
+            ])
+            ->assertRedirect(route('client.orders.show', $order))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reviews', [
+            'order_id' => $order->id,
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'rating' => 4,
+            'comment' => 'Prestation sérieuse et communication claire.',
+            'status' => ReviewStatus::PUBLISHED->value,
+        ]);
+    }
+
     public function test_professional_can_report_an_abusive_review_on_their_own_profile(): void
     {
         $professional = User::factory()->create();
@@ -252,6 +287,7 @@ class WebProfessionalReviewsMessagesTest extends TestCase
         User $client,
         User $professionalUser,
         ProfessionalProfile $professional,
+        bool $createReview = true,
     ): Order {
         $service = Service::factory()->create([
             'professional_profile_id' => $professional->id,
@@ -305,15 +341,17 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             'completed_at' => now(),
         ])->save();
 
-        Review::query()->forceCreate([
-            'order_id' => $order->id,
-            'client_id' => $client->id,
-            'professional_id' => $professional->id,
-            'rating' => 5,
-            'comment' => 'Excellent travail.',
-            'status' => ReviewStatus::PUBLISHED,
-            'published_at' => now(),
-        ]);
+        if ($createReview) {
+            Review::query()->forceCreate([
+                'order_id' => $order->id,
+                'client_id' => $client->id,
+                'professional_id' => $professional->id,
+                'rating' => 5,
+                'comment' => 'Excellent travail.',
+                'status' => ReviewStatus::PUBLISHED,
+                'published_at' => now(),
+            ]);
+        }
 
         return $order->fresh();
     }
