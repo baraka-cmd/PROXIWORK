@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Enums\WithdrawalStatus;
+use App\Models\AuditLog;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use App\Models\Wallet;
@@ -130,11 +131,11 @@ class AdminWithdrawalManagementTest extends TestCase
             'subject_id' => $withdrawal->id,
         ]);
 
-        $log = \App\Models\AuditLog::query()
+        $log = AuditLog::query()
             ->where('action', 'admin.withdrawal.destination.viewed')
             ->firstOrFail();
 
-        $this->assertStringNotContainsString('243970123456', \json_encode($log->metadata, JSON_THROW_ON_ERROR));
+        $this->assertStringNotContainsString('243970123456', json_encode($log->metadata, JSON_THROW_ON_ERROR));
     }
 
     private function createWithdrawal(): array
