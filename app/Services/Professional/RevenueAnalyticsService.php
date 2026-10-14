@@ -43,6 +43,7 @@ class RevenueAnalyticsService
             ->get();
 
         $commissions = $this->commissionQuery($professional, $filters, $start, $end, true)
+            ->when(($filters['nature'] ?? 'all') === 'refund', fn (Builder $query) => $query->whereRaw('1 = 0'))
             ->with(['order.items', 'payment'])
             ->orderByDesc('commissions.posted_at')
             ->orderByDesc('commissions.id')
@@ -109,6 +110,7 @@ class RevenueAnalyticsService
         [$start, $end] = $this->period($filters);
 
         return $this->commissionQuery($professional, $filters, $start, $end)
+            ->when(($filters['nature'] ?? 'all') === 'refund', fn (Builder $query) => $query->whereRaw('1 = 0'))
             ->with(['order.items'])
             ->orderBy('commissions.posted_at')
             ->orderBy('commissions.id');
@@ -143,6 +145,7 @@ class RevenueAnalyticsService
         [$start, $end] = $this->period($filters);
 
         $query = $this->confirmedRefundQuery($professional, $filters, $start, $end)
+            ->when(($filters['nature'] ?? 'all') === 'commission', fn (QueryBuilder $query) => $query->whereRaw('1 = 0'))
             ->select([
                 'payment_refunds.reference',
                 'payment_refunds.amount',
