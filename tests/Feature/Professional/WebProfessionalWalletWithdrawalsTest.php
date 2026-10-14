@@ -341,4 +341,50 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         return [$user, $profile, $wallet];
     }
 
+
+    public function test_form_rejects_unconfigured_payout_provider_and_requires_explicit_confirmation(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $wallet = app(WalletService::class)->getOrCreate($profile, 'USD');
+        $wallet->forceFill(['available_balance' => '100.00'])->save();
+
+        $this->actingAs($user)
+            ->from(route('professional.withdrawals.create', ['currency' => 'USD']))
+            ->post(route('professional.withdrawals.store'), [
+                'amount' => '10.00',
+                'currency' => 'USD',
+                'provider' => 'fake',
+                'destination' => '243970123456',
+                'idempotency_key' => 'invalid-withdrawal-provider-0001',
+            ])
+            ->assertRedirect(route('professional.withdrawals.create', ['currency' => 'USD']))
+            ->assertSessionHasErrors(['provider', 'confirm_request']);
+
+        $this->assertDatabaseCount('withdrawals', 0);
+        $this->assertSame('100.00', $wallet->fresh()->available_balance);
+        $this->assertSame('0.00', $wallet->fresh()->locked_balance);
+    }
+
+    public function test_professional_cannot_cancel_a_withdrawal_after_processing_started(): void
+    {
+        [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        $service = app(WithdrawalService::class);
+        $withdrawal = $service->request($profile, '15.00', 'USD', 'mobile_money', '243970123456', 'withdraw-cancel-processing-0001');
+        $service->markProcessing($withdrawal, null, 'Traitement manuel démarré pour le test.');
+
+        try {
+            $service->cancel($withdrawal, $user->id);
+            $this->fail('A withdrawal cannot be cancelled after processing begins.');
+        } catch (\App\Exceptions\PaymentConflictException $exception) {
+            $this->assertStringContainsString('ne peut plus être annulé', $exception->getMessage());
+        }
+
+        $this->assertSame(WithdrawalStatus::PROCESSING, $withdrawal->fresh()->status);
+        $this->assertSame('85.00', $wallet->fresh()->available_balance);
+        $this->assertSame('15.00', $wallet->fresh()->locked_balance);
+        $this->assertDatabaseCount('wallet_transactions', 2);
+    }
+
 }
