@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Finance;
 
+use App\Enums\WalletTransactionDirection;
+use App\Enums\WalletTransactionType;
+use App\Enums\WithdrawalStatus;
+use App\Exceptions\PaymentConflictException;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use App\Models\WalletTransaction;
@@ -54,6 +58,47 @@ class WithdrawalLedgerImmutabilityTest extends TestCase
             'id' => $transaction->getKey(),
             'description' => $originalDescription,
         ]);
+    }
+
+    public function test_mismatched_existing_idempotency_entry_rolls_back_the_financial_transition(): void
+    {
+        [, $withdrawal] = $this->createWithdrawal();
+        $service = app(WithdrawalService::class);
+        $service->markProcessing($withdrawal);
+
+        $wallet = $withdrawal->wallet()->firstOrFail();
+        $wallet->refresh();
+        $conflictingKey = 'withdrawal:'.$withdrawal->getKey().':failed:locked';
+
+        WalletTransaction::query()->forceCreate([
+            'wallet_id' => $wallet->getKey(),
+            'type' => WalletTransactionType::WITHDRAWAL,
+            'direction' => WalletTransactionDirection::DEBIT,
+            'currency' => $withdrawal->currency,
+            'amount' => $withdrawal->amount,
+            'balance_before' => $wallet->locked_balance,
+            'balance_after' => '0.00',
+            'balance_bucket' => 'available',
+            'reference_type' => Withdrawal::class,
+            'reference_id' => $withdrawal->getKey(),
+            'idempotency_key' => $conflictingKey,
+            'description' => 'Écriture contradictoire injectée par le test.',
+        ]);
+
+        try {
+            $service->markFailed(
+                $withdrawal,
+                'PROVIDER_CONFIRMED_FAILURE',
+                'Le résultat négatif a été confirmé par la vérification manuelle.',
+            );
+            $this->fail('A conflicting idempotency entry must abort the transition.');
+        } catch (PaymentConflictException $exception) {
+            $this->assertStringContainsString('données différentes', $exception->getMessage());
+        }
+
+        $this->assertSame(WithdrawalStatus::PROCESSING, $withdrawal->fresh()->status);
+        $this->assertSame('75.00', $wallet->fresh()->available_balance);
+        $this->assertSame('25.00', $wallet->fresh()->locked_balance);
     }
 
     public function test_withdrawal_status_history_cannot_be_updated_or_deleted(): void
