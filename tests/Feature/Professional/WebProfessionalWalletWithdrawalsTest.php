@@ -415,4 +415,28 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertDatabaseCount('wallet_transactions', 4);
     }
 
+
+    public function test_same_external_payment_reference_cannot_complete_two_withdrawals(): void
+    {
+        [, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        $service = app(WithdrawalService::class);
+        $first = $service->request($profile, '20.00', 'USD', 'mobile_money', '243970111111', 'withdraw-ref-unique-0001');
+        $second = $service->request($profile, '25.00', 'USD', 'mobile_money', '243970222222', 'withdraw-ref-unique-0002');
+        $service->markProcessing($first);
+        $service->markProcessing($second);
+        $service->markSucceeded($first, 'MOMO-UNIQUE-REFERENCE-0001');
+
+        try {
+            $service->markSucceeded($second, 'MOMO-UNIQUE-REFERENCE-0001');
+            $this->fail('A single external transfer reference cannot settle two withdrawal requests.');
+        } catch (\App\Exceptions\PaymentConflictException $exception) {
+            $this->assertStringContainsString('déjà associée à un autre retrait', $exception->getMessage());
+        }
+
+        $this->assertSame(WithdrawalStatus::SUCCEEDED, $first->fresh()->status);
+        $this->assertSame(WithdrawalStatus::PROCESSING, $second->fresh()->status);
+        $this->assertSame('25.00', $wallet->fresh()->locked_balance);
+        $this->assertDatabaseCount('wallet_transactions', 5);
+    }
+
 }
