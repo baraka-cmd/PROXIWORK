@@ -102,6 +102,10 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->actingAs($attacker)
             ->get(route('professional.withdrawals.show', $withdrawal))
             ->assertForbidden();
+
+        $this->actingAs($attacker)
+            ->post(route('professional.withdrawals.cancel', $withdrawal))
+            ->assertForbidden();
     }
 
     public function test_failed_withdrawal_returns_locked_amount(): void
@@ -385,6 +389,30 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertSame('85.00', $wallet->fresh()->available_balance);
         $this->assertSame('15.00', $wallet->fresh()->locked_balance);
         $this->assertDatabaseCount('wallet_transactions', 2);
+    }
+
+
+    public function test_professional_can_cancel_own_pending_withdrawal_through_authorized_route(): void
+    {
+        [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        $withdrawal = app(WithdrawalService::class)->request(
+            $profile,
+            '25.00',
+            'USD',
+            'mobile_money',
+            '243970123456',
+            'withdraw-route-cancel-0001',
+        );
+
+        $this->actingAs($user)
+            ->post(route('professional.withdrawals.cancel', $withdrawal))
+            ->assertRedirect(route('professional.withdrawals.show', $withdrawal))
+            ->assertSessionHas('status');
+
+        $this->assertSame(WithdrawalStatus::CANCELLED, $withdrawal->fresh()->status);
+        $this->assertSame('100.00', $wallet->fresh()->available_balance);
+        $this->assertSame('0.00', $wallet->fresh()->locked_balance);
+        $this->assertDatabaseCount('wallet_transactions', 4);
     }
 
 }
