@@ -57,17 +57,17 @@
 <section class="wallet-balance-grid" aria-label="Soldes du portefeuille">
     <article class="finance-balance-card finance-balance-card--main">
         <span class="finance-card-label">Disponible</span>
-        <strong>{{ number_format((float) $wallet->available_balance, 2, ',', ' ') }} {{ $wallet->currency }}</strong>
+        <strong>{{ \\App\\Support\\MoneyFormatter::format((string) $wallet->available_balance) }} {{ $wallet->currency }}</strong>
         <small>Montant actuellement disponible pour une demande de retrait, sous réserve des contrôles serveur.</small>
     </article>
     <article class="finance-balance-card">
         <span class="finance-card-label">En attente</span>
-        <strong>{{ number_format((float) $wallet->pending_balance, 2, ',', ' ') }} {{ $wallet->currency }}</strong>
+        <strong>{{ \\App\\Support\\MoneyFormatter::format((string) $wallet->pending_balance) }} {{ $wallet->currency }}</strong>
         <small>Revenus qui n’ont pas encore été libérés vers le solde disponible.</small>
     </article>
     <article class="finance-balance-card">
         <span class="finance-card-label">Bloqué / réservé</span>
-        <strong>{{ number_format((float) $wallet->locked_balance, 2, ',', ' ') }} {{ $wallet->currency }}</strong>
+        <strong>{{ \\App\\Support\\MoneyFormatter::format((string) $wallet->locked_balance) }} {{ $wallet->currency }}</strong>
         <small>Montants réservés pour des opérations en cours, notamment des demandes de retrait.</small>
     </article>
 </section>
@@ -136,7 +136,7 @@
                 <td><span class="wallet-transaction-reference">#{{ $transaction->id }}</span>@if($transaction->reference_id)<small class="wallet-reference-detail">Réf. liée : {{ class_basename((string) $transaction->reference_type) }} #{{ $transaction->reference_id }}</small>@endif</td>
                 <td>{{ $transaction->description ?: match($transaction->type?->value) { 'earning' => 'Revenu', 'commission' => 'Commission', 'withdrawal' => 'Retrait', 'refund' => 'Remboursement', 'adjustment' => 'Ajustement', 'reversal' => 'Contre-écriture', default => 'Opération financière' } }}</td>
                 <td><span class="finance-direction finance-direction--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? 'Crédit' : 'Débit' }}</span></td>
-                <td class="finance-amount finance-amount--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? '+' : '−' }}{{ number_format((float) $transaction->amount, 2, ',', ' ') }} {{ $transaction->currency }}</td>
+                <td class="finance-amount finance-amount--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? '+' : '−' }}{{ \\App\\Support\\MoneyFormatter::format((string) $transaction->amount) }} {{ $transaction->currency }}</td>
             </tr>
             @endforeach
             </tbody>
