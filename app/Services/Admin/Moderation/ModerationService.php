@@ -14,6 +14,7 @@ use App\Models\ProfessionalProfile;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\Review;
+use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
@@ -38,6 +39,7 @@ class ModerationService
             'service' => Service::class,
             'message' => Message::class,
             'review' => Review::class,
+            'review_response' => ReviewResponse::class,
         ];
 
         $class = $map[$type] ?? null;
@@ -287,6 +289,17 @@ class ModerationService
                 : throw ValidationException::withMessages([
                     'action_type' => 'Cette action exige un avis.',
                 ]),
+            ModerationActionType::HIDE_REVIEW_RESPONSE => $target instanceof ReviewResponse
+                ? $this->reviewService->moderateResponse(
+                    $target,
+                    $actor,
+                    ReviewStatus::HIDDEN,
+                    $reason ?? $note ?? 'Réponse masquée à la suite d’une décision de modération.',
+                    $request,
+                )
+                : throw ValidationException::withMessages([
+                    'action_type' => 'Cette action exige une réponse à un avis.',
+                ]),
             ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service
                 ? $target->forceFill([
                     'status' => 'unpublished',
@@ -332,6 +345,7 @@ class ModerationService
             || ($target instanceof ProfessionalProfile && $target->user_id === $user->id)
             || ($target instanceof Service && $target->professionalProfile?->user_id === $user->id)
             || ($target instanceof Review && $target->client_id === $user->id)
+            || ($target instanceof ReviewResponse && $target->professional?->user_id === $user->id)
             || ($target instanceof Message && $target->sender_id === $user->id);
     }
 }
