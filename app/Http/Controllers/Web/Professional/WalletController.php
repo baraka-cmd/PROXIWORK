@@ -11,6 +11,7 @@ use App\Http\Requests\Professional\Wallet\ProfessionalWalletFilterRequest;
 use App\Models\ProfessionalProfile;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -66,11 +67,11 @@ class WalletController extends Controller
             }
 
             if (! empty($filters['date_from'])) {
-                $query->where('created_at', '>=', $filters['date_from'].' 00:00:00');
+                $query->where('created_at', '>=', CarbonImmutable::createFromFormat('!Y-m-d', $filters['date_from']));
             }
 
             if (! empty($filters['date_to'])) {
-                $query->where('created_at', '<=', $filters['date_to'].' 23:59:59');
+                $query->where('created_at', '<', CarbonImmutable::createFromFormat('!Y-m-d', $filters['date_to'])->addDay());
             }
 
             $transactions = $query->paginate(15)->withQueryString();
