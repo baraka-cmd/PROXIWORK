@@ -20,7 +20,7 @@ class WalletController extends Controller
     public function show(Request $request): WalletResource
     {
         $profile = ProfessionalProfile::query()->where('user_id', $request->user()->getKey())->firstOrFail();
-        $currency = strtoupper((string) $request->query('currency', 'USD'));
+        $currency = strtoupper(trim((string) $request->query('currency', 'USD')));
 
         if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
             throw ValidationException::withMessages(['currency' => 'Devise invalide.']);
