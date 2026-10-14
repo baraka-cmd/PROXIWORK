@@ -256,7 +256,9 @@
                             {{ $review->status === \App\Enums\ReviewStatus::PUBLISHED ? 'Publié' : 'Masqué par la modération' }}
                         </span>
                         @if ($review->order)
-                            <span class="review-reference"><i class="fa-solid fa-receipt" aria-hidden="true"></i> Commande #{{ $review->order->id }}</span>
+                            <span class="review-reference"><i class="fa-solid fa-receipt" aria-hidden="true"></i>
+                                <a href="{{ route('professional.orders.show', $review->order->id) }}">Commande {{ $review->order->order_number ?: '#'.$review->order->id }}</a>
+                            </span>
                         @endif
                         @if ($review->order?->serviceRequest?->service)
                             <span class="review-service"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>
