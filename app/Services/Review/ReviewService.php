@@ -141,6 +141,14 @@ class ReviewService
 
             $this->auditLogService->record('review.response_published', $record, $professionalUser, ['review_id' => $lockedReview->getKey()]);
 
+            $client = User::query()->find($lockedReview->client_id);
+            if ($client !== null) {
+                $this->notificationService->reviewResponseReceived(
+                    $client,
+                    'review-response:'.$record->getKey(),
+                );
+            }
+
             return $record;
         }, attempts: 3);
     }
