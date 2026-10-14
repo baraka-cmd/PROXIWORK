@@ -202,6 +202,12 @@ class ReviewService
         ?ReviewStatus $status = null,
         string $sort = 'latest',
         int $perPage = 15,
+        ?string $from = null,
+        ?string $to = null,
+        ?int $serviceId = null,
+        ?bool $hasResponse = null,
+        ?bool $hasComment = null,
+        ?string $search = null,
     ): LengthAwarePaginator {
         if ($rating !== null && ($rating < 1 || $rating > 5)) {
             throw ValidationException::withMessages([
@@ -227,6 +233,35 @@ class ReviewService
 
         if ($status !== null) {
             $query->where('status', $status->value);
+        }
+
+        if ($from !== null) {
+            $query->whereDate('published_at', '>=', $from);
+        }
+
+        if ($to !== null) {
+            $query->whereDate('published_at', '<=', $to);
+        }
+
+        if ($serviceId !== null) {
+            $query->whereHas('order.serviceRequest', fn ($request) => $request->where('service_id', $serviceId));
+        }
+
+        if ($hasResponse === true) {
+            $query->whereHas('response', fn ($response) => $response->where('status', ReviewStatus::PUBLISHED->value));
+        } elseif ($hasResponse === false) {
+            $query->whereDoesntHave('response', fn ($response) => $response->where('status', ReviewStatus::PUBLISHED->value));
+        }
+
+        if ($hasComment === true) {
+            $query->whereNotNull('comment')->whereRaw("TRIM(comment) <> ''");
+        } elseif ($hasComment === false) {
+            $query->where(fn ($comments) => $comments->whereNull('comment')->orWhereRaw("TRIM(comment) = ''"));
+        }
+
+        if ($search !== null && trim($search) !== '') {
+            $term = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], trim($search)).'%';
+            $query->where(fn ($match) => $match->where('comment', 'like', $term)->orWhereHas('client', fn ($client) => $client->where('name', 'like', $term)));
         }
 
         match ($sort) {
