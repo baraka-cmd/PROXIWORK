@@ -153,7 +153,7 @@
                                     <thead><tr><th>Service</th><th>Commandes</th><th>Revenus nets</th></tr></thead>
                                     <tbody>
                                         @foreach ($servicesForCurrency as $serviceRevenue)
-                                            <tr><td>@if ($serviceRevenue->service_id)<a href="{{ request()->fullUrlWithQuery(['service_id' => $serviceRevenue->service_id]) }}">{{ $serviceRevenue->service_title }}</a>@else{{ $serviceRevenue->service_title }}@endif</td><td>{{ $serviceRevenue->orders_count }}</td><td><strong>{{ number_format((float) $serviceRevenue->net_amount, 2, ',', ' ') }} {{ $currency }}</strong></td></tr>
+                                            <tr><td>@if ($serviceRevenue->service_id)<a href="{{ request()->fullUrlWithQuery(['service_id' => $serviceRevenue->service_id, 'reference' => null, 'status' => 'posted']) }}">{{ $serviceRevenue->service_title }}</a>@else{{ $serviceRevenue->service_title }}@endif</td><td>{{ $serviceRevenue->orders_count }}</td><td><strong>{{ number_format((float) $serviceRevenue->net_amount, 2, ',', ' ') }} {{ $currency }}</strong></td></tr>
                                         @endforeach
                                     </tbody>
                                 </table>
