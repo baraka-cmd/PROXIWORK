@@ -70,6 +70,19 @@ class ModerationService
             ]);
         }
 
+        $existingOpenReport = Report::query()
+            ->where('reporter_id', $reporter->getKey())
+            ->where('target_type', $target->getMorphClass())
+            ->where('target_id', $target->getKey())
+            ->whereIn('status', [ReportStatus::PENDING->value, ReportStatus::UNDER_REVIEW->value])
+            ->exists();
+
+        if ($existingOpenReport) {
+            throw ValidationException::withMessages([
+                'target_id' => 'Un signalement est déjà en cours pour ce contenu.',
+            ]);
+        }
+
         if (
             $target instanceof Message
             && $target->conversation->participants()->whereKey($reporter->getKey())->exists() === false
