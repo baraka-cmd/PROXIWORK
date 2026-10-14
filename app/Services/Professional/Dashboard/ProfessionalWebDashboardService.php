@@ -70,6 +70,11 @@ class ProfessionalWebDashboardService
             ->firstOrFail();
 
         $professionalId = (int) $profile->getKey();
+        $unansweredReviewsCount = Review::query()
+            ->where('professional_id', $professionalId)
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereDoesntHave('response', fn (Builder $response) => $response->where('status', ReviewStatus::PUBLISHED->value))
+            ->count();
         $unreadNotifications = $user->notifications()
             ->whereNull('read_at')
             ->whereNull('archived_at')
@@ -153,6 +158,7 @@ class ProfessionalWebDashboardService
                 // These cached aggregates are maintained by ReviewService from published reviews.
                 'rating_average' => $profile->rating_average === null ? null : (float) $profile->rating_average,
                 'rating_count' => (int) $profile->rating_count,
+                'unanswered_reviews_count' => $unansweredReviewsCount,
             ],
             'notifications' => [
                 'unread' => $unreadNotifications,
