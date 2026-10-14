@@ -345,7 +345,6 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         return [$user, $profile, $wallet];
     }
 
-
     public function test_form_rejects_unconfigured_payout_provider_and_requires_explicit_confirmation(): void
     {
         $user = User::factory()->create();
@@ -391,7 +390,6 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertDatabaseCount('wallet_transactions', 2);
     }
 
-
     public function test_professional_can_cancel_own_pending_withdrawal_through_authorized_route(): void
     {
         [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
@@ -414,7 +412,6 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertSame('0.00', $wallet->fresh()->locked_balance);
         $this->assertDatabaseCount('wallet_transactions', 4);
     }
-
 
     public function test_same_external_payment_reference_cannot_complete_two_withdrawals(): void
     {
