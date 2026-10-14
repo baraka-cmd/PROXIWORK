@@ -70,5 +70,16 @@
             </ol>
         @endif
     </section>
+
+    <section class="data-card" aria-labelledby="withdrawal-support-title">
+        <div class="data-card__header"><div><span class="eyebrow">ASSISTANCE</span><h3 id="withdrawal-support-title">Signaler un problème</h3></div></div>
+        <p class="finance-note">Le ticket sera lié à cette demande de retrait pour permettre au support de retrouver son statut et son historique. N’inscrivez pas de mot de passe, code PIN ou autre secret de paiement dans votre message.</p>
+        @if($errors->has('body'))<div class="alert alert--error" role="alert">{{ $errors->first('body') }}</div>@endif
+        <form method="POST" action="{{ route('professional.withdrawals.report', $withdrawal) }}" class="finance-form">
+            @csrf
+            <div class="form-field"><label for="withdrawal-problem-body">Décrivez le problème</label><textarea id="withdrawal-problem-body" name="body" rows="4" minlength="10" maxlength="10000" required>{{ old('body') }}</textarea>@error('body')<small class="field-error">{{ $message }}</small>@enderror</div>
+            <button class="button button--secondary" type="submit"><i class="fa-solid fa-life-ring" aria-hidden="true"></i> Envoyer au support</button>
+        </form>
+    </section>
 </div>
 @endsection
