@@ -51,7 +51,7 @@
             <article class="reputation-stat reputation-stat--primary">
                 <span class="reputation-stat__label">Note moyenne</span>
                 @if ($summary['total'] > 0)
-                    <strong class="reputation-stat__value">{{ number_format($summary['average'], 2, ',', ' ') }}<small>/5</small></strong>
+                    <strong class="reputation-stat__value">{{ number_format($summary['average'], 1, ',', ' ') }}<small>/5</small></strong>
                     <span class="reputation-stat__hint" aria-label="Nombre d'avis">{{ $summary['total'] }} avis publiés</span>
                 @else
                     <strong class="reputation-stat__value reputation-stat__value--empty">—</strong>
@@ -96,7 +96,7 @@
                 <h3 id="trend-title">Évolution de la note</h3>
                 @if ($summary['recent_average'] !== null && $summary['previous_average'] !== null)
                     <strong class="reputation-trend__value">
-                        {{ number_format($summary['recent_average'], 2, ',', ' ') }}/5
+                        {{ number_format($summary['recent_average'], 1, ',', ' ') }}/5
                     </strong>
                     <p>
                         @if ($summary['average_change'] > 0)
