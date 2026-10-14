@@ -306,7 +306,7 @@ class ReviewService
             'distribution' => collect(range(1, 5))->mapWithKeys(fn (int $rating) => [$rating => (int) ($distributionRows[$rating] ?? 0)])->all(),
             'unanswered' => $unanswered,
             'answered' => $answered,
-            'commented' => (clone $published)->whereNotNull('comment')->whereRaw(\"TRIM(comment) <> ''\")->count(),
+            'commented' => (clone $published)->whereNotNull('comment')->whereRaw("TRIM(comment) <> ''")->count(),
             'recent_count' => (int) $current->count,
             'recent_average' => $current->count > 0 ? round((float) $current->average, 2) : null,
             'previous_count' => (int) $previous->count,
