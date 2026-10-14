@@ -124,7 +124,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Paiements confirmés')
             ->assertSee('500,00 USD')
-            ->assertSee('450,00 USD', false);
+            ->assertDontSee('450,00 USD');
     }
 
     public function test_confirmed_refunds_are_visible_separately_and_not_silently_subtracted_from_commission_income(): void
