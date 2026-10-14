@@ -85,6 +85,13 @@ class RevenueAnalyticsService
         ];
     }
 
+    public function periodDetails(array $filters): array
+    {
+        [$start, $end, $label] = $this->period($filters);
+
+        return ['from' => $start, 'to' => $end, 'label' => $label];
+    }
+
     public function exportQuery(ProfessionalProfile $professional, array $filters): Builder
     {
         [$start, $end] = $this->period($filters);
@@ -119,7 +126,18 @@ class RevenueAnalyticsService
             ->when($filters['service_id'] ?? null, function (Builder $query, int $serviceId): void {
                 $query->whereHas('order.items', fn (Builder $items) => $items->where('service_id', $serviceId));
             })
-            ->when($includeStatus && ($filters['status'] ?? 'all') !== 'all', fn (Builder $query) => $query->where('commissions.status', $filters['status']));
+            ->when($includeStatus && ($filters['status'] ?? 'all') !== 'all', fn (Builder $query) => $query->where('commissions.status', $filters['status']))
+            ->when($includeReference && ($filters['reference'] ?? null) !== null, function (Builder $query) use ($filters): void {
+                $reference = trim((string) $filters['reference']);
+
+                if (preg_match('/^(?:COM-|#)?([0-9]+)$/i', $reference, $matches) === 1) {
+                    $query->where('commissions.id', (int) $matches[1]);
+
+                    return;
+                }
+
+                $query->whereHas('order', fn (Builder $order) => $order->where('order_number', $reference));
+            });
     }
 
     private function completedOrdersSummary(
