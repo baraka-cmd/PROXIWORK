@@ -8,6 +8,7 @@ enum WithdrawalStatus: string
 {
     case REQUESTED = 'requested';
     case PROCESSING = 'processing';
+    case REVIEW_REQUIRED = 'review_required';
     case SUCCEEDED = 'succeeded';
     case FAILED = 'failed';
     case CANCELLED = 'cancelled';
@@ -16,7 +17,19 @@ enum WithdrawalStatus: string
     {
         return match ($this) {
             self::SUCCEEDED, self::FAILED, self::CANCELLED => true,
-            default => false,
+            self::REQUESTED, self::PROCESSING, self::REVIEW_REQUIRED => false,
+        };
+    }
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::REQUESTED => 'En attente',
+            self::PROCESSING => 'En traitement',
+            self::REVIEW_REQUIRED => 'À vérifier',
+            self::SUCCEEDED => 'Réussi',
+            self::FAILED => 'Échoué',
+            self::CANCELLED => 'Annulé',
         };
     }
 }
