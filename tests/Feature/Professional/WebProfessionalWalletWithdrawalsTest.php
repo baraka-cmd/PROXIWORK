@@ -335,18 +335,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertDatabaseCount('wallet_transactions', 4);
     }
 
-    private function professionalWithAvailableWallet(string $available): array
-    {
-        $user = User::factory()->create();
-        $user->assignRole('professional');
-        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
-        $wallet = app(WalletService::class)->getOrCreate($profile, 'USD');
-        $wallet->forceFill(['available_balance' => $available])->save();
-
-        return [$user, $profile, $wallet];
-    }
-
-    public function test_form_rejects_unconfigured_payout_provider_and_requires_explicit_confirmation(): void
+public function test_form_rejects_unconfigured_payout_provider_and_requires_explicit_confirmation(): void
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
@@ -525,4 +514,14 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertDatabaseCount('ticket_messages', 1);
     }
 
+    private function professionalWithAvailableWallet(string $available): array
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $wallet = app(WalletService::class)->getOrCreate($profile, 'USD');
+        $wallet->forceFill(['available_balance' => $available])->save();
+
+        return [$user, $profile, $wallet];
+    }
 }
