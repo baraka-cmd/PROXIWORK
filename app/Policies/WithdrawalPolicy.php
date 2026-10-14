@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\WithdrawalStatus;
 use App\Models\User;
 use App\Models\Withdrawal;
 
@@ -18,5 +19,11 @@ class WithdrawalPolicy
     public function create(User $user): bool
     {
         return $user->hasRole('professional');
+    }
+
+    public function cancel(User $user, Withdrawal $withdrawal): bool
+    {
+        return $this->view($user, $withdrawal)
+            && $withdrawal->status === WithdrawalStatus::REQUESTED;
     }
 }
