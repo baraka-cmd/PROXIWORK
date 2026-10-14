@@ -13,6 +13,8 @@ use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Models\Withdrawal;
 use App\Models\WithdrawalStatusHistory;
+use App\Models\User;
+use App\Notifications\WithdrawalStatusChanged;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -157,6 +159,13 @@ class WithdrawalService
                 idempotencyKey: 'withdrawal:'.$withdrawal->getKey().':status:requested',
             );
 
+            $this->notifyStatusChanged(
+                $withdrawal,
+                null,
+                WithdrawalStatus::REQUESTED,
+                'Demande soumise par le professionnel.',
+            );
+
             return $withdrawal->refresh();
         }, attempts: 3);
     }
@@ -196,6 +205,13 @@ class WithdrawalService
                 actorUserId: $actorUserId,
                 reason: $reason ?? 'Le traitement du retrait a été démarré.',
                 idempotencyKey: 'withdrawal:'.$locked->getKey().':status:processing',
+            );
+
+            $this->notifyStatusChanged(
+                $locked,
+                WithdrawalStatus::REQUESTED,
+                WithdrawalStatus::PROCESSING,
+                $reason ?? 'Le traitement du retrait a été démarré.',
             );
 
             return $locked->refresh();
@@ -286,6 +302,13 @@ class WithdrawalService
                 reason: $reason ?? 'Paiement confirmé avec preuve de rapprochement.',
                 idempotencyKey: 'withdrawal:'.$locked->getKey().':status:succeeded',
                 metadata: ['provider_transaction_id' => $providerTransactionId],
+            );
+
+            $this->notifyStatusChanged(
+                $locked,
+                $previousStatus,
+                WithdrawalStatus::SUCCEEDED,
+                $reason ?? 'Paiement confirmé avec preuve de rapprochement.',
             );
 
             return $locked->refresh();
@@ -422,6 +445,13 @@ class WithdrawalService
                 idempotencyKey: 'withdrawal:'.$locked->getKey().':status:review-required',
             );
 
+            $this->notifyStatusChanged(
+                $locked,
+                WithdrawalStatus::PROCESSING,
+                WithdrawalStatus::REVIEW_REQUIRED,
+                $reason,
+            );
+
             return $locked->refresh();
         }, attempts: 3);
     }
@@ -533,6 +563,13 @@ class WithdrawalService
             metadata: ['failure_code' => $code],
         );
 
+        $this->notifyStatusChanged(
+            $withdrawal,
+            $previousStatus,
+            $targetStatus,
+            $reason,
+        );
+
         return $withdrawal->refresh();
     }
 
@@ -630,6 +667,37 @@ class WithdrawalService
             'metadata' => $metadata === [] ? null : $metadata,
             'idempotency_key' => $idempotencyKey,
         ]);
+    }
+
+    private function notifyStatusChanged(
+        Withdrawal $withdrawal,
+        ?WithdrawalStatus $previousStatus,
+        WithdrawalStatus $status,
+        ?string $reason,
+    ): void {
+        $userId = ProfessionalProfile::query()
+            ->whereKey($withdrawal->professional_id)
+            ->value('user_id');
+
+        if ($userId === null) {
+            return;
+        }
+
+        $user = User::query()->find($userId);
+
+        if ($user === null) {
+            return;
+        }
+
+        // The notification uses only Laravel's database channel, so it joins
+        // the same transaction as the status/ledger mutation and rolls back
+        // with it. No external delivery is implied.
+        $user->notify(new WithdrawalStatusChanged(
+            withdrawalId: (int) $withdrawal->getKey(),
+            status: $status,
+            previousStatus: $previousStatus,
+            reason: $reason,
+        ));
     }
 
     private function minor(string $value): int
