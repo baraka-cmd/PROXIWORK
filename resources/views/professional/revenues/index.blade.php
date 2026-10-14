@@ -60,6 +60,9 @@
                 <label for="order_id">Commande (ID)
                     <input id="order_id" type="number" min="1" name="order_id" value="{{ $filters['order_id'] ?? '' }}" placeholder="Ex. 125">
                 </label>
+                <label for="reference">Référence d’opération
+                    <input id="reference" type="text" name="reference" maxlength="64" value="{{ $filters['reference'] ?? '' }}" placeholder="COM-123 ou référence commande">
+                </label>
                 <label for="status">État de l’historique
                     <select id="status" name="status">
                         <option value="all" @selected($filters['status'] === 'all')>Tous les états</option>
@@ -73,7 +76,7 @@
                     <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.export', request()->except('page')) }}">Exporter CSV</a>
                 </div>
             </form>
-            <p class="revenue-filter-note">Les indicateurs distinguent les dates de comptabilisation, de confirmation du paiement et de fin de prestation. Le filtre d’état agit sur l’historique des commissions.</p>
+            <p class="revenue-filter-note">Les indicateurs distinguent les dates de comptabilisation, de confirmation du paiement et de fin de prestation. Le filtre d’état et la recherche par référence agissent sur l’historique et l’export. Les indicateurs synthétiques restent agrégés selon la période, la devise, le service et la commande.</p>
         </section>
 
         @if ($currencies->isNotEmpty())
