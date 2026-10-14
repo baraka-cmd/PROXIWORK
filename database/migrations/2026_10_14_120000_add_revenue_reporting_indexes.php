@@ -10,51 +10,21 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('commissions', function (Blueprint $table): void {
-            $table->index(
-                ['professional_id', 'posted_at', 'currency', 'status'],
-                'commissions_revenue_reporting_idx',
-            );
-        });
-
-        Schema::table('payments', function (Blueprint $table): void {
-            $table->index(
-                ['status', 'paid_at', 'currency'],
-                'payments_revenue_reporting_idx',
-            );
-        });
-
+        // The commissions, payments and orders reporting indexes are already
+        // defined by 2026_10_14_000002_add_professional_revenue_query_indexes.
+        // Only the confirmed-refund reporting path needs an additional index.
         Schema::table('payment_refunds', function (Blueprint $table): void {
             $table->index(
                 ['status', 'processed_at', 'payment_id'],
                 'payment_refunds_revenue_reporting_idx',
             );
         });
-
-        Schema::table('orders', function (Blueprint $table): void {
-            $table->index(
-                ['professional_id', 'status', 'completed_at', 'currency'],
-                'orders_revenue_reporting_idx',
-            );
-        });
     }
 
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table): void {
-            $table->dropIndex('orders_revenue_reporting_idx');
-        });
-
         Schema::table('payment_refunds', function (Blueprint $table): void {
             $table->dropIndex('payment_refunds_revenue_reporting_idx');
-        });
-
-        Schema::table('payments', function (Blueprint $table): void {
-            $table->dropIndex('payments_revenue_reporting_idx');
-        });
-
-        Schema::table('commissions', function (Blueprint $table): void {
-            $table->dropIndex('commissions_revenue_reporting_idx');
         });
     }
 };
