@@ -79,6 +79,9 @@ class WithdrawalController extends Controller
             ->groupBy('currency')
             ->get()
             ->keyBy('currency');
+        $canRequestWithdrawal = $walletsByCurrency->contains(
+            static fn (Wallet $wallet): bool => strtolower((string) $wallet->status) === 'active',
+        );
 
         return view('professional.withdrawals.index', compact(
             'withdrawals',
@@ -87,6 +90,7 @@ class WithdrawalController extends Controller
             'walletsByCurrency',
             'inProgressByCurrency',
             'successfulCountsByCurrency',
+            'canRequestWithdrawal',
         ));
     }
 
