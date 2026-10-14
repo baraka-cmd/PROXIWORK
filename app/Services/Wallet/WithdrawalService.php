@@ -221,7 +221,7 @@ class WithdrawalService
         }
 
         return DB::transaction(function () use ($withdrawal, $providerTransactionId, $actorUserId, $reason): Withdrawal {
-            $locked = Withdrawal::query()->lockForUpdate()->findOrFail($withdrawal->getKey());
+            [$locked, $wallet] = $this->lockWithdrawalAndWallet($withdrawal);
 
             if ($locked->status === WithdrawalStatus::SUCCEEDED) {
                 if ($locked->provider_transaction_id !== $providerTransactionId) {
@@ -235,7 +235,6 @@ class WithdrawalService
                 throw new PaymentConflictException('Un retrait doit être en traitement ou à vérifier avant confirmation.');
             }
 
-            $wallet = Wallet::query()->lockForUpdate()->findOrFail($locked->wallet_id);
             $lockedBefore = $this->minor((string) $wallet->locked_balance);
             $value = $this->minor((string) $locked->amount);
 
@@ -300,7 +299,7 @@ class WithdrawalService
         }
 
         return DB::transaction(function () use ($withdrawal, $code, $message, $actorUserId, $reason): Withdrawal {
-            $locked = Withdrawal::query()->lockForUpdate()->findOrFail($withdrawal->getKey());
+            [$locked, $wallet] = $this->lockWithdrawalAndWallet($withdrawal);
 
             if ($locked->status === WithdrawalStatus::FAILED) {
                 if ($locked->failure_code !== $code) {
@@ -316,6 +315,7 @@ class WithdrawalService
 
             return $this->releaseReservation(
                 withdrawal: $locked,
+                wallet: $wallet,
                 targetStatus: WithdrawalStatus::FAILED,
                 code: $code,
                 message: $message,
@@ -344,7 +344,7 @@ class WithdrawalService
         }
 
         return DB::transaction(function () use ($withdrawal, $code, $reason, $actorUserId): Withdrawal {
-            $locked = Withdrawal::query()->lockForUpdate()->findOrFail($withdrawal->getKey());
+            [$locked, $wallet] = $this->lockWithdrawalAndWallet($withdrawal);
 
             if ($locked->status === WithdrawalStatus::FAILED) {
                 if ($locked->failure_code !== $code) {
@@ -360,6 +360,7 @@ class WithdrawalService
 
             return $this->releaseReservation(
                 withdrawal: $locked,
+                wallet: $wallet,
                 targetStatus: WithdrawalStatus::FAILED,
                 code: $code,
                 message: $reason,
@@ -424,7 +425,7 @@ class WithdrawalService
         string $reason = 'Annulé par le professionnel avant le traitement.',
     ): Withdrawal {
         return DB::transaction(function () use ($withdrawal, $actorUserId, $reason): Withdrawal {
-            $locked = Withdrawal::query()->lockForUpdate()->findOrFail($withdrawal->getKey());
+            [$locked, $wallet] = $this->lockWithdrawalAndWallet($withdrawal);
 
             if ($locked->status === WithdrawalStatus::CANCELLED) {
                 return $locked;
@@ -436,6 +437,7 @@ class WithdrawalService
 
             return $this->releaseReservation(
                 withdrawal: $locked,
+                wallet: $wallet,
                 targetStatus: WithdrawalStatus::CANCELLED,
                 code: null,
                 message: null,
@@ -447,13 +449,13 @@ class WithdrawalService
 
     private function releaseReservation(
         Withdrawal $withdrawal,
+        Wallet $wallet,
         WithdrawalStatus $targetStatus,
         ?string $code,
         ?string $message,
         ?int $actorUserId,
         string $reason,
     ): Withdrawal {
-        $wallet = Wallet::query()->lockForUpdate()->findOrFail($withdrawal->wallet_id);
         $lockedBefore = $this->minor((string) $wallet->locked_balance);
         $availableBefore = $this->minor((string) $wallet->available_balance);
         $value = $this->minor((string) $withdrawal->amount);
@@ -518,6 +520,31 @@ class WithdrawalService
         );
 
         return $withdrawal->refresh();
+    }
+
+    /**
+     * Always lock wallet before withdrawal for financial transitions. This matches
+     * request() and prevents a retry-versus-settlement lock-order deadlock.
+     *
+     * @return array{0: Withdrawal, 1: Wallet}
+     */
+    private function lockWithdrawalAndWallet(Withdrawal $withdrawal): array
+    {
+        $withdrawalId = $withdrawal->getKey();
+        $walletId = Withdrawal::query()->whereKey($withdrawalId)->value('wallet_id');
+
+        if ($walletId === null) {
+            Withdrawal::query()->findOrFail($withdrawalId);
+        }
+
+        $wallet = Wallet::query()->lockForUpdate()->findOrFail($walletId);
+        $locked = Withdrawal::query()->lockForUpdate()->findOrFail($withdrawalId);
+
+        if ((int) $locked->wallet_id !== (int) $wallet->getKey()) {
+            throw new PaymentConflictException('Le portefeuille associé au retrait a changé de façon inattendue.');
+        }
+
+        return [$locked, $wallet];
     }
 
     private function recordLedger(
