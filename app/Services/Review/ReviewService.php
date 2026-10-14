@@ -315,6 +315,58 @@ class ReviewService
                 ? round((float) $current->average - (float) $previous->average, 2)
                 : null,
             'period_days' => $periodDays,
+            'themes' => (int) $summary->review_count >= 5 ? $this->reviewThemes($professional) : ['sample_count' => 0, 'items' => []],
+        ];
+    }
+
+    private function reviewThemes(ProfessionalProfile $professional, int $sampleLimit = 500): array
+    {
+        $comments = Review::query()
+            ->where('professional_id', $professional->getKey())
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->whereNotNull('comment')
+            ->whereRaw("TRIM(comment) <> ''")
+            ->latest('published_at')
+            ->limit($sampleLimit)
+            ->pluck('comment')
+            ->map(fn (string $comment): string => mb_strtolower($comment))
+            ->values();
+
+        $definitions = [
+            'Qualité du travail' => ['qualité', 'qualite', 'finition', 'solide', 'soigné', 'soigne', 'travail bien fait'],
+            'Respect des délais' => ['délai', 'delai', 'retard', 'ponctuel', 'à temps', 'a temps', 'rapidement'],
+            'Communication' => ['communication', 'répond', 'repond', 'réponse', 'reponse', 'explique', 'contact', 'informe'],
+            'Prix et valeur' => ['prix', 'cher', 'coût', 'cout', 'budget', 'rapport qualité', 'rapport qualite'],
+            'Propreté et soin' => ['propre', 'propreté', 'proprete', 'nettoyage', 'sale'],
+            'Respect des engagements' => ['engagement', 'promis', 'convenu', 'respecté', 'respecte'],
+        ];
+
+        $themes = [];
+        foreach ($definitions as $label => $keywords) {
+            $count = $comments->filter(function (string $comment) use ($keywords): bool {
+                foreach ($keywords as $keyword) {
+                    if (str_contains($comment, $keyword)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            })->count();
+
+            if ($count > 0) {
+                $themes[] = [
+                    'label' => $label,
+                    'mentions' => $count,
+                    'percentage' => $comments->isNotEmpty() ? (int) round(($count / $comments->count()) * 100) : 0,
+                ];
+            }
+        }
+
+        usort($themes, fn (array $left, array $right): int => $right['mentions'] <=> $left['mentions']);
+
+        return [
+            'sample_count' => $comments->count(),
+            'items' => array_slice($themes, 0, 5),
         ];
     }
 
