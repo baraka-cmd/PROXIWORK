@@ -68,7 +68,10 @@ class CommissionService
                 ]);
             }
 
-            $commission = intdiv(($gross * $rate) + 5000, 10000);
+            // Split quotient and remainder before multiplying so a large, valid
+            // monetary amount cannot overflow an integer during percentage math.
+            $commission = (intdiv($gross, 10000) * $rate)
+                + intdiv((($gross % 10000) * $rate) + 5000, 10000);
             $net = $gross - $commission;
 
             if ($commission < 0 || $net < 0 || $gross !== $commission + $net) {
