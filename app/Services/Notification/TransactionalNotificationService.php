@@ -117,6 +117,11 @@ class TransactionalNotificationService
         $this->send($recipient, 'Nouvel avis', 'Un client vient de publier un avis sur votre prestation.', 'review', null, 'normal', $idempotencyKey);
     }
 
+    public function reviewResponseReceived(User $recipient, ?string $idempotencyKey = null): void
+    {
+        $this->send($recipient, 'Réponse à votre avis', 'Le professionnel a répondu à votre avis. Consultez votre espace PROXIWORK pour lire sa réponse.', 'review', null, 'normal', $idempotencyKey);
+    }
+
     public function securityAlert(
         User $recipient,
         string $title,
