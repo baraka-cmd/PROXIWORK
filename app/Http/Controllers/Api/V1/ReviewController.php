@@ -73,6 +73,7 @@ class ReviewController extends Controller
             moderator: $request->user(),
             status: ReviewStatus::from($request->validated('status')),
             reason: $request->validated('reason'),
+            request: $request,
         );
 
         return response()->json([
