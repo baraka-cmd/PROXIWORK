@@ -6,6 +6,7 @@ namespace Tests\Feature\Professional;
 
 use App\Enums\WithdrawalStatus;
 use App\Models\ProfessionalProfile;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Models\Withdrawal;
 use App\Services\Wallet\WalletService;
@@ -434,6 +435,95 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertSame(WithdrawalStatus::PROCESSING, $second->fresh()->status);
         $this->assertSame('25.00', $wallet->fresh()->locked_balance);
         $this->assertDatabaseCount('wallet_transactions', 5);
+    }
+
+
+    public function test_professional_can_report_and_reply_to_a_support_ticket_linked_to_their_withdrawal(): void
+    {
+        [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        $withdrawal = app(WithdrawalService::class)->request(
+            $profile,
+            '20.00',
+            'USD',
+            'mobile_money',
+            '243970123456',
+            'withdraw-support-report-0001',
+        );
+
+        $this->actingAs($user)
+            ->post(route('professional.withdrawals.report', $withdrawal), [
+                'body' => 'Je souhaite une explication concernant le délai de traitement de ce retrait.',
+            ])
+            ->assertRedirect(route('professional.withdrawals.show', $withdrawal))
+            ->assertSessionHas('status');
+
+        $ticket = SupportTicket::query()->where('withdrawal_id', $withdrawal->id)->firstOrFail();
+        $this->assertSame($user->id, $ticket->user_id);
+        $this->assertSame('PAYMENT', $ticket->category->value);
+        $this->assertDatabaseHas('ticket_messages', [
+            'ticket_id' => $ticket->id,
+            'sender_id' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('professional.withdrawals.show', $withdrawal))
+            ->assertOk()
+            ->assertSee('Conversation avec le support')
+            ->assertSee('Je souhaite une explication');
+
+        $this->actingAs($user)
+            ->post(route('professional.withdrawals.support.message', [$withdrawal, $ticket]), [
+                'body' => 'Merci de vérifier également la référence enregistrée pour cette demande.',
+            ])
+            ->assertRedirect(route('professional.withdrawals.show', $withdrawal));
+
+        $this->assertDatabaseCount('ticket_messages', 2);
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $user->id,
+            'action' => 'support.ticket_created',
+            'subject_id' => $ticket->id,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $user->id,
+            'action' => 'support.ticket_message_sent',
+            'subject_id' => $ticket->id,
+        ]);
+    }
+
+    public function test_professional_cannot_reply_to_a_ticket_linked_to_another_withdrawal(): void
+    {
+        [$user, $profile] = $this->professionalWithAvailableWallet('100.00');
+        $firstWithdrawal = app(WithdrawalService::class)->request(
+            $profile,
+            '10.00',
+            'USD',
+            'mobile_money',
+            '243970123456',
+            'withdraw-support-first-0001',
+        );
+        $secondWithdrawal = app(WithdrawalService::class)->request(
+            $profile,
+            '10.00',
+            'USD',
+            'mobile_money',
+            '243970123456',
+            'withdraw-support-second-0001',
+        );
+        $ticket = app(\App\Services\Admin\Support\SupportTicketService::class)->create($user, [
+            'withdrawal_id' => $firstWithdrawal->id,
+            'subject' => 'Problème concernant le retrait de test',
+            'category' => 'PAYMENT',
+            'priority' => 'normal',
+            'body' => 'Je demande une vérification de ce retrait.',
+        ], request());
+
+        $this->actingAs($user)
+            ->post(route('professional.withdrawals.support.message', [$secondWithdrawal, $ticket]), [
+                'body' => 'Je tente de répondre via une autre référence de retrait.',
+            ])
+            ->assertNotFound();
+
+        $this->assertDatabaseCount('ticket_messages', 1);
     }
 
 }
