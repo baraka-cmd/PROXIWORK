@@ -645,85 +645,7 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
-    /**
-     * @return array{0: User, 1: Order}
-     */
-    private function orderScenario(): array
-    {
-        [$professional, $profile] = $this->professional();
-        $client = $this->client();
-        $service = $this->publishedService($profile);
-        $address = Address::factory()->default()->create(['user_id' => $client->id]);
-
-        $request = ServiceRequest::factory()->create([
-            'client_id' => $client->id,
-            'address_id' => $address->id,
-            'professional_id' => $profile->id,
-            'service_id' => $service->id,
-            'status' => ServiceRequestStatus::QUOTED,
-            'requested_at' => now(),
-        ]);
-
-        $quotation = Quotation::query()->forceCreate([
-            'service_request_id' => $request->id,
-            'status' => 'sent',
-        ]);
-
-        $offer = $quotation->offers()->forceCreate([
-            'created_by' => $professional->id,
-            'actor_type' => 'professional',
-            'version' => 1,
-            'amount' => 500,
-            'currency' => 'USD',
-            'description' => 'Service professionnel.',
-            'duration_value' => 10,
-            'duration_unit' => 'days',
-            'conditions' => 'Conditions.',
-            'valid_until' => now()->addDays(5),
-        ]);
-
-        $quotation->forceFill([
-            'status' => 'accepted',
-            'current_offer_id' => $offer->id,
-            'accepted_offer_id' => $offer->id,
-            'accepted_at' => now(),
-        ])->save();
-
-        $request->forceFill(['status' => ServiceRequestStatus::ACCEPTED])->save();
-
-        return [$client, app(OrderService::class)->createFromAcceptedQuotation($quotation->fresh(), $client)];
-    }
-
-    private function client(): User
-    {
-        $user = User::factory()->create();
-        $user->assignRole('client');
-
-        return $user;
-    }
-
-    /** @return array{0: User, 1: ProfessionalProfile} */
-    private function professional(): array
-    {
-        $user = User::factory()->create();
-        $user->assignRole('professional');
-
-        return [$user, ProfessionalProfile::factory()->create(['user_id' => $user->id])];
-    }
-
-    private function publishedService(ProfessionalProfile $profile): Service
-    {
-        $category = Category::factory()->create();
-
-        return Service::factory()->create([
-            'professional_profile_id' => $profile->id,
-            'category_id' => $category->id,
-            'status' => ServiceStatus::PUBLISHED,
-            'published_at' => now(),
-        ]);
-    }
-
-    public function test_pending_release_records_both_buckets_and_is_idempotent(): void
+public function test_pending_release_records_both_buckets_and_is_idempotent(): void
     {
         [, $professional] = $this->professional();
         $service = app(WalletService::class);
@@ -806,4 +728,81 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
+    /**
+     * @return array{0: User, 1: Order}
+     */
+    private function orderScenario(): array
+    {
+        [$professional, $profile] = $this->professional();
+        $client = $this->client();
+        $service = $this->publishedService($profile);
+        $address = Address::factory()->default()->create(['user_id' => $client->id]);
+
+        $request = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'address_id' => $address->id,
+            'professional_id' => $profile->id,
+            'service_id' => $service->id,
+            'status' => ServiceRequestStatus::QUOTED,
+            'requested_at' => now(),
+        ]);
+
+        $quotation = Quotation::query()->forceCreate([
+            'service_request_id' => $request->id,
+            'status' => 'sent',
+        ]);
+
+        $offer = $quotation->offers()->forceCreate([
+            'created_by' => $professional->id,
+            'actor_type' => 'professional',
+            'version' => 1,
+            'amount' => 500,
+            'currency' => 'USD',
+            'description' => 'Service professionnel.',
+            'duration_value' => 10,
+            'duration_unit' => 'days',
+            'conditions' => 'Conditions.',
+            'valid_until' => now()->addDays(5),
+        ]);
+
+        $quotation->forceFill([
+            'status' => 'accepted',
+            'current_offer_id' => $offer->id,
+            'accepted_offer_id' => $offer->id,
+            'accepted_at' => now(),
+        ])->save();
+
+        $request->forceFill(['status' => ServiceRequestStatus::ACCEPTED])->save();
+
+        return [$client, app(OrderService::class)->createFromAcceptedQuotation($quotation->fresh(), $client)];
+    }
+
+    private function client(): User
+    {
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        return $user;
+    }
+
+    /** @return array{0: User, 1: ProfessionalProfile} */
+    private function professional(): array
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+
+        return [$user, ProfessionalProfile::factory()->create(['user_id' => $user->id])];
+    }
+
+    private function publishedService(ProfessionalProfile $profile): Service
+    {
+        $category = Category::factory()->create();
+
+        return Service::factory()->create([
+            'professional_profile_id' => $profile->id,
+            'category_id' => $category->id,
+            'status' => ServiceStatus::PUBLISHED,
+            'published_at' => now(),
+        ]);
+    }
 }
