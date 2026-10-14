@@ -144,3 +144,4 @@ jobs:
           vendor/bin/phpunit tests/Feature/Finance
           vendor/bin/phpunit tests/Feature/Professional/WebProfessionalWalletWithdrawalsTest.php
           vendor/bin/phpunit tests/Feature/Admin/AdminWithdrawalManagementTest.php
+          vendor/bin/phpunit tests/Integration/MySQL/WithdrawalConcurrentReservationTest.php
