@@ -773,7 +773,6 @@ class PaymentTransactionsWalletTest extends TestCase
         ]);
     }
 
-
     public function test_wallet_credit_idempotency_key_rejects_a_changed_amount(): void
     {
         [, $professional] = $this->professional();
