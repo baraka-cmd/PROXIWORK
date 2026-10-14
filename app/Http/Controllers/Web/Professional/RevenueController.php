@@ -67,6 +67,8 @@ class RevenueController extends Controller
 
             // UTF-8 BOM helps spreadsheet software identify French text correctly.
             fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Période analysée', $period['label']], ',', '"', '');
+            fputcsv($output, ['Devise', $filters['currency'] ?? 'Toutes les devises'], ',', '"', '');
             fputcsv($output, [
                 'Référence',
                 'Date de comptabilisation',
