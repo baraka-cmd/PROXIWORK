@@ -261,8 +261,11 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('messages/{conversation}/block', [MessageController::class, 'block'])->middleware('throttle:10,1')->name('messages.block');
     Route::post('messages/{conversation}/messages/{message}/report', [MessageController::class, 'reportMessage'])->middleware('throttle:10,1')->name('messages.report');
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::patch('notifications/preferences', [NotificationController::class, 'updatePreferences'])->middleware('throttle:10,1')->name('notifications.preferences.update');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->middleware('throttle:10,1')->name('notifications.read-all');
-    Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->middleware('throttle:20,1')->name('notifications.read');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->middleware('throttle:30,1')->name('notifications.read');
+    Route::post('notifications/{notification}/archive', [NotificationController::class, 'archive'])->middleware('throttle:20,1')->name('notifications.archive');
+    Route::post('notifications/{notification}/restore', [NotificationController::class, 'restore'])->middleware('throttle:20,1')->name('notifications.restore');
 });
 
 Route::prefix('admin')->name('admin.')->group(function (): void {
