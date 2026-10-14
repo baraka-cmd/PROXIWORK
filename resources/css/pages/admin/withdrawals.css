@@ -33,3 +33,5 @@
 .admin-empty-state h3{margin:.75rem 0 .25rem;color:inherit}
 .admin-pagination{margin-top:1rem}
 @media(max-width:640px){.admin-withdrawal-details>div{grid-template-columns:1fr;gap:.3rem}.admin-withdrawal-action .button{width:100%;justify-content:center}}
+
+.admin-withdrawal-status--rejected{background:#fee2e2;color:#991b1b}
