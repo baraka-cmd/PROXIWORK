@@ -6,7 +6,7 @@ namespace App\Http\Controllers\Web\Professional;
 
 use App\Enums\ReviewStatus;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Review\StoreReviewResponseRequest;
+use App\Http\Requests\Review\StoreReviewResponseRequest;\nuse App\Http\Requests\Admin\Moderation\StoreReportRequest;\nuse App\Enums\ReportReasonCode;\nuse App\Services\Admin\Moderation\ModerationService;
 use App\Models\Review;
 use App\Services\Review\ReviewService;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +19,7 @@ class ReviewController extends Controller
     {
         $professional = $request->user()->professionalProfile()->firstOrFail();
 
-        $rating = $request->integer('rating') ?: null;
+        $filters = $request->validate([\n            'rating' => ['nullable', 'integer', 'between:1,5'],\n            'status' => ['nullable', 'in:published,hidden'],\n            'sort' => ['nullable', 'in:latest,oldest,highest,lowest'],\n            'from' => ['nullable', 'date', 'before_or_equal:to'],\n            'to' => ['nullable', 'date', 'after_or_equal:from'],\n            'service_id' => ['nullable', 'integer', 'min:1'],\n            'response' => ['nullable', 'in:answered,unanswered'],\n            'comment' => ['nullable', 'in:with,without'],\n            'search' => ['nullable', 'string', 'max:120'],\n            'period' => ['nullable', 'in:7,30,90'],\n        ]);\n\n        $rating = isset($filters['rating']) ? (int) $filters['rating'] : null;
         $status = $request->filled('status')
             ? ReviewStatus::tryFrom((string) $request->string('status'))
             : null;
@@ -42,7 +42,7 @@ class ReviewController extends Controller
         ]);
     }
 
-    public function respond(
+    public function report(\n        StoreReportRequest $request,\n        Review $review,\n        ModerationService $moderationService,\n    ): RedirectResponse {\n        abort_unless($review->professional?->user_id === $request->user()->getKey(), 404);\n\n        $moderationService->createReport(\n            $request->user(),\n            'review',\n            (int) $review->getKey(),\n            ReportReasonCode::from($request->validated('reason_code'))->value,\n            $request->validated('description'),\n            $request,\n        );\n\n        return back()->with('success', 'Votre signalement a été transmis à la modération.');\n    }\n\n    public function respond(
         StoreReviewResponseRequest $request,
         Review $review,
         ReviewService $reviewService,
