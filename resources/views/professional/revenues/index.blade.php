@@ -207,7 +207,7 @@
                                     <td>{{ number_format((float) $commission->commission_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
                                     <td><strong>{{ number_format((float) $commission->net_amount, 2, ',', ' ') }} {{ $commission->currency }}</strong></td>
                                     <td><span class="revenue-status {{ $commission->status->value === 'reversed' ? 'revenue-status--reversed' : '' }}">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée' }}</span></td>
-                                    <td><a class="revenue-link" href="{{ route('professional.revenues.show', $commission->id) }}">Justificatif</a></td>
+                                    <td><a class="revenue-link" href="{{ route('professional.revenues.show', ['commission' => $commission->id] + request()->query()) }}">Justificatif</a></td>
                                 </tr>
                             @endforeach
                         </tbody>
