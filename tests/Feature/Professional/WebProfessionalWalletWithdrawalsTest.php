@@ -240,7 +240,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
 
     public function test_successful_withdrawal_requires_processing_and_is_idempotent(): void
     {
-        [, $user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
         $service = app(WithdrawalService::class);
         $withdrawal = $service->request($profile, '30.00', 'USD', 'mobile_money', '243970123456', 'withdraw-success-test-0001');
 
@@ -274,7 +274,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
 
     public function test_confirmed_failure_releases_reservation_once_and_records_all_bucket_movements(): void
     {
-        [, , $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        [, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
         $service = app(WithdrawalService::class);
         $withdrawal = $service->request($profile, '40.00', 'USD', 'bank_transfer', 'BANK-DEST-TEST', 'withdraw-failure-test-0001');
         $service->markProcessing($withdrawal, null, 'Traitement manuel commencé pour le test.');
@@ -296,7 +296,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
 
     public function test_cancellation_is_only_allowed_before_processing_and_releases_once(): void
     {
-        [$user, , $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
         $service = app(WithdrawalService::class);
         $withdrawal = $service->request($profile, '15.00', 'USD', 'mobile_money', '243970123456', 'withdraw-cancel-test-0001');
 
@@ -338,7 +338,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $wallet = app(WalletService::class)->getOrCreate($profile, 'USD');
         $wallet->forceFill(['available_balance' => $available])->save();
 
-        return [$user, $user, $profile, $wallet];
+        return [$user, $profile, $wallet];
     }
 
 }
