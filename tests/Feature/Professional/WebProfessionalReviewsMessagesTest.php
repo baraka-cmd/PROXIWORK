@@ -18,7 +18,6 @@ use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
-use App\Models\Report;
 use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\Service;
