@@ -238,6 +238,38 @@ class ProfessionalReviewListingTest extends TestCase
         $this->assertNotContains($firstReview->id, collect($unanswered->items())->pluck('id')->all());
     }
 
+    public function test_reputation_themes_are_based_on_real_comments_and_require_minimum_volume(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        foreach ([
+            'Très bonne qualité du travail.',
+            'La qualité est excellente.',
+            'Travail de bonne qualité.',
+            'Bonne communication et qualité.',
+            'Le travail est de qualité.',
+        ] as $comment) {
+            $order = $this->createOrder($client, $user, $professional);
+            Review::query()->where('order_id', $order->id)->update([
+                'comment' => $comment,
+                'status' => ReviewStatus::PUBLISHED->value,
+                'published_at' => now(),
+            ]);
+        }
+
+        $summary = app(ReviewService::class)->reputationSummary($professional, 30);
+
+        $this->assertSame(5, $summary['total']);
+        $this->assertSame(5, $summary['themes']['sample_count']);
+        $this->assertNotEmpty($summary['themes']['items']);
+        $this->assertSame('Qualité du travail', $summary['themes']['items'][0]['label']);
+        $this->assertSame(5, $summary['themes']['items'][0]['mentions']);
+    }
+
     private function createOrder(
         User $client,
         User $professionalUser,
