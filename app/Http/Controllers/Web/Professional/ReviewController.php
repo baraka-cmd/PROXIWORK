@@ -105,6 +105,7 @@ class ReviewController extends Controller
             $review,
             $request->user(),
             (string) $request->string('response'),
+            $request,
         );
 
         return back()->with('success', 'Votre réponse a été publiée.');
