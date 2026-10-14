@@ -65,5 +65,4 @@ class ReviewController extends Controller
 
         return back()->with('success', 'Votre signalement de la réponse a été transmis à la modération.');
     }
-
 }
