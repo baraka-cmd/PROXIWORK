@@ -176,14 +176,21 @@ class RevenueAnalyticsService
     ): array {
         $days = $start->startOfDay()->diffInDays($end->startOfDay()) + 1;
         $granularity = $days <= 31 ? 'day' : ($days <= 120 ? 'week' : 'month');
-        $format = match ($granularity) {
-            'day' => '%Y-%m-%d',
-            'week' => '%x-W%v',
-            default => '%Y-%m',
-        };
+        $driver = DB::connection()->getDriverName();
+        $format = $driver === 'sqlite'
+            ? match ($granularity) {
+                'day' => '%Y-%m-%d',
+                'week' => '%Y-W%W',
+                default => '%Y-%m',
+            }
+            : match ($granularity) {
+                'day' => '%Y-%m-%d',
+                'week' => '%x-W%v',
+                default => '%Y-%m',
+            };
         $keyFormat = match ($granularity) {
             'day' => 'Y-m-d',
-            'week' => 'o-\WW',
+            'week' => $driver === 'sqlite' ? 'Y-\\WW' : 'o-\\WW',
             default => 'Y-m',
         };
 
