@@ -243,6 +243,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('withdrawals/create', [ProfessionalWithdrawalController::class, 'create'])->name('withdrawals.create');
     Route::post('withdrawals', [ProfessionalWithdrawalController::class, 'store'])->middleware('throttle:payment')->name('withdrawals.store');
     Route::post('withdrawals/{withdrawal}/cancel', [ProfessionalWithdrawalController::class, 'cancel'])->middleware('throttle:10,1')->name('withdrawals.cancel');
+    Route::post('withdrawals/{withdrawal}/report', [ProfessionalWithdrawalController::class, 'reportProblem'])->middleware('throttle:5,1')->name('withdrawals.report');
     Route::get('withdrawals/{withdrawal}', [ProfessionalWithdrawalController::class, 'show'])->name('withdrawals.show');
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews');
     Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('throttle:10,1')->name('reviews.respond');
