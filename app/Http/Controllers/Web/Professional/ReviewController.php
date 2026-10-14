@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
+use App\Enums\ReportReasonCode;
 use App\Enums\ReviewStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Review\StoreReviewResponseRequest;
 use App\Http\Requests\Admin\Moderation\StoreReportRequest;
-use App\Enums\ReportReasonCode;
 use App\Services\Admin\Moderation\ModerationService;
 use App\Models\Review;
 use App\Services\Review\ReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class ReviewController extends Controller
 {
@@ -26,14 +27,20 @@ class ReviewController extends Controller
             'rating' => ['nullable', 'integer', 'between:1,5'],
             'status' => ['nullable', 'in:published,hidden'],
             'sort' => ['nullable', 'in:latest,oldest,highest,lowest'],
-            'from' => ['nullable', 'date', 'before_or_equal:to'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date'],
             'service_id' => ['nullable', 'integer', 'min:1'],
             'response' => ['nullable', 'in:answered,unanswered'],
             'comment' => ['nullable', 'in:with,without'],
             'search' => ['nullable', 'string', 'max:120'],
             'period' => ['nullable', 'in:7,30,90'],
         ]);
+
+        if (isset($filters['from'], $filters['to']) && $filters['from'] > $filters['to']) {
+            throw ValidationException::withMessages([
+                'from' => 'La date de début doit être antérieure ou égale à la date de fin.',
+            ]);
+        }
 
         $rating = isset($filters['rating']) ? (int) $filters['rating'] : null;
         $status = isset($filters['status']) ? ReviewStatus::tryFrom($filters['status']) : null;
