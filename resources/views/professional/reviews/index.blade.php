@@ -260,7 +260,7 @@
                         @endif
                         @if ($review->order?->serviceRequest?->service)
                             <span class="review-service"><i class="fa-solid fa-briefcase" aria-hidden="true"></i>
-                                <a href="{{ route('public.services.show', $review->order->serviceRequest->service) }}">{{ $review->order->serviceRequest->service->title }}</a>
+                                <a href="{{ route('public.services.show', ['service' => $review->order->serviceRequest->service->slug]) }}">{{ $review->order->serviceRequest->service->title }}</a>
                             </span>
                         @endif
                     </div>
