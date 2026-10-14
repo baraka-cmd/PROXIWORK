@@ -138,7 +138,7 @@ class TransactionalNotificationService
             ? 'Après examen, votre réponse à un avis est de nouveau publiée.'
             : 'Après examen, votre réponse à un avis a été masquée par la modération.';
 
-        $this->send($recipient, 'Mise à jour de modération', $message, 'review', null, 'normal', $idempotencyKey);
+        $this->send($recipient, 'Mise à jour de modération', $message, 'review', '/professional/reviews', 'normal', $idempotencyKey);
     }
 
     public function securityAlert(
