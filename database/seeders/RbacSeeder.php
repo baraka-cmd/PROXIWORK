@@ -35,6 +35,7 @@ class RbacSeeder extends Seeder
             'orders.manage' => ['Commandes - administrer', 'orders', 'Gérer les commandes.'],
             'payments.view' => ['Paiements - consulter', 'payments', 'Consulter les paiements.'],
             'payments.manage' => ['Paiements - administrer', 'payments', 'Gérer les paiements.'],
+            'admin.withdrawals.manage' => ['Administration - retraits financiers', 'admin.finance', 'Examiner, traiter, rapprocher et décider les retraits professionnels.'],
             'reviews.moderate' => ['Avis - modérer', 'reviews', 'Modérer les avis.'],
             'reports.manage' => ['Signalements - traiter', 'reports', 'Traiter les signalements.'],
             'support.manage' => ['Support - administrer', 'support', 'Gérer les tickets de support.'],
