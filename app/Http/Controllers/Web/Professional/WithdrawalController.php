@@ -156,8 +156,14 @@ class WithdrawalController extends Controller
     {
         $this->authorize('view', $withdrawal);
         $withdrawal->load(['wallet', 'statusHistories.actor']);
+        $supportTickets = SupportTicket::query()
+            ->where('user_id', $request->user()->getKey())
+            ->where('withdrawal_id', $withdrawal->getKey())
+            ->with(['messages.sender'])
+            ->latest('last_message_at')
+            ->get();
 
-        return view('professional.withdrawals.show', compact('withdrawal'));
+        return view('professional.withdrawals.show', compact('withdrawal', 'supportTickets'));
     }
 
     public function cancel(
@@ -175,6 +181,33 @@ class WithdrawalController extends Controller
 
         return redirect()->route('professional.withdrawals.show', $withdrawal)
             ->with('status', 'La demande a été annulée et la réservation a été libérée.');
+    }
+
+    public function supportMessage(
+        ProfessionalWithdrawalSupportMessageRequest $request,
+        Withdrawal $withdrawal,
+        SupportTicket $ticket,
+        SupportTicketService $supportService,
+    ): RedirectResponse {
+        $this->authorize('view', $withdrawal);
+
+        abort_unless(
+            (int) $ticket->withdrawal_id === (int) $withdrawal->getKey()
+                && (int) $ticket->user_id === (int) $request->user()->getKey(),
+            404,
+        );
+
+        $this->authorize('message', $ticket);
+
+        $supportService->message(
+            $request->user(),
+            $ticket,
+            $request->validated('body'),
+            $request,
+        );
+
+        return redirect()->route('professional.withdrawals.show', $withdrawal)
+            ->with('status', 'Votre message a été ajouté au ticket #'.$ticket->getKey().'.');
     }
 
     public function reportProblem(
