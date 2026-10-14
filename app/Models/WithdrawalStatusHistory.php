@@ -7,10 +7,22 @@ namespace App\Models;
 use App\Enums\WithdrawalStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class WithdrawalStatusHistory extends Model
 {
     protected $fillable = [];
+
+    protected static function booted(): void
+    {
+        static::updating(static function (self $history): void {
+            throw new LogicException('L’historique des statuts de retrait est immuable. Ajoutez une nouvelle transition explicative.');
+        });
+
+        static::deleting(static function (self $history): void {
+            throw new LogicException('L’historique des statuts de retrait ne peut pas être supprimé.');
+        });
+    }
 
     protected function casts(): array
     {
