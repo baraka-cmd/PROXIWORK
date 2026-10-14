@@ -308,6 +308,27 @@
                             <strong>Réponse du professionnel</strong>
                             <p>{{ $order->review->response->response }}</p>
                         </div>
+                        <details class="client-review-report">
+                            <summary>Signaler cette réponse à PROXIWORK</summary>
+                            <form method="POST" action="{{ route('client.orders.review-response.report', $order) }}">
+                                @csrf
+                                <input type="hidden" name="target_type" value="review_response">
+                                <input type="hidden" name="target_id" value="{{ $order->review->response->id }}">
+                                <label for="response-report-reason">Motif du signalement</label>
+                                <select id="response-report-reason" name="reason_code" required>
+                                    <option value="">Sélectionner un motif</option>
+                                    <option value="SPAM">Spam ou contenu répétitif</option>
+                                    <option value="FRAUD">Fraude ou contenu trompeur</option>
+                                    <option value="HARASSMENT">Harcèlement ou menace</option>
+                                    <option value="ABUSIVE_CONTENT">Contenu injurieux</option>
+                                    <option value="INAPPROPRIATE_CONTENT">Divulgation de données privées ou contenu inapproprié</option>
+                                    <option value="OTHER">Autre motif</option>
+                                </select>
+                                <label for="response-report-description">Détails utiles (facultatif)</label>
+                                <textarea id="response-report-description" name="description" rows="2" maxlength="5000" placeholder="Décrivez le problème sans ajouter de données personnelles inutiles."></textarea>
+                                <button class="btn btn-secondary" type="submit">Transmettre le signalement</button>
+                            </form>
+                        </details>
                     @endif
                 </div>
             @else
