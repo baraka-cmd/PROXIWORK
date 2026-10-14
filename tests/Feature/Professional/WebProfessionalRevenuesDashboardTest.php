@@ -104,6 +104,29 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->assertSee('COM-');
     }
 
+    public function test_confirmed_payment_remains_visible_even_when_no_commission_has_been_posted_yet(): void
+    {
+        [$professional, $order] = $this->financialScenario();
+
+        Payment::query()->forceCreate([
+            'order_id' => $order->getKey(),
+            'client_id' => $order->client_id,
+            'method' => PaymentMethod::MOBILE_MONEY,
+            'provider' => PaymentProvider::FAKE,
+            'status' => PaymentStatus::SUCCEEDED,
+            'currency' => 'USD',
+            'amount' => '500.00',
+            'paid_at' => now(),
+        ]);
+
+        $this->actingAs($professional)
+            ->get(route('professional.revenues.index', ['period' => '30d']))
+            ->assertOk()
+            ->assertSee('Paiements confirmés')
+            ->assertSee('500,00 USD')
+            ->assertSee('450,00 USD', false);
+    }
+
     public function test_confirmed_refunds_are_visible_separately_and_not_silently_subtracted_from_commission_income(): void
     {
         [$professional, $order] = $this->financialScenario();
