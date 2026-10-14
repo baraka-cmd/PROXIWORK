@@ -122,6 +122,15 @@ class TransactionalNotificationService
         $this->send($recipient, 'Réponse à votre avis', 'Le professionnel a répondu à votre avis. Consultez votre espace PROXIWORK pour lire sa réponse.', 'review', null, 'normal', $idempotencyKey);
     }
 
+    public function reviewModerationUpdated(User $recipient, string $status, ?string $idempotencyKey = null): void
+    {
+        $message = $status === 'published'
+            ? 'Après examen, un avis concernant votre profil est de nouveau publié.'
+            : 'Après examen, un avis concernant votre profil a été masqué par la modération.';
+
+        $this->send($recipient, 'Mise à jour de modération', $message, 'review', null, 'normal', $idempotencyKey);
+    }
+
     public function securityAlert(
         User $recipient,
         string $title,
