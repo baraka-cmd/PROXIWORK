@@ -414,7 +414,7 @@ class RevenueAnalyticsService
                     });
             }))
             ->selectRaw("CASE WHEN COALESCE(revenue_items.service_count, 0) > 1 THEN NULL ELSE COALESCE(services.id, revenue_items.service_id) END AS service_id, CASE WHEN COALESCE(revenue_items.service_count, 0) > 1 THEN 'Commande multi-services — ventilation indisponible' ELSE COALESCE(services.title, revenue_items.service_title, 'Service indisponible') END AS service_title, commissions.currency, SUM(commissions.net_amount) AS net_amount, COUNT(DISTINCT commissions.order_id) AS orders_count")
-            ->groupBy('services.id', 'services.title', 'revenue_items.service_id', 'revenue_items.service_title', 'revenue_items.service_count', 'commissions.currency')
+            ->groupByRaw("CASE WHEN COALESCE(revenue_items.service_count, 0) > 1 THEN NULL ELSE COALESCE(services.id, revenue_items.service_id) END, CASE WHEN COALESCE(revenue_items.service_count, 0) > 1 THEN 'Commande multi-services — ventilation indisponible' ELSE COALESCE(services.title, revenue_items.service_title, 'Service indisponible') END, commissions.currency")
             ->orderByDesc('net_amount')
             ->get();
     }
