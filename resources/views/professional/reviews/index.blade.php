@@ -115,6 +115,32 @@
                 @endif
             </section>
         </div>
+
+        <section class="reputation-themes" aria-labelledby="themes-title">
+            <div>
+                <h3 id="themes-title">Thèmes récurrents des commentaires</h3>
+                <p>Analyse indicative par mots-clés réellement présents dans les commentaires, pas une décision automatique de modération.</p>
+            </div>
+            @if ($summary['total'] < 5 || $summary['themes']['sample_count'] < 5)
+                <p class="reputation-themes__empty">Il faut au moins cinq avis publiés et commentés pour afficher des tendances. Avec peu de retours, lisez directement les commentaires ci-dessous.</p>
+            @elseif (count($summary['themes']['items']) === 0)
+                <p class="reputation-themes__empty">Aucun thème récurrent n’a été détecté dans les commentaires analysés. Cela ne signifie pas qu’aucun problème n’existe.</p>
+            @else
+                <div class="reputation-themes__list">
+                    @foreach ($summary['themes']['items'] as $theme)
+                        <div class="reputation-theme">
+                            <div class="reputation-theme__heading">
+                                <strong>{{ $theme['label'] }}</strong>
+                                <span>{{ $theme['mentions'] }} mention(s) · {{ $theme['percentage'] }} % des commentaires analysés</span>
+                            </div>
+                            <div class="rating-distribution-track" role="progressbar" aria-label="{{ $theme['label'] }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $theme['percentage'] }}">
+                                <span style="width: {{ $theme['percentage'] }}%"></span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
     </section>
 
     <section class="review-toolbar" aria-label="Recherche et filtres des avis">
