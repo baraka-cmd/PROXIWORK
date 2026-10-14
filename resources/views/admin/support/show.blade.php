@@ -25,6 +25,9 @@
         <dl class="admin-detail-list">
             <div><dt>Utilisateur</dt><dd>{{ $ticket->user?->name }} · {{ $ticket->user?->email }}</dd></div>
             <div><dt>Catégorie</dt><dd>{{ $ticket->category->value }}</dd></div>
+            @if($ticket->withdrawal)
+                <div><dt>Retrait associé</dt><dd>WD-{{ str_pad((string)$ticket->withdrawal->getKey(), 8, '0', STR_PAD_LEFT) }} · {{ \\App\\Support\\MoneyFormatter::format((string)$ticket->withdrawal->amount) }} {{ $ticket->withdrawal->currency }} · {{ $ticket->withdrawal->status->label() }} @if(auth()->user()?->hasPermissionTo('admin.withdrawals.manage'))<a href="{{ route('admin.withdrawals.show', $ticket->withdrawal) }}">Examiner le retrait</a>@endif</dd></div>
+            @endif
             <div><dt>Priorité</dt><dd>{{ $ticket->priority->value }}</dd></div>
             <div><dt>Créé le</dt><dd>{{ $ticket->created_at?->format('d/m/Y H:i') }}</dd></div>
             <div><dt>Résolu le</dt><dd>{{ $ticket->resolved_at?->format('d/m/Y H:i') ?? '—' }}</dd></div>
