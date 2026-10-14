@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -25,9 +26,9 @@ class ReviewService
         private readonly AuditLogService $auditLogService,
     ) {}
 
-    public function create(Order $order, User $client, int $rating, ?string $comment): Review
+    public function create(Order $order, User $client, int $rating, ?string $comment, ?Request $request = null): Review
     {
-        return $this->database->transaction(function () use ($order, $client, $rating, $comment): Review {
+        return $this->database->transaction(function () use ($order, $client, $rating, $comment, $request): Review {
             $lockedOrder = Order::query()
                 ->with('professional')
                 ->lockForUpdate()
@@ -85,7 +86,7 @@ class ReviewService
             ]);
 
             $this->refreshProfessionalRating($professional);
-            $this->auditLogService->record('review.created', $review, $client, ['order_id' => $lockedOrder->getKey()]);
+            $this->auditLogService->record('review.created', $review, $client, ['order_id' => $lockedOrder->getKey()], $request);
 
             $professionalUser = User::query()->find($professional->user_id);
             if ($professionalUser !== null) {
@@ -99,9 +100,9 @@ class ReviewService
         }, attempts: 3);
     }
 
-    public function respond(Review $review, User $professionalUser, string $response): ReviewResponse
+    public function respond(Review $review, User $professionalUser, string $response, ?Request $request = null): ReviewResponse
     {
-        return $this->database->transaction(function () use ($review, $professionalUser, $response): ReviewResponse {
+        return $this->database->transaction(function () use ($review, $professionalUser, $response, $request): ReviewResponse {
             $lockedReview = Review::query()
                 ->with('professional')
                 ->lockForUpdate()
@@ -139,7 +140,7 @@ class ReviewService
                 'status' => ReviewStatus::PUBLISHED,
             ]);
 
-            $this->auditLogService->record('review.response_published', $record, $professionalUser, ['review_id' => $lockedReview->getKey()]);
+            $this->auditLogService->record('review.response_published', $record, $professionalUser, ['review_id' => $lockedReview->getKey()], $request);
 
             $client = User::query()->find($lockedReview->client_id);
             if ($client !== null) {
@@ -153,9 +154,9 @@ class ReviewService
         }, attempts: 3);
     }
 
-    public function moderate(Review $review, User $moderator, ReviewStatus $status, string $reason): Review
+    public function moderate(Review $review, User $moderator, ReviewStatus $status, string $reason, ?Request $request = null): Review
     {
-        return $this->database->transaction(function () use ($review, $moderator, $status, $reason): Review {
+        return $this->database->transaction(function () use ($review, $moderator, $status, $reason, $request): Review {
             $lockedReview = Review::query()->lockForUpdate()->findOrFail($review->getKey());
 
             $lockedReview->forceFill([
@@ -173,7 +174,7 @@ class ReviewService
                 ->findOrFail($lockedReview->professional_id);
 
             $this->refreshProfessionalRating($professional);
-            $this->auditLogService->record('review.moderated', $lockedReview, $moderator, ['status' => $status->value, 'reason' => $reason]);
+            $this->auditLogService->record('review.moderated', $lockedReview, $moderator, ['status' => $status->value, 'reason' => $reason], $request);
 
             $professionalUser = User::query()->find($professional->user_id);
             if ($professionalUser !== null) {
@@ -188,9 +189,9 @@ class ReviewService
         }, attempts: 3);
     }
 
-    public function moderateResponse(ReviewResponse $response, User $moderator, ReviewStatus $status, string $reason): ReviewResponse
+    public function moderateResponse(ReviewResponse $response, User $moderator, ReviewStatus $status, string $reason, ?Request $request = null): ReviewResponse
     {
-        return $this->database->transaction(function () use ($response, $moderator, $status, $reason): ReviewResponse {
+        return $this->database->transaction(function () use ($response, $moderator, $status, $reason, $request): ReviewResponse {
             $lockedResponse = ReviewResponse::query()->lockForUpdate()->findOrFail($response->getKey());
 
             $lockedResponse->forceFill([
@@ -199,7 +200,7 @@ class ReviewService
                 'moderated_at' => now(),
                 'moderation_reason' => $reason,
             ])->save();
-            $this->auditLogService->record('review.response_moderated', $lockedResponse, $moderator, ['status' => $status->value, 'reason' => $reason]);
+            $this->auditLogService->record('review.response_moderated', $lockedResponse, $moderator, ['status' => $status->value, 'reason' => $reason], $request);
 
             return $lockedResponse->refresh();
         }, attempts: 3);
