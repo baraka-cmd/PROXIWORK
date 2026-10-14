@@ -67,3 +67,14 @@
 .wallet-bucket-label--pending{background:#fef3c7;color:#92400e}
 .wallet-bucket-label--locked{background:#dbeafe;color:#1d4ed8}
 .wallet-bucket-label--unknown{background:#f1f5f9;color:#475569}
+
+.withdrawal-support-ticket{display:grid;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--finance-border)}
+.withdrawal-support-ticket:last-child{border-bottom:0}
+.withdrawal-support-ticket__header{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+.withdrawal-support-messages{display:grid;gap:.75rem}
+.withdrawal-support-message{padding:.85rem;border:1px solid var(--finance-border);border-radius:.8rem;background:var(--finance-soft);overflow-wrap:anywhere}
+.withdrawal-support-message--own{margin-left:clamp(0px,6vw,2rem);background:var(--finance-surface,#fff)}
+.withdrawal-support-message strong,.withdrawal-support-message small{display:block}
+.withdrawal-support-message small{margin-top:.15rem;color:var(--finance-muted);font-size:.8rem}
+.withdrawal-support-message p{margin:.5rem 0 0;white-space:pre-wrap}
+.withdrawal-support-reply{padding-top:.85rem;border-top:1px dashed var(--finance-border)}
