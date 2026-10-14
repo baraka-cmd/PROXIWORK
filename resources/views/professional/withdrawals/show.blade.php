@@ -35,8 +35,8 @@
             <div class="alert alert--warning" role="status"><strong>Traitement en cours.</strong><p>Le statut sera mis à jour après une confirmation fiable. Ne soumettez pas un second retrait pour remplacer cette demande.</p></div>
         @elseif($withdrawal->status === \App\Enums\WithdrawalStatus::REVIEW_REQUIRED)
             <div class="alert alert--warning" role="alert"><strong>Résultat à vérifier.</strong><p>{{ $withdrawal->review_reason ?: 'Le résultat du transfert n’est pas encore déterminé.' }} Les fonds restent bloqués jusqu’au rapprochement; aucun nouveau transfert ne doit être déclenché automatiquement.</p></div>
-        @elseif($withdrawal->status === \App\Enums\WithdrawalStatus::FAILED)
-            <div class="alert alert--error" role="alert"><strong>Le retrait a échoué ou a été refusé.</strong><p>{{ $withdrawal->failure_message ?: $withdrawal->review_reason ?: 'Le montant réservé a été libéré après confirmation de l’échec.' }}</p></div>
+        @elseif(in_array($withdrawal->status, [\App\Enums\WithdrawalStatus::FAILED, \App\Enums\WithdrawalStatus::REJECTED], true))
+            <div class="alert alert--error" role="alert"><strong>{{ $withdrawal->status === \App\Enums\WithdrawalStatus::REJECTED ? 'La demande a été refusée.' : 'Le retrait a échoué.' }}</strong><p>{{ $withdrawal->failure_message ?: $withdrawal->review_reason ?: 'La réservation a été libérée après confirmation du résultat.' }}</p></div>
         @elseif($withdrawal->status === \App\Enums\WithdrawalStatus::CANCELLED)
             <div class="alert alert--neutral" role="status">La demande a été annulée avant le traitement. La réservation a été libérée.</div>
         @elseif($withdrawal->status === \App\Enums\WithdrawalStatus::SUCCEEDED)
