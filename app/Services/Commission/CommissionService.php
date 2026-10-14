@@ -136,6 +136,6 @@ class CommissionService
 
     private function formatMinor(int $value): string
     {
-        return number_format($value / 100, 2, '.', '');
+        return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
     }
 }
