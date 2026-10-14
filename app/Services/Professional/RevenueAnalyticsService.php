@@ -108,6 +108,29 @@ class RevenueAnalyticsService
             ->orderBy('commissions.id');
     }
 
+    public function exportRefundQuery(ProfessionalProfile $professional, array $filters): QueryBuilder
+    {
+        [$start, $end] = $this->period($filters);
+
+        $query = $this->confirmedRefundQuery($professional, $filters, $start, $end)
+            ->select([
+                'payment_refunds.reference',
+                'payment_refunds.amount',
+                'payment_refunds.currency',
+                'payment_refunds.processed_at',
+                'payments.id as payment_id',
+                'orders.id as order_id',
+                'orders.order_number',
+                'commissions.id as commission_id',
+            ])
+            ->orderBy('payment_refunds.processed_at')
+            ->orderBy('payment_refunds.id');
+
+        $this->applyRefundReferenceFilter($query, $filters);
+
+        return $query;
+    }
+
     public function findForProfessional(ProfessionalProfile $professional, int $commissionId): Commission
     {
         return Commission::query()
@@ -226,20 +249,27 @@ class RevenueAnalyticsService
             ->orderByDesc('payment_refunds.processed_at')
             ->orderByDesc('payment_refunds.id');
 
-        if (($filters['reference'] ?? null) !== null) {
-            $reference = trim((string) $filters['reference']);
-
-            $query->where(function ($nested) use ($reference): void {
-                $nested->where('payment_refunds.reference', $reference)
-                    ->orWhere('orders.order_number', $reference);
-
-                if (preg_match('/^(?:COM-|#)?([0-9]+)$/i', $reference, $matches) === 1) {
-                    $nested->orWhere('commissions.id', (int) $matches[1]);
-                }
-            });
-        }
+        $this->applyRefundReferenceFilter($query, $filters);
 
         return $query->paginate(10, ['*'], 'refund_page')->withQueryString();
+    }
+
+    private function applyRefundReferenceFilter(QueryBuilder $query, array $filters): void
+    {
+        if (($filters['reference'] ?? null) === null) {
+            return;
+        }
+
+        $reference = trim((string) $filters['reference']);
+
+        $query->where(function ($nested) use ($reference): void {
+            $nested->where('payment_refunds.reference', $reference)
+                ->orWhere('orders.order_number', $reference);
+
+            if (preg_match('/^(?:COM-|#)?([0-9]+)$/i', $reference, $matches) === 1) {
+                $nested->orWhere('commissions.id', (int) $matches[1]);
+            }
+        });
     }
 
     private function confirmedRefundQuery(
