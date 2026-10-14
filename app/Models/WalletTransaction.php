@@ -7,9 +7,9 @@ namespace App\Models;
 use App\Enums\WalletTransactionDirection;
 use App\Enums\WalletTransactionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use LogicException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class WalletTransaction extends Model
 {
