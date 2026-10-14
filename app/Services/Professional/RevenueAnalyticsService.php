@@ -32,6 +32,8 @@ class RevenueAnalyticsService
 
         $completedOrders = $this->completedOrdersSummary($professional, $filters, $start, $end);
         $confirmedPayments = $this->confirmedPaymentsSummary($professional, $filters, $start, $end);
+        $confirmedRefunds = $this->confirmedRefundsSummary($professional, $filters, $start, $end);
+        $refundHistory = $this->confirmedRefundHistory($professional, $filters, $start, $end);
         $pendingBalances = Wallet::query()
             ->where('professional_id', $professional->getKey())
             ->when($filters['currency'] ?? null, fn (Builder $query, string $currency) => $query->where('currency', $currency))
@@ -58,6 +60,7 @@ class RevenueAnalyticsService
                 ->pluck('currency'))
             ->merge($completedOrders->pluck('currency'))
             ->merge($confirmedPayments->pluck('currency'))
+            ->merge($confirmedRefunds->pluck('currency'))
             ->when(($filters['currency'] ?? null) !== null, fn (Collection $values) => $values->push($filters['currency']))
             ->unique()
             ->sort()
@@ -73,6 +76,8 @@ class RevenueAnalyticsService
             'summary' => $summary,
             'completedOrders' => $completedOrders,
             'confirmedPayments' => $confirmedPayments,
+            'confirmedRefunds' => $confirmedRefunds,
+            'refundHistory' => $refundHistory,
             'pendingBalances' => $pendingBalances,
             'commissions' => $commissions,
             'currencies' => $currencies,
@@ -186,6 +191,87 @@ class RevenueAnalyticsService
             ->get();
     }
 
+    private function confirmedRefundsSummary(
+        ProfessionalProfile $professional,
+        array $filters,
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+    ): Collection {
+        return $this->confirmedRefundQuery($professional, $filters, $start, $end)
+            ->selectRaw('payment_refunds.currency, COUNT(payment_refunds.id) as refunds_count, SUM(payment_refunds.amount) as refunded_amount')
+            ->groupBy('payment_refunds.currency')
+            ->orderBy('payment_refunds.currency')
+            ->get();
+    }
+
+    private function confirmedRefundHistory(
+        ProfessionalProfile $professional,
+        array $filters,
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+    ) {
+        $query = $this->confirmedRefundQuery($professional, $filters, $start, $end)
+            ->select([
+                'payment_refunds.id',
+                'payment_refunds.reference',
+                'payment_refunds.amount',
+                'payment_refunds.currency',
+                'payment_refunds.processed_at',
+                'payments.id as payment_id',
+                'orders.id as order_id',
+                'orders.order_number',
+                'commissions.id as commission_id',
+            ])
+            ->orderByDesc('payment_refunds.processed_at')
+            ->orderByDesc('payment_refunds.id');
+
+        if (($filters['reference'] ?? null) !== null) {
+            $reference = trim((string) $filters['reference']);
+
+            $query->where(function ($nested) use ($reference): void {
+                $nested->where('payment_refunds.reference', $reference)
+                    ->orWhere('orders.order_number', $reference);
+
+                if (preg_match('/^(?:COM-|#)?([0-9]+)$/i', $reference, $matches) === 1) {
+                    $nested->orWhere('commissions.id', (int) $matches[1]);
+                }
+            });
+        }
+
+        return $query->paginate(10, ['*'], 'refund_page')->withQueryString();
+    }
+
+    private function confirmedRefundQuery(
+        ProfessionalProfile $professional,
+        array $filters,
+        CarbonImmutable $start,
+        CarbonImmutable $end,
+    ): \Illuminate\\Database\\Query\\Builder {
+        return DB::table('payment_refunds')
+            ->join('payments', 'payments.id', '=', 'payment_refunds.payment_id')
+            ->join('commissions', 'commissions.payment_id', '=', 'payments.id')
+            ->join('orders', 'orders.id', '=', 'payments.order_id')
+            ->where('commissions.professional_id', $professional->getKey())
+            ->where('payment_refunds.status', 'succeeded')
+            ->whereNotNull('payment_refunds.processed_at')
+            ->whereBetween('payment_refunds.processed_at', [$start, $end])
+            ->when($filters['currency'] ?? null, fn ($query, string $currency) => $query->where('payment_refunds.currency', $currency))
+            ->when($filters['order_id'] ?? null, fn ($query, int $orderId) => $query->where('orders.id', $orderId))
+            ->when($filters['service_id'] ?? null, fn ($query, int $serviceId) => $query->where(function ($nested) use ($serviceId): void {
+                $nested->whereExists(function ($subquery) use ($serviceId): void {
+                    $subquery->selectRaw('1')
+                        ->from('service_requests')
+                        ->whereColumn('service_requests.id', 'orders.service_request_id')
+                        ->where('service_requests.service_id', $serviceId);
+                })->orWhereExists(function ($subquery) use ($serviceId): void {
+                    $subquery->selectRaw('1')
+                        ->from('order_items')
+                        ->whereColumn('order_items.order_id', 'orders.id')
+                        ->where('order_items.service_id', $serviceId);
+                });
+            }));
+    }
+
     private function evolution(
         ProfessionalProfile $professional,
         array $filters,
@@ -275,7 +361,7 @@ class RevenueAnalyticsService
         CarbonImmutable $start,
         CarbonImmutable $end,
     ): Collection {
-        $items = DB::raw('(SELECT order_id, MIN(service_title) AS service_title, MIN(service_id) AS service_id FROM order_items GROUP BY order_id) AS revenue_items');
+        $items = DB::raw('(SELECT order_id, COUNT(DISTINCT service_id) AS service_count, CASE WHEN COUNT(DISTINCT service_id) = 1 THEN MIN(service_title) ELSE NULL END AS service_title, CASE WHEN COUNT(DISTINCT service_id) = 1 THEN MIN(service_id) ELSE NULL END AS service_id FROM order_items GROUP BY order_id) AS revenue_items');
 
         return DB::table('commissions')
             ->join('orders', 'orders.id', '=', 'commissions.order_id')
@@ -288,10 +374,16 @@ class RevenueAnalyticsService
             ->when($filters['currency'] ?? null, fn ($query, string $currency) => $query->where('commissions.currency', $currency))
             ->when($filters['order_id'] ?? null, fn ($query, int $orderId) => $query->where('orders.id', $orderId))
             ->when($filters['service_id'] ?? null, fn ($query, int $serviceId) => $query->where(function ($query) use ($serviceId): void {
-                $query->where('service_requests.service_id', $serviceId)->orWhere('revenue_items.service_id', $serviceId);
+                $query->where('service_requests.service_id', $serviceId)
+                    ->orWhereExists(function ($subquery) use ($serviceId): void {
+                        $subquery->selectRaw('1')
+                            ->from('order_items as filtered_items')
+                            ->whereColumn('filtered_items.order_id', 'orders.id')
+                            ->where('filtered_items.service_id', $serviceId);
+                    });
             }))
-            ->selectRaw("COALESCE(services.id, revenue_items.service_id) AS service_id, COALESCE(services.title, revenue_items.service_title, 'Service indisponible') AS service_title, commissions.currency, SUM(commissions.net_amount) AS net_amount, COUNT(DISTINCT commissions.order_id) AS orders_count")
-            ->groupBy('services.id', 'services.title', 'revenue_items.service_id', 'revenue_items.service_title', 'commissions.currency')
+            ->selectRaw("CASE WHEN COALESCE(revenue_items.service_count, 0) > 1 THEN NULL ELSE COALESCE(services.id, revenue_items.service_id) END AS service_id, CASE WHEN COALESCE(revenue_items.service_count, 0) > 1 THEN 'Commande multi-services — ventilation indisponible' ELSE COALESCE(services.title, revenue_items.service_title, 'Service indisponible') END AS service_title, commissions.currency, SUM(commissions.net_amount) AS net_amount, COUNT(DISTINCT commissions.order_id) AS orders_count")
+            ->groupBy('services.id', 'services.title', 'revenue_items.service_id', 'revenue_items.service_title', 'revenue_items.service_count', 'commissions.currency')
             ->orderByDesc('net_amount')
             ->get();
     }
