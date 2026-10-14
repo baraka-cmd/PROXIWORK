@@ -356,7 +356,7 @@ class WithdrawalService
         return DB::transaction(function () use ($withdrawal, $code, $reason, $actorUserId): Withdrawal {
             [$locked, $wallet] = $this->lockWithdrawalAndWallet($withdrawal);
 
-            if ($locked->status === WithdrawalStatus::FAILED) {
+            if ($locked->status === WithdrawalStatus::REJECTED) {
                 if ($locked->failure_code !== $code) {
                     throw new PaymentConflictException('Ce retrait a déjà été refusé avec un autre motif.');
                 }
@@ -371,7 +371,7 @@ class WithdrawalService
             return $this->releaseReservation(
                 withdrawal: $locked,
                 wallet: $wallet,
-                targetStatus: WithdrawalStatus::FAILED,
+                targetStatus: WithdrawalStatus::REJECTED,
                 code: $code,
                 message: $reason,
                 actorUserId: $actorUserId,
@@ -487,12 +487,16 @@ class WithdrawalService
             'status' => $targetStatus,
             'failure_code' => $code,
             'failure_message' => $message,
-            'completed_at' => $targetStatus === WithdrawalStatus::FAILED ? now() : null,
+            'completed_at' => in_array($targetStatus, [WithdrawalStatus::FAILED, WithdrawalStatus::REJECTED], true) ? now() : null,
             'reviewed_by' => $actorUserId,
             'review_reason' => $reason,
         ])->save();
 
-        $suffix = $targetStatus === WithdrawalStatus::CANCELLED ? 'cancelled' : 'failed';
+        $suffix = match ($targetStatus) {
+            WithdrawalStatus::CANCELLED => 'cancelled',
+            WithdrawalStatus::REJECTED => 'rejected',
+            default => 'failed',
+        };
 
         $this->recordLedger(
             wallet: $wallet,
