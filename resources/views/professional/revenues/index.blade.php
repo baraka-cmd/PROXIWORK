@@ -63,7 +63,14 @@
                 <label for="reference">Référence d’opération
                     <input id="reference" type="text" name="reference" maxlength="64" value="{{ $filters['reference'] ?? '' }}" placeholder="COM-123 ou référence commande">
                 </label>
-                <label for="status">État de l’historique
+                <label for="nature">Nature de l’opération
+                    <select id="nature" name="nature">
+                        <option value="all" @selected($filters['nature'] === 'all')>Toutes les natures</option>
+                        <option value="commission" @selected($filters['nature'] === 'commission')>Commissions</option>
+                        <option value="refund" @selected($filters['nature'] === 'refund')>Remboursements confirmés</option>
+                    </select>
+                </label>
+                <label for="status">État des commissions
                     <select id="status" name="status">
                         <option value="all" @selected($filters['status'] === 'all')>Tous les états</option>
                         <option value="posted" @selected($filters['status'] === 'posted')>Comptabilisées</option>
@@ -76,7 +83,7 @@
                     <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.export', request()->except('page')) }}">Exporter CSV</a>
                 </div>
             </form>
-            <p class="revenue-filter-note">Les indicateurs distinguent les dates de comptabilisation, de confirmation du paiement et de fin de prestation. Le filtre d’état et la recherche par référence agissent sur l’historique et l’export. Les indicateurs synthétiques restent agrégés selon la période, la devise, le service et la commande.</p>
+            <p class="revenue-filter-note">Les indicateurs distinguent les dates de comptabilisation, de confirmation du paiement et de fin de prestation. Les filtres de nature, d’état et de référence agissent sur les historiques et l’export, pas sur les indicateurs synthétiques. L’état s’applique aux commissions; la nature permet d’afficher les commissions ou les remboursements confirmés séparément. Les indicateurs synthétiques restent agrégés selon la période, la devise, le service et la commande.</p>
         </section>
 
         @if ($currencies->isNotEmpty())
@@ -159,7 +166,7 @@
                                     <thead><tr><th>Service</th><th>Commandes</th><th>Revenus nets</th></tr></thead>
                                     <tbody>
                                         @foreach ($servicesForCurrency as $serviceRevenue)
-                                            <tr><td>@if ($serviceRevenue->service_id)<a href="{{ request()->fullUrlWithQuery(['service_id' => $serviceRevenue->service_id, 'reference' => null, 'status' => 'posted']) }}">{{ $serviceRevenue->service_title }}</a>@else{{ $serviceRevenue->service_title }}@endif</td><td>{{ $serviceRevenue->orders_count }}</td><td><strong>{{ number_format((float) $serviceRevenue->net_amount, 2, ',', ' ') }} {{ $currency }}</strong></td></tr>
+                                            <tr><td>@if ($serviceRevenue->service_id)<a href="{{ request()->fullUrlWithQuery(['service_id' => $serviceRevenue->service_id, 'reference' => null, 'status' => 'posted', 'nature' => 'commission']) }}">{{ $serviceRevenue->service_title }}</a>@else{{ $serviceRevenue->service_title }}@endif</td><td>{{ $serviceRevenue->orders_count }}</td><td><strong>{{ number_format((float) $serviceRevenue->net_amount, 2, ',', ' ') }} {{ $currency }}</strong></td></tr>
                                         @endforeach
                                     </tbody>
                                 </table>
