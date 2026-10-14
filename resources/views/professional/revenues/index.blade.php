@@ -85,6 +85,7 @@
                     $summaryRow = $summary->firstWhere('currency', $currency);
                     $completedRow = $completedOrders->firstWhere('currency', $currency);
                     $paymentRow = $confirmedPayments->firstWhere('currency', $currency);
+                    $refundRow = $confirmedRefunds->firstWhere('currency', $currency);
                     $pendingRow = $pendingBalances->firstWhere('currency', $currency);
                     $series = collect($evolution)->firstWhere('currency', $currency);
                     $servicesForCurrency = $serviceBreakdown->where('currency', $currency)->take(10)->values();
@@ -99,9 +100,9 @@
                     <h2>{{ $currency }} · Synthèse de la période</h2>
                     <div class="revenue-metrics">
                         <article class="revenue-metric">
-                            <span class="revenue-metric__label">Revenus nets comptabilisés</span>
+                            <span class="revenue-metric__label">Revenus nets des commissions comptabilisées</span>
                             <strong>{{ number_format((float) ($summaryRow->net_amount ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
-                            <small>Commissions enregistrées et non annulées sur la période.</small>
+                            <small>Commissions comptabilisées non annulées. Les remboursements confirmés sont présentés séparément tant qu’ils ne sont pas rapprochés d’une écriture de correction.</small>
                         </article>
                         <article class="revenue-metric">
                             <span class="revenue-metric__label">Revenus bruts attribués</span>
@@ -122,6 +123,11 @@
                             <span class="revenue-metric__label">Prestations terminées</span>
                             <strong>{{ number_format((float) ($completedRow->total_amount ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
                             <small>{{ $completedRow->orders_count ?? 0 }} commande(s) terminée(s). Valeur des commandes, pas un revenu net.</small>
+                        </article>
+                        <article class="revenue-metric">
+                            <span class="revenue-metric__label">Remboursements confirmés</span>
+                            <strong>{{ number_format((float) ($refundRow->refunded_amount ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
+                            <small>{{ $refundRow->refunds_count ?? 0 }} remboursement(s) confirmé(s) sur la période. Flux sortant distinct, non soustrait automatiquement des revenus nets.</small>
                         </article>
                     </div>
 
@@ -180,6 +186,40 @@
         <section class="revenue-card">
             <div class="revenue-card__header">
                 <div>
+                    <h2>Remboursements confirmés</h2>
+                    <p class="revenue-muted">Seuls les remboursements au statut confirmé et disposant d’une date de traitement sont affichés. Une demande en attente n’est pas un remboursement exécuté.</p>
+                </div>
+            </div>
+            @if ($refundHistory->isEmpty())
+                <div class="revenue-empty">
+                    <p>Aucun remboursement confirmé ne correspond à cette période et à ces filtres.</p>
+                </div>
+            @else
+                <div class="revenue-table-wrap">
+                    <table class="revenue-table">
+                        <thead><tr><th>Date de confirmation</th><th>Référence remboursement</th><th>Commande</th><th>Paiement</th><th>Montant remboursé</th><th>État</th></tr></thead>
+                        <tbody>
+                            @foreach ($refundHistory as $refund)
+                                <tr>
+                                    <td>{{ \Illuminate\Support\Carbon::parse($refund->processed_at)->format('d/m/Y H:i') }}</td>
+                                    <td>{{ $refund->reference }}</td>
+                                    <td><a href="{{ route('professional.orders.show', $refund->order_id) }}">{{ $refund->order_number ?: '#'.$refund->order_id }}</a></td>
+                                    <td>PAY-{{ $refund->payment_id }}</td>
+                                    <td><strong>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</strong></td>
+                                    <td><span class="revenue-status">Confirmé</span></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="revenue-pagination">{{ $refundHistory->links() }}</div>
+            @endif
+            <p class="revenue-notice">Important : le système conserve les remboursements confirmés, mais ne relie pas encore leur effet à une écriture de correction de commission et au mouvement correspondant du portefeuille. Ils sont donc présentés séparément et ne sont pas soustraits arbitrairement du revenu net.</p>
+        </section>
+
+        <section class="revenue-card">
+            <div class="revenue-card__header">
+                <div>
                     <h2>Historique des commissions</h2>
                     <p class="revenue-muted">Chaque ligne conserve la référence de l’opération d’origine. Les montants sont calculés côté serveur et les détails sont limités au professionnel connecté.</p>
                 </div>
@@ -188,7 +228,7 @@
             @if ($commissions->isEmpty())
                 <div class="revenue-empty">
                     <h3>Aucune opération ne correspond aux filtres</h3>
-                    <p>Essayez une autre période ou réinitialisez les filtres. Les demandes de remboursement ne sont pas des remboursements exécutés et ne sont pas présentées comme des mouvements comptabilisés.</p>
+                    <p>Essayez une autre période ou réinitialisez les filtres. Les demandes de remboursement ne sont pas des remboursements exécutés. Les remboursements confirmés disposent d’une section distincte; faute de rapprochement comptable complet, ils ne sont pas déduits automatiquement du revenu net.</p>
                 </div>
             @else
                 <div class="revenue-table-wrap">
