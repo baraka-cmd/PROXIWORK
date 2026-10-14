@@ -237,7 +237,7 @@ class ReviewService
         $query = Review::query()
             ->with([
                 'response',
-                'order:id,service_request_id',
+                'order:id,order_number,service_request_id',
                 'order.serviceRequest:id,service_id',
                 'order.serviceRequest.service:id,title',
             ])
