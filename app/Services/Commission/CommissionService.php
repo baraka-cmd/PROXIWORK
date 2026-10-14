@@ -123,7 +123,7 @@ class CommissionService
         $normalizedWhole = ltrim($whole, '0') ?: '0';
 
         if (strlen($normalizedWhole) > 16) {
-            throw new \\InvalidArgumentException('Montant financier hors limites techniques.');
+            throw new \InvalidArgumentException('Montant financier hors limites techniques.');
         }
 
         return ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
@@ -141,7 +141,7 @@ class CommissionService
         $normalizedWhole = ltrim($whole, '0') ?: '0';
 
         if (strlen($normalizedWhole) > 3) {
-            throw new \\InvalidArgumentException('Taux de commission hors limites techniques.');
+            throw new \InvalidArgumentException('Taux de commission hors limites techniques.');
         }
 
         return ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
