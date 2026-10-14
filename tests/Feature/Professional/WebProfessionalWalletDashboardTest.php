@@ -100,6 +100,21 @@ class WebProfessionalWalletDashboardTest extends TestCase
             ->assertDontSee('PRIVATE_OWNER_LEDGER_ENTRY');
     }
 
+    public function test_non_active_wallet_displays_warning_and_hides_withdrawal_action(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $wallet = app(WalletService::class)->getOrCreate($profile, 'USD');
+        $wallet->forceFill(['status' => 'suspended'])->save();
+
+        $this->actingAs($user)
+            ->get(route('professional.wallet', ['currency' => 'USD']))
+            ->assertOk()
+            ->assertSee('Portefeuille suspended')
+            ->assertDontSee('Demander un retrait');
+    }
+
     public function test_wallet_page_rejects_a_currency_that_does_not_belong_to_the_professional(): void
     {
         $user = User::factory()->create();
