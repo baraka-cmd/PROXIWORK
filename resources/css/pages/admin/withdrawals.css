@@ -1,0 +1,35 @@
+.admin-withdrawals{display:grid;gap:1.25rem;min-width:0}
+.admin-withdrawal-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;align-items:end}
+.admin-withdrawal-filters select,.admin-field textarea,.admin-field input{width:100%;min-width:0;border:1px solid var(--admin-border,#dbe2ea);border-radius:.65rem;background:var(--admin-surface,#fff);padding:.7rem .8rem;font:inherit;color:inherit}
+.admin-field textarea{resize:vertical;line-height:1.5}
+.admin-withdrawal-status{display:inline-flex;align-items:center;border-radius:999px;padding:.35rem .65rem;font-size:.78rem;font-weight:750;white-space:nowrap;background:#e2e8f0;color:#334155}
+.admin-withdrawal-status--requested{background:#fef3c7;color:#92400e}
+.admin-withdrawal-status--processing{background:#dbeafe;color:#1d4ed8}
+.admin-withdrawal-status--review_required{background:#ffedd5;color:#9a3412}
+.admin-withdrawal-status--succeeded{background:#dcfce7;color:#166534}
+.admin-withdrawal-status--failed,.admin-withdrawal-status--cancelled{background:#fee2e2;color:#991b1b}
+.admin-table td small{display:block;margin-top:.2rem;color:var(--admin-muted,#64748b);overflow-wrap:anywhere}
+.admin-withdrawal-details{display:grid;gap:.8rem;margin:0}
+.admin-withdrawal-details>div{display:grid;grid-template-columns:minmax(190px,.55fr) minmax(0,1fr);gap:1rem;padding-bottom:.8rem;border-bottom:1px solid var(--admin-border,#dbe2ea)}
+.admin-withdrawal-details dt{color:var(--admin-muted,#64748b);font-weight:650}
+.admin-withdrawal-details dd{margin:0;overflow-wrap:anywhere}
+.admin-withdrawal-destination{display:block;white-space:pre-wrap;overflow-wrap:anywhere;padding:.7rem;border-radius:.6rem;background:var(--admin-soft,#f8fafc);user-select:text}
+.admin-withdrawal-actions-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:1rem}
+.admin-withdrawal-action{display:grid;align-content:start;gap:.8rem;min-width:0;padding:1rem;border:1px solid var(--admin-border,#dbe2ea);border-radius:.9rem}
+.admin-withdrawal-action h4{margin:0}
+.admin-withdrawal-action p{margin:0;color:var(--admin-muted,#64748b);line-height:1.5}
+.admin-withdrawal-action .button{justify-self:start}
+.admin-withdrawal-timeline{display:grid;gap:1rem;list-style:none;padding:0;margin:0}
+.admin-withdrawal-timeline li{border-left:2px solid var(--admin-border,#dbe2ea);padding:0 0 .5rem 1rem}
+.admin-withdrawal-timeline small{display:block;color:var(--admin-muted,#64748b);margin-top:.25rem}
+.admin-withdrawal-timeline p{margin:.4rem 0 0;overflow-wrap:anywhere}
+.admin-alert--warning{display:flex;gap:.8rem;align-items:flex-start;padding:1rem;border:1px solid #fcd34d;border-radius:.85rem;background:#fffbeb;color:#92400e}
+.admin-alert--warning>i{margin-top:.2rem;flex:0 0 auto}
+.admin-alert--warning p{margin:.3rem 0 0;line-height:1.5}
+.admin-alert--error{display:flex;gap:.75rem;padding:1rem;border-radius:.85rem;background:#fef2f2;color:#991b1b}
+.admin-alert--error ul{margin:0;padding-left:1rem}
+.admin-empty-state{padding:2.5rem 1rem;text-align:center;color:var(--admin-muted,#64748b)}
+.admin-empty-state>i{font-size:2rem}
+.admin-empty-state h3{margin:.75rem 0 .25rem;color:inherit}
+.admin-pagination{margin-top:1rem}
+@media(max-width:640px){.admin-withdrawal-details>div{grid-template-columns:1fr;gap:.3rem}.admin-withdrawal-action .button{width:100%;justify-content:center}}
