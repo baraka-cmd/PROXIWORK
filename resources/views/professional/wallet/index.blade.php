@@ -128,7 +128,7 @@
     @else
     <div class="finance-table-wrap">
         <table class="finance-table">
-            <thead><tr><th>Date</th><th>Référence</th><th>Opération</th><th>Sens</th><th>Montant</th></tr></thead>
+            <thead><tr><th>Date</th><th>Référence</th><th>Opération</th><th>Sens</th><th>Compartiment</th><th>Montant</th></tr></thead>
             <tbody>
             @foreach($transactions as $transaction)
             <tr>
@@ -136,6 +136,7 @@
                 <td><span class="wallet-transaction-reference">#{{ $transaction->id }}</span>@if($transaction->reference_id)<small class="wallet-reference-detail">Réf. liée : {{ class_basename((string) $transaction->reference_type) }} #{{ $transaction->reference_id }}</small>@endif</td>
                 <td>{{ $transaction->description ?: match($transaction->type?->value) { 'earning' => 'Revenu', 'commission' => 'Commission', 'withdrawal' => 'Retrait', 'refund' => 'Remboursement', 'adjustment' => 'Ajustement', 'reversal' => 'Contre-écriture', default => 'Opération financière' } }}</td>
                 <td><span class="finance-direction finance-direction--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? 'Crédit' : 'Débit' }}</span></td>
+                <td><span class="wallet-bucket-label wallet-bucket-label--{{ $transaction->balance_bucket ?? 'unknown' }}">{{ match($transaction->balance_bucket ?? 'unknown') { 'available' => 'Disponible', 'pending' => 'En attente', 'locked' => 'Bloqué / réservé', 'unknown' => 'Non déterminé (historique)', default => 'Non déterminé' } }}</span></td>
                 <td class="finance-amount finance-amount--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? '+' : '−' }}{{ \App\Support\MoneyFormatter::format((string) $transaction->amount) }} {{ $transaction->currency }}</td>
             </tr>
             @endforeach
