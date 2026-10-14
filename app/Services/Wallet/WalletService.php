@@ -109,6 +109,7 @@ class WalletService
                 'amount' => $amount,
                 'balance_before' => $this->formatMinor($before),
                 'balance_after' => $this->formatMinor($after),
+                'balance_bucket' => 'pending',
                 'reference_type' => $referenceType,
                 'reference_id' => $referenceId,
                 'idempotency_key' => $idempotencyKey,
@@ -132,14 +133,29 @@ class WalletService
                 ->lockForUpdate()
                 ->firstOrFail();
 
+            $fingerprint = hash('sha256', $idempotencyKey);
+            $pendingKey = 'wallet-release:'.$fingerprint.':pending';
+            $availableKey = 'wallet-release:'.$fingerprint.':available';
+
             $existing = WalletTransaction::query()
                 ->where('wallet_id', $wallet->getKey())
-                ->where('idempotency_key', $idempotencyKey)
+                ->whereIn('idempotency_key', [$idempotencyKey, $pendingKey, $availableKey])
                 ->lockForUpdate()
-                ->first();
+                ->get();
 
-            if ($existing !== null) {
-                return $existing;
+            $existingAvailable = $existing->firstWhere('idempotency_key', $availableKey);
+            $legacy = $existing->firstWhere('idempotency_key', $idempotencyKey);
+
+            if ($existingAvailable !== null) {
+                return $existingAvailable;
+            }
+
+            if ($legacy !== null) {
+                return $legacy;
+            }
+
+            if ($existing->isNotEmpty()) {
+                throw new PaymentConflictException('Le registre de libération du solde est incomplet; un rapprochement est requis.');
             }
 
             $pending = $this->minor((string) $wallet->pending_balance);
@@ -150,23 +166,42 @@ class WalletService
                 throw new PaymentConflictException('Le solde en attente est insuffisant pour cette libération.');
             }
 
+            $pendingAfter = $pending - $value;
+            $availableAfter = $available + $value;
+
             $wallet->forceFill([
-                'pending_balance' => $this->formatMinor($pending - $value),
-                'available_balance' => $this->formatMinor($available + $value),
+                'pending_balance' => $this->formatMinor($pendingAfter),
+                'available_balance' => $this->formatMinor($availableAfter),
             ])->save();
+
+            WalletTransaction::query()->forceCreate([
+                'wallet_id' => $wallet->getKey(),
+                'type' => WalletTransactionType::EARNING,
+                'direction' => WalletTransactionDirection::DEBIT,
+                'currency' => strtoupper($currency),
+                'amount' => $this->formatMinor($value),
+                'balance_before' => $this->formatMinor($pending),
+                'balance_after' => $this->formatMinor($pendingAfter),
+                'balance_bucket' => 'pending',
+                'reference_type' => $referenceType,
+                'reference_id' => $referenceId,
+                'idempotency_key' => $pendingKey,
+                'description' => 'Libération du solde professionnel — diminution du compartiment en attente.',
+            ]);
 
             return WalletTransaction::query()->forceCreate([
                 'wallet_id' => $wallet->getKey(),
                 'type' => WalletTransactionType::EARNING,
                 'direction' => WalletTransactionDirection::CREDIT,
                 'currency' => strtoupper($currency),
-                'amount' => $amount,
+                'amount' => $this->formatMinor($value),
                 'balance_before' => $this->formatMinor($available),
-                'balance_after' => $this->formatMinor($available + $value),
+                'balance_after' => $this->formatMinor($availableAfter),
+                'balance_bucket' => 'available',
                 'reference_type' => $referenceType,
                 'reference_id' => $referenceId,
-                'idempotency_key' => $idempotencyKey,
-                'description' => 'Libération du solde professionnel.',
+                'idempotency_key' => $availableKey,
+                'description' => 'Libération du solde professionnel — augmentation du compartiment disponible.',
             ]);
         }, attempts: 3);
     }
@@ -186,6 +221,10 @@ class WalletService
 
     private function formatMinor(int $value): string
     {
-        return number_format($value / 100, 2, '.', '');
+        if ($value < 0) {
+            throw new \\InvalidArgumentException('Un solde ne peut pas être négatif.');
+        }
+
+        return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
     }
 }
