@@ -225,19 +225,25 @@ class RevenueAnalyticsService
         CarbonImmutable $end,
     ): Collection {
         return DB::table('payments')
-            ->join('commissions', 'commissions.payment_id', '=', 'payments.id')
             ->join('orders', 'orders.id', '=', 'payments.order_id')
-            ->where('commissions.professional_id', $professional->getKey())
-            ->where('commissions.status', CommissionStatus::POSTED->value)
+            ->where('orders.professional_id', $professional->getKey())
             ->where('payments.status', PaymentStatus::SUCCEEDED->value)
+            ->whereNotNull('payments.paid_at')
             ->whereBetween('payments.paid_at', [$start, $end])
             ->when($filters['currency'] ?? null, fn ($query, string $currency) => $query->where('payments.currency', $currency))
             ->when($filters['order_id'] ?? null, fn ($query, int $orderId) => $query->where('orders.id', $orderId))
-            ->when($filters['service_id'] ?? null, fn ($query, int $serviceId) => $query->whereExists(function ($subquery) use ($serviceId): void {
-                $subquery->selectRaw('1')
-                    ->from('order_items')
-                    ->whereColumn('order_items.order_id', 'orders.id')
-                    ->where('order_items.service_id', $serviceId);
+            ->when($filters['service_id'] ?? null, fn ($query, int $serviceId) => $query->where(function ($nested) use ($serviceId): void {
+                $nested->whereExists(function ($subquery) use ($serviceId): void {
+                    $subquery->selectRaw('1')
+                        ->from('service_requests')
+                        ->whereColumn('service_requests.id', 'orders.service_request_id')
+                        ->where('service_requests.service_id', $serviceId);
+                })->orWhereExists(function ($subquery) use ($serviceId): void {
+                    $subquery->selectRaw('1')
+                        ->from('order_items')
+                        ->whereColumn('order_items.order_id', 'orders.id')
+                        ->where('order_items.service_id', $serviceId);
+                });
             }))
             ->selectRaw('payments.currency, COUNT(payments.id) as payments_count, SUM(payments.amount) as paid_amount')
             ->groupBy('payments.currency')
