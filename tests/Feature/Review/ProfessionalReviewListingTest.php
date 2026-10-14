@@ -238,6 +238,47 @@ class ProfessionalReviewListingTest extends TestCase
         $this->assertNotContains($firstReview->id, collect($unanswered->items())->pluck('id')->all());
     }
 
+    public function test_professional_filters_can_be_combined_for_date_service_comment_and_text(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $matchingOrder = $this->createOrder($client, $user, $professional);
+        $otherOrder = $this->createOrder($client, $user, $professional);
+
+        Review::query()->where('order_id', $matchingOrder->id)->update([
+            'comment' => 'Le professionnel a respecté les délais.',
+            'status' => ReviewStatus::PUBLISHED->value,
+            'published_at' => now()->subDay(),
+        ]);
+        Review::query()->where('order_id', $otherOrder->id)->update([
+            'comment' => 'Très bonne qualité du travail.',
+            'status' => ReviewStatus::PUBLISHED->value,
+            'published_at' => now()->subDays(20),
+        ]);
+
+        $serviceId = $matchingOrder->serviceRequest()->value('service_id');
+
+        $result = app(ReviewService::class)->listForProfessional(
+            $professional,
+            perPage: 10,
+            from: now()->subDays(3)->toDateString(),
+            to: now()->toDateString(),
+            serviceId: (int) $serviceId,
+            hasComment: true,
+            search: 'respecté les délais',
+        );
+
+        $this->assertCount(1, $result->items());
+        $this->assertSame(
+            $matchingOrder->id,
+            $result->items()[0]->order_id,
+        );
+    }
+
     public function test_reputation_themes_are_based_on_real_comments_and_require_minimum_volume(): void
     {
         $user = User::factory()->create();
