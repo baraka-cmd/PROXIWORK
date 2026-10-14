@@ -62,9 +62,6 @@ class ProfessionalRevenueFilterRequest extends FormRequest
         $filters['reference'] = isset($filters['reference']) && trim($filters['reference']) !== ''
             ? trim($filters['reference'])
             : null;
-        $filters['reference'] = isset($filters['reference']) && trim($filters['reference']) !== ''
-            ? trim($filters['reference'])
-            : null;
 
         return $filters;
     }
