@@ -21,7 +21,7 @@ class RevenueAnalyticsService
     public function dashboard(ProfessionalProfile $professional, array $filters): array
     {
         [$start, $end, $periodLabel] = $this->period($filters);
-        $base = $this->commissionQuery($professional, $filters, $start, $end);
+        $base = $this->commissionQuery($professional, $filters, $start, $end, false);
         $posted = (clone $base)->where('commissions.status', CommissionStatus::POSTED->value);
 
         $summary = (clone $posted)
@@ -39,7 +39,7 @@ class RevenueAnalyticsService
             ->orderBy('currency')
             ->get();
 
-        $commissions = (clone $base)
+        $commissions = $this->commissionQuery($professional, $filters, $start, $end, true)
             ->with(['order.items', 'payment'])
             ->orderByDesc('commissions.posted_at')
             ->orderByDesc('commissions.id')
@@ -50,12 +50,18 @@ class RevenueAnalyticsService
             ->where('professional_id', $professional->getKey())
             ->when($filters['currency'] ?? null, fn (Builder $query, string $currency) => $query->where('currency', $currency))
             ->distinct()
-            ->orderBy('currency')
-            ->pluck('currency');
-
-        if (($filters['currency'] ?? null) !== null && ! $currencies->contains($filters['currency'])) {
-            $currencies->push($filters['currency']);
-        }
+            ->pluck('currency')
+            ->merge(Wallet::query()
+                ->where('professional_id', $professional->getKey())
+                ->when($filters['currency'] ?? null, fn (Builder $query, string $currency) => $query->where('currency', $currency))
+                ->distinct()
+                ->pluck('currency'))
+            ->merge($completedOrders->pluck('currency'))
+            ->merge($confirmedPayments->pluck('currency'))
+            ->when(($filters['currency'] ?? null) !== null, fn (Collection $values) => $values->push($filters['currency']))
+            ->unique()
+            ->sort()
+            ->values();
 
         return [
             'period' => [
@@ -102,6 +108,7 @@ class RevenueAnalyticsService
         array $filters,
         CarbonImmutable $start,
         CarbonImmutable $end,
+        bool $includeStatus = true,
     ): Builder {
         return Commission::query()
             ->where('commissions.professional_id', $professional->getKey())
@@ -111,7 +118,7 @@ class RevenueAnalyticsService
             ->when($filters['service_id'] ?? null, function (Builder $query, int $serviceId): void {
                 $query->whereHas('order.items', fn (Builder $items) => $items->where('service_id', $serviceId));
             })
-            ->when(($filters['status'] ?? 'all') !== 'all', fn (Builder $query) => $query->where('commissions.status', $filters['status']));
+            ->when($includeStatus && ($filters['status'] ?? 'all') !== 'all', fn (Builder $query) => $query->where('commissions.status', $filters['status']));
     }
 
     private function completedOrdersSummary(
@@ -180,7 +187,7 @@ class RevenueAnalyticsService
             default => 'Y-m',
         };
 
-        $rows = $this->commissionQuery($professional, $filters, $start, $end)
+        $rows = $this->commissionQuery($professional, $filters, $start, $end, false)
             ->where('commissions.status', CommissionStatus::POSTED->value)
             ->selectRaw("commissions.currency, DATE_FORMAT(commissions.posted_at, '{$format}') as period_key, SUM(commissions.net_amount) as net_amount")
             ->groupBy('commissions.currency', 'period_key')
