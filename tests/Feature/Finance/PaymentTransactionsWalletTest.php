@@ -631,6 +631,7 @@ class PaymentTransactionsWalletTest extends TestCase
             idempotencyKey: 'withdrawal-failure-0001',
         );
 
+        $withdrawalService->markProcessing($withdrawal);
         $withdrawalService->markFailed($withdrawal, 'FAKE_FAILURE', 'Échec simulé.');
 
         $this->assertDatabaseHas('wallets', [
