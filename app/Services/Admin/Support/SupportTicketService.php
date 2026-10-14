@@ -75,6 +75,7 @@ class SupportTicketService
         return $ticket->load([
             'user:id,name,email',
             'assignee:id,name,email',
+            'withdrawal',
             'messages' => fn ($query) => $query->oldest()->with('sender:id,name,email'),
         ]);
     }
@@ -84,6 +85,7 @@ class SupportTicketService
         return DB::transaction(function () use ($user, $data, $request): SupportTicket {
             $ticket = SupportTicket::create([
                 'user_id' => $user->id,
+                'withdrawal_id' => $data['withdrawal_id'] ?? null,
                 'subject' => $data['subject'],
                 'category' => SupportTicketCategory::from($data['category']),
                 'priority' => SupportTicketPriority::from(
