@@ -241,7 +241,7 @@
                                     <td>COM-{{ $commission->id }}</td>
                                     <td>
                                         <a href="{{ route('professional.orders.show', $commission->order_id) }}">{{ $commission->order?->order_number ?? '#'.$commission->order_id }}</a>
-                                        <small>{{ $commission->order?->items->first()?->service_title ?? 'Service indisponible' }}</small>
+                                        <small>{{ $commission->service_display_title ?? 'Service indisponible' }}</small>
                                     </td>
                                     <td>{{ number_format((float) $commission->gross_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
                                     <td>{{ number_format((float) $commission->commission_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
