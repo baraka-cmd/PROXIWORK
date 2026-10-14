@@ -13,6 +13,7 @@ use App\Models\ProfessionalProfile;
 use App\Models\Wallet;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
