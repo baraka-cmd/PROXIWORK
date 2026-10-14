@@ -136,7 +136,16 @@ class WebProfessionalNotificationsTest extends TestCase
             ->post(route('professional.notifications.read', $notification->id))
             ->assertNotFound();
 
+        $this->actingAs($professional)
+            ->post(route('professional.notifications.archive', $notification->id))
+            ->assertNotFound();
+
+        $this->actingAs($professional)
+            ->post(route('professional.notifications.restore', $notification->id))
+            ->assertNotFound();
+
         $this->assertNull($notification->fresh()->read_at);
+        $this->assertNull($notification->fresh()->archived_at);
     }
 
     public function test_professional_can_search_filter_and_archive_only_own_notifications(): void
