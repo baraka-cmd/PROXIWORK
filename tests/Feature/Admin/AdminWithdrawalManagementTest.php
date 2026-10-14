@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
-use App\Models\AuditLog;
 use App\Enums\WithdrawalStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
@@ -130,7 +129,7 @@ class AdminWithdrawalManagementTest extends TestCase
             'subject_id' => $withdrawal->id,
         ]);
 
-        $log = AuditLog::query()
+        $log = \App\Models\AuditLog::query()
             ->where('action', 'admin.withdrawal.destination.viewed')
             ->firstOrFail();
 
