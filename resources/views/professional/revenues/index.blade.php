@@ -101,6 +101,11 @@
                             <small>Commissions enregistrées et non annulées sur la période.</small>
                         </article>
                         <article class="revenue-metric">
+                            <span class="revenue-metric__label">Revenus bruts attribués</span>
+                            <strong>{{ number_format((float) ($summaryRow->gross_amount ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
+                            <small>Montants des paiements associés aux commissions comptabilisées, avant frais de plateforme.</small>
+                        </article>
+                        <article class="revenue-metric">
                             <span class="revenue-metric__label">Paiements confirmés</span>
                             <strong>{{ number_format((float) ($paymentRow->paid_amount ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
                             <small>{{ $paymentRow->payments_count ?? 0 }} paiement(s) confirmé(s) rattaché(s) à une commission comptabilisée.</small>
@@ -158,7 +163,7 @@
                     <div class="revenue-metric">
                         <span class="revenue-metric__label">Fonds en attente de libération · solde actuel</span>
                         <strong>{{ number_format((float) ($pendingRow->pending_balance ?? 0), 2, ',', ' ') }} {{ $currency }}</strong>
-                        <small>Ce solde vient du portefeuille et n’est pas limité à la période choisie. Il ne s’ajoute pas aux revenus nets.</small>
+                        <small>Ce solde vient du portefeuille et n’est limité ni à la période, ni au service, ni à la commande sélectionnés. Il ne s’ajoute pas aux revenus nets.</small>
                     </div>
                 </section>
             @endforeach
