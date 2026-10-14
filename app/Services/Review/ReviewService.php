@@ -175,6 +175,15 @@ class ReviewService
             $this->refreshProfessionalRating($professional);
             $this->auditLogService->record('review.moderated', $lockedReview, $moderator, ['status' => $status->value, 'reason' => $reason]);
 
+            $professionalUser = User::query()->find($professional->user_id);
+            if ($professionalUser !== null) {
+                $this->notificationService->reviewModerationUpdated(
+                    $professionalUser,
+                    $status->value,
+                    'review-moderation:'.$lockedReview->getKey().':'.$status->value,
+                );
+            }
+
             return $lockedReview->refresh()->load('response');
         }, attempts: 3);
     }
