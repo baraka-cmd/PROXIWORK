@@ -155,7 +155,7 @@
             <input type="hidden" name="period" value="{{ $filters['period'] ?? '30' }}">
             <label>
                 <span>Recherche</span>
-                <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" maxlength="120" placeholder="Mot-clé ou nom du service">
+                <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" maxlength="120" placeholder="Rechercher dans les commentaires ou services">
             </label>
             <label>
                 <span>Note</span>
