@@ -87,7 +87,7 @@ class ProfessionalReviewListingTest extends TestCase
             [3, 5],
             collect($result->items())->pluck('rating')->all(),
         );
-        $this->assertTrue($result->items()[0]->relationLoaded('client'));
+        $this->assertFalse($result->items()[0]->relationLoaded('client'));
         $this->assertTrue($result->items()[0]->relationLoaded('response'));
         $this->assertTrue($result->items()[0]->relationLoaded('order'));
     }
