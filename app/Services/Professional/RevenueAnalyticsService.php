@@ -193,10 +193,13 @@ class RevenueAnalyticsService
             'week' => $driver === 'sqlite' ? 'Y-\\WW' : 'o-\\WW',
             default => 'Y-m',
         };
+        $periodExpression = $driver === 'sqlite'
+            ? "strftime('{$format}', commissions.posted_at)"
+            : "DATE_FORMAT(commissions.posted_at, '{$format}')";
 
         $rows = $this->commissionQuery($professional, $filters, $start, $end, false)
             ->where('commissions.status', CommissionStatus::POSTED->value)
-            ->selectRaw("commissions.currency, DATE_FORMAT(commissions.posted_at, '{$format}') as period_key, SUM(commissions.net_amount) as net_amount")
+            ->selectRaw("commissions.currency, {$periodExpression} as period_key, SUM(commissions.net_amount) as net_amount")
             ->groupBy('commissions.currency', 'period_key')
             ->orderBy('period_key')
             ->get()
