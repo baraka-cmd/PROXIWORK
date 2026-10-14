@@ -17,6 +17,7 @@ use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Review;
+use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
@@ -219,6 +220,47 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             'rating' => 4,
             'comment' => 'Prestation sérieuse et communication claire.',
             'status' => ReviewStatus::PUBLISHED->value,
+        ]);
+    }
+
+    public function test_client_can_report_an_abusive_professional_review_response(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+        $response = app(\App\Services\Review\ReviewService::class)->respond(
+            $review,
+            $professional,
+            'Réponse professionnelle de test.',
+        );
+
+        $this->actingAs($client)
+            ->get(route('client.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Signaler cette réponse à PROXIWORK');
+
+        $this->actingAs($client)
+            ->post(route('client.orders.review-response.report', $order), [
+                'target_type' => 'review_response',
+                'target_id' => $response->id,
+                'reason_code' => 'ABUSIVE_CONTENT',
+                'description' => 'La réponse contient un contenu inapproprié.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reports', [
+            'reporter_id' => $client->id,
+            'target_type' => ReviewResponse::class,
+            'target_id' => $response->id,
+            'reason_code' => 'ABUSIVE_CONTENT',
+            'status' => 'pending',
         ]);
     }
 
