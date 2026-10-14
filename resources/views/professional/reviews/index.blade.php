@@ -71,7 +71,7 @@
             <article class="reputation-stat">
                 <span class="reputation-stat__label">Avec réponse publiée</span>
                 <strong class="reputation-stat__value">{{ $summary['answered'] }}</strong>
-                <span class="reputation-stat__hint">Réponses visibles aux clients</span>
+                <span class="reputation-stat__hint">Réponses visibles aux clients · {{ $summary['total'] > 0 ? (int) round(($summary['answered'] / $summary['total']) * 100) : 0 }} % des avis publiés</span>
             </article>
         </div>
 
