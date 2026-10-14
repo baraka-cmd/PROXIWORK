@@ -1,4 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-withdrawal-cancel]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm('Annuler cette demande ? Les fonds réservés seront libérés si le traitement n’a pas commencé.')) {
+                event.preventDefault();
+            }
+        });
+    });
+
     const form = document.querySelector('[data-withdrawal-form]');
     const currency = document.querySelector('[data-currency-select]');
 
