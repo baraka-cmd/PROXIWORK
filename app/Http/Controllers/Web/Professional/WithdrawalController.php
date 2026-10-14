@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
+use App\Enums\SupportTicketCategory;
 use App\Enums\WithdrawalStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Professional\Withdrawal\ProfessionalWithdrawalFilterRequest;
+use App\Http\Requests\Professional\Withdrawal\ReportWithdrawalProblemRequest;
 use App\Http\Requests\Wallet\StoreWithdrawalRequest;
 use App\Models\ProfessionalProfile;
+use App\Models\SupportTicket;
 use App\Models\Wallet;
 use App\Models\Withdrawal;
+use App\Services\Admin\Support\SupportTicketService;
 use App\Services\Wallet\WithdrawalService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -171,6 +175,27 @@ class WithdrawalController extends Controller
 
         return redirect()->route('professional.withdrawals.show', $withdrawal)
             ->with('status', 'La demande a été annulée et la réservation a été libérée.');
+    }
+
+    public function reportProblem(
+        ReportWithdrawalProblemRequest $request,
+        Withdrawal $withdrawal,
+        SupportTicketService $supportService,
+    ): RedirectResponse {
+        $this->authorize('view', $withdrawal);
+        $this->authorize('create', SupportTicket::class);
+
+        $reference = 'WD-'.str_pad((string) $withdrawal->getKey(), 8, '0', STR_PAD_LEFT);
+        $ticket = $supportService->create($request->user(), [
+            'withdrawal_id' => $withdrawal->getKey(),
+            'subject' => 'Problème concernant le retrait '.$reference,
+            'category' => SupportTicketCategory::PAYMENT->value,
+            'priority' => 'normal',
+            'body' => "Référence du retrait : {$reference}\nStatut actuel : ".$withdrawal->status->label()."\nMontant demandé : ".$withdrawal->amount.' '.$withdrawal->currency."\n\nDescription du problème :\n".$request->validated('body'),
+        ], $request);
+
+        return redirect()->route('professional.withdrawals.show', $withdrawal)
+            ->with('status', 'Votre signalement a été transmis au support. Référence du ticket : #'.$ticket->getKey().'.');
     }
 
     private function professionalProfile(Request $request): ProfessionalProfile
