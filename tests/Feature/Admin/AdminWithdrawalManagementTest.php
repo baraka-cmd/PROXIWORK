@@ -101,7 +101,7 @@ class AdminWithdrawalManagementTest extends TestCase
             ])
             ->assertRedirect(route('admin.withdrawals.show', $withdrawal));
 
-        $this->assertSame(WithdrawalStatus::FAILED, $withdrawal->fresh()->status);
+        $this->assertSame(WithdrawalStatus::REJECTED, $withdrawal->fresh()->status);
         $this->assertSame('100.00', $wallet->fresh()->available_balance);
         $this->assertSame('0.00', $wallet->fresh()->locked_balance);
         $this->assertDatabaseHas('audit_logs', [
