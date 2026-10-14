@@ -6,7 +6,9 @@ namespace Tests\Feature\Professional;
 
 use App\Enums\ConversationStatus;
 use App\Enums\ConversationType;
+use App\Enums\ModerationActionType;
 use App\Enums\OrderStatus;
+use App\Enums\ReportStatus;
 use App\Enums\ReviewStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
@@ -17,12 +19,16 @@ use App\Models\Order;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Review;
+use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Admin\Moderation\ModerationService;
 use App\Services\Order\OrderService;
+use App\Services\Review\ReviewService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class WebProfessionalReviewsMessagesTest extends TestCase
@@ -50,7 +56,8 @@ class WebProfessionalReviewsMessagesTest extends TestCase
         $this->actingAs($professional)
             ->get(route('professional.reviews'))
             ->assertOk()
-            ->assertSee($client->name)
+            ->assertSee('Client PROXIWORK')
+            ->assertDontSee($client->name)
             ->assertSee('5/5');
 
         $this->actingAs($professional)
@@ -186,10 +193,212 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_client_can_review_a_completed_order_from_the_web_order_detail(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile, createReview: false);
+
+        $this->actingAs($client)
+            ->get(route('client.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Évaluer cette prestation')
+            ->assertSee('Publier mon avis');
+
+        $this->actingAs($client)
+            ->post(route('client.orders.review.store', $order), [
+                'rating' => 4,
+                'comment' => 'Prestation sérieuse et communication claire.',
+            ])
+            ->assertRedirect(route('client.orders.show', $order))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reviews', [
+            'order_id' => $order->id,
+            'client_id' => $client->id,
+            'professional_id' => $profile->id,
+            'rating' => 4,
+            'comment' => 'Prestation sérieuse et communication claire.',
+            'status' => ReviewStatus::PUBLISHED->value,
+        ]);
+    }
+
+    public function test_client_can_report_an_abusive_professional_review_response(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+        $response = app(ReviewService::class)->respond(
+            $review,
+            $professional,
+            'Réponse professionnelle de test.',
+        );
+
+        $this->actingAs($client)
+            ->get(route('client.orders.show', $order))
+            ->assertOk()
+            ->assertSee('Signaler cette réponse à PROXIWORK');
+
+        $this->actingAs($client)
+            ->post(route('client.orders.review-response.report', $order), [
+                'target_type' => 'review_response',
+                'target_id' => $response->id,
+                'reason_code' => 'ABUSIVE_CONTENT',
+                'description' => 'La réponse contient un contenu inapproprié.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reports', [
+            'reporter_id' => $client->id,
+            'target_type' => ReviewResponse::class,
+            'target_id' => $response->id,
+            'reason_code' => 'ABUSIVE_CONTENT',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_moderator_can_hide_a_reported_professional_response(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+        $response = app(ReviewService::class)->respond(
+            $review,
+            $professional,
+            'Réponse à modérer.',
+        );
+
+        $moderationService = app(ModerationService::class);
+        $request = Request::create('/test/moderation', 'POST');
+        $report = $moderationService->createReport(
+            $client,
+            'review_response',
+            (int) $response->getKey(),
+            'ABUSIVE_CONTENT',
+            'Réponse signalée pour test.',
+            $request,
+        );
+        $report->forceFill(['status' => ReportStatus::UNDER_REVIEW])->save();
+
+        $moderator = User::factory()->create();
+        $moderator->assignRole('moderator');
+
+        $moderationService->act(
+            $moderator,
+            $report,
+            ModerationActionType::HIDE_REVIEW_RESPONSE,
+            'ABUSIVE_CONTENT',
+            'La réponse enfreint les règles de contenu.',
+            $request,
+        );
+
+        $this->assertDatabaseHas('review_responses', [
+            'id' => $response->id,
+            'status' => ReviewStatus::HIDDEN->value,
+        ]);
+        $this->assertDatabaseHas('moderation_actions', [
+            'report_id' => $report->id,
+            'action_type' => ModerationActionType::HIDE_REVIEW_RESPONSE->value,
+        ]);
+    }
+
+    public function test_professional_can_report_an_abusive_review_on_their_own_profile(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+
+        $this->actingAs($professional)
+            ->post(route('professional.reviews.report', $review), [
+                'target_type' => 'review',
+                'target_id' => $review->id,
+                'reason_code' => 'ABUSIVE_CONTENT',
+                'description' => 'Le commentaire contient des insultes ciblées.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reports', [
+            'reporter_id' => $professional->id,
+            'target_type' => Review::class,
+            'target_id' => $review->id,
+            'reason_code' => 'ABUSIVE_CONTENT',
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($professional)
+            ->post(route('professional.reviews.report', $review), [
+                'target_type' => 'review',
+                'target_id' => $review->id,
+                'reason_code' => 'ABUSIVE_CONTENT',
+                'description' => 'Le commentaire contient des insultes ciblées.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasErrors('target_id');
+
+        $this->assertDatabaseCount('reports', 1);
+    }
+
+    public function test_professional_cannot_report_a_review_belonging_to_another_professional(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $otherProfessional = User::factory()->create();
+        $otherProfessional->assignRole('professional');
+        $otherProfile = ProfessionalProfile::factory()->create(['user_id' => $otherProfessional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $otherProfessional, $otherProfile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+
+        $this->actingAs($professional)
+            ->post(route('professional.reviews.report', $review), [
+                'target_type' => 'review',
+                'target_id' => $review->id,
+                'reason_code' => 'FRAUD',
+            ])
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('reports', [
+            'reporter_id' => $professional->id,
+            'target_id' => $review->id,
+            'reason_code' => 'FRAUD',
+        ]);
+    }
+
     private function createCompletedOrder(
         User $client,
         User $professionalUser,
         ProfessionalProfile $professional,
+        bool $createReview = true,
     ): Order {
         $service = Service::factory()->create([
             'professional_profile_id' => $professional->id,
@@ -243,15 +452,17 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             'completed_at' => now(),
         ])->save();
 
-        Review::query()->forceCreate([
-            'order_id' => $order->id,
-            'client_id' => $client->id,
-            'professional_id' => $professional->id,
-            'rating' => 5,
-            'comment' => 'Excellent travail.',
-            'status' => ReviewStatus::PUBLISHED,
-            'published_at' => now(),
-        ]);
+        if ($createReview) {
+            Review::query()->forceCreate([
+                'order_id' => $order->id,
+                'client_id' => $client->id,
+                'professional_id' => $professional->id,
+                'rating' => 5,
+                'comment' => 'Excellent travail.',
+                'status' => ReviewStatus::PUBLISHED,
+                'published_at' => now(),
+            ]);
+        }
 
         return $order->fresh();
     }

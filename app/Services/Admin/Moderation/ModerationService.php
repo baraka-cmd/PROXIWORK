@@ -7,15 +7,18 @@ namespace App\Services\Admin\Moderation;
 use App\Enums\ModerationActionType;
 use App\Enums\ReportPriority;
 use App\Enums\ReportStatus;
+use App\Enums\ReviewStatus;
 use App\Models\Message;
 use App\Models\ModerationAction;
 use App\Models\ProfessionalProfile;
 use App\Models\Profile;
 use App\Models\Report;
 use App\Models\Review;
+use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\Review\ReviewService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +26,10 @@ use Illuminate\Validation\ValidationException;
 
 class ModerationService
 {
-    public function __construct(private AuditLogService $audit) {}
+    public function __construct(
+        private AuditLogService $audit,
+        private ReviewService $reviewService,
+    ) {}
 
     public function resolveTarget(string $type, int $id): Model
     {
@@ -33,6 +39,7 @@ class ModerationService
             'service' => Service::class,
             'message' => Message::class,
             'review' => Review::class,
+            'review_response' => ReviewResponse::class,
         ];
 
         $class = $map[$type] ?? null;
@@ -67,6 +74,19 @@ class ModerationService
         if ($this->ownsTarget($reporter, $target)) {
             throw ValidationException::withMessages([
                 'target_id' => 'Vous ne pouvez pas signaler votre propre contenu.',
+            ]);
+        }
+
+        $existingOpenReport = Report::query()
+            ->where('reporter_id', $reporter->getKey())
+            ->where('target_type', $target->getMorphClass())
+            ->where('target_id', $target->getKey())
+            ->whereIn('status', [ReportStatus::PENDING->value, ReportStatus::UNDER_REVIEW->value])
+            ->exists();
+
+        if ($existingOpenReport) {
+            throw ValidationException::withMessages([
+                'target_id' => 'Un signalement est déjà en cours pour ce contenu.',
             ]);
         }
 
@@ -225,7 +245,7 @@ class ModerationService
             }
 
             $target = $report->target;
-            $this->apply($type, $target, $actor, $reason, $note);
+            $this->apply($type, $target, $actor, $reason, $note, $request);
 
             $action = $report->moderationActions()->create([
                 'moderator_id' => $actor->id,
@@ -254,18 +274,31 @@ class ModerationService
         User $actor,
         ?string $reason,
         ?string $note,
+        ?Request $request = null,
     ): void {
         match ($type) {
             ModerationActionType::WARNING => null,
             ModerationActionType::HIDE_REVIEW => $target instanceof Review
-                ? $target->forceFill([
-                    'status' => 'hidden',
-                    'moderated_at' => now(),
-                    'moderated_by' => $actor->id,
-                    'moderation_reason' => $reason ?? $note,
-                ])->save()
+                ? $this->reviewService->moderate(
+                    $target,
+                    $actor,
+                    ReviewStatus::HIDDEN,
+                    $reason ?? $note ?? 'Avis masqué à la suite d’une décision de modération.',
+                    $request,
+                )
                 : throw ValidationException::withMessages([
                     'action_type' => 'Cette action exige un avis.',
+                ]),
+            ModerationActionType::HIDE_REVIEW_RESPONSE => $target instanceof ReviewResponse
+                ? $this->reviewService->moderateResponse(
+                    $target,
+                    $actor,
+                    ReviewStatus::HIDDEN,
+                    $reason ?? $note ?? 'Réponse masquée à la suite d’une décision de modération.',
+                    $request,
+                )
+                : throw ValidationException::withMessages([
+                    'action_type' => 'Cette action exige une réponse à un avis.',
                 ]),
             ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service
                 ? $target->forceFill([
@@ -312,6 +345,7 @@ class ModerationService
             || ($target instanceof ProfessionalProfile && $target->user_id === $user->id)
             || ($target instanceof Service && $target->professionalProfile?->user_id === $user->id)
             || ($target instanceof Review && $target->client_id === $user->id)
+            || ($target instanceof ReviewResponse && $target->professional?->user_id === $user->id)
             || ($target instanceof Message && $target->sender_id === $user->id);
     }
 }

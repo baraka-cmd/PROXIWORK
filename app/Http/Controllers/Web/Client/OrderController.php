@@ -173,6 +173,7 @@ class OrderController extends Controller
             'deliveryAttachments',
             'addressSnapshot',
             'payment.transactions',
+            'review.response',
         ]);
 
         $conversations = Conversation::query()

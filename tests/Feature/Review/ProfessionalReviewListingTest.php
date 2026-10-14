@@ -87,7 +87,7 @@ class ProfessionalReviewListingTest extends TestCase
             [3, 5],
             collect($result->items())->pluck('rating')->all(),
         );
-        $this->assertTrue($result->items()[0]->relationLoaded('client'));
+        $this->assertFalse($result->items()[0]->relationLoaded('client'));
         $this->assertTrue($result->items()[0]->relationLoaded('response'));
         $this->assertTrue($result->items()[0]->relationLoaded('order'));
     }
@@ -182,6 +182,133 @@ class ProfessionalReviewListingTest extends TestCase
         } catch (ValidationException $exception) {
             $this->assertArrayHasKey('sort', $exception->errors());
         }
+    }
+
+    public function test_reputation_summary_excludes_hidden_reviews_and_reports_distribution_and_response_state(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $firstOrder = $this->createOrder($client, $user, $professional);
+        $secondOrder = $this->createOrder($client, $user, $professional);
+        $hiddenOrder = $this->createOrder($client, $user, $professional);
+
+        $firstReview = Review::query()->where('order_id', $firstOrder->id)->firstOrFail();
+        $firstReview->forceFill([
+            'rating' => 5,
+            'status' => ReviewStatus::PUBLISHED,
+            'published_at' => now()->subDays(2),
+        ])->save();
+
+        $secondReview = Review::query()->where('order_id', $secondOrder->id)->firstOrFail();
+        $secondReview->forceFill([
+            'rating' => 3,
+            'status' => ReviewStatus::PUBLISHED,
+            'published_at' => now()->subDays(1),
+        ])->save();
+
+        Review::query()->where('order_id', $hiddenOrder->id)->update([
+            'rating' => 1,
+            'status' => ReviewStatus::HIDDEN->value,
+            'published_at' => null,
+        ]);
+
+        app(ReviewService::class)->respond($firstReview, $user, 'Merci pour votre retour.');
+
+        $summary = app(ReviewService::class)->reputationSummary($professional, 7);
+
+        $this->assertSame(2, $summary['total']);
+        $this->assertSame(4.0, $summary['average']);
+        $this->assertSame(1, $summary['distribution'][5]);
+        $this->assertSame(1, $summary['distribution'][3]);
+        $this->assertSame(0, $summary['distribution'][1]);
+        $this->assertSame(1, $summary['answered']);
+        $this->assertSame(1, $summary['unanswered']);
+
+        $unanswered = app(ReviewService::class)->listForProfessional(
+            $professional,
+            hasResponse: false,
+            perPage: 10,
+        );
+        $this->assertCount(2, $unanswered->items());
+        $this->assertNotContains($firstReview->id, collect($unanswered->items())->pluck('id')->all());
+    }
+
+    public function test_professional_filters_can_be_combined_for_date_service_comment_and_text(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $matchingOrder = $this->createOrder($client, $user, $professional);
+        $otherOrder = $this->createOrder($client, $user, $professional);
+
+        Review::query()->where('order_id', $matchingOrder->id)->update([
+            'comment' => 'Le professionnel a respecté les délais.',
+            'status' => ReviewStatus::PUBLISHED->value,
+            'published_at' => now()->subDay(),
+        ]);
+        Review::query()->where('order_id', $otherOrder->id)->update([
+            'comment' => 'Très bonne qualité du travail.',
+            'status' => ReviewStatus::PUBLISHED->value,
+            'published_at' => now()->subDays(20),
+        ]);
+
+        $serviceId = $matchingOrder->serviceRequest()->value('service_id');
+
+        $result = app(ReviewService::class)->listForProfessional(
+            $professional,
+            perPage: 10,
+            from: now()->subDays(3)->toDateString(),
+            to: now()->toDateString(),
+            serviceId: (int) $serviceId,
+            hasComment: true,
+            search: 'respecté les délais',
+        );
+
+        $this->assertCount(1, $result->items());
+        $this->assertSame(
+            $matchingOrder->id,
+            $result->items()[0]->order_id,
+        );
+    }
+
+    public function test_reputation_themes_are_based_on_real_comments_and_require_minimum_volume(): void
+    {
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $user->id]);
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        foreach ([
+            'Très bonne qualité du travail.',
+            'La qualité est excellente.',
+            'Travail de bonne qualité.',
+            'Bonne communication et qualité.',
+            'Le travail est de qualité.',
+        ] as $comment) {
+            $order = $this->createOrder($client, $user, $professional);
+            Review::query()->where('order_id', $order->id)->update([
+                'comment' => $comment,
+                'status' => ReviewStatus::PUBLISHED->value,
+                'published_at' => now(),
+            ]);
+        }
+
+        $summary = app(ReviewService::class)->reputationSummary($professional, 30);
+
+        $this->assertSame(5, $summary['total']);
+        $this->assertSame(5, $summary['themes']['sample_count']);
+        $this->assertNotEmpty($summary['themes']['items']);
+        $this->assertSame('Qualité du travail', $summary['themes']['items'][0]['label']);
+        $this->assertSame(5, $summary['themes']['items'][0]['mentions']);
     }
 
     private function createOrder(

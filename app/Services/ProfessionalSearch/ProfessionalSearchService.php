@@ -93,7 +93,12 @@ class ProfessionalSearchService
                     ->latest('published_at'),
                 'reviews' => fn ($reviews) => $reviews
                     ->where('status', 'published')
-                    ->with('client:id,name')
+                    ->with([
+                        'response',
+                        'order:id,service_request_id',
+                        'order.serviceRequest:id,service_id',
+                        'order.serviceRequest.service:id,title',
+                    ])
                     ->latest('published_at'),
             ])
             ->firstOrFail();

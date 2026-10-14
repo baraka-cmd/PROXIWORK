@@ -102,12 +102,29 @@
                 </div>
 
                 <h2>Avis publiés</h2>
+                <p>Les avis affichés ici sont associés à une commande et ont été publiés après modération éventuelle.</p>
                 <div class="public-profile-reviews">
                     @forelse ($professional->reviews as $review)
-                        <article>
-                            <strong>{{ $review->rating }}/5</strong>
-                            <p>{{ $review->comment }}</p>
-                            <small>{{ $review->client?->name ?: 'Client PROXIWORK' }}</small>
+                        <article class="public-review-card">
+                            <div class="public-review-card__heading">
+                                <strong>{{ $review->rating }}/5 <span aria-hidden="true">★</span></strong>
+                                <small>{{ $review->published_at?->format('d/m/Y') }}</small>
+                            </div>
+                            @if (filled($review->comment))
+                                <p>{{ $review->comment }}</p>
+                            @else
+                                <p class="public-review-card__muted">Note publiée sans commentaire.</p>
+                            @endif
+                            @if ($review->order?->serviceRequest?->service)
+                                <small>Prestation : {{ $review->order->serviceRequest->service->title }}</small>
+                            @endif
+                            <small>Client ayant réalisé une commande PROXIWORK</small>
+                            @if ($review->response?->status === \App\Enums\ReviewStatus::PUBLISHED)
+                                <div class="public-review-card__response">
+                                    <strong>Réponse du professionnel</strong>
+                                    <p>{{ $review->response->response }}</p>
+                                </div>
+                            @endif
                         </article>
                     @empty
                         <p>Aucun avis publié pour le moment.</p>

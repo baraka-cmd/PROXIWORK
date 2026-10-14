@@ -277,3 +277,347 @@
         transition: none;
     }
 }
+
+
+/* Professional reputation dashboard */
+.reputation-overview {
+    display: grid;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.reputation-overview__heading,
+.review-toolbar__heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.reputation-overview__heading h2,
+.review-toolbar__heading h2 {
+    margin: .35rem 0;
+}
+.reputation-overview__heading p,
+.review-toolbar__heading p {
+    margin: 0;
+    color: var(--review-message-muted);
+}
+.reputation-period {
+    display: grid;
+    gap: .35rem;
+    min-width: 12rem;
+    font-weight: 600;
+}
+.reputation-period select,
+.review-filters input,
+.review-report__form select,
+.review-report__form textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--review-message-border);
+    border-radius: .75rem;
+    padding: .7rem .8rem;
+    font: inherit;
+    color: inherit;
+    background: var(--review-message-surface);
+}
+.reputation-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .9rem;
+}
+.reputation-stat,
+.reputation-distribution,
+.reputation-trend {
+    min-width: 0;
+    border: 1px solid var(--review-message-border);
+    border-radius: 1rem;
+    background: var(--review-message-surface);
+    padding: 1.1rem;
+}
+.reputation-stat--primary {
+    border-color: color-mix(in srgb, var(--color-primary, #0f766e) 35%, var(--review-message-border));
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 5%, var(--review-message-surface));
+}
+.reputation-stat__label,
+.reputation-stat__hint {
+    display: block;
+    color: var(--review-message-muted);
+}
+.reputation-stat__label {
+    font-size: .9rem;
+    font-weight: 650;
+}
+.reputation-stat__value {
+    display: block;
+    margin: .6rem 0 .35rem;
+    font-size: clamp(1.65rem, 3vw, 2.35rem);
+    line-height: 1.1;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+.reputation-stat__value small {
+    margin-left: .25rem;
+    font-size: 1rem;
+    color: var(--review-message-muted);
+}
+.reputation-stat__value--empty {
+    color: var(--review-message-muted);
+}
+.reputation-stat__hint {
+    font-size: .82rem;
+    line-height: 1.45;
+}
+.reputation-analysis {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: .9rem;
+}
+.reputation-distribution h3,
+.reputation-trend h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+}
+.rating-distribution-row {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) 2rem;
+    align-items: center;
+    gap: .65rem;
+    margin: .65rem 0;
+    font-size: .9rem;
+}
+.rating-distribution-row > span:first-child {
+    white-space: nowrap;
+}
+.rating-distribution-row .fa-star {
+    color: #d99a18;
+    font-size: .75rem;
+}
+.rating-distribution-count {
+    text-align: right;
+    color: var(--review-message-muted);
+    font-variant-numeric: tabular-nums;
+}
+.rating-distribution-track {
+    height: .55rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--review-message-border);
+}
+.rating-distribution-track span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--color-primary, #0f766e);
+    transition: width .2s ease;
+}
+.reputation-trend__value {
+    display: block;
+    font-size: 1.8rem;
+}
+.reputation-trend p,
+.reputation-trend small {
+    color: var(--review-message-muted);
+    line-height: 1.55;
+}
+.trend-positive {
+    color: var(--color-success, #15803d);
+    font-weight: 700;
+}
+.trend-negative {
+    color: var(--color-danger, #b91c1c);
+    font-weight: 700;
+}
+.review-toolbar__heading {
+    margin-bottom: 1rem;
+}
+.review-total {
+    border-radius: 999px;
+    background: var(--color-surface-muted, #f1f5f9);
+    padding: .35rem .7rem;
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.review-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.review-filters input[type="date"],
+.review-filters input[type="search"] {
+    min-height: 2.7rem;
+}
+.review-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: .6rem;
+}
+.review-card__identity {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    min-width: 0;
+}
+.review-avatar {
+    display: grid;
+    flex: 0 0 auto;
+    width: 2.6rem;
+    height: 2.6rem;
+    place-items: center;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, white);
+}
+.review-card__metadata {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .85rem;
+}
+.review-reference,
+.review-service {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    color: var(--review-message-muted);
+    font-size: .85rem;
+}
+.review-service a {
+    color: var(--color-primary, #0f766e);
+    text-decoration: underline;
+    text-underline-offset: .15em;
+}
+.review-report {
+    margin-top: 1rem;
+    padding-top: .85rem;
+    border-top: 1px solid var(--review-message-border);
+}
+.review-report summary {
+    width: fit-content;
+    cursor: pointer;
+    color: var(--review-message-muted);
+    font-size: .9rem;
+    font-weight: 650;
+}
+.review-report__form {
+    display: grid;
+    gap: .65rem;
+    margin-top: .85rem;
+}
+.review-report__form label {
+    font-weight: 600;
+}
+.review-report__form small,
+.review-response-form small {
+    color: var(--review-message-muted);
+    line-height: 1.5;
+}
+.review-empty-state {
+    padding: 2.5rem 1.25rem;
+}
+.review-empty-state .button {
+    width: fit-content;
+    margin: .5rem auto 0;
+}
+.feedback--error {
+    margin-bottom: 1rem;
+}
+.feedback--error ul {
+    margin: .5rem 0 0;
+    padding-left: 1.25rem;
+}
+@media (max-width: 1000px) {
+    .reputation-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .review-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 640px) {
+    .reputation-overview__heading,
+    .review-toolbar__heading {
+        flex-direction: column;
+    }
+    .reputation-period {
+        width: 100%;
+    }
+    .reputation-stat-grid,
+    .reputation-analysis,
+    .review-filters {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .review-card {
+        padding: 1rem;
+    }
+    .review-card__top {
+        align-items: flex-start;
+    }
+    .review-card__rating {
+        font-size: .82rem;
+    }
+    .review-filter-actions,
+    .review-filter-actions .button {
+        width: 100%;
+    }
+    .review-filter-actions .button {
+        justify-content: center;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rating-distribution-track span {
+        transition: none;
+    }
+}
+
+
+.reputation-themes {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--review-message-border);
+    border-radius: 1rem;
+    padding: 1.1rem;
+    background: var(--review-message-surface);
+}
+.reputation-themes h3 {
+    margin: 0 0 .35rem;
+    font-size: 1rem;
+}
+.reputation-themes p {
+    margin: 0;
+    color: var(--review-message-muted);
+    line-height: 1.5;
+}
+.reputation-themes__empty {
+    padding: .85rem;
+    border-radius: .7rem;
+    background: color-mix(in srgb, var(--review-message-border) 28%, transparent);
+}
+.reputation-themes__list {
+    display: grid;
+    gap: .9rem;
+}
+.reputation-theme {
+    display: grid;
+    gap: .4rem;
+}
+.reputation-theme__heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .75rem;
+}
+.reputation-theme__heading span {
+    color: var(--review-message-muted);
+    font-size: .82rem;
+    text-align: right;
+}
+@media (max-width: 560px) {
+    .reputation-theme__heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .2rem;
+    }
+    .reputation-theme__heading span {
+        text-align: left;
+    }
+}

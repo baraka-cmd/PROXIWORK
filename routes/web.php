@@ -13,6 +13,7 @@ use App\Http\Controllers\Web\Client\OrderController;
 use App\Http\Controllers\Web\Client\PaymentController;
 use App\Http\Controllers\Web\Client\ProfileController as ClientProfileController;
 use App\Http\Controllers\Web\Client\QuotationController;
+use App\Http\Controllers\Web\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
 use App\Http\Controllers\Web\EmailVerificationController;
@@ -106,6 +107,8 @@ Route::middleware('auth')->group(function (): void {
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}/payment', [OrderController::class, 'pay'])->name('orders.payment');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::post('orders/{order}/review', [ClientReviewController::class, 'store'])->middleware('throttle:5,1')->name('orders.review.store');
+        Route::post('orders/{order}/review-response/report', [ClientReviewController::class, 'reportResponse'])->middleware('throttle:5,1')->name('orders.review-response.report');
         Route::get('orders/{order}/delivery-attachments/{attachment}', [OrderDeliveryAttachmentController::class, 'download'])->name('orders.delivery-attachments.download');
         Route::post('orders/{order}/confirm-schedule', [OrderController::class, 'confirmSchedule'])->middleware('throttle:10,1')->name('orders.confirm-schedule');
         Route::post('orders/{order}/request-schedule-change', [OrderController::class, 'requestScheduleChange'])->middleware('throttle:10,1')->name('orders.request-schedule-change');
@@ -239,6 +242,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('withdrawals/{withdrawal}', [ProfessionalWithdrawalController::class, 'show'])->name('withdrawals.show');
     Route::get('reviews', [ReviewController::class, 'index'])->name('reviews');
     Route::post('reviews/{review}/response', [ReviewController::class, 'respond'])->middleware('throttle:10,1')->name('reviews.respond');
+    Route::post('reviews/{review}/report', [ReviewController::class, 'report'])->middleware('throttle:5,1')->name('reviews.report');
     Route::get('messages', [MessageController::class, 'index'])->name('messages');
     Route::get('messages/attachments/{attachment}', [MessageController::class, 'downloadAttachment'])->name('messages.attachments.download');
     Route::get('messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('throttle:60,1')->name('messages.updates');

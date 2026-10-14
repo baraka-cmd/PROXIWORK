@@ -279,6 +279,85 @@
         </div>
     @endif
 
+    @if ($order->status === \App\Enums\OrderStatus::COMPLETED)
+        <section class="client-panel client-order-review" aria-labelledby="client-review-title">
+            <p class="client-module__eyebrow">VOTRE EXPÉRIENCE</p>
+            <h2 id="client-review-title">Évaluer cette prestation</h2>
+            @if ($order->review)
+                <div class="client-review-existing">
+                    <p>
+                        <strong>Votre note : {{ $order->review->rating }}/5</strong>
+                        <span aria-label="{{ $order->review->rating }} étoiles sur 5">
+                            @for ($star = 1; $star <= 5; $star++)
+                                <span class="{{ $star <= $order->review->rating ? 'client-review-star client-review-star--filled' : 'client-review-star' }}" aria-hidden="true">★</span>
+                            @endfor
+                        </span>
+                    </p>
+                    @if (filled($order->review->comment))
+                        <blockquote>{{ $order->review->comment }}</blockquote>
+                    @else
+                        <p class="client-order-muted">Vous avez laissé une note sans commentaire.</p>
+                    @endif
+                    @if ($order->review->status === \App\Enums\ReviewStatus::PUBLISHED)
+                        <span class="status-badge status-badge--published">Avis publié</span>
+                    @else
+                        <p class="client-order-muted">Cet avis n’est pas actuellement visible publiquement. La modération de PROXIWORK est responsable de cette décision.</p>
+                    @endif
+                    @if ($order->review->response?->status === \App\Enums\ReviewStatus::PUBLISHED)
+                        <div class="client-review-response">
+                            <strong>Réponse du professionnel</strong>
+                            <p>{{ $order->review->response->response }}</p>
+                        </div>
+                        <details class="client-review-report">
+                            <summary>Signaler cette réponse à PROXIWORK</summary>
+                            <form method="POST" action="{{ route('client.orders.review-response.report', $order) }}">
+                                @csrf
+                                <input type="hidden" name="target_type" value="review_response">
+                                <input type="hidden" name="target_id" value="{{ $order->review->response->id }}">
+                                <label for="response-report-reason">Motif du signalement</label>
+                                <select id="response-report-reason" name="reason_code" required>
+                                    <option value="">Sélectionner un motif</option>
+                                    <option value="SPAM">Spam ou contenu répétitif</option>
+                                    <option value="FRAUD">Fraude ou contenu trompeur</option>
+                                    <option value="HARASSMENT">Harcèlement ou menace</option>
+                                    <option value="ABUSIVE_CONTENT">Contenu injurieux</option>
+                                    <option value="INAPPROPRIATE_CONTENT">Divulgation de données privées ou contenu inapproprié</option>
+                                    <option value="OTHER">Autre motif</option>
+                                </select>
+                                <label for="response-report-description">Détails utiles (facultatif)</label>
+                                <textarea id="response-report-description" name="description" rows="2" maxlength="5000" placeholder="Décrivez le problème sans ajouter de données personnelles inutiles."></textarea>
+                                <button class="btn btn-secondary" type="submit">Transmettre le signalement</button>
+                            </form>
+                        </details>
+                    @endif
+                </div>
+            @else
+                <p>Votre commande est terminée. Partagez une évaluation honnête de la prestation que vous avez réellement reçue.</p>
+                <form method="POST" action="{{ route('client.orders.review.store', $order) }}" class="client-review-form">
+                    @csrf
+                    <fieldset>
+                        <legend>Votre note (obligatoire)</legend>
+                        <div class="client-review-rating-options">
+                            @for ($star = 5; $star >= 1; $star--)
+                                <label for="review-rating-{{ $star }}">
+                                    <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" @checked((string) old('rating') === (string) $star) required>
+                                    <span aria-hidden="true">★</span>
+                                    <span>{{ $star }}</span>
+                                </label>
+                            @endfor
+                        </div>
+                        @error('rating')<small class="field-error">{{ $message }}</small>@enderror
+                    </fieldset>
+                    <label for="review-comment">Votre commentaire (facultatif)</label>
+                    <textarea id="review-comment" name="comment" rows="4" maxlength="2000" placeholder="Décrivez votre expérience de manière honnête et respectueuse.">{{ old('comment') }}</textarea>
+                    @error('comment')<small class="field-error">{{ $message }}</small>@enderror
+                    <p class="client-order-muted">Votre avis concerne cette commande. N’incluez pas de coordonnées, d’adresse ou d’informations privées.</p>
+                    <button class="btn btn-primary" type="submit" data-confirm-submit="Publier votre note et votre commentaire ? Vous ne pourrez pas modifier la note après publication.">Publier mon avis</button>
+                </form>
+            @endif
+        </section>
+    @endif
+
     @if ($order->schedule_confirmed_at)
         <section class="client-panel client-order-schedule">
             <p class="client-module__eyebrow">PLANIFICATION</p>

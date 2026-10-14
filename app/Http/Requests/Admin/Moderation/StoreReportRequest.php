@@ -20,7 +20,7 @@ class StoreReportRequest extends FormRequest
         return [
             'target_type' => [
                 'required',
-                'in:profile,professional_profile,service,message,review',
+                'in:profile,professional_profile,service,message,review,review_response',
             ],
             'target_id' => ['required', 'integer', 'min:1'],
             'reason_code' => ['required', new Enum(ReportReasonCode::class)],
