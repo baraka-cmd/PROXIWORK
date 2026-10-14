@@ -12,7 +12,7 @@ use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\User;
 use App\Services\Notification\TransactionalNotificationService;
-use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\DatabaseManager;\nuse App\Services\Audit\AuditLogService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -208,7 +208,7 @@ class ReviewService
             ->with([
                 'client:id,name',
                 'response',
-                'order:id,service_request_id',
+                'order:id,service_request_id',\n                'order.serviceRequest:id,service_id',\n                'order.serviceRequest.service:id,title',
             ])
             ->where('professional_id', $professional->getKey());
 
@@ -233,7 +233,7 @@ class ReviewService
         return $query->paginate($perPage);
     }
 
-    public function findForViewer(Review $review, User $viewer): Review
+    public function reputationSummary(ProfessionalProfile $professional, int $periodDays = 30): array\n    {\n        $periodDays = max(1, min($periodDays, 365));\n        $today = now()->endOfDay();\n        $currentStart = now()->startOfDay()->subDays($periodDays - 1);\n        $previousStart = $currentStart->copy()->subDays($periodDays);\n        $previousEnd = $currentStart->copy()->subSecond();\n        $published = Review::query()->where('professional_id', $professional->getKey())->where('status', ReviewStatus::PUBLISHED->value);\n        $summary = (clone $published)->selectRaw('COUNT(*) as review_count, AVG(rating) as rating_average')->first();\n        $distributionRows = (clone $published)->selectRaw('rating, COUNT(*) as aggregate')->groupBy('rating')->pluck('aggregate', 'rating');\n        $current = (clone $published)->whereBetween('published_at', [$currentStart, $today])->selectRaw('COUNT(*) as count, AVG(rating) as average')->first();\n        $previous = (clone $published)->whereBetween('published_at', [$previousStart, $previousEnd])->selectRaw('COUNT(*) as count, AVG(rating) as average')->first();\n        $answered = (clone $published)->whereHas('response', fn ($response) => $response->where('status', ReviewStatus::PUBLISHED->value))->count();\n        $unanswered = (clone $published)->whereDoesntHave('response', fn ($response) => $response->where('status', ReviewStatus::PUBLISHED->value))->count();\n\n        return [\n            'average' => $summary->review_count > 0 ? round((float) $summary->rating_average, 2) : null,\n            'total' => (int) $summary->review_count,\n            'distribution' => collect(range(1, 5))->mapWithKeys(fn (int $rating) => [$rating => (int) ($distributionRows[$rating] ?? 0)])->all(),\n            'unanswered' => $unanswered,\n            'answered' => $answered,\n            'commented' => (clone $published)->whereNotNull('comment')->whereRaw(\"TRIM(comment) <> ''\")->count(),\n            'recent_count' => (int) $current->count,\n            'recent_average' => $current->count > 0 ? round((float) $current->average, 2) : null,\n            'previous_count' => (int) $previous->count,\n            'previous_average' => $previous->count > 0 ? round((float) $previous->average, 2) : null,\n            'average_change' => $current->count > 0 && $previous->count > 0\n                ? round((float) $current->average - (float) $previous->average, 2)\n                : null,\n            'period_days' => $periodDays,\n        ];\n    }\n\n    public function findForViewer(Review $review, User $viewer): Review
     {
         $review->loadMissing('response', 'professional');
 
