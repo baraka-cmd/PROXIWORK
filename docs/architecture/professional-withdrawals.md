@@ -15,6 +15,7 @@ Audit initial et contrat d'architecture du point 35, mis à jour au fil de l'imp
 - Nouvelles destinations chiffrées; le champ historique requis par le schéma contient seulement une valeur masquée pour les nouvelles demandes. L'écran professionnel ne révèle que la destination masquée; l'accès financier admin à la valeur complète est journalisé.
 - L'écran de création ne crée plus de wallet en GET. Le service refuse les retraits si le wallet n'est pas actif.
 - Espace admin manuel protégé par `admin.withdrawals.manage`, avec note de décision obligatoire, refus/libération, démarrage du traitement, rapprochement de succès/échec et mise en vérification.
+- Les signalements depuis le détail du retrait créent un ticket de support lié par clé étrangère au retrait. La conversation est visible par le professionnel et le support; les réponses sont autorisées uniquement au propriétaire du ticket ou à un agent habilité.
 - Les montants affichés et le récapitulatif client ne passent pas par des nombres flottants. Les frais et le net restent non renseignés tant qu'un barème fiable n'existe pas.
 - Le moyen de retrait sélectionné est une préférence de traitement manuel; aucun fournisseur de versement réel n'est appelé.
 
