@@ -6,7 +6,9 @@ namespace Tests\Feature\Professional;
 
 use App\Enums\ConversationStatus;
 use App\Enums\ConversationType;
+use App\Enums\ModerationActionType;
 use App\Enums\OrderStatus;
+use App\Enums\ReportStatus;
 use App\Enums\ReviewStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
@@ -15,16 +17,19 @@ use App\Models\Category;
 use App\Models\Conversation;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
+use App\Models\Report;
 use App\Models\Quotation;
 use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Admin\Moderation\ModerationService;
 use App\Services\Order\OrderService;
 use App\Services\Review\ReviewService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Tests\TestCase;
 
 class WebProfessionalReviewsMessagesTest extends TestCase
@@ -262,6 +267,57 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             'target_id' => $response->id,
             'reason_code' => 'ABUSIVE_CONTENT',
             'status' => 'pending',
+        ]);
+    }
+
+    public function test_moderator_can_hide_a_reported_professional_response(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $order = $this->createCompletedOrder($client, $professional, $profile);
+        $review = Review::query()->where('order_id', $order->id)->firstOrFail();
+        $response = app(ReviewService::class)->respond(
+            $review,
+            $professional,
+            'Réponse à modérer.',
+        );
+
+        $moderationService = app(ModerationService::class);
+        $request = Request::create('/test/moderation', 'POST');
+        $report = $moderationService->createReport(
+            $client,
+            'review_response',
+            (int) $response->getKey(),
+            'ABUSIVE_CONTENT',
+            'Réponse signalée pour test.',
+            $request,
+        );
+        $report->forceFill(['status' => ReportStatus::UNDER_REVIEW])->save();
+
+        $moderator = User::factory()->create();
+        $moderator->assignRole('moderator');
+
+        $moderationService->act(
+            $moderator,
+            $report,
+            ModerationActionType::HIDE_REVIEW_RESPONSE,
+            'ABUSIVE_CONTENT',
+            'La réponse enfreint les règles de contenu.',
+            $request,
+        );
+
+        $this->assertDatabaseHas('review_responses', [
+            'id' => $response->id,
+            'status' => ReviewStatus::HIDDEN->value,
+        ]);
+        $this->assertDatabaseHas('moderation_actions', [
+            'report_id' => $report->id,
+            'action_type' => ModerationActionType::HIDE_REVIEW_RESPONSE->value,
         ]);
     }
 
