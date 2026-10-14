@@ -58,6 +58,13 @@
                 <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
                 <span>Paiements</span>
             </a>
+
+            @if(auth()->user()?->hasPermissionTo('admin.withdrawals.manage'))
+                <a class="dashboard-nav-link" data-nav-link href="{{ route('admin.withdrawals.index') }}">
+                    <i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>
+                    <span>Retraits professionnels</span>
+                </a>
+            @endif
         </section>
 
         <section class="dashboard-nav-section">

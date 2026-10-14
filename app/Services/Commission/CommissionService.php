@@ -68,7 +68,10 @@ class CommissionService
                 ]);
             }
 
-            $commission = intdiv(($gross * $rate) + 5000, 10000);
+            // Split quotient and remainder before multiplying so a large, valid
+            // monetary amount cannot overflow an integer during percentage math.
+            $commission = (intdiv($gross, 10000) * $rate)
+                + intdiv((($gross % 10000) * $rate) + 5000, 10000);
             $net = $gross - $commission;
 
             if ($commission < 0 || $net < 0 || $gross !== $commission + $net) {
@@ -117,8 +120,13 @@ class CommissionService
         }
 
         [$whole, $decimal] = array_pad(explode('.', $value, 2), 2, '0');
+        $normalizedWhole = ltrim($whole, '0') ?: '0';
 
-        return ((int) $whole * 100) + (int) str_pad($decimal, 2, '0');
+        if (strlen($normalizedWhole) > 16) {
+            throw new \InvalidArgumentException('Montant financier hors limites techniques.');
+        }
+
+        return ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
     }
 
     private function rateMinor(string $value): int
@@ -130,12 +138,17 @@ class CommissionService
         }
 
         [$whole, $decimal] = array_pad(explode('.', $value, 2), 2, '0');
+        $normalizedWhole = ltrim($whole, '0') ?: '0';
 
-        return ((int) $whole * 100) + (int) str_pad($decimal, 2, '0');
+        if (strlen($normalizedWhole) > 3) {
+            throw new \InvalidArgumentException('Taux de commission hors limites techniques.');
+        }
+
+        return ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
     }
 
     private function formatMinor(int $value): string
     {
-        return number_format($value / 100, 2, '.', '');
+        return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
     }
 }

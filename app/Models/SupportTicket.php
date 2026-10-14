@@ -18,6 +18,7 @@ class SupportTicket extends Model
 
     protected $fillable = [
         'user_id',
+        'withdrawal_id',
         'assigned_to',
         'subject',
         'category',
@@ -48,6 +49,11 @@ class SupportTicket extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function withdrawal(): BelongsTo
+    {
+        return $this->belongsTo(Withdrawal::class);
     }
 
     public function messages(): HasMany

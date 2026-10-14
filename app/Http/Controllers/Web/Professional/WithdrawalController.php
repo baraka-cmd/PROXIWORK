@@ -4,13 +4,20 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
+use App\Enums\SupportTicketCategory;
+use App\Enums\WithdrawalStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Professional\Withdrawal\ProfessionalWithdrawalFilterRequest;
+use App\Http\Requests\Professional\Withdrawal\ProfessionalWithdrawalSupportMessageRequest;
+use App\Http\Requests\Professional\Withdrawal\ReportWithdrawalProblemRequest;
 use App\Http\Requests\Wallet\StoreWithdrawalRequest;
 use App\Models\ProfessionalProfile;
+use App\Models\SupportTicket;
 use App\Models\Wallet;
 use App\Models\Withdrawal;
-use App\Services\Wallet\WalletService;
+use App\Services\Admin\Support\SupportTicketService;
 use App\Services\Wallet\WithdrawalService;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -18,23 +25,31 @@ use Illuminate\View\View;
 
 class WithdrawalController extends Controller
 {
-    public function index(Request $request): View
+    public function index(ProfessionalWithdrawalFilterRequest $request): View
     {
         $profile = $this->professionalProfile($request);
+        $filters = $request->filters();
+
         $query = Withdrawal::query()
             ->where('professional_id', $profile->getKey())
             ->with('wallet')
             ->latest('requested_at')
             ->latest('id');
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status')->toString());
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
         }
 
-        if ($request->filled('currency')) {
-            $currency = strtoupper($request->string('currency')->toString());
-            $this->validateCurrency($currency);
-            $query->where('currency', $currency);
+        if (isset($filters['currency'])) {
+            $query->where('currency', $filters['currency']);
+        }
+
+        if (isset($filters['date_from'])) {
+            $query->where('requested_at', '>=', CarbonImmutable::createFromFormat('!Y-m-d', $filters['date_from']));
+        }
+
+        if (isset($filters['date_to'])) {
+            $query->where('requested_at', '<', CarbonImmutable::createFromFormat('!Y-m-d', $filters['date_to'])->addDay());
         }
 
         $withdrawals = $query->paginate(10)->withQueryString();
@@ -43,22 +58,96 @@ class WithdrawalController extends Controller
             ->orderBy('currency')
             ->pluck('currency');
 
-        return view('professional.withdrawals.index', compact('withdrawals', 'currencies'));
-    }
-
-    public function create(Request $request, WalletService $walletService): View
-    {
-        $profile = $this->professionalProfile($request);
-        $currency = strtoupper((string) $request->query('currency', 'USD'));
-        $this->validateCurrency($currency);
-
-        $wallet = $walletService->getOrCreate($profile, $currency);
-        $this->authorize('view', $wallet);
-
-        $currencies = Wallet::query()
+        // Keep metrics grouped by currency; never add FC, USD, EUR, etc. together.
+        $walletsByCurrency = Wallet::query()
             ->where('professional_id', $profile->getKey())
             ->orderBy('currency')
+            ->get(['currency', 'available_balance', 'locked_balance', 'status'])
+            ->keyBy('currency');
+
+        $inProgressByCurrency = Withdrawal::query()
+            ->where('professional_id', $profile->getKey())
+            ->whereIn('status', [
+                WithdrawalStatus::REQUESTED->value,
+                WithdrawalStatus::PROCESSING->value,
+                WithdrawalStatus::REVIEW_REQUIRED->value,
+            ])
+            ->selectRaw('currency, COUNT(*) as withdrawal_count, SUM(amount) as amount_total')
+            ->groupBy('currency')
+            ->get()
+            ->keyBy('currency');
+
+        $successfulCountsByCurrency = Withdrawal::query()
+            ->where('professional_id', $profile->getKey())
+            ->where('status', WithdrawalStatus::SUCCEEDED->value)
+            ->selectRaw('currency, COUNT(*) as successful_count')
+            ->groupBy('currency')
+            ->get()
+            ->keyBy('currency');
+        $canRequestWithdrawal = $walletsByCurrency->contains(
+            static fn (Wallet $wallet): bool => strtolower((string) $wallet->status) === 'active',
+        );
+
+        return view('professional.withdrawals.index', compact(
+            'withdrawals',
+            'currencies',
+            'filters',
+            'walletsByCurrency',
+            'inProgressByCurrency',
+            'successfulCountsByCurrency',
+            'canRequestWithdrawal',
+        ));
+    }
+
+    public function create(Request $request): View|RedirectResponse
+    {
+        $profile = $this->professionalProfile($request);
+
+        // Only active wallets are eligible for a new request. Pick an actual
+        // available currency instead of assuming USD exists for every account.
+        $currencies = Wallet::query()
+            ->where('professional_id', $profile->getKey())
+            ->where('status', 'active')
+            ->orderBy('currency')
             ->pluck('currency');
+
+        if ($currencies->isEmpty()) {
+            return redirect()->route('professional.withdrawals')
+                ->with('status', 'Aucun portefeuille actif ne permet actuellement de demander un retrait.');
+        }
+
+        $requestedCurrency = $request->query('currency');
+
+        if ($requestedCurrency !== null && ! is_string($requestedCurrency)) {
+            throw ValidationException::withMessages([
+                'currency' => 'La devise sélectionnée est invalide.',
+            ]);
+        }
+
+        $currency = $requestedCurrency === null
+            ? (string) $currencies->first()
+            : strtoupper(trim($requestedCurrency));
+
+        $this->validateCurrency($currency);
+
+        if (! $currencies->contains($currency)) {
+            return redirect()->route('professional.withdrawals')
+                ->with('status', 'Aucun portefeuille actif ne correspond à la devise sélectionnée.');
+        }
+
+        // A GET request must never create a financial account.
+        $wallet = Wallet::query()
+            ->where('professional_id', $profile->getKey())
+            ->where('currency', $currency)
+            ->where('status', 'active')
+            ->first();
+
+        if ($wallet === null) {
+            return redirect()->route('professional.withdrawals')
+                ->with('status', 'Le portefeuille sélectionné n’est plus actif. Aucun retrait n’a été créé.');
+        }
+
+        $this->authorize('view', $wallet);
 
         return view('professional.withdrawals.create', compact('wallet', 'currencies'));
     }
@@ -87,14 +176,86 @@ class WithdrawalController extends Controller
         );
 
         return redirect()->route('professional.withdrawals.show', $withdrawal)
-            ->with('status', 'Votre demande de retrait a bien été enregistrée et le montant est maintenant réservé.');
+            ->with('status', 'Votre demande a été enregistrée et le montant est réservé. Aucun paiement n’est considéré comme exécuté à ce stade.');
     }
 
     public function show(Request $request, Withdrawal $withdrawal): View
     {
         $this->authorize('view', $withdrawal);
+        $withdrawal->load(['wallet', 'statusHistories.actor']);
+        $supportTickets = SupportTicket::query()
+            ->where('user_id', $request->user()->getKey())
+            ->where('withdrawal_id', $withdrawal->getKey())
+            ->with(['messages.sender'])
+            ->latest('last_message_at')
+            ->get();
 
-        return view('professional.withdrawals.show', compact('withdrawal'));
+        return view('professional.withdrawals.show', compact('withdrawal', 'supportTickets'));
+    }
+
+    public function cancel(
+        Request $request,
+        Withdrawal $withdrawal,
+        WithdrawalService $withdrawalService,
+    ): RedirectResponse {
+        $this->authorize('cancel', $withdrawal);
+
+        $withdrawalService->cancel(
+            withdrawal: $withdrawal,
+            actorUserId: (int) $request->user()->getKey(),
+            reason: 'Annulation demandée par le professionnel avant le début du traitement.',
+        );
+
+        return redirect()->route('professional.withdrawals.show', $withdrawal)
+            ->with('status', 'La demande a été annulée et la réservation a été libérée.');
+    }
+
+    public function supportMessage(
+        ProfessionalWithdrawalSupportMessageRequest $request,
+        Withdrawal $withdrawal,
+        SupportTicket $ticket,
+        SupportTicketService $supportService,
+    ): RedirectResponse {
+        $this->authorize('view', $withdrawal);
+
+        abort_unless(
+            (int) $ticket->withdrawal_id === (int) $withdrawal->getKey()
+                && (int) $ticket->user_id === (int) $request->user()->getKey(),
+            404,
+        );
+
+        $this->authorize('message', $ticket);
+
+        $supportService->message(
+            $request->user(),
+            $ticket,
+            $request->validated('body'),
+            $request,
+        );
+
+        return redirect()->route('professional.withdrawals.show', $withdrawal)
+            ->with('status', 'Votre message a été ajouté au ticket #'.$ticket->getKey().'.');
+    }
+
+    public function reportProblem(
+        ReportWithdrawalProblemRequest $request,
+        Withdrawal $withdrawal,
+        SupportTicketService $supportService,
+    ): RedirectResponse {
+        $this->authorize('view', $withdrawal);
+        $this->authorize('create', SupportTicket::class);
+
+        $reference = 'WD-'.str_pad((string) $withdrawal->getKey(), 8, '0', STR_PAD_LEFT);
+        $ticket = $supportService->create($request->user(), [
+            'withdrawal_id' => $withdrawal->getKey(),
+            'subject' => 'Problème concernant le retrait '.$reference,
+            'category' => SupportTicketCategory::PAYMENT->value,
+            'priority' => 'normal',
+            'body' => "Référence du retrait : {$reference}\nStatut actuel : ".$withdrawal->status->label()."\nMontant demandé : ".$withdrawal->amount.' '.$withdrawal->currency."\n\nDescription du problème :\n".$request->validated('body'),
+        ], $request);
+
+        return redirect()->route('professional.withdrawals.show', $withdrawal)
+            ->with('status', 'Votre signalement a été transmis au support. Référence du ticket : #'.$ticket->getKey().'.');
     }
 
     private function professionalProfile(Request $request): ProfessionalProfile

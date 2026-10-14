@@ -458,6 +458,10 @@ class PaymentTransactionsWalletTest extends TestCase
 
         $this->assertSame($first->id, $second->id);
         $this->assertDatabaseCount('wallet_transactions', 1);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'id' => $first->id,
+            'balance_bucket' => 'pending',
+        ]);
         $this->assertDatabaseHas('wallets', [
             'professional_id' => $professional->id,
             'pending_balance' => '450.00',
@@ -631,12 +635,96 @@ class PaymentTransactionsWalletTest extends TestCase
             idempotencyKey: 'withdrawal-failure-0001',
         );
 
+        $withdrawalService->markProcessing($withdrawal);
         $withdrawalService->markFailed($withdrawal, 'FAKE_FAILURE', 'Échec simulé.');
 
         $this->assertDatabaseHas('wallets', [
             'professional_id' => $professional->id,
             'available_balance' => '500.00',
             'locked_balance' => '0.00',
+        ]);
+    }
+
+    public function test_pending_release_records_both_buckets_and_is_idempotent(): void
+    {
+        [, $professional] = $this->professional();
+        $service = app(WalletService::class);
+        $service->creditPending(
+            professional: $professional,
+            amount: '125.75',
+            currency: 'USD',
+            type: WalletTransactionType::EARNING,
+            idempotencyKey: 'wallet-release-bucket-credit-0001',
+        );
+
+        $first = $service->releasePending(
+            professional: $professional,
+            amount: '125.75',
+            currency: 'USD',
+            idempotencyKey: 'wallet-release-bucket-0001',
+            referenceType: 'test',
+            referenceId: 1,
+        );
+        $second = $service->releasePending(
+            professional: $professional,
+            amount: '125.75',
+            currency: 'USD',
+            idempotencyKey: 'wallet-release-bucket-0001',
+            referenceType: 'test',
+            referenceId: 1,
+        );
+
+        $wallet = $professional->wallet('USD')->firstOrFail();
+        $fingerprint = hash('sha256', 'wallet-release-bucket-0001');
+
+        $this->assertSame($first->id, $second->id);
+        $this->assertSame('125.75', $wallet->available_balance);
+        $this->assertSame('0.00', $wallet->pending_balance);
+        $this->assertDatabaseCount('wallet_transactions', 3);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'wallet_id' => $wallet->id,
+            'balance_bucket' => 'pending',
+            'direction' => 'debit',
+            'idempotency_key' => 'wallet-release:'.$fingerprint.':pending',
+        ]);
+        $this->assertDatabaseHas('wallet_transactions', [
+            'wallet_id' => $wallet->id,
+            'balance_bucket' => 'available',
+            'direction' => 'credit',
+            'idempotency_key' => 'wallet-release:'.$fingerprint.':available',
+        ]);
+    }
+
+    public function test_wallet_credit_idempotency_key_rejects_a_changed_amount(): void
+    {
+        [, $professional] = $this->professional();
+        $service = app(WalletService::class);
+
+        $service->creditPending(
+            professional: $professional,
+            amount: '10.00',
+            currency: 'USD',
+            type: WalletTransactionType::EARNING,
+            idempotencyKey: 'wallet-credit-fingerprint-0001',
+        );
+
+        try {
+            $service->creditPending(
+                professional: $professional,
+                amount: '11.00',
+                currency: 'USD',
+                type: WalletTransactionType::EARNING,
+                idempotencyKey: 'wallet-credit-fingerprint-0001',
+            );
+            $this->fail('A credit idempotency key cannot be reused with a different amount.');
+        } catch (PaymentConflictException $exception) {
+            $this->assertStringContainsString('déjà utilisée pour une autre opération', $exception->getMessage());
+        }
+
+        $this->assertDatabaseCount('wallet_transactions', 1);
+        $this->assertDatabaseHas('wallets', [
+            'professional_id' => $professional->id,
+            'pending_balance' => '10.00',
         ]);
     }
 
