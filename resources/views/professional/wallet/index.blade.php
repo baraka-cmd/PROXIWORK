@@ -8,7 +8,7 @@
 @section('page_title','Wallet')
 @section('page_description','Consultez vos soldes par devise et retrouvez les mouvements enregistrés sur votre portefeuille.')
 @section('page_actions')
-@if($wallet)
+@if($wallet && $wallet->status === 'active')
 <a class="button button--primary" href="{{ route('professional.withdrawals.create', ['currency' => $wallet->currency]) }}"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> Demander un retrait</a>
 @endif
 @endsection
