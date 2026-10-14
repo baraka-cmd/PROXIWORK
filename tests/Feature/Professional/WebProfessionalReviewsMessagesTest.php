@@ -50,7 +50,8 @@ class WebProfessionalReviewsMessagesTest extends TestCase
         $this->actingAs($professional)
             ->get(route('professional.reviews'))
             ->assertOk()
-            ->assertSee($client->name)
+            ->assertSee('Client PROXIWORK')
+            ->assertDontSee($client->name)
             ->assertSee('5/5');
 
         $this->actingAs($professional)
