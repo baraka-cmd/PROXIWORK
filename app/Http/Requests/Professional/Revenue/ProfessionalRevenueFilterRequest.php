@@ -34,6 +34,7 @@ class ProfessionalRevenueFilterRequest extends FormRequest
             'order_id' => ['nullable', 'integer', 'min:1'],
             'reference' => ['nullable', 'string', 'max:64'],
             'status' => ['sometimes', 'string', Rule::in(['all', 'posted', 'reversed'])],
+            'nature' => ['sometimes', 'string', Rule::in(['all', 'commission', 'refund'])],
         ];
     }
 
@@ -68,6 +69,7 @@ class ProfessionalRevenueFilterRequest extends FormRequest
         $filters = $this->validated();
         $filters['period'] = $filters['period'] ?? '30d';
         $filters['status'] = $filters['status'] ?? 'all';
+        $filters['nature'] = $filters['nature'] ?? 'all';
         $filters['currency'] = isset($filters['currency']) && $filters['currency'] !== ''
             ? strtoupper($filters['currency'])
             : null;
