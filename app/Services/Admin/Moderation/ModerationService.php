@@ -7,6 +7,7 @@ namespace App\Services\Admin\Moderation;
 use App\Enums\ModerationActionType;
 use App\Enums\ReportPriority;
 use App\Enums\ReportStatus;
+use App\Enums\ReviewStatus;
 use App\Models\Message;
 use App\Models\ModerationAction;
 use App\Models\ProfessionalProfile;
@@ -16,6 +17,7 @@ use App\Models\Review;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +25,10 @@ use Illuminate\Validation\ValidationException;
 
 class ModerationService
 {
-    public function __construct(private AuditLogService $audit) {}
+    public function __construct(
+        private AuditLogService $audit,
+        private TransactionalNotificationService $notifications,
+    ) {}
 
     public function resolveTarget(string $type, int $id): Model
     {
@@ -270,16 +275,7 @@ class ModerationService
     ): void {
         match ($type) {
             ModerationActionType::WARNING => null,
-            ModerationActionType::HIDE_REVIEW => $target instanceof Review
-                ? $target->forceFill([
-                    'status' => 'hidden',
-                    'moderated_at' => now(),
-                    'moderated_by' => $actor->id,
-                    'moderation_reason' => $reason ?? $note,
-                ])->save()
-                : throw ValidationException::withMessages([
-                    'action_type' => 'Cette action exige un avis.',
-                ]),
+            ModerationActionType::HIDE_REVIEW => $this->hideReview($target, $actor, $reason ?? $note),
             ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service
                 ? $target->forceFill([
                     'status' => 'unpublished',
@@ -291,6 +287,47 @@ class ModerationService
             ModerationActionType::SUSPEND_USER => $this->suspendUser($target),
             ModerationActionType::SUSPEND_PROFESSIONAL => $this->suspendProfessional($target),
         };
+    }
+
+    private function hideReview(Model $target, User $actor, ?string $reason): void
+    {
+        if (! $target instanceof Review) {
+            throw ValidationException::withMessages([
+                'action_type' => 'Cette action exige un avis.',
+            ]);
+        }
+
+        $target->forceFill([
+            'status' => ReviewStatus::HIDDEN,
+            'moderated_at' => now(),
+            'moderated_by' => $actor->id,
+            'moderation_reason' => $reason,
+        ])->save();
+
+        $professional = ProfessionalProfile::query()->find($target->professional_id);
+        if ($professional === null) {
+            return;
+        }
+
+        $summary = Review::query()
+            ->where('professional_id', $professional->getKey())
+            ->where('status', ReviewStatus::PUBLISHED->value)
+            ->selectRaw('COUNT(*) as review_count, COALESCE(AVG(rating), 0) as rating_average')
+            ->first();
+
+        $professional->forceFill([
+            'rating_count' => (int) $summary->review_count,
+            'rating_average' => number_format((float) $summary->rating_average, 2, '.', ''),
+        ])->save();
+
+        $professionalUser = User::query()->find($professional->user_id);
+        if ($professionalUser !== null) {
+            $this->notifications->reviewModerationUpdated(
+                $professionalUser,
+                ReviewStatus::HIDDEN->value,
+                'review-moderation:'.$target->getKey().':'.ReviewStatus::HIDDEN->value,
+            );
+        }
     }
 
     private function suspendUser(Model $target): void
