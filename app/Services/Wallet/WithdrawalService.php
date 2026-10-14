@@ -53,7 +53,7 @@ class WithdrawalService
             throw ValidationException::withMessages(['amount' => 'Le montant doit être strictement positif.']);
         }
 
-        return DB::transaction(function () use ($professional, $amount, $currency, $provider, $destination, $idempotencyKey, $value): Withdrawal {
+        return DB::transaction(function () use ($professional, $currency, $provider, $destination, $idempotencyKey, $value): Withdrawal {
             $wallet = Wallet::query()
                 ->where('professional_id', $professional->getKey())
                 ->where('currency', $currency)
