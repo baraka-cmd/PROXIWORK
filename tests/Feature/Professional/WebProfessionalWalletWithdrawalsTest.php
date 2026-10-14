@@ -312,7 +312,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
 
     public function test_uncertain_result_keeps_funds_locked_until_a_reconciled_outcome(): void
     {
-        [$user, , $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
+        [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
         $service = app(WithdrawalService::class);
         $withdrawal = $service->request($profile, '20.00', 'USD', 'mobile_money', '243970123456', 'withdraw-review-test-0001');
         $service->markProcessing($withdrawal, $user->id, 'Transmission manuelle démarrée.');
