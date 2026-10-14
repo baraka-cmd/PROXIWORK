@@ -569,25 +569,31 @@ class WithdrawalService
         string $description,
         array $metadata = [],
     ): WalletTransaction {
-        return WalletTransaction::query()->firstOrCreate(
-            [
-                'wallet_id' => $wallet->getKey(),
-                'idempotency_key' => $idempotencyKey,
-            ],
-            [
-                'type' => WalletTransactionType::WITHDRAWAL,
-                'direction' => $direction,
-                'currency' => $withdrawal->currency,
-                'amount' => $this->formatMinor($amount),
-                'balance_before' => $this->formatMinor($before),
-                'balance_after' => $this->formatMinor($after),
-                'balance_bucket' => $bucket,
-                'reference_type' => Withdrawal::class,
-                'reference_id' => $withdrawal->getKey(),
-                'description' => $description,
-                'metadata' => $metadata === [] ? null : $metadata,
-            ],
-        );
+        $existing = WalletTransaction::query()
+            ->where('wallet_id', $wallet->getKey())
+            ->where('idempotency_key', $idempotencyKey)
+            ->lockForUpdate()
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return WalletTransaction::query()->forceCreate([
+            'wallet_id' => $wallet->getKey(),
+            'type' => WalletTransactionType::WITHDRAWAL,
+            'direction' => $direction,
+            'currency' => $withdrawal->currency,
+            'amount' => $this->formatMinor($amount),
+            'balance_before' => $this->formatMinor($before),
+            'balance_after' => $this->formatMinor($after),
+            'balance_bucket' => $bucket,
+            'reference_type' => Withdrawal::class,
+            'reference_id' => $withdrawal->getKey(),
+            'description' => $description,
+            'metadata' => $metadata === [] ? null : $metadata,
+            'idempotency_key' => $idempotencyKey,
+        ]);
     }
 
     private function recordStatus(
@@ -600,20 +606,26 @@ class WithdrawalService
         string $idempotencyKey,
         array $metadata = [],
     ): WithdrawalStatusHistory {
-        return WithdrawalStatusHistory::query()->firstOrCreate(
-            [
-                'withdrawal_id' => $withdrawal->getKey(),
-                'idempotency_key' => $idempotencyKey,
-            ],
-            [
-                'from_status' => $from,
-                'to_status' => $to,
-                'actor_type' => $actorType,
-                'actor_user_id' => $actorUserId,
-                'reason' => $reason,
-                'metadata' => $metadata === [] ? null : $metadata,
-            ],
-        );
+        $existing = WithdrawalStatusHistory::query()
+            ->where('withdrawal_id', $withdrawal->getKey())
+            ->where('idempotency_key', $idempotencyKey)
+            ->lockForUpdate()
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return WithdrawalStatusHistory::query()->forceCreate([
+            'withdrawal_id' => $withdrawal->getKey(),
+            'from_status' => $from,
+            'to_status' => $to,
+            'actor_type' => $actorType,
+            'actor_user_id' => $actorUserId,
+            'reason' => $reason,
+            'metadata' => $metadata === [] ? null : $metadata,
+            'idempotency_key' => $idempotencyKey,
+        ]);
     }
 
     private function minor(string $value): int
