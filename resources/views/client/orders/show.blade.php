@@ -279,6 +279,64 @@
         </div>
     @endif
 
+    @if ($order->status === \App\Enums\OrderStatus::COMPLETED)
+        <section class="client-panel client-order-review" aria-labelledby="client-review-title">
+            <p class="client-module__eyebrow">VOTRE EXPÉRIENCE</p>
+            <h2 id="client-review-title">Évaluer cette prestation</h2>
+            @if ($order->review)
+                <div class="client-review-existing">
+                    <p>
+                        <strong>Votre note : {{ $order->review->rating }}/5</strong>
+                        <span aria-label="{{ $order->review->rating }} étoiles sur 5">
+                            @for ($star = 1; $star <= 5; $star++)
+                                <span class="{{ $star <= $order->review->rating ? 'client-review-star client-review-star--filled' : 'client-review-star' }}" aria-hidden="true">★</span>
+                            @endfor
+                        </span>
+                    </p>
+                    @if (filled($order->review->comment))
+                        <blockquote>{{ $order->review->comment }}</blockquote>
+                    @else
+                        <p class="client-order-muted">Vous avez laissé une note sans commentaire.</p>
+                    @endif
+                    @if ($order->review->status === \App\Enums\ReviewStatus::PUBLISHED)
+                        <span class="status-badge status-badge--published">Avis publié</span>
+                    @else
+                        <p class="client-order-muted">Cet avis n’est pas actuellement visible publiquement. La modération de PROXIWORK est responsable de cette décision.</p>
+                    @endif
+                    @if ($order->review->response?->status === \App\Enums\ReviewStatus::PUBLISHED)
+                        <div class="client-review-response">
+                            <strong>Réponse du professionnel</strong>
+                            <p>{{ $order->review->response->response }}</p>
+                        </div>
+                    @endif
+                </div>
+            @else
+                <p>Votre commande est terminée. Partagez une évaluation honnête de la prestation que vous avez réellement reçue.</p>
+                <form method="POST" action="{{ route('client.orders.review.store', $order) }}" class="client-review-form">
+                    @csrf
+                    <fieldset>
+                        <legend>Votre note (obligatoire)</legend>
+                        <div class="client-review-rating-options">
+                            @for ($star = 5; $star >= 1; $star--)
+                                <label for="review-rating-{{ $star }}">
+                                    <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" @checked((string) old('rating') === (string) $star) required>
+                                    <span aria-hidden="true">★</span>
+                                    <span>{{ $star }}</span>
+                                </label>
+                            @endfor
+                        </div>
+                        @error('rating')<small class="field-error">{{ $message }}</small>@enderror
+                    </fieldset>
+                    <label for="review-comment">Votre commentaire (facultatif)</label>
+                    <textarea id="review-comment" name="comment" rows="4" maxlength="2000" placeholder="Décrivez votre expérience de manière honnête et respectueuse.">{{ old('comment') }}</textarea>
+                    @error('comment')<small class="field-error">{{ $message }}</small>@enderror
+                    <p class="client-order-muted">Votre avis concerne cette commande. N’incluez pas de coordonnées, d’adresse ou d’informations privées.</p>
+                    <button class="btn btn-primary" type="submit" data-confirm-submit="Publier votre note et votre commentaire ? Vous ne pourrez pas modifier la note après publication.">Publier mon avis</button>
+                </form>
+            @endif
+        </section>
+    @endif
+
     @if ($order->schedule_confirmed_at)
         <section class="client-panel client-order-schedule">
             <p class="client-module__eyebrow">PLANIFICATION</p>
