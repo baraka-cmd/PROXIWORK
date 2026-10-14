@@ -20,7 +20,7 @@ Flux de lecture :
 
 `Route protégée → ProfessionalWalletFilterRequest → WalletController → requêtes bornées par le ProfessionalProfile authentifié → Blade`
 
-La page n'appelle plus `WalletService::getOrCreate()` pour une simple consultation. Lorsqu'aucun portefeuille n'existe, elle affiche un état vide et attend une opération financière autorisée pour créer le compte.
+Les lectures Web et API n'appellent plus `WalletService::getOrCreate()` pour une simple consultation. L'interface Web affiche un état vide lorsqu'aucun portefeuille n'existe ; l'API retourne 404 tant qu'aucun portefeuille n'a été créé par une opération financière autorisée.
 
 ## Filtres de l'historique
 
@@ -61,7 +61,8 @@ Avant de qualifier l'historique de grand livre complet, le point Retraits doit d
 
 La suite dédiée vérifie au minimum :
 
-- une consultation sans portefeuille ne crée ni portefeuille ni mouvement ;
+- une consultation Web ou API sans portefeuille ne crée ni portefeuille ni mouvement ;
+- l'API ne retourne que le portefeuille existant du professionnel authentifié ;
 - les filtres sont appliqués au bon portefeuille et à la période demandée ;
 - les écritures d'un autre professionnel ne sont jamais visibles ;
 - une devise inexistante pour le professionnel est rejetée ;
