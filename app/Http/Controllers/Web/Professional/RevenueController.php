@@ -54,9 +54,11 @@ class RevenueController extends Controller
         RevenueAnalyticsService $analytics,
     ) {
         $professional = $this->professionalProfile($request);
-        $query = $analytics->exportQuery($professional, $request->filters());
+        $filters = $request->filters();
+        $period = $analytics->periodDetails($filters);
+        $query = $analytics->exportQuery($professional, $filters);
 
-        return response()->streamDownload(function () use ($query): void {
+        return response()->streamDownload(function () use ($query, $filters, $period): void {
             $output = fopen('php://output', 'wb');
 
             if ($output === false) {
