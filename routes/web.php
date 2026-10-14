@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\Admin\DashboardController;
+use App\Http\Controllers\Web\Admin\WithdrawalController as AdminWithdrawalController;
 use App\Http\Controllers\Web\AdminAuthController;
 use App\Http\Controllers\Web\Client\AddressController as ClientAddressController;
 use App\Http\Controllers\Web\Client\DashboardController as ClientDashboardController;
@@ -272,6 +273,15 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         Route::post('logout', [AdminAuthController::class, 'destroy'])->name('logout');
         Route::middleware('permission:rbac.view')->group(function (): void {
             Route::get('rbac', [RbacDashboardController::class, 'index'])->name('rbac.dashboard');
+        });
+        Route::prefix('withdrawals')->name('withdrawals.')->middleware('permission:admin.withdrawals.manage')->group(function (): void {
+            Route::get('/', [AdminWithdrawalController::class, 'index'])->name('index');
+            Route::get('/{withdrawal}', [AdminWithdrawalController::class, 'show'])->name('show');
+            Route::post('/{withdrawal}/processing', [AdminWithdrawalController::class, 'startProcessing'])->middleware('throttle:10,1')->name('processing');
+            Route::post('/{withdrawal}/reject', [AdminWithdrawalController::class, 'reject'])->middleware('throttle:10,1')->name('reject');
+            Route::post('/{withdrawal}/succeeded', [AdminWithdrawalController::class, 'markSucceeded'])->middleware('throttle:10,1')->name('succeeded');
+            Route::post('/{withdrawal}/failed', [AdminWithdrawalController::class, 'markFailed'])->middleware('throttle:10,1')->name('failed');
+            Route::post('/{withdrawal}/review-required', [AdminWithdrawalController::class, 'markReviewRequired'])->middleware('throttle:10,1')->name('review-required');
         });
     });
 });
