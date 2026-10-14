@@ -248,7 +248,7 @@ class WalletService
         $normalizedWhole = ltrim($whole, '0') ?: '0';
 
         if (strlen($normalizedWhole) > 16) {
-            throw new \\InvalidArgumentException('Montant financier hors limites techniques.');
+            throw new \InvalidArgumentException('Montant financier hors limites techniques.');
         }
 
         $minor = ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
