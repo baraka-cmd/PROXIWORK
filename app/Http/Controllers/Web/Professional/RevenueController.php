@@ -57,8 +57,9 @@ class RevenueController extends Controller
         $filters = $request->filters();
         $period = $analytics->periodDetails($filters);
         $query = $analytics->exportQuery($professional, $filters);
+        $refundQuery = $analytics->exportRefundQuery($professional, $filters);
 
-        return response()->streamDownload(function () use ($query, $filters, $period): void {
+        return response()->streamDownload(function () use ($query, $refundQuery, $filters, $period): void {
             $output = fopen('php://output', 'wb');
 
             if ($output === false) {
@@ -101,6 +102,34 @@ class RevenueController extends Controller
                         $commission->currency,
                         $commission->status->value,
                         $commission->reversed_at?->toISOString(),
+                    ], ',', '"', '');
+                }
+            });
+
+            fputcsv($output, [], ',', '"', '');
+            fputcsv($output, ['Remboursements confirmés — flux distinct, non déduit automatiquement des revenus nets'], ',', '"', '');
+            fputcsv($output, [
+                'Référence remboursement',
+                'Date de confirmation',
+                'Commande',
+                'Référence paiement',
+                'Référence commission associée',
+                'Montant remboursé',
+                'Devise',
+                'État',
+            ], ',', '"', '');
+
+            $refundQuery->chunk(500, function ($refunds) use ($output): void {
+                foreach ($refunds as $refund) {
+                    fputcsv($output, [
+                        $this->safeCsvText((string) $refund->reference),
+                        $refund->processed_at,
+                        $this->safeCsvText((string) ($refund->order_number ?: '#'.$refund->order_id)),
+                        'PAY-'.$refund->payment_id,
+                        'COM-'.$refund->commission_id,
+                        (string) $refund->amount,
+                        $refund->currency,
+                        'succeeded',
                     ], ',', '"', '');
                 }
             });
