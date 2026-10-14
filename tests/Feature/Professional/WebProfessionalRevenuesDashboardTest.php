@@ -143,14 +143,32 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             'requested_at' => now()->subDay(),
             'processed_at' => now(),
         ]);
+        PaymentRefund::query()->forceCreate([
+            'reference' => 'RFD-PENDING-0002',
+            'payment_id' => $payment->getKey(),
+            'client_id' => $order->client_id,
+            'amount' => '10.00',
+            'currency' => 'USD',
+            'status' => 'requested',
+            'reason' => 'Demande non encore confirmée.',
+            'requested_at' => now(),
+        ]);
 
         $this->actingAs($professional)
             ->get(route('professional.revenues.index', ['period' => '30d']))
             ->assertOk()
             ->assertSee('Remboursements confirmés')
             ->assertSee('RFD-TEST-0001')
+            ->assertDontSee('RFD-PENDING-0002')
             ->assertSee('30,00 USD')
             ->assertSee('ne sont pas soustraits arbitrairement');
+
+        $export = $this->actingAs($professional)
+            ->get(route('professional.revenues.export', ['period' => '30d']));
+
+        $export->assertOk();
+        $this->assertStringContainsString('RFD-TEST-0001', $export->streamedContent());
+        $this->assertStringNotContainsString('RFD-PENDING-0002', $export->streamedContent());
     }
 
     public function test_multi_service_order_commission_is_not_falsely_attributed_to_the_lowest_service_id(): void
