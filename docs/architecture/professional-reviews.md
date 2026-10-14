@@ -19,7 +19,7 @@ Aucune nouvelle table n'est ajoutée pour ce module. Les tables `reviews`, `revi
 - `reviews.client_id` et `reviews.professional_id` conservent l'auteur et le professionnel évalué.
 - `reviews.status`, `published_at`, `moderated_at`, `moderated_by`, `moderation_reason` décrivent l'état de publication et la modération.
 - `review_responses.review_id` est unique. La réponse possède son propre statut et ses champs de modération.
-- Les signalements réutilisent le workflow de modération existant; aucune seconde file de signalements n'est créée.
+- Les signalements réutilisent le workflow de modération existant; aucune seconde file de signalements n'est créée. Les réponses professionnelles peuvent également être signalées et masquées séparément par une action de modération dédiée.
 
 ## Réputation et indicateurs
 
