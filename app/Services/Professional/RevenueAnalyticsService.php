@@ -432,13 +432,19 @@ class RevenueAnalyticsService
         CarbonImmutable $start,
         CarbonImmutable $end,
     ): Collection {
-        $items = DB::raw('(SELECT order_id, COUNT(DISTINCT service_id) AS service_count, CASE WHEN COUNT(DISTINCT service_id) = 1 THEN MIN(service_title) ELSE NULL END AS service_title, CASE WHEN COUNT(DISTINCT service_id) = 1 THEN MIN(service_id) ELSE NULL END AS service_id FROM order_items GROUP BY order_id) AS revenue_items');
+        $items = DB::table('order_items')
+            ->join('commissions as item_commissions', 'item_commissions.order_id', '=', 'order_items.order_id')
+            ->where('item_commissions.professional_id', $professional->getKey())
+            ->where('item_commissions.status', CommissionStatus::POSTED->value)
+            ->whereBetween('item_commissions.posted_at', [$start, $end])
+            ->selectRaw('order_items.order_id, COUNT(DISTINCT order_items.service_id) AS service_count, CASE WHEN COUNT(DISTINCT order_items.service_id) = 1 THEN MIN(order_items.service_title) ELSE NULL END AS service_title, CASE WHEN COUNT(DISTINCT order_items.service_id) = 1 THEN MIN(order_items.service_id) ELSE NULL END AS service_id')
+            ->groupBy('order_items.order_id');
 
         return DB::table('commissions')
             ->join('orders', 'orders.id', '=', 'commissions.order_id')
             ->leftJoin('service_requests', 'service_requests.id', '=', 'orders.service_request_id')
             ->leftJoin('services', 'services.id', '=', 'service_requests.service_id')
-            ->leftJoin($items, 'revenue_items.order_id', '=', 'orders.id')
+            ->leftJoinSub($items, 'revenue_items', 'revenue_items.order_id', '=', 'orders.id')
             ->where('commissions.professional_id', $professional->getKey())
             ->where('commissions.status', CommissionStatus::POSTED->value)
             ->whereBetween('commissions.posted_at', [$start, $end])
