@@ -120,8 +120,13 @@ class CommissionService
         }
 
         [$whole, $decimal] = array_pad(explode('.', $value, 2), 2, '0');
+        $normalizedWhole = ltrim($whole, '0') ?: '0';
 
-        return ((int) $whole * 100) + (int) str_pad($decimal, 2, '0');
+        if (strlen($normalizedWhole) > 16) {
+            throw new \\InvalidArgumentException('Montant financier hors limites techniques.');
+        }
+
+        return ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
     }
 
     private function rateMinor(string $value): int
@@ -133,8 +138,13 @@ class CommissionService
         }
 
         [$whole, $decimal] = array_pad(explode('.', $value, 2), 2, '0');
+        $normalizedWhole = ltrim($whole, '0') ?: '0';
 
-        return ((int) $whole * 100) + (int) str_pad($decimal, 2, '0');
+        if (strlen($normalizedWhole) > 3) {
+            throw new \\InvalidArgumentException('Taux de commission hors limites techniques.');
+        }
+
+        return ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
     }
 
     private function formatMinor(int $value): string
