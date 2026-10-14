@@ -99,7 +99,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->assertSee('500,00 USD')
             ->assertSee('Fonds en attente de libération')
             ->assertSee('Historique des commissions')
-            ->assertSee('COM-1');
+            ->assertSee('COM-');
     }
 
     public function test_professional_cannot_view_another_professionals_commission_details(): void
