@@ -45,6 +45,7 @@ class RevenueController extends Controller
 
         return view('professional.revenues.show', [
             'commission' => $record,
+            'serviceTitle' => $analytics->serviceLabelForOrder($record->order),
             'walletTransactions' => $walletTransactions,
         ]);
     }
@@ -59,7 +60,7 @@ class RevenueController extends Controller
         $query = $analytics->exportQuery($professional, $filters);
         $refundQuery = $analytics->exportRefundQuery($professional, $filters);
 
-        return response()->streamDownload(function () use ($query, $refundQuery, $filters, $period): void {
+        return response()->streamDownload(function () use ($query, $refundQuery, $filters, $period, $analytics): void {
             $output = fopen('php://output', 'wb');
 
             if ($output === false) {
@@ -86,7 +87,7 @@ class RevenueController extends Controller
 
             $query->chunk(500, function ($commissions) use ($output): void {
                 foreach ($commissions as $commission) {
-                    $serviceTitle = $commission->order?->items->first()?->service_title ?? 'Service indisponible';
+                    $serviceTitle = $analytics->serviceLabelForOrder($commission->order);
                     $orderReference = $commission->order?->order_number
                         ?? ('#'.$commission->order_id);
 
