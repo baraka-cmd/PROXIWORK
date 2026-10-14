@@ -2,7 +2,19 @@
 
 ## Statut de ce document
 
-Audit initial et contrat d'architecture du point 35. Ce document ne certifie pas le module pour la production. Les choix commerciaux non prouvés par le code restent explicitement non configurés.
+Audit initial et contrat d'architecture du point 35, mis à jour au fil de l'implémentation. Ce document ne certifie pas le module pour la production. Les choix commerciaux non prouvés par le code restent explicitement non configurés.
+
+## Implémentation engagée sur la branche du point 35
+
+- Migration additive : historique des statuts, compartiment de solde par nouvelle écriture, destination chiffrée, frais/net nullable et métadonnées de vérification.
+- Cycle de vie ajouté dans le service : `requested`, `processing`, `review_required`, `succeeded`, `failed`, `cancelled`; transitions contrôlées et historiques idempotents.
+- Réservation enregistre séparément le débit du disponible et le crédit du bloqué. Succès, échec, refus et annulation créent leurs écritures terminales dans la même transaction que la mise à jour des soldes.
+- Verrouillage normalisé dans l'ordre wallet puis retrait pour les mutations qui touchent les deux lignes.
+- Nouvelles destinations chiffrées; le champ historique requis par le schéma contient seulement une valeur masquée pour les nouvelles demandes. L'écran professionnel ne révèle que la destination masquée; l'accès financier admin à la valeur complète est journalisé.
+- L'écran de création ne crée plus de wallet en GET. Le service refuse les retraits si le wallet n'est pas actif.
+- Espace admin manuel protégé par `admin.withdrawals.manage`, avec note de décision obligatoire, refus/libération, démarrage du traitement, rapprochement de succès/échec et mise en vérification.
+- Les montants affichés et le récapitulatif client ne passent pas par des nombres flottants. Les frais et le net restent non renseignés tant qu'un barème fiable n'existe pas.
+- Le moyen de retrait sélectionné est une préférence de traitement manuel; aucun fournisseur de versement réel n'est appelé.
 
 ## Périmètre de code audité
 
@@ -58,9 +70,9 @@ Fichiers examinés :
 - `succeeded`: preuve fiable d'exécution vérifiée, avec référence de rapprochement; libération du compartiment bloqué et écriture de registre atomiques.
 - `failed`: échec confirmé, non ambigu; libération unique du compartiment bloqué vers le disponible et écritures de registre atomiques.
 - `cancelled`: annulation autorisée avant l'envoi irréversible du paiement; libération unique de la réservation.
-- `review_required` (à ajouter si absent): résultat non déterminé ou incohérence nécessitant un rapprochement humain. Aucun second envoi automatique et aucun déblocage automatique tant que l'issue du transfert n'est pas connue.
+- `review_required`: état présent dans l'énumération actuelle; résultat non déterminé ou incohérence nécessitant un rapprochement humain. Aucun second envoi automatique et aucun déblocage automatique tant que l'issue du transfert n'est pas connue.
 
-Transitions autorisées à imposer dans le service :
+Transitions autorisées imposées par le service actuel :
 - requested → processing, failed/refused après décision autorisée, cancelled uniquement avant exécution.
 - processing → succeeded ou failed uniquement après preuve; processing → review_required si le résultat est ambigu.
 - review_required → succeeded ou failed seulement après rapprochement documenté.
@@ -68,7 +80,7 @@ Transitions autorisées à imposer dans le service :
 
 ## Registre et compartiments
 
-Une migration additive doit ajouter un indicateur de compartiment, par exemple `balance_bucket`, aux nouvelles écritures. Valeurs prévues : `available`, `pending`, `locked`, `unknown`. Les anciennes lignes sont initialisées à `unknown`; aucun historique n'est recalculé à partir d'une supposition.
+La migration additive du point 35 ajoute l'indicateur `balance_bucket` aux écritures. Valeurs prévues : `available`, `pending`, `locked`, `unknown`. Les anciennes lignes sont initialisées à `unknown`; aucun historique n'est recalculé à partir d'une supposition.
 
 Pour une réservation, l'écriture initiale documente la diminution de `available`; l'augmentation de `locked` est représentée séparément si le modèle du registre retient une ligne par compartiment. En cas d'échec/annulation, l'écriture documente à la fois la diminution de `locked` et l'augmentation de `available`. En cas de succès, le montant quitte `locked` et la preuve de versement est conservée. Toutes les écritures et modifications de soldes sont validées dans la même transaction DB.
 
