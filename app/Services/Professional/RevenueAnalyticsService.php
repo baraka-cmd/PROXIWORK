@@ -247,7 +247,7 @@ class RevenueAnalyticsService
         array $filters,
         CarbonImmutable $start,
         CarbonImmutable $end,
-    ): \Illuminate\\Database\\Query\\Builder {
+    ): QueryBuilder {
         return DB::table('payment_refunds')
             ->join('payments', 'payments.id', '=', 'payment_refunds.payment_id')
             ->join('commissions', 'commissions.payment_id', '=', 'payments.id')
