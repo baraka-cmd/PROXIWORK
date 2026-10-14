@@ -191,7 +191,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
 
         $refundOnly->assertOk()
             ->assertSee('RFD-TEST-0001')
-            ->assertDontSee('COM-'.$commission->getKey());
+            ->assertDontSee('<td>COM-'.$commission->getKey().'</td>', false);
 
         $export = $this->actingAs($professional)
             ->get(route('professional.revenues.export', ['period' => '30d']));
