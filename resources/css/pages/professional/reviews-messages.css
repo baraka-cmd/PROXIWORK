@@ -568,3 +568,56 @@
         transition: none;
     }
 }
+
+
+.reputation-themes {
+    display: grid;
+    gap: 1rem;
+    border: 1px solid var(--review-message-border);
+    border-radius: 1rem;
+    padding: 1.1rem;
+    background: var(--review-message-surface);
+}
+.reputation-themes h3 {
+    margin: 0 0 .35rem;
+    font-size: 1rem;
+}
+.reputation-themes p {
+    margin: 0;
+    color: var(--review-message-muted);
+    line-height: 1.5;
+}
+.reputation-themes__empty {
+    padding: .85rem;
+    border-radius: .7rem;
+    background: color-mix(in srgb, var(--review-message-border) 28%, transparent);
+}
+.reputation-themes__list {
+    display: grid;
+    gap: .9rem;
+}
+.reputation-theme {
+    display: grid;
+    gap: .4rem;
+}
+.reputation-theme__heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .75rem;
+}
+.reputation-theme__heading span {
+    color: var(--review-message-muted);
+    font-size: .82rem;
+    text-align: right;
+}
+@media (max-width: 560px) {
+    .reputation-theme__heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .2rem;
+    }
+    .reputation-theme__heading span {
+        text-align: left;
+    }
+}
