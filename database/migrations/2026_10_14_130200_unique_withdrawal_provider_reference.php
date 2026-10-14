@@ -6,7 +6,6 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use RuntimeException;
 
 return new class extends Migration
 {
@@ -22,7 +21,7 @@ return new class extends Migration
             ->exists();
 
         if ($duplicateReferenceExists) {
-            throw new RuntimeException(
+            throw new \RuntimeException(
                 'Migration interrompue : plusieurs retraits utilisent déjà la même référence externe pour un même canal. '
                 .'Rapprochez manuellement les dossiers concernés avant de créer la contrainte unique.'
             );
