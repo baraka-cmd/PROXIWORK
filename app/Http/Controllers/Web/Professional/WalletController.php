@@ -4,57 +4,87 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
+use App\Enums\WalletTransactionDirection;
+use App\Enums\WalletTransactionType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Professional\Wallet\ProfessionalWalletFilterRequest;
 use App\Models\ProfessionalProfile;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
-use App\Services\Wallet\WalletService;
-use Illuminate\Http\Request;
+use Carbon\CarbonImmutable;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class WalletController extends Controller
 {
-    public function index(Request $request, WalletService $walletService)
+    public function index(ProfessionalWalletFilterRequest $request): View
     {
-        $profile = $this->professionalProfile($request);
-        $currency = strtoupper((string) $request->query('currency', 'USD'));
-        $this->validateCurrency($currency);
-
-        $wallet = $walletService->getOrCreate($profile, $currency);
-        $this->authorize('view', $wallet);
-
-        $transactions = WalletTransaction::query()
-            ->where('wallet_id', $wallet->getKey())
-            ->latest('created_at')
-            ->latest('id')
-            ->paginate(10)
-            ->withQueryString();
+        $profile = ProfessionalProfile::query()
+            ->where('user_id', $request->user()->getKey())
+            ->firstOrFail();
 
         $currencies = Wallet::query()
             ->where('professional_id', $profile->getKey())
             ->orderBy('currency')
             ->pluck('currency');
 
-        if ($currencies->isEmpty()) {
-            $currencies = collect([$currency]);
-        }
+        $filters = $request->validated();
+        $currency = $filters['currency'] ?? $currencies->first() ?? 'USD';
 
-        return view('professional.wallet.index', compact('wallet', 'transactions', 'currencies'));
-    }
-
-    private function professionalProfile(Request $request): ProfessionalProfile
-    {
-        return ProfessionalProfile::query()
-            ->where('user_id', $request->user()->getKey())
-            ->firstOrFail();
-    }
-
-    private function validateCurrency(string $currency): void
-    {
-        if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
+        if ($currencies->isNotEmpty() && ! $currencies->contains($currency)) {
             throw ValidationException::withMessages([
-                'currency' => 'La devise sélectionnée est invalide.',
+                'currency' => 'Aucun portefeuille ne correspond à la devise sélectionnée.',
             ]);
         }
+
+        $wallet = Wallet::query()
+            ->where('professional_id', $profile->getKey())
+            ->where('currency', $currency)
+            ->first();
+
+        if ($wallet !== null) {
+            $this->authorize('view', $wallet);
+        }
+
+        $transactions = null;
+
+        if ($wallet !== null) {
+            $query = WalletTransaction::query()
+                ->where('wallet_id', $wallet->getKey())
+                ->latest('created_at')
+                ->latest('id');
+
+            if (! empty($filters['type'])) {
+                $query->where('type', $filters['type']);
+            }
+
+            if (! empty($filters['direction'])) {
+                $query->where('direction', $filters['direction']);
+            }
+
+            if (! empty($filters['transaction_id'])) {
+                $query->whereKey($filters['transaction_id']);
+            }
+
+            if (! empty($filters['date_from'])) {
+                $query->where('created_at', '>=', CarbonImmutable::createFromFormat('!Y-m-d', $filters['date_from']));
+            }
+
+            if (! empty($filters['date_to'])) {
+                $query->where('created_at', '<', CarbonImmutable::createFromFormat('!Y-m-d', $filters['date_to'])->addDay());
+            }
+
+            $transactions = $query->paginate(15)->withQueryString();
+        }
+
+        return view('professional.wallet.index', [
+            'wallet' => $wallet,
+            'transactions' => $transactions,
+            'currencies' => $currencies,
+            'currency' => $currency,
+            'transactionTypes' => WalletTransactionType::cases(),
+            'transactionDirections' => WalletTransactionDirection::cases(),
+            'filters' => $filters,
+        ]);
     }
 }
