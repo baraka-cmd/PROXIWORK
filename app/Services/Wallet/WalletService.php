@@ -222,7 +222,7 @@ class WalletService
     private function formatMinor(int $value): string
     {
         if ($value < 0) {
-            throw new \\InvalidArgumentException('Un solde ne peut pas être négatif.');
+            throw new \InvalidArgumentException('Un solde ne peut pas être négatif.');
         }
 
         return intdiv($value, 100).'.'.str_pad((string) ($value % 100), 2, '0', STR_PAD_LEFT);
