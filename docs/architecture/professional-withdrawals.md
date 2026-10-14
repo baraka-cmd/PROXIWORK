@@ -20,6 +20,8 @@ Audit initial et contrat d'architecture du point 35, mis à jour au fil de l'imp
 - Les signalements depuis le détail du retrait créent un ticket de support lié par clé étrangère au retrait. La conversation est visible par le professionnel et le support; les réponses sont autorisées uniquement au propriétaire du ticket ou à un agent habilité.
 - Les montants affichés et le récapitulatif client ne passent pas par des nombres flottants. Les frais et le net restent non renseignés tant qu'un barème fiable n'existe pas.
 - Le moyen de retrait sélectionné est une préférence de traitement manuel; aucun fournisseur de versement réel n'est appelé.
+- Chaque transition significative crée une notification Laravel `database` au professionnel dans la même transaction que le statut et le registre. Les notifications indiquent la référence, le statut et son explication sans devenir une source de vérité financière; aucun email, SMS ou push n'est supposé configuré.
+- Une contrainte unique en base sur `(provider, provider_transaction_id)` complète le contrôle applicatif et empêche deux retraits du même canal de partager une référence externe, y compris lors de traitements concurrents. Si des doublons historiques existent, l'installation de la contrainte doit être précédée d'un rapprochement manuel.
 
 ## Périmètre de code audité
 
