@@ -70,12 +70,13 @@ Fichiers examinés :
 - `requested`: demande créée et montant réservé; aucune preuve qu'un paiement a été envoyé.
 - `processing`: un opérateur autorisé ou un adaptateur de paiement a effectivement démarré l'exécution.
 - `succeeded`: preuve fiable d'exécution vérifiée, avec référence de rapprochement; libération du compartiment bloqué et écriture de registre atomiques.
-- `failed`: échec confirmé, non ambigu; libération unique du compartiment bloqué vers le disponible et écritures de registre atomiques.
+- `failed`: échec d'un paiement déjà en traitement, confirmé et non ambigu; libération unique du compartiment bloqué vers le disponible et écritures de registre atomiques.
+- `rejected`: demande refusée avant le démarrage du traitement; motif enregistré et libération unique de la réservation.
 - `cancelled`: annulation autorisée avant l'envoi irréversible du paiement; libération unique de la réservation.
 - `review_required`: état présent dans l'énumération actuelle; résultat non déterminé ou incohérence nécessitant un rapprochement humain. Aucun second envoi automatique et aucun déblocage automatique tant que l'issue du transfert n'est pas connue.
 
 Transitions autorisées imposées par le service actuel :
-- requested → processing, failed/refused après décision autorisée, cancelled uniquement avant exécution.
+- requested → processing, rejected après décision admin autorisée, cancelled uniquement avant exécution.
 - processing → succeeded ou failed uniquement après preuve; processing → review_required si le résultat est ambigu.
 - review_required → succeeded ou failed seulement après rapprochement documenté.
 - Les états finaux sont immuables pour les appels ordinaires; une correction doit être une opération distincte, tracée et compensatoire.
