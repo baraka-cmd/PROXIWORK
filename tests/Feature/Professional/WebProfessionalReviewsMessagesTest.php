@@ -22,6 +22,7 @@ use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Order\OrderService;
+use App\Services\Review\ReviewService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -234,7 +235,7 @@ class WebProfessionalReviewsMessagesTest extends TestCase
 
         $order = $this->createCompletedOrder($client, $professional, $profile);
         $review = Review::query()->where('order_id', $order->id)->firstOrFail();
-        $response = app(\App\Services\Review\ReviewService::class)->respond(
+        $response = app(ReviewService::class)->respond(
             $review,
             $professional,
             'Réponse professionnelle de test.',
