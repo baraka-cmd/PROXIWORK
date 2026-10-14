@@ -6,6 +6,7 @@ namespace App\Services\Professional;
 
 use App\Enums\CommissionStatus;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentRefundStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Commission;
 use App\Models\Order;
@@ -323,7 +324,7 @@ class RevenueAnalyticsService
             ->join('commissions', 'commissions.payment_id', '=', 'payments.id')
             ->join('orders', 'orders.id', '=', 'payments.order_id')
             ->where('commissions.professional_id', $professional->getKey())
-            ->where('payment_refunds.status', 'succeeded')
+            ->where('payment_refunds.status', PaymentRefundStatus::SUCCEEDED->value)
             ->whereNotNull('payment_refunds.processed_at')
             ->whereBetween('payment_refunds.processed_at', [$start, $end])
             ->when($filters['currency'] ?? null, fn ($query, string $currency) => $query->where('payment_refunds.currency', $currency))
