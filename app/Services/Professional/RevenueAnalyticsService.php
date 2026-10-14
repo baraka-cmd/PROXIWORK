@@ -274,6 +274,7 @@ class RevenueAnalyticsService
         CarbonImmutable $end,
     ) {
         $query = $this->confirmedRefundQuery($professional, $filters, $start, $end)
+            ->when(($filters['nature'] ?? 'all') === 'commission', fn (QueryBuilder $query) => $query->whereRaw('1 = 0'))
             ->select([
                 'payment_refunds.id',
                 'payment_refunds.reference',
