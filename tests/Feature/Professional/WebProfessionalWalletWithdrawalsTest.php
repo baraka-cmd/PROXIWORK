@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Professional;
 
 use App\Enums\WithdrawalStatus;
+use App\Exceptions\PaymentConflictException;
 use App\Models\ProfessionalProfile;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Models\Withdrawal;
+use App\Services\Admin\Support\SupportTicketService;
 use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
@@ -234,7 +236,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         try {
             app(WithdrawalService::class)->request($profile, '10.00', 'USD', 'mobile_money', '243970123456', 'inactive-wallet-request-001');
             $this->fail('An inactive wallet must not reserve withdrawal funds.');
-        } catch (\App\Exceptions\PaymentConflictException $exception) {
+        } catch (PaymentConflictException $exception) {
             $this->assertStringContainsString('n’est pas autorisé', $exception->getMessage());
         }
 
@@ -252,7 +254,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         try {
             $service->markSucceeded($withdrawal, 'MOMO-REF-0001');
             $this->fail('A requested withdrawal must not jump directly to succeeded.');
-        } catch (\App\Exceptions\PaymentConflictException $exception) {
+        } catch (PaymentConflictException $exception) {
             $this->assertStringContainsString('doit être en traitement', $exception->getMessage());
         }
 
@@ -335,7 +337,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertDatabaseCount('wallet_transactions', 4);
     }
 
-public function test_form_rejects_unconfigured_payout_provider_and_requires_explicit_confirmation(): void
+    public function test_form_rejects_unconfigured_payout_provider_and_requires_explicit_confirmation(): void
     {
         $user = User::factory()->create();
         $user->assignRole('professional');
@@ -370,7 +372,7 @@ public function test_form_rejects_unconfigured_payout_provider_and_requires_expl
         try {
             $service->cancel($withdrawal, $user->id);
             $this->fail('A withdrawal cannot be cancelled after processing begins.');
-        } catch (\App\Exceptions\PaymentConflictException $exception) {
+        } catch (PaymentConflictException $exception) {
             $this->assertStringContainsString('ne peut plus être annulé', $exception->getMessage());
         }
 
@@ -416,7 +418,7 @@ public function test_form_rejects_unconfigured_payout_provider_and_requires_expl
         try {
             $service->markSucceeded($second, 'MOMO-UNIQUE-REFERENCE-0001');
             $this->fail('A single external transfer reference cannot settle two withdrawal requests.');
-        } catch (\App\Exceptions\PaymentConflictException $exception) {
+        } catch (PaymentConflictException $exception) {
             $this->assertStringContainsString('déjà associée à un autre retrait', $exception->getMessage());
         }
 
@@ -497,7 +499,7 @@ public function test_form_rejects_unconfigured_payout_provider_and_requires_expl
             '243970123456',
             'withdraw-support-second-0001',
         );
-        $ticket = app(\App\Services\Admin\Support\SupportTicketService::class)->create($user, [
+        $ticket = app(SupportTicketService::class)->create($user, [
             'withdrawal_id' => $firstWithdrawal->id,
             'subject' => 'Problème concernant le retrait de test',
             'category' => 'PAYMENT',
