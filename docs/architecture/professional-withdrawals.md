@@ -9,6 +9,8 @@ Audit initial et contrat d'architecture du point 35, mis à jour au fil de l'imp
 - Migration additive : historique des statuts, compartiment de solde par nouvelle écriture, destination chiffrée, frais/net nullable et métadonnées de vérification.
 - Cycle de vie ajouté dans le service : `requested`, `processing`, `review_required`, `succeeded`, `failed`, `cancelled`; transitions contrôlées et historiques idempotents.
 - Réservation enregistre séparément le débit du disponible et le crédit du bloqué. Succès, échec, refus et annulation créent leurs écritures terminales dans la même transaction que la mise à jour des soldes.
+- Le flux wallet existant identifie maintenant les écritures de revenu en attente et enregistre la libération en deux lignes idempotentes : débit du compartiment `pending` puis crédit du compartiment `available`. Les clés d'idempotence de crédit/libération refusent la réutilisation avec un montant ou une référence différente.
+- Le formatage des montants du service Wallet et du calcul de commission évite désormais la conversion de centimes entiers en flottants binaires.
 - Verrouillage normalisé dans l'ordre wallet puis retrait pour les mutations qui touchent les deux lignes.
 - Nouvelles destinations chiffrées; le champ historique requis par le schéma contient seulement une valeur masquée pour les nouvelles demandes. L'écran professionnel ne révèle que la destination masquée; l'accès financier admin à la valeur complète est journalisé.
 - L'écran de création ne crée plus de wallet en GET. Le service refuse les retraits si le wallet n'est pas actif.
