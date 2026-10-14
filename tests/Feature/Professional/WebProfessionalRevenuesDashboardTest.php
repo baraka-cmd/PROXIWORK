@@ -141,7 +141,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             'paid_at' => now(),
         ]);
 
-        Commission::query()->forceCreate([
+        $commission = Commission::query()->forceCreate([
             'order_id' => $order->getKey(),
             'payment_id' => $payment->getKey(),
             'professional_id' => $order->professional_id,
@@ -186,6 +186,13 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->assertSee('30,00 USD')
             ->assertSee('ne sont pas soustraits arbitrairement');
 
+        $refundOnly = $this->actingAs($professional)
+            ->get(route('professional.revenues.index', ['period' => '30d', 'nature' => 'refund']));
+
+        $refundOnly->assertOk()
+            ->assertSee('RFD-TEST-0001')
+            ->assertDontSee('COM-'.$commission->getKey());
+
         $export = $this->actingAs($professional)
             ->get(route('professional.revenues.export', ['period' => '30d']));
 
@@ -193,6 +200,13 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
         $csv = $export->streamedContent();
         $this->assertStringContainsString('RFD-TEST-0001', $csv);
         $this->assertStringNotContainsString('RFD-PENDING-0002', $csv);
+
+        $refundCsv = $this->actingAs($professional)
+            ->get(route('professional.revenues.export', ['period' => '30d', 'nature' => 'refund']))
+            ->streamedContent();
+
+        $this->assertStringContainsString('RFD-TEST-0001', $refundCsv);
+        $this->assertStringNotContainsString('COM-'.$commission->getKey(), $refundCsv);
     }
 
     public function test_multi_service_order_commission_is_not_falsely_attributed_to_the_lowest_service_id(): void
