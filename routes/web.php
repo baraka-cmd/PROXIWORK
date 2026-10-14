@@ -12,8 +12,8 @@ use App\Http\Controllers\Web\Client\NotificationController as ClientNotification
 use App\Http\Controllers\Web\Client\OrderController;
 use App\Http\Controllers\Web\Client\PaymentController;
 use App\Http\Controllers\Web\Client\ProfileController as ClientProfileController;
-use App\Http\Controllers\Web\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Web\Client\QuotationController;
+use App\Http\Controllers\Web\Client\ReviewController as ClientReviewController;
 use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
 use App\Http\Controllers\Web\EmailVerificationController;
