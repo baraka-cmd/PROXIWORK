@@ -251,6 +251,18 @@ class WebProfessionalReviewsMessagesTest extends TestCase
             'reason_code' => 'ABUSIVE_CONTENT',
             'status' => 'pending',
         ]);
+
+        $this->actingAs($professional)
+            ->post(route('professional.reviews.report', $review), [
+                'target_type' => 'review',
+                'target_id' => $review->id,
+                'reason_code' => 'ABUSIVE_CONTENT',
+                'description' => 'Le commentaire contient des insultes ciblées.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasErrors('target_id');
+
+        $this->assertDatabaseCount('reports', 1);
     }
 
     public function test_professional_cannot_report_a_review_belonging_to_another_professional(): void
