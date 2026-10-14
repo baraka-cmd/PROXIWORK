@@ -437,7 +437,6 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
         $this->assertDatabaseCount('wallet_transactions', 5);
     }
 
-
     public function test_professional_can_report_and_reply_to_a_support_ticket_linked_to_their_withdrawal(): void
     {
         [$user, $profile, $wallet] = $this->professionalWithAvailableWallet('100.00');
