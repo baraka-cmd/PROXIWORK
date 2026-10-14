@@ -166,9 +166,9 @@
         <form method="POST" action="{{ route('professional.notifications.preferences.update') }}" class="notification-filters">
             @csrf
             @method('PATCH')
-            <label><input type="checkbox" name="email_enabled" value="1" @checked(old('email_enabled', $preferences->email_enabled))> E-mail</label>
-            <label><input type="checkbox" name="sms_enabled" value="1" @checked(old('sms_enabled', $preferences->sms_enabled))> SMS (si configuré)</label>
-            <label><input type="checkbox" name="push_enabled" value="1" @checked(old('push_enabled', $preferences->push_enabled))> Push (si configuré)</label>
+            <label><input type="hidden" name="email_enabled" value="0"><input type="checkbox" name="email_enabled" value="1" @checked(old('email_enabled', $preferences->email_enabled))> E-mail</label>
+            <label><input type="hidden" name="sms_enabled" value="0"><input type="checkbox" name="sms_enabled" value="1" @checked(old('sms_enabled', $preferences->sms_enabled))> SMS (si configuré)</label>
+            <label><input type="hidden" name="push_enabled" value="0"><input type="checkbox" name="push_enabled" value="1" @checked(old('push_enabled', $preferences->push_enabled))> Push (si configuré)</label>
             <button class="button button--primary" type="submit">Enregistrer les préférences</button>
         </form>
     </details>
