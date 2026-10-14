@@ -641,7 +641,13 @@ class WithdrawalService
         }
 
         [$whole, $decimal] = array_pad(explode('.', $value, 2), 2, '0');
-        $minor = ((int) $whole * 100) + (int) str_pad($decimal, 2, '0');
+        $normalizedWhole = ltrim($whole, '0') ?: '0';
+
+        if (strlen($normalizedWhole) > 16) {
+            throw new \\InvalidArgumentException('Montant financier hors limites techniques.');
+        }
+
+        $minor = ((int) $normalizedWhole * 100) + (int) str_pad($decimal, 2, '0');
 
         if ($minor < 0) {
             throw new \InvalidArgumentException('Montant financier invalide.');
