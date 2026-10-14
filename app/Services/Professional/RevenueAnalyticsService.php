@@ -112,7 +112,7 @@ class RevenueAnalyticsService
     {
         return Commission::query()
             ->where('professional_id', $professional->getKey())
-            ->with(['order.items', 'order.statusHistories', 'payment.transactions', 'payment.events'])
+            ->with(['order.items', 'order.statusHistories', 'payment.transactions', 'payment.events', 'payment.refunds'])
             ->findOrFail($commissionId);
     }
 
