@@ -4,58 +4,155 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Professional;
 
-use App\Enums\CommissionStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Professional\Revenue\ProfessionalRevenueFilterRequest;
 use App\Models\Commission;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Models\ProfessionalProfile;
+use App\Models\WalletTransaction;
+use App\Services\Professional\RevenueAnalyticsService;
 use Illuminate\View\View;
 
 class RevenueController extends Controller
 {
-    public function index(Request $request): View
-    {
-        $profile = $request->user()->professionalProfile()->firstOrFail();
-
-        $query = Commission::query()
-            ->where('professional_id', $profile->getKey())
-            ->with('order')
-            ->latest('posted_at');
-
-        if ($request->filled('currency')) {
-            $query->where('currency', strtoupper((string) $request->string('currency')));
-        }
-
-        if ($request->filled('from')) {
-            $query->whereDate('posted_at', '>=', Carbon::parse((string) $request->string('from')));
-        }
-
-        if ($request->filled('to')) {
-            $query->whereDate('posted_at', '<=', Carbon::parse((string) $request->string('to')));
-        }
-
-        $commissions = (clone $query)->paginate(12)->withQueryString();
-
-        $summary = (clone $query)
-            ->where('status', CommissionStatus::POSTED)
-            ->selectRaw('currency, COUNT(*) as orders_count, SUM(gross_amount) as gross_amount, SUM(commission_amount) as commission_amount, SUM(net_amount) as net_amount')
-            ->groupBy('currency')
-            ->orderBy('currency')
-            ->get();
-
-        $currencies = Commission::query()
-            ->where('professional_id', $profile->getKey())
-            ->distinct()
-            ->orderBy('currency')
-            ->pluck('currency');
+    public function index(
+        ProfessionalRevenueFilterRequest $request,
+        RevenueAnalyticsService $analytics,
+    ): View {
+        $professional = $this->professionalProfile($request);
+        $dashboard = $analytics->dashboard($professional, $request->filters());
 
         return view('professional.revenues.index', [
-            'commissions' => $commissions,
-            'summary' => $summary,
-            'currencies' => $currencies,
-            'selectedCurrency' => $request->string('currency')->toString(),
-            'from' => $request->string('from')->toString(),
-            'to' => $request->string('to')->toString(),
+            ...$dashboard,
+            'filters' => $request->filters(),
         ]);
+    }
+
+    public function show(
+        ProfessionalRevenueFilterRequest $request,
+        int $commission,
+        RevenueAnalyticsService $analytics,
+    ): View {
+        $professional = $this->professionalProfile($request);
+        $record = $analytics->findForProfessional($professional, $commission);
+
+        $walletTransactions = WalletTransaction::query()
+            ->where('reference_type', Commission::class)
+            ->where('reference_id', $record->getKey())
+            ->with('wallet')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        return view('professional.revenues.show', [
+            'commission' => $record,
+            'serviceTitle' => $analytics->serviceLabelForOrder($record->order),
+            'walletTransactions' => $walletTransactions,
+        ]);
+    }
+
+    public function export(
+        ProfessionalRevenueFilterRequest $request,
+        RevenueAnalyticsService $analytics,
+    ) {
+        $professional = $this->professionalProfile($request);
+        $filters = $request->filters();
+        $period = $analytics->periodDetails($filters);
+        $query = $analytics->exportQuery($professional, $filters);
+        $refundQuery = $analytics->exportRefundQuery($professional, $filters);
+
+        return response()->streamDownload(function () use ($query, $refundQuery, $filters, $period, $analytics): void {
+            $output = fopen('php://output', 'wb');
+
+            if ($output === false) {
+                return;
+            }
+
+            // UTF-8 BOM helps spreadsheet software identify French text correctly.
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, ['Période analysée', $period['label']], ',', '"', '');
+            fputcsv($output, ['Devise', $filters['currency'] ?? 'Toutes les devises'], ',', '"', '');
+            fputcsv($output, [
+                'Référence',
+                'Date de comptabilisation',
+                'Commande',
+                'Service',
+                'Nature',
+                'Montant brut',
+                'Frais plateforme',
+                'Montant net',
+                'Devise',
+                'État',
+                'Date de correction',
+            ], ',', '"', '');
+
+            $query->chunk(500, function ($commissions) use ($output, $analytics): void {
+                foreach ($commissions as $commission) {
+                    $serviceTitle = $analytics->serviceLabelForOrder($commission->order);
+                    $orderReference = $commission->order?->order_number
+                        ?? ('#'.$commission->order_id);
+
+                    fputcsv($output, [
+                        'COM-'.$commission->getKey(),
+                        $commission->posted_at?->toISOString(),
+                        $this->safeCsvText($orderReference),
+                        $this->safeCsvText($serviceTitle),
+                        $commission->status->value === 'reversed' ? 'Commission annulée' : 'Revenu après commission',
+                        (string) $commission->gross_amount,
+                        (string) $commission->commission_amount,
+                        (string) $commission->net_amount,
+                        $commission->currency,
+                        $commission->status->value,
+                        $commission->reversed_at?->toISOString(),
+                    ], ',', '"', '');
+                }
+            });
+
+            fputcsv($output, [], ',', '"', '');
+            fputcsv($output, ['Remboursements confirmés — flux distinct, non déduit automatiquement des revenus nets'], ',', '"', '');
+            fputcsv($output, [
+                'Référence remboursement',
+                'Date de confirmation',
+                'Commande',
+                'Référence paiement',
+                'Référence commission associée',
+                'Montant remboursé',
+                'Devise',
+                'État',
+            ], ',', '"', '');
+
+            $refundQuery->chunk(500, function ($refunds) use ($output): void {
+                foreach ($refunds as $refund) {
+                    fputcsv($output, [
+                        $this->safeCsvText((string) $refund->reference),
+                        $refund->processed_at,
+                        $this->safeCsvText((string) ($refund->order_number ?: '#'.$refund->order_id)),
+                        'PAY-'.$refund->payment_id,
+                        'COM-'.$refund->commission_id,
+                        (string) $refund->amount,
+                        $refund->currency,
+                        'succeeded',
+                    ], ',', '"', '');
+                }
+            });
+
+            fclose($output);
+        }, 'proxiwork-revenus-'.now()->format('Ymd-His').'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'private, no-store, max-age=0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+    }
+
+    private function professionalProfile(ProfessionalRevenueFilterRequest $request): ProfessionalProfile
+    {
+        return ProfessionalProfile::query()
+            ->where('user_id', $request->user()->getKey())
+            ->firstOrFail();
+    }
+
+    private function safeCsvText(string $value): string
+    {
+        // Prevent spreadsheet formula execution for user-controlled text columns.
+        return preg_match('/^[\s]*[=+\-@]/u', $value) === 1 ? "'".$value : $value;
     }
 }
