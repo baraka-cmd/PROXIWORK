@@ -10,7 +10,9 @@ Audit initial et contrat d'architecture du point 35, mis à jour au fil de l'imp
 - Cycle de vie ajouté dans le service : `requested`, `processing`, `review_required`, `succeeded`, `failed`, `cancelled`; transitions contrôlées et historiques idempotents.
 - Réservation enregistre séparément le débit du disponible et le crédit du bloqué. Succès, échec, refus et annulation créent leurs écritures terminales dans la même transaction que la mise à jour des soldes.
 - Le flux wallet existant identifie maintenant les écritures de revenu en attente et enregistre la libération en deux lignes idempotentes : débit du compartiment `pending` puis crédit du compartiment `available`. Les clés d'idempotence de crédit/libération refusent la réutilisation avec un montant ou une référence différente.
-- Le formatage des montants du service Wallet et du calcul de commission évite désormais la conversion de centimes entiers en flottants binaires.
+- Le registre `wallet_transactions` et l'historique `withdrawal_status_histories` sont append-only via les modèles Eloquent : toute tentative de mise à jour ou de suppression par instance est refusée. Cette protection applicative ne remplace pas des privilèges SQL restreints ni des audits des accès directs à la base.
+- Le formatage des montants du service Wallet, du calcul de commission et des vues de retrait évite la conversion de centimes entiers en flottants binaires.
+- Les modèles `WalletTransaction` et `WithdrawalStatusHistory` refusent les mises à jour et suppressions Eloquent; les clés étrangères des écritures/historiques empêchent aussi la suppression des portefeuilles ou retraits référencés.
 - Verrouillage normalisé dans l'ordre wallet puis retrait pour les mutations qui touchent les deux lignes.
 - Nouvelles destinations chiffrées; le champ historique requis par le schéma contient seulement une valeur masquée pour les nouvelles demandes. L'écran professionnel ne révèle que la destination masquée; l'accès financier admin à la valeur complète est journalisé.
 - L'écran de création ne crée plus de wallet en GET. Le service refuse les retraits si le wallet n'est pas actif.
@@ -35,19 +37,21 @@ Fichiers examinés :
 - routes Web, vues Blade, JavaScript/CSS et tests `WebProfessionalWalletWithdrawalsTest` et `PaymentTransactionsWalletTest`
 - issue #137 relative aux écritures manquantes du registre.
 
-## Faits établis par le code actuel
+## Constats au démarrage de l'audit — état historique, pas description du HEAD courant
+
+Les constats ci-dessous expliquent pourquoi le point 35 a été ouvert. Ils sont conservés comme historique d'audit; les points marqués **résolu dans la branche** ont été corrigés plus bas et couverts par des tests.
 
 1. Les tables et modèles financiers existent déjà. Le point 35 doit les faire évoluer prudemment, sans créer un deuxième wallet ou une deuxième table de retraits.
-2. `WithdrawalService::request()` verrouille le wallet et réalise réservation, demande et écriture initiale dans une transaction DB. La clé d'idempotence est unique par professionnel et son empreinte compare montant, devise, canal et destination.
-3. Le service ne vérifie pas encore le statut actif du wallet au moment de la réservation.
-4. `markSucceeded()` et `markFailed()` verrouillent les lignes et changent les soldes, mais ne créent pas toutes les écritures de registre nécessaires à chaque transition. Les écritures actuelles ne désignent pas le compartiment auquel `balance_before` / `balance_after` se rapporte.
-5. Les statuts actuels sont `requested`, `processing`, `succeeded`, `failed` et `cancelled`. Il n'existe pas encore de transition explicite complète pour démarrer le traitement, annuler, ou marquer un résultat incertain.
-6. La route GET `/professional/withdrawals/create` appelle `WalletService::getOrCreate()`; une consultation peut donc créer un portefeuille et doit être rendue sans effet de bord.
-7. La validation accepte une chaîne libre pour le canal et la destination. La vue propose Mobile Money et virement bancaire, mais le code de paiement expose uniquement le fournisseur `fake`, destiné aux paiements entrants simulés. Aucun fournisseur réel de versement n'est établi par l'audit.
-8. La destination est actuellement stockée en clair et affichée en clair dans le détail. Elle doit être protégée pour les nouvelles demandes et masquée à l'écran.
-9. Les vues de retrait convertissent les montants décimaux en `float` pour l'affichage. Cela doit être remplacé par un formatage décimal sans flottant.
-10. Aucun minimum, maximum métier, plafond quotidien/périodique, barème de frais, délai contractuel ou workflow d'approbation financière n'est prouvé par les fichiers audités. Ne pas en inventer.
-11. Les tests existants couvrent la réservation de base, l'isolation des retraits, la restitution après échec et l'idempotence simple. Ils ne certifient pas la concurrence multi-connexion, les écritures terminales, l'historique des statuts, les annulations, les résultats incertains, les règles de frais ou un versement réel.
+2. **Résolu dans la branche :** `WithdrawalService::request()` verrouille le wallet et réalise réservation, demande et écritures initiales dans une transaction DB. La clé d'idempotence est unique par professionnel et compare montant, devise, canal et destination.
+3. **Résolu dans la branche :** le service refuse une réservation sur un wallet qui n'est pas actif.
+4. **Résolu dans la branche :** succès, échec confirmé, refus et annulation produisent des écritures idempotentes pour les compartiments touchés. La migration `balance_bucket` marque les écritures historiques `unknown` au lieu de deviner leur sens.
+5. **Résolu dans la branche :** le cycle de vie inclut aussi `review_required` et `rejected`; les transitions sont centralisées dans le service et historisées.
+6. **Résolu dans la branche :** la route GET de création ne crée plus de portefeuille et ne réserve aucun montant.
+7. **Partiellement résolu et garde-fou maintenu :** le formulaire web accepte seulement les canaux de traitement manuel `mobile_money` et `bank_transfer`. Le fournisseur `fake` des paiements entrants est refusé comme canal de retrait. Aucun fournisseur réel de versement n'est établi par l'audit.
+8. **Résolu pour les nouvelles demandes :** la destination est chiffrée par le cast Laravel et masquée à l'écran professionnel. Les anciennes destinations déjà stockées en clair ne sont pas automatiquement rechiffrées par cette migration; leur accès doit être traité dans une opération de migration séparée et contrôlée.
+9. **Résolu dans la branche :** le formatage monétaire des vues utilise un formateur décimal sans `float`.
+10. **Décisions métier toujours bloquantes :** aucun minimum/maximum métier, plafond quotidien/périodique, barème de frais, délai contractuel ou vérification d'identité n'est prouvé. Le workflow admin manuel existe, mais ne remplace pas ces décisions.
+11. **État des tests de la branche :** des tests couvrent les transitions, les mouvements par compartiment, l'idempotence, les annulations, les résultats ambigus, les destinations chiffrées/masquées, les permissions admin, le support et l'immutabilité Eloquent du registre. Les tests SQLite ne constituent pas à eux seuls une preuve de concurrence multi-connexion en MySQL; cette limite doit rester explicite.
 
 ## Garde-fous non négociables
 
@@ -69,7 +73,7 @@ Fichiers examinés :
 ## Cycle de vie cible
 
 - `requested`: demande créée et montant réservé; aucune preuve qu'un paiement a été envoyé.
-- `processing`: un opérateur autorisé ou un adaptateur de paiement a effectivement démarré l'exécution.
+- `processing`: un opérateur autorisé a effectivement démarré le traitement manuel; aucun appel à un fournisseur n'est simulé.
 - `succeeded`: preuve fiable d'exécution vérifiée, avec référence de rapprochement; libération du compartiment bloqué et écriture de registre atomiques.
 - `failed`: échec d'un paiement déjà en traitement, confirmé et non ambigu; libération unique du compartiment bloqué vers le disponible et écritures de registre atomiques.
 - `rejected`: demande refusée avant le démarrage du traitement; motif enregistré et libération unique de la réservation.
@@ -86,14 +90,14 @@ Transitions autorisées imposées par le service actuel :
 
 La migration additive du point 35 ajoute l'indicateur `balance_bucket` aux écritures. Valeurs prévues : `available`, `pending`, `locked`, `unknown`. Les anciennes lignes sont initialisées à `unknown`; aucun historique n'est recalculé à partir d'une supposition.
 
-Pour une réservation, l'écriture initiale documente la diminution de `available`; l'augmentation de `locked` est représentée séparément si le modèle du registre retient une ligne par compartiment. En cas d'échec/annulation, l'écriture documente à la fois la diminution de `locked` et l'augmentation de `available`. En cas de succès, le montant quitte `locked` et la preuve de versement est conservée. Toutes les écritures et modifications de soldes sont validées dans la même transaction DB.
+Pour une réservation, deux écritures distinctes documentent le débit de `available` et le crédit de `locked`. En cas d'échec, refus ou annulation, deux nouvelles écritures documentent le débit de `locked` et le crédit de `available`. En cas de succès, une écriture documente la sortie de `locked` après rapprochement. Chaque écriture possède une clé d'idempotence déterministe, le type de compartiment, une référence au retrait et est créée dans la même transaction que la mise à jour des soldes. En cas de succès, le montant quitte `locked` et la preuve de versement est conservée. Toutes les écritures et modifications de soldes sont validées dans la même transaction DB.
 
 ## Décisions commerciales non confirmées
 
 | Décision | Résultat de l'audit |
 | --- | --- |
 | Canaux réels de versement | Aucun adaptateur de versement réel identifié; ne pas déclarer Mobile Money/bancaire comme intégrés. |
-| Exécution | Le traitement manuel est possible conceptuellement, mais le workflow d'approbation/rapprochement admin reste à mettre en place. |
+| Exécution | Un workflow admin manuel existe sur la branche, avec permission dédiée et audit. Aucun versement automatique n'est envoyé. |
 | Frais et net | Aucun barème fiable identifié; ne pas afficher un montant net fictif. |
 | Éligibilité et limites | Minimum, maximum métier, plafonds temporels et vérification d'identité doivent être explicitement configurés avant activation. |
 | Délai annoncé | Aucun SLA prestataire démontré; afficher uniquement un délai indicatif configuré et justifié, sinon ne pas promettre. |
