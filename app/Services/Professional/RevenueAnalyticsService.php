@@ -287,10 +287,9 @@ class RevenueAnalyticsService
             ->when($filters['service_id'] ?? null, fn ($query, int $serviceId) => $query->where(function ($query) use ($serviceId): void {
                 $query->where('service_requests.service_id', $serviceId)->orWhere('revenue_items.service_id', $serviceId);
             }))
-            ->selectRaw("COALESCE(services.title, revenue_items.service_title, 'Service indisponible') AS service_title, commissions.currency, SUM(commissions.net_amount) AS net_amount, COUNT(DISTINCT commissions.order_id) AS orders_count")
-            ->groupBy('services.id', 'services.title', 'revenue_items.service_title', 'commissions.currency')
+            ->selectRaw("COALESCE(services.id, revenue_items.service_id) AS service_id, COALESCE(services.title, revenue_items.service_title, 'Service indisponible') AS service_title, commissions.currency, SUM(commissions.net_amount) AS net_amount, COUNT(DISTINCT commissions.order_id) AS orders_count")
+            ->groupBy('services.id', 'services.title', 'revenue_items.service_id', 'revenue_items.service_title', 'commissions.currency')
             ->orderByDesc('net_amount')
-            ->limit(10)
             ->get();
     }
 
