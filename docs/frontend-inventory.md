@@ -291,3 +291,101 @@ L'existence d'un workflow ne prouve pas qu'il a réussi sur le commit audité. L
 ## 10. Prochaine étape
 
 Compléter la matrice détaillée route → contrôleur → vue → layout → CSS/JS et vérifier les assets réellement chargés par chaque page. Aucun fichier applicatif ne doit être modifié tant que cette cartographie n'est pas suffisamment établie.
+
+
+## 11. Matrice initiale contrôleur Web → vue
+
+Cette matrice a été vérifiée dans les contrôleurs Web présents sur la branche de référence. Elle indique les vues rendues explicitement par les méthodes consultées ; les actions qui redirigent ou ne rendent pas de page HTML sont omises.
+
+### Public et authentification
+
+| Contrôleur | Vue rendue |
+|---|---|
+| `HomePageController` | `public.home-dynamic` |
+| `PublicSearchController` | `public.search-services`, `public.services.show`, `public.professionals.index`, `public.professionals.show` |
+| `LoginController` | `auth.login` |
+| `RegisterController` | `auth.register` |
+| `PasswordResetLinkController` | `auth.passwords.email` |
+| `NewPasswordController` | `auth.passwords.reset` |
+| `EmailVerificationController` | `auth.verify-email` |
+
+### Client
+
+| Contrôleur | Vues rendues |
+|---|---|
+| `Client DashboardController` | `client.dashboard` |
+| `ServiceCatalogController` | `client.services.index` |
+| `FavoriteController` | `client.favorites.index` |
+| `ServiceRequestController` | `client.requests.index`, `client.requests.create`, `client.requests.show`, `client.requests.edit` |
+| `QuotationController` | `client.quotes.index`, `client.quotes.show` |
+| `OrderController` | `client.orders.index`, `client.orders.show`, `client.orders.payment` |
+| `PaymentController` | `client.payments.index`, `client.payments.show`, `client.payments.receipt` |
+| `ProfileController` | `client.profile.show`, `client.profile.edit`, `client.profile.email-change-confirmation` |
+| `AddressController` | `client.addresses.index`, `client.addresses.form` |
+| `NotificationController` | `client.notifications.index` |
+| `MessageController` | `client.messages.index`, `client.messages.show` |
+| `ReviewController` | Actions de soumission/signalement, redirection vers l'écran d'origine |
+
+### Professionnel
+
+| Contrôleur | Vues rendues |
+|---|---|
+| `Professional DashboardController` | `professional.dashboard` |
+| `DocumentController` | `professional.documents.index` |
+| `ProfileController` | `professional.profile`, `professional.profile-edit`, `professional.services.index`, `professional.services.form`, `professional.services.preview` |
+| `ServiceRequestController` | `professional.requests.index`, `professional.requests.show` |
+| `QuotationController` | `professional.quotes.index`, `professional.quotes.show`, `professional.quotes.create` |
+| `OrderController` | `professional.orders.index`, `professional.orders.show` |
+| `RevenueController` | `professional.revenues.index`, `professional.revenues.show` |
+| `WalletController` | `professional.wallet.index` |
+| `WithdrawalController` | `professional.withdrawals.index`, `professional.withdrawals.create`, `professional.withdrawals.show` |
+| `ReviewController` | `professional.reviews.index` |
+| `MessageController` | `professional.messages.index`, `professional.messages.show` |
+| `NotificationController` | `professional.notifications.index` |
+
+### Administration
+
+| Contrôleur | Vues rendues |
+|---|---|
+| `AdminAuthController` | `admin.auth.login` |
+| `Admin DashboardController` | `admin.dashboard` |
+| `AnalyticsController` | `admin.analytics.index` |
+| `AuditController` | `admin.audit.index`, `admin.audit.show` |
+| `CategoryController` | `admin.categories.index`, `admin.categories.create`, `admin.categories.show`, `admin.categories.edit` |
+| `OrderController` | `admin.orders.index`, `admin.orders.show` |
+| `PaymentController` | `admin.payments.index`, `admin.payments.show` |
+| `PermissionController` | `admin.permissions.index`, `admin.permissions.show` |
+| `ProfessionalController` | `admin.professionals.index`, `admin.professionals.show` |
+| `ReportController` | `admin.reports.index`, `admin.reports.show` |
+| `RoleController` | `admin.roles.index`, `admin.roles.form`, `admin.roles.show` |
+| `ServiceController` | `admin.services.index`, `admin.services.show` |
+| `ServiceRequestController` | `admin.service-requests.index`, `admin.service-requests.show` |
+| `SupportController` | `admin.support.index`, `admin.support.show` |
+| `UserController` | `admin.users.index`, `admin.users.show` |
+| `VerificationController` | `admin.verification.index`, réutilise `admin.professionals.show` pour le détail |
+| `WithdrawalController` | `admin.withdrawals.index`, `admin.withdrawals.show` |
+| `RbacDashboardController` | `admin.rbac.index` |
+
+Les contrôleurs de téléchargement de fichiers/réalisations et les actions de formulaire peuvent retourner des fichiers, des réponses HTTP ou des redirections plutôt qu'une vue.
+
+## 12. Vérifications complémentaires à effectuer avant la première refonte
+
+Ces points sont des constats d'audit à confirmer, pas des corrections déjà effectuées :
+
+1. **Entrée Vite des retraits admin :** les deux vues de retrait demandent directement `resources/css/pages/admin/withdrawals.css`, mais cette ressource ne figure pas dans les entrées Vite et n'est pas importée par `resources/css/app.css`. Confirmer par le build de production/CI.
+2. **Navigation publique Services :** `layouts.public` conditionne le lien Services à l'existence de `public.services.index`. Dans les routes Web examinées, le détail public `public.services.show` existe, mais aucune route `public.services.index` n'a été trouvée. Vérifier si le lien est volontairement masqué ou si la navigation doit pointer vers une route existante.
+3. **Vues publiques candidates à un usage ancien :** `public.home.blade.php` et `public.search.blade.php` sont présentes dans l'arborescence, alors que le contrôleur consulté rend respectivement `public.home-dynamic` et `public.search-services`. Vérifier les usages via includes, tests et routes avant de les déclarer obsolètes ; ne rien supprimer sur la seule base du nom.
+4. **Correspondance CSS/JS par page :** les feuilles et scripts sont partiellement regroupés par domaine (ex. commandes/paiements, demandes/devis, avis/messages). La cartographie doit suivre les appels `@vite`, `@push('head')`, `@push('scripts')`, `@stack` et les imports réels, plutôt que supposer une relation 1:1 entre chaque vue et un fichier.
+5. **Tests et CI :** le workflow déclenché par le commit documentaire est encore en cours au moment du premier contrôle. Son résultat final sera vérifié séparément.
+
+## 13. État d'avancement de cette phase
+
+- [x] Branche de travail créée à partir du commit exact de `audit/current-project-baseline`.
+- [x] Inventaire des dossiers, vues, layouts, composants, CSS et JavaScript.
+- [x] Première cartographie contrôleurs Web → vues.
+- [x] Lecture de la configuration Vite, de `package.json` et du workflow CI.
+- [ ] Cartographie finale route nommée → contrôleur/action → vue → layout → ressources CSS/JS.
+- [ ] Vérification du statut CI du commit de documentation.
+- [ ] Revue des éventuelles vues/ressources orphelines sans les supprimer automatiquement.
+
+Aucune route, aucun contrôleur, modèle, migration ou fichier applicatif n'a été modifié dans cette phase.
