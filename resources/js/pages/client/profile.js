@@ -1,27 +1,27 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('form[data-confirm]').forEach((form) => {
-        form.addEventListener('submit', (event) => {
-            const message = form.dataset.confirm;
-
-            if (message && !window.confirm(message)) {
-                event.preventDefault();
-            }
-        });
-    });
+    const submittingForms = new WeakSet();
 
     document.querySelectorAll('.profile-form').forEach((form) => {
         form.addEventListener('submit', (event) => {
+            // The shared confirmation dialog must be allowed to cancel first.
             if (event.defaultPrevented) {
                 return;
             }
+
+            if (submittingForms.has(form)) {
+                event.preventDefault();
+                return;
+            }
+
+            submittingForms.add(form);
 
             const submitter = event.submitter;
 
             if (submitter instanceof HTMLButtonElement) {
                 submitter.disabled = true;
-                submitter.setAttribute('aria-disabled', 'true');
+                submitter.setAttribute('aria-busy', 'true');
                 submitter.dataset.originalLabel = submitter.textContent.trim();
                 submitter.textContent = 'Enregistrement…';
             }
@@ -92,8 +92,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         previewUrl = URL.createObjectURL(file);
+        preview.onload = () => {
+            if (preview.naturalWidth > 2000 || preview.naturalHeight > 2000) {
+                preview.hidden = true;
+                preview.removeAttribute('src');
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+                avatarInput.value = '';
+
+                if (helpText) {
+                    helpText.textContent = 'Les dimensions maximales sont de 2 000 × 2 000 pixels. Choisissez une image plus petite.';
+                    helpText.setAttribute('role', 'alert');
+                    helpText.setAttribute('aria-live', 'assertive');
+                }
+
+                return;
+            }
+
+            preview.hidden = false;
+        };
+        preview.onerror = () => {
+            preview.hidden = true;
+            preview.removeAttribute('src');
+
+            if (helpText) {
+                helpText.textContent = 'Impossible de prévisualiser ce fichier. Choisissez une image valide.';
+                helpText.setAttribute('role', 'alert');
+                helpText.setAttribute('aria-live', 'assertive');
+            }
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+        };
         preview.src = previewUrl;
-        preview.hidden = false;
     });
 
     window.addEventListener('pagehide', () => {
