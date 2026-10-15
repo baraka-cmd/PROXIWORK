@@ -1,3 +1,5 @@
+const submittingForms = new WeakSet();
+
 document.addEventListener('submit', (event) => {
     const form = event.target;
 
@@ -5,9 +7,16 @@ document.addEventListener('submit', (event) => {
         return;
     }
 
+    if (submittingForms.has(form)) {
+        event.preventDefault();
+        return;
+    }
+
+    submittingForms.add(form);
+
     const button = event.submitter;
 
-    if (!(button instanceof HTMLButtonElement) || button.disabled) {
+    if (!(button instanceof HTMLButtonElement)) {
         return;
     }
 
