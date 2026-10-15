@@ -581,3 +581,58 @@ Cette phase prépare une base cohérente pour les boutons, champs, cartes, badge
 ### État de clôture
 
 **Implémentation de l'organisation CSS 3.1 : terminée.** La validation automatisée des derniers commits a réussi. Le contrôle visuel multi-écran dans un navigateur n'a pas été exécuté dans cet environnement et ne doit pas être présenté comme réalisé. Avant d'ouvrir la phase 3.2, il faudra effectuer cette dernière vérification visuelle sur les vues principales client, professionnel et admin.
+
+
+## 17. Phase 3.2 — Identité visuelle proposée et premier test
+
+### Palette de travail (hypothèse, non figée)
+
+| Rôle | Valeur | Usage attendu |
+|---|---|---|
+| Primaire | `#0F766E` | Actions principales, liens, focus, repères de marque |
+| Bleu nuit | `#0F172A` | Titres, texte fort, navigation et surfaces sombres |
+| Fond | `#F8FAFC` | Fond global clair des pages |
+| Accent | `#F59E0B` | Mise en évidence, indicateurs, détails et actions secondaires |
+| Succès | `#15803D` | Succès et opérations confirmées |
+| Avertissement | `#92400E` | Avertissements lisibles sur fond clair |
+| Erreur | `#B91C1C` | Erreurs et actions destructives |
+| Information | `#0369A1` | Messages informatifs |
+
+Les quatre couleurs de base demandées sont maintenant appliquées aux tokens globaux ; le fond global est exactement `#F8FAFC`. La palette reste une proposition technique à confirmer après les premières captures/maquettes réelles.
+
+### Contrastes calculés pour les principales combinaisons
+
+Rapports de contraste calculés à partir des valeurs sRGB, selon la formule WCAG :
+
+| Combinaison | Contraste approximatif | Décision d'usage |
+|---|---:|---|
+| Primaire `#0F766E` sur blanc | 5,47:1 | Convient au texte courant selon WCAG AA |
+| Bleu nuit `#0F172A` sur blanc | 17,85:1 | Excellent contraste pour texte et titres |
+| Texte secondaire `#64748B` sur blanc | 4,76:1 | Convient au texte courant selon WCAG AA |
+| Accent `#F59E0B` sur blanc | 2,15:1 | **Ne pas utiliser seul pour du texte courant ou un petit pictogramme informatif** |
+| Bleu nuit `#172033` sur accent `#F59E0B` | 7,57:1 | Combinaison privilégiée pour le contenu posé sur l'accent |
+| Succès `#15803D` sur blanc | 5,02:1 | Convient au texte courant selon WCAG AA |
+| Avertissement `#92400E` sur blanc | 7,09:1 | Convient au texte courant selon WCAG AA |
+| Erreur `#B91C1C` sur blanc | 6,47:1 | Convient au texte courant selon WCAG AA |
+| Information `#0369A1` sur blanc | 5,93:1 | Convient au texte courant selon WCAG AA |
+
+Ces mesures portent sur les couleurs exactes citées, pas sur toutes les combinaisons possibles de la plateforme. Les états doivent également être distingués par leur libellé ou leur icône, pas uniquement par la couleur.
+
+### Écrans de référence utilisés pour le premier passage
+
+- **Dashboard client** — couleurs du panneau d'accueil, icônes, états favoris/avertissement, bordures et transitions migrés vers les tokens sémantiques.
+- **Page publique d'accueil dynamique** — accents de marque, mini-cartes, CTA et texte clair des panneaux sombres raccordés aux tokens ; les styles restent confinés à `pages/public/home.css`.
+- **Formulaires connexion et inscription** — panneau latéral, texte secondaire sur fond sombre et éléments de confiance alignés sur les tokens, sans changer les champs, routes, messages de validation ou soumission des formulaires.
+
+### Fichiers concernés
+
+- `resources/css/common/variables.css` — source de vérité des couleurs et ajout du token `--color-text-on-dark-muted`.
+- `resources/css/pages/client/dashboard.css` — couleurs, rayons, espacements et transitions partagés utilisés au lieu de valeurs répétées.
+- `resources/css/pages/public/home.css` — application des couleurs sémantiques de la palette.
+- `resources/css/pages/auth/login.css` et `register.css` — panneaux sombres et textes secondaires alignés sur les tokens.
+
+### Limites et critères de validation
+
+- Le premier passage CSS est implémenté, mais aucun navigateur ni capture d'écran automatisée n'a été utilisé dans cette exécution ; il ne faut pas présenter la validation visuelle comme faite.
+- Le CI doit confirmer que Vite compile les feuilles et que les tests existants restent verts.
+- Après ce contrôle, les premières maquettes/captures sur dashboard, accueil public et connexion/inscription permettront de décider si les intensités, gradients et surfaces de la palette doivent être ajustés avant une généralisation aux autres pages.
