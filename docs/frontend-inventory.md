@@ -478,3 +478,40 @@ Le fichier conserve les noms de variables déjà utilisés par les feuilles CSS 
 1. Attendre et examiner le résultat CI du dernier commit.
 2. Contrôler les règles de navigation et les interactions clavier dans le script commun, sans réécrire les comportements déjà corrects.
 3. Poursuivre la consolidation des primitives partagées, puis vérifier les pages par familles avec les routes, vues et assets existants.
+
+## 15. Phase 3 — Primitives UI partagées (livraison initiale)
+
+Cette phase prépare une base cohérente pour les boutons, champs, cartes, badges, alertes, tableaux, pagination et dialogues de confirmation. Elle reste volontairement progressive : les composants existants sont conservés, et les écrans seront migrés/contrôlés par familles au lieu d'une réécriture massive.
+
+### Boutons, champs, cartes et badges
+
+- États de focus clavier visibles et cohérents, états hover/active/disabled conservés.
+- États de chargement, champs en lecture seule et messages d'erreur rendus plus lisibles.
+- Cartes interactives : indication visuelle aussi lorsque le focus clavier se trouve dans la carte.
+- Badges : meilleure résistance aux libellés longs et aux petits écrans.
+- Respect renforcé de `prefers-reduced-motion` : les animations de spinners ne tournent plus pour les utilisateurs qui demandent une réduction des animations.
+
+### Tableaux et défilement horizontal
+
+- Ajout d'une primitive `.table-responsive` avec surface, bordure, coins arrondis, scrollbar visible et interaction tactile.
+- Adaptation des conteneurs existants `.table-wrap`, `.admin-table-wrap` et `.finance-table-wrap` pour que les tableaux trop larges défilent à l'intérieur de leur propre zone plutôt que de provoquer un débordement de la page.
+- Largeur minimale contrôlée sur les tableaux de données pour préserver la lisibilité des colonnes ; la zone reste défilable horizontalement sur mobile.
+- Ajout de styles réutilisables de pagination (`.pagination`, `.pagination-list`) pour les vues qui utilisent ces primitives. Les paginateurs Blade/Laravel propres aux pages doivent encore être vérifiés et harmonisés individuellement.
+
+### Dialogues de confirmation
+
+- Entrée visuelle discrète du fond et du dialogue, avec variante de type feuille sur petits écrans.
+- Contrastes et focus clavier renforcés ; les animations sont désactivées si `prefers-reduced-motion` est actif.
+- Le composant Blade et son contrôleur JavaScript existants sont conservés ; pas de nouvelle logique métier.
+
+### Fichiers modifiés
+
+- `resources/css/common/components.css`
+- `resources/css/common/ux-states.css`
+- `resources/css/common/confirmation.css`
+
+### Validation restante
+
+- Les modifications CSS sont soumises au workflow CI de la branche ; consulter le résultat le plus récent avant de considérer la livraison validée.
+- La CI valide compilation/tests, mais ne démontre pas à elle seule le rendu visuel de chaque vue. Le contrôle multi-écran réel et l'harmonisation des paginations propres aux différentes familles de pages restent nécessaires.
+- Aucun contrôleur, route, modèle, calcul métier ou règle d'autorisation n'a été modifié dans cette phase.
