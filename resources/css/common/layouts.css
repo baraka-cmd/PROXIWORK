@@ -937,3 +937,75 @@ body.navigation-is-open {
         will-change: auto;
     }
 }
+
+
+/* Touch-first tablets in landscape cannot reliably hover: keep navigation
+   expanded at desktop widths so every destination remains discoverable. */
+@media (min-width: 1024px) and (hover: none) and (pointer: coarse) {
+    .dashboard-sidebar {
+        width: var(--sidebar-width);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .dashboard-sidebar__header {
+        justify-content: space-between;
+        padding-inline: var(--space-4);
+    }
+
+    .dashboard-sidebar__header > .brand {
+        justify-content: flex-start;
+        gap: var(--space-3);
+    }
+
+    .dashboard-sidebar__header > .brand > span:last-child,
+    .dashboard-sidebar__nav .dashboard-nav-title,
+    .dashboard-nav-link > span:not(.dashboard-nav-badge),
+    .dashboard-security-note > span,
+    .admin-logout-button > span {
+        width: auto;
+        max-width: 190px;
+        height: auto;
+        margin: initial;
+        padding: initial;
+        overflow: visible;
+        opacity: 1;
+    }
+
+    .dashboard-sidebar__nav {
+        padding-inline: var(--space-4);
+    }
+
+    .dashboard-nav-title {
+        margin: 0 0 var(--space-2);
+        padding-inline: var(--space-3);
+    }
+
+    .dashboard-nav-link {
+        justify-content: flex-start;
+        gap: var(--space-3);
+        padding-inline: var(--space-3);
+    }
+
+    .dashboard-nav-badge {
+        position: static;
+        margin-left: auto;
+    }
+
+    .dashboard-sidebar__footer {
+        padding-inline: var(--space-4);
+    }
+
+    .dashboard-security-note {
+        justify-content: flex-start;
+    }
+
+    .admin-logout-button {
+        justify-content: flex-start;
+        gap: var(--space-3);
+        padding-inline: var(--space-4);
+    }
+
+    .dashboard-content {
+        margin-left: var(--sidebar-width);
+    }
+}
