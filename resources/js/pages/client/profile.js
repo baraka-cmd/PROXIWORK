@@ -57,6 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) {
             preview.hidden = true;
             preview.removeAttribute('src');
+
+            if (helpText) {
+                helpText.textContent = 'L’image est contrôlée côté serveur et stockée dans un espace non public.';
+                helpText.removeAttribute('role');
+                helpText.removeAttribute('aria-live');
+            }
+
             return;
         }
 
@@ -65,7 +72,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024) {
             preview.hidden = true;
             preview.removeAttribute('src');
+            avatarInput.value = '';
+
+            if (helpText) {
+                helpText.textContent = !allowedTypes.includes(file.type)
+                    ? 'Format non pris en charge. Choisissez une image JPG, PNG ou WebP.'
+                    : 'Image trop volumineuse. La taille maximale autorisée est de 2 Mo.';
+                helpText.setAttribute('role', 'alert');
+                helpText.setAttribute('aria-live', 'assertive');
+            }
+
             return;
+        }
+
+        if (helpText) {
+            helpText.textContent = 'Aperçu local uniquement. Le serveur vérifiera à nouveau le format, la taille et les dimensions.';
+            helpText.setAttribute('role', 'status');
+            helpText.setAttribute('aria-live', 'polite');
         }
 
         previewUrl = URL.createObjectURL(file);
