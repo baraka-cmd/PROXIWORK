@@ -243,6 +243,10 @@
 /* Honour the operating system's reduced-motion preference. */
 @media (prefers-reduced-motion: reduce) {
     :root {
+        --duration-instant: 0ms;
+        --duration-fast: 0ms;
+        --duration-base: 0ms;
+        --duration-slow: 0ms;
         --transition-fast: 0ms;
         --transition-base: 0ms;
         --transition-slow: 0ms;
