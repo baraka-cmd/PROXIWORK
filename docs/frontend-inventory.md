@@ -5,7 +5,7 @@
 - **Commit de référence constaté :** `bc8a743c8696af868bc4c200c98e211d00cedaed`
 - **Branche de travail Front-End :** `feature/frontend-redesign`
 - **Phase 0 :** inventaire documentaire et cartographie initiale.
-- **Phase 1 en cours :** fondations CSS globales, en commençant par les design tokens.
+- **Phase 3.1 — Organisation CSS :** fondations A–E implémentées sur la branche de travail ; la clôture finale attend le CI des derniers commits et le contrôle visuel multi-écran dans un navigateur.
 - **Portée actuelle :** changements applicatifs limités au Front-End ; aucun contrat métier, route ou contrôleur modifié.
 
 ## 1. Résumé de l'arborescence constatée
@@ -141,7 +141,7 @@ Avant de créer un composant supplémentaire, il faudra vérifier si l'un de ces
 - `resources/css/common/ux-states.css`
 - `resources/css/common/confirmation.css`
 
-Le fichier `app.css` importe ces styles communs ainsi que `pages/professional/requests-quotes.css`.
+Le fichier `app.css` importe uniquement les styles communs. La feuille `pages/professional/requests-quotes.css` est chargée par Vite uniquement dans les vues professionnelles concernées, afin de limiter les effets de bord entre pages.
 
 ### Pages Admin
 
@@ -255,7 +255,7 @@ Les noms et URL complets doivent être consultés dans les fichiers de routes, c
 ## 7. Configuration des assets et premier point à vérifier
 
 - `package.json` déclare les scripts `npm run build` et `npm run dev`, Vite, le plugin Laravel, Tailwind CSS v4 et Chart.js.
-- `vite.config.js` déclare 56 entrées de ressources.
+- `vite.config.js` déclare 58 entrées de ressources après enregistrement des feuilles dédiées aux retraits admin et aux formulaires partagés de demandes/devis professionnels.
 - Le layout racine charge `resources/css/app.css` et `resources/js/app.js`, sauf en environnement de test.
 - Les pages utilisent aussi des appels `@vite` spécifiques via la pile `head`.
 
@@ -528,3 +528,56 @@ Cette phase prépare une base cohérente pour les boutons, champs, cartes, badge
   - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38738221879
   - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38738272207
 - L'audit statique des feuilles CSS partagées ne révèle aucune référence à un token CSS manquant. Cela ne remplace pas le contrôle visuel dans le navigateur.
+
+
+## 16. Phase 3.1 — Audit final de l'organisation CSS (A–E)
+
+### A. Design tokens globaux
+
+- Palette de marque et couleurs sémantiques, surfaces, bordures, états, typographie, rythme d'espacement, rayons, ombres, dimensions de conteneurs/contrôles, transitions et couches z-index centralisés dans `resources/css/common/variables.css`.
+- Alias historiques conservés pour limiter les régressions pendant la migration.
+- Palette sombre uniquement opt-in via `data-theme="dark"` ; aucune activation automatique.
+- Respect de `prefers-reduced-motion` dans les fondations et les composants.
+
+### B. Structures communes
+
+- `resources/css/common/layouts.css` centralise les structures publiques, d'authentification et de dashboard.
+- Sidebar dashboard en rail d'icônes sur desktop, extensible au survol/focus clavier ; navigation hors-canvas et bouton hamburger sur petits écrans.
+- Header et pied de page publics adaptés aux tailles d'écran.
+- JavaScript commun synchronise l'état du voile de la sidebar mobile avec l'état accessible du bouton.
+
+### C. Composants réutilisables
+
+- Primitives partagées pour boutons, contrôles, cartes, badges, alertes, états d'attente/erreur/vide, confirmation, tableaux et pagination.
+- La pagination Laravel partagée a une présentation cohérente et conserve les URL générées par le paginator.
+- Les tableaux défilent horizontalement dans leur conteneur ; les styles des anciens wrappers client/professionnel/admin sont harmonisés avec la primitive commune.
+- Les styles de tableau ont été consolidés pour éviter des blocs contradictoires.
+
+### D. Adaptation responsive
+
+- Audit statique des 34 feuilles CSS sous `resources/css/pages/` : chacune contient au moins une règle responsive `@media`.
+- Points de rupture communs couvrant petits mobiles, mobiles/tablettes et desktop ; conteneurs et grilles partagés utilisent des largeurs minimales contrôlées et des colonnes fluides.
+- Les tableaux larges gardent une largeur utile et défilent dans leur zone ; les actions et formulaires s'empilent sur petits écrans.
+- Les animations/transitions sont réduites ou supprimées selon `prefers-reduced-motion`.
+- Cet audit source n'est pas un remplacement du contrôle visuel réel sur appareils ou émulateurs.
+
+### E. Styles propres aux pages
+
+- Suppression de l'import global de `pages/professional/requests-quotes.css` depuis `resources/css/app.css`.
+- Enregistrement explicite de cette feuille dans Vite et chargement depuis les cinq vues professionnelles concernées (demandes/devis), pour que les styles partagés de ces écrans ne s'appliquent plus indistinctement à toutes les pages.
+- Correction de la règle d'impression de `pages/client/orders-payments.css` : les règles de reçu sont désormais conditionnées à la présence d'un reçu, au lieu de masquer la navigation/le pied de page lors de l'impression d'autres pages.
+- Ajout de `pages/admin/withdrawals.css` comme entrée Vite, car les vues admin l'appellent directement via `@vite` ; cette feuille n'était pas enregistrée dans la configuration d'entrée.
+- Audit des 34 feuilles de pages : aucune autre règle générique globale n'a été repérée par le contrôle statique ciblé. Une revue visuelle des écrans reste requise pour détecter les collisions qui ne se voient pas dans les sélecteurs.
+
+### Contrôles finaux observés
+
+- Consolidation responsive des tableaux : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38740176084
+- Enregistrement de la feuille des retraits admin dans Vite : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38740272773
+- Isolation de la feuille demandes/devis professionnels : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38739694030
+- Isolation des règles d'impression du reçu : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38740085153
+- Contrôle statique des fichiers CSS modifiés : accolades équilibrées ; aucune référence à un token CSS manquant détectée dans les feuilles communes auditées.
+- Aucun contrôleur, modèle, calcul financier, route métier ou règle d'autorisation n'a été modifié dans ces changements.
+
+### État de clôture
+
+**Implémentation de l'organisation CSS 3.1 : terminée.** La validation automatisée des derniers commits a réussi. Le contrôle visuel multi-écran dans un navigateur n'a pas été exécuté dans cet environnement et ne doit pas être présenté comme réalisé. Avant d'ouvrir la phase 3.2, il faudra effectuer cette dernière vérification visuelle sur les vues principales client, professionnel et admin.
