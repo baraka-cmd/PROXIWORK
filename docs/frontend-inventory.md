@@ -638,49 +638,6 @@ Ces mesures portent sur les couleurs exactes citées, pas sur toutes les combina
 - Après ce contrôle, les premières maquettes/captures sur dashboard, accueil public et connexion/inscription permettront de décider si les intensités, gradients et surfaces de la palette doivent être ajustés avant une généralisation aux autres pages.
 
 
-## 18. Phase 3.3 — Fondations JavaScript, sécurité DOM et UX
-
-### Audit et corrections appliquées
-
-- Conservation du JavaScript natif et de Vite ; aucune dépendance JavaScript supplémentaire ajoutée. Le projet expose `build` et `dev` dans `package.json`, sans script de tests JavaScript dédié.
-- Navigation mobile existante : maintien du contrôle d’ouverture/fermeture, des attributs ARIA, du clavier (Échap/Tab), du retour de focus et du verrouillage du défilement. Cette phase ne réécrit pas ce contrôleur pour éviter un second système de navigation.
-- Confirmations existantes : conservation du contrôleur de confirmation partagé avec focus piégé, fermeture par Échap et restauration du focus ; les formulaires déjà confirmés gardent leur mécanisme existant.
-- Recherche publique : suggestions construites avec des nœuds DOM et `textContent` plutôt que d’interpoler les libellés dans `innerHTML`. L’historique local reste facultatif si le stockage du navigateur est bloqué ou indisponible.
-- Inscription : retour de correspondance des mots de passe construit avec des nœuds DOM ; contrôle de validité explicite et prévention des soumissions répétées.
-- Connexion : prévention des soumissions répétées et état de chargement accessible via `aria-busy`. Le champ de mot de passe conserve le bouton d’affichage/masquage existant.
-- Actions client : libellés de chargement affichés comme texte, sans interpréter le contenu des attributs `data-loading-label` comme du HTML.
-- Paiements/commandes : le bouton n’est désactivé que si le formulaire n’est pas invalide et que la soumission n’a pas déjà été annulée par un autre gestionnaire.
-- Graphiques des revenus : état vide construit avec `createElement` et `textContent`, sans injection HTML.
-- Retraits professionnels : indicateur de chargement construit avec des nœuds DOM ; l’aperçu des montants reste une aide d’affichage et ne remplace jamais les calculs ni validations côté serveur.
-- Carrousel public : icône de pause/lecture mise à jour par classes CSS, sans remplacement HTML ; la rotation automatique respecte `prefers-reduced-motion`.
-- Photo de profil : aperçu limité aux formats image attendus et à 2 Mo côté interface ; erreurs annoncées avec un état accessible, sélection invalide effacée et URL locale révoquée lors du remplacement ou du départ de page. La validation côté serveur reste obligatoire (type réel, taille, dimensions et stockage).
-
-### Contrôles automatisés observés
-
-- Suggestions de recherche et historique — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38743471671
-- Retour de validation du mot de passe — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38743465334
-- Inscription, validité et doubles soumissions — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38743949205
-- Connexion et doubles soumissions — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38744031908
-- Libellés d’actions affichés comme texte — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38744369035
-- Indicateur de chargement des paiements — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38744607010
-- État vide du graphique des revenus — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38744624868
-- Icône du carrousel — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38744614017
-- Indicateur de chargement des retraits — CI réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38744634790
-
-Les workflows des deux derniers changements (retour accessible de l’aperçu avatar et soumission des commandes/paiements) étaient encore en cours au moment de cette mise à jour documentaire.
-
-### Limites restantes et sécurité
-
-- Aucun endpoint ni appel réseau sensible n’a été ajouté par ces changements ; aucune route, autorisation, règle CSRF ou validation Laravel n’a été affaiblie volontairement. La validation JavaScript est une aide UX et ne constitue jamais une frontière de sécurité.
-- Le contrôleur de confirmation partagé utilise déjà `textContent` pour le titre, le message et le libellé. Les protections backend contre doublons/idempotence restent indispensables pour toute opération financière.
-- Les prévisualisations et validations de fichiers dans le navigateur ne font pas foi : le serveur doit vérifier le fichier indépendamment.
-- Aucun navigateur interactif, test manuel multi-appareils, audit automatisé de contraste/focus, test JavaScript unitaire ni test de sécurité dynamique n’a été exécuté dans cette session. Le dépôt ne déclare pas de commande de test JavaScript dédiée ; le CI existant et le build Vite ne prouvent pas à eux seuls le comportement réel de chaque interaction.
-- Une recherche statique ciblée a repéré les principaux sinks `innerHTML` des fichiers audités et ils ont été remplacés lorsqu’ils construisaient du contenu dynamique ou des états d’interface. Cela ne constitue pas une preuve d’absence de toute injection dans l’ensemble du dépôt.
-
-### État
-
-**Phase 3.3 : corrections ciblées implémentées sur `feature/frontend-redesign`, validation finale automatisée en attente pour les deux derniers changements.** La vérification manuelle au clavier, sur mobile et avec lecteur d’écran reste à effectuer avant une clôture complète.
-
 ## 18. Phase 3.3 — Fondations JavaScript : sécurité et expérience utilisateur
 
 ### Audit ciblé
