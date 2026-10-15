@@ -343,7 +343,7 @@
     overflow: hidden;
     padding: var(--space-8);
     border-radius: var(--radius-xl);
-    background: linear-gradient(145deg, var(--color-secondary), #16263f);
+    background: linear-gradient(145deg, var(--color-secondary), color-mix(in srgb, var(--color-secondary) 84%, var(--color-primary));
     color: var(--color-white);
     box-shadow: var(--shadow-lg);
 }
@@ -379,7 +379,7 @@
     line-height: var(--line-height-tight);
 }
 
-.register-aside > p { position: relative; color: #cbd5e1; }
+.register-aside > p { position: relative; color: var(--color-text-on-dark-muted); }
 
 .register-benefits {
     display: grid;
@@ -416,7 +416,7 @@
     margin-top: auto;
     padding-top: var(--space-5);
     border-top: 1px solid color-mix(in srgb, var(--color-white) 14%, transparent);
-    color: #dbeafe;
+    color: var(--color-text-on-dark-muted);
     font-size: .72rem;
 }
 
