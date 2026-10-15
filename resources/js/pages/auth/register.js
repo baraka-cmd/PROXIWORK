@@ -78,9 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
         matchMessage.className = matches
             ? 'register-match is-valid'
             : 'register-match is-invalid';
-        matchMessage.innerHTML = matches
-            ? '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Les mots de passe correspondent.'
-            : '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Les mots de passe ne correspondent pas.';
+        const icon = document.createElement('i');
+        icon.className = matches
+            ? 'fa-solid fa-circle-check'
+            : 'fa-solid fa-circle-xmark';
+        icon.setAttribute('aria-hidden', 'true');
+
+        matchMessage.replaceChildren(
+            icon,
+            document.createTextNode(matches
+                ? ' Les mots de passe correspondent.'
+                : ' Les mots de passe ne correspondent pas.'),
+        );
     };
 
     const bindPasswordToggle = (button, input) => {
