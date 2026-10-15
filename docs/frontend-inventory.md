@@ -515,3 +515,16 @@ Cette phase prépare une base cohérente pour les boutons, champs, cartes, badge
 - Les modifications CSS sont soumises au workflow CI de la branche ; consulter le résultat le plus récent avant de considérer la livraison validée.
 - La CI valide compilation/tests, mais ne démontre pas à elle seule le rendu visuel de chaque vue. Le contrôle multi-écran réel et l'harmonisation des paginations propres aux différentes familles de pages restent nécessaires.
 - Aucun contrôleur, route, modèle, calcul métier ou règle d'autorisation n'a été modifié dans cette phase.
+
+
+### Dernier contrôle CI de la phase 3
+
+- Les workflows des commits d'interaction des composants, des tableaux/pagination, de la confirmation et de l'application du défilement horizontal aux conteneurs existants sont terminés avec succès :
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737428003
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737438033
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737647772
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737938874
+- Les derniers ajustements de lisibilité des tableaux ont déclenché de nouveaux workflows ; vérifier leurs résultats avant validation finale :
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38738221879
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38738272207
+- L'audit statique des feuilles CSS partagées ne révèle aucune référence à un token CSS manquant. Cela ne remplace pas le contrôle visuel dans le navigateur.
