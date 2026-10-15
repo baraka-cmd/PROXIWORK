@@ -432,3 +432,49 @@ Le fichier conserve les noms de variables déjà utilisés par les feuilles CSS 
 3. Consolider les primitives partagées (boutons, champs, cartes, états) en réutilisant les tokens, sans réécrire les composants à l'aveugle.
 4. Auditer le JavaScript commun pour les interactions clavier, menu responsive, fermeture Escape, focus et nettoyage des événements.
 5. Construire ensuite les composants et pages par familles, en vérifiant chaque diff et le comportement existant.
+
+
+## 14. Phase 2 — Structures communes et navigation responsive
+
+**Livraison en cours sur `feature/frontend-redesign` : layouts partagés, sidebar, header et pied de page.**
+
+### Sidebar des espaces client, professionnel et administration
+
+- Sur grand écran, la navigation est compacte par défaut : rail d'icônes, avec largeur réservée au contenu.
+- Au survol ou au focus clavier, la sidebar s'élargit avec une transition courte et affiche les libellés, les sections et les actions de compte.
+- Les liens actifs conservent leur état visuel ; le compteur de notifications client reste visible dans le rail compact.
+- La sidebar développée se superpose au contenu au lieu de déplacer brutalement la page.
+- Sur tablette et mobile, le comportement hors-canvas existant est conservé : bouton hamburger, panneau latéral, bouton de fermeture et arrière-plan assombri.
+- Le JavaScript commun synchronise désormais l'état du voile mobile avec l'état réel du bouton et son attribut accessible `aria-hidden`.
+
+### Header partagé
+
+- Hiérarchie renforcée entre l'espace courant, le titre et les actions de page.
+- Espacements et taille des contrôles ajustés pour les largeurs intermédiaires et mobiles.
+- Identité du compte présentée dans une surface discrète, avec réduction de l'information secondaire sur petit écran.
+- Les actions propres à chaque page restent pilotées par le slot Blade existant : aucune fonctionnalité ou route fictive n'est ajoutée.
+
+### Pied de page public
+
+- Réorganisation en trois zones : identité et description, liens de navigation réellement disponibles, mentions de copyright.
+- Les liens sont conditionnés aux routes Laravel existantes ; le pied de page s'empile proprement sur mobile/tablette.
+- Aucune route métier ni logique de contrôleur n'a été modifiée.
+
+### Fichiers touchés
+
+- `resources/css/common/layouts.css` : rail d'icônes extensible, transitions, header et pied de page responsives.
+- `resources/views/layouts/public.blade.php` : structure du pied de page et navigation conditionnelle.
+- `resources/js/common/app.js` : synchronisation du voile de la sidebar mobile et de son état accessible.
+
+### Contrôles et limites
+
+- Le workflow CI a été déclenché pour le commit `45cee40d8003be7dab36fb20775382a2ecd06c00` ; au moment de cette mise à jour, il était encore en attente. Suivre le résultat réel ici : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38735832646.
+- Les deux contrôles CI de la fondation reset/typographie ont terminé avec succès : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734764897 et https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734769970.
+- La validation visuelle dans un navigateur à plusieurs largeurs reste à faire ; le succès CI ne remplace pas ce contrôle.
+- Aucun merge ou pull request n'a été effectué.
+
+### Suite
+
+1. Attendre et examiner le résultat CI du dernier commit.
+2. Contrôler les règles de navigation et les interactions clavier dans le script commun, sans réécrire les comportements déjà corrects.
+3. Poursuivre la consolidation des primitives partagées, puis vérifier les pages par familles avec les routes, vues et assets existants.
