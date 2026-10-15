@@ -15,7 +15,12 @@ const saveHistory = (value) => {
     const normalized = value.trim();
     if (!normalized) return;
     const history = [normalized, ...readHistory().filter((entry) => entry.toLowerCase() !== normalized.toLowerCase())].slice(0, 5);
-    localStorage.setItem(historyKey, JSON.stringify(history));
+    try {
+        localStorage.setItem(historyKey, JSON.stringify(history));
+    } catch {
+        // Search history is optional; private browsing or storage restrictions
+        // must never prevent a search from being submitted.
+    }
 };
 
 document.querySelectorAll('[data-service-search-form]').forEach((form) => {
@@ -51,7 +56,13 @@ document.querySelectorAll('[data-service-search-form]').forEach((form) => {
             button.type = 'button';
             button.className = 'search-suggestion';
             button.setAttribute('role', 'option');
-            button.innerHTML = `<span>${match.label}</span><small>${match.category}</small>`;
+            const label = document.createElement('span');
+            label.textContent = match.label;
+
+            const category = document.createElement('small');
+            category.textContent = match.category;
+
+            button.replaceChildren(label, category);
             button.addEventListener('click', () => {
                 input.value = match.label;
                 closeSuggestions();
