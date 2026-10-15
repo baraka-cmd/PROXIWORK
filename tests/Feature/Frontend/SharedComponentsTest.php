@@ -108,8 +108,12 @@ final class SharedComponentsTest extends TestCase
         $this->withSession(['_old_input' => ['status' => 'pending']]);
 
         $html = Blade::render(
-            '<x-select name="status" label="Statut" :value="\'approved\'" :options="[\'approved\' => \'Approuvé\', \'pending\' => \'En attente\']" />',
-            ['errors' => new ViewErrorBag]
+            '<x-select name="status" label="Statut" :value="$selected" :options="$options" />',
+            [
+                'errors' => new ViewErrorBag,
+                'selected' => 'approved',
+                'options' => ['approved' => 'Approuvé', 'pending' => 'En attente'],
+            ]
         );
 
         $this->assertStringContainsString('value="pending" selected', $html);
