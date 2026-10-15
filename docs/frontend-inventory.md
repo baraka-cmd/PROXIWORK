@@ -680,3 +680,26 @@ Les workflows des deux derniers changements (retour accessible de l’aperçu av
 ### État
 
 **Phase 3.3 : corrections ciblées implémentées sur `feature/frontend-redesign`, validation finale automatisée en attente pour les deux derniers changements.** La vérification manuelle au clavier, sur mobile et avec lecteur d’écran reste à effectuer avant une clôture complète.
+
+## 18. Phase 3.3 — Fondations JavaScript : sécurité et expérience utilisateur
+
+### Audit ciblé
+
+L’audit a porté sur les points d’entrée et interactions JavaScript déjà présents : navigation mobile, confirmation partagée, authentification, recherche publique, profil/photo, commandes/paiements, retraits professionnels et carrousel de la page d’accueil. L’objectif est de corriger les écarts sans introduire de nouvelle bibliothèque.
+
+### Corrections appliquées sur la branche de travail
+
+- **DOM et contenu dynamique :** les suggestions de recherche et le feedback de correspondance des mots de passe sont construits avec des nœuds DOM et du texte, pas avec du HTML interpolé. Les libellés de chargement d’actions sont également ajoutés comme texte.
+- **Historique de recherche :** les accès en lecture/écriture/suppression à `localStorage` sont tolérants aux erreurs de stockage. L’historique reste facultatif et ne doit pas empêcher une recherche.
+- **Formulaires :** garde contre les soumissions répétées sur connexion, inscription, profil, commandes/paiements et création de retrait. Les boutons indiquent l’état de chargement avec `aria-busy`. La validation côté client reste un retour UX seulement.
+- **Confirmations :** les formulaires du profil réutilisent la boîte de confirmation partagée plutôt que d’ajouter un second `window.confirm`. Les actions serveur restent responsables de l’autorisation et de la validation.
+- **Prévisualisation d’image :** le profil vérifie côté navigateur le type MIME déclaré, la taille et les dimensions avant d’afficher l’aperçu; les URL d’objet sont révoquées lors du remplacement ou de l’échec. Un message accessible annonce les erreurs. Ces vérifications ne prouvent pas qu’un fichier est sûr : la validation Laravel reste obligatoire.
+- **Accessibilité et mouvement :** le carrousel réévalue `prefers-reduced-motion` si la préférence change pendant que la page reste ouverte. La navigation mobile et la boîte de confirmation existantes conservent leurs mécanismes de clavier et de focus.
+
+### Limites et vérifications
+
+- Aucun nouvel outil ou paquet JavaScript n’a été ajouté.
+- Aucun contrôleur, modèle, route, règle métier, calcul financier ou mécanisme CSRF serveur n’a été modifié.
+- Les changements d’interface ne constituent pas une garantie d’idempotence : les opérations financières et sensibles doivent continuer à être protégées côté serveur.
+- Les workflows GitHub Actions doivent être consultés pour le statut réel du build et des tests après ces commits. Une compilation réussie ne remplace pas un essai manuel des parcours dans un navigateur.
+- **À vérifier manuellement avant fusion :** menus mobile au clavier et au tactile, focus/restauration de focus de la modale, refus/acceptation d’une action destructive, aperçu d’image valide/invalide et trop grande, soumission répétée, comportement avec stockage désactivé, et préférence de réduction des animations. Aucun test visuel navigateur n’est déclaré comme effectué ici.
