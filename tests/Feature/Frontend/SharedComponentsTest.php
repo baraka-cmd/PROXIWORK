@@ -105,19 +105,23 @@ final class SharedComponentsTest extends TestCase
     }
     public function test_select_component_prefers_old_input_after_validation_failure(): void
     {
-        request()->session()->flash('_old_input', ['status' => 'pending']);
+        \\Illuminate\\Support\\Facades\\Route::middleware('web')->get('/_test-select-old-input', static function () {
+            return Blade::render(
+                '<x-select name="status" label="Statut" :value="$selected" :options="$options" />',
+                [
+                    'errors' => new ViewErrorBag,
+                    'selected' => 'approved',
+                    'options' => ['approved' => 'Approuvé', 'pending' => 'En attente'],
+                ]
+            );
+        });
 
-        $html = Blade::render(
-            '<x-select name="status" label="Statut" :value="$selected" :options="$options" />',
-            [
-                'errors' => new ViewErrorBag,
-                'selected' => 'approved',
-                'options' => ['approved' => 'Approuvé', 'pending' => 'En attente'],
-            ]
-        );
+        $response = $this->withSession(['_old_input' => ['status' => 'pending']])
+            ->get('/_test-select-old-input');
 
-        $this->assertStringContainsString('value="pending" selected', $html);
-        $this->assertStringNotContainsString('value="approved" selected', $html);
+        $response->assertOk();
+        $response->assertSee('value="pending" selected', false);
+        $response->assertDontSee('value="approved" selected', false);
     }
 
 }
