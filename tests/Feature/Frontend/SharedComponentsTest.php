@@ -105,7 +105,7 @@ final class SharedComponentsTest extends TestCase
     }
     public function test_select_component_prefers_old_input_after_validation_failure(): void
     {
-        $this->withSession(['_old_input' => ['status' => 'pending']]);
+        session()->put('_old_input', ['status' => 'pending']);
 
         $html = Blade::render(
             '<x-select name="status" label="Statut" :value="$selected" :options="$options" />',
