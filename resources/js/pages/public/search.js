@@ -106,7 +106,11 @@ document.querySelectorAll('[data-search-history]').forEach((container) => {
         container.hidden = history.length === 0;
     };
     clear?.addEventListener('click', () => {
-        localStorage.removeItem(historyKey);
+        try {
+            localStorage.removeItem(historyKey);
+        } catch {
+            // The history panel remains optional when storage is unavailable.
+        }
         render();
     });
     render();
