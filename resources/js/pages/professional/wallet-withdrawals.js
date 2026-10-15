@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const review = form.querySelector('[data-review-amount]');
     const grossReview = form.querySelector('[data-review-gross]');
     const submit = form.querySelector('[data-withdrawal-submit]');
+    let isSubmitting = false;
 
     // This is a presentation-only preview. Keep the entered decimal as a string
     // so a binary float cannot silently round the displayed cents.
@@ -46,7 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     amount?.addEventListener('input', update);
 
-    form.addEventListener('submit', () => {
+    form.addEventListener('submit', (event) => {
+        if (isSubmitting) {
+            event.preventDefault();
+            return;
+        }
+
+        isSubmitting = true;
+
         if (!submit) return;
         submit.disabled = true;
         submit.setAttribute('aria-busy', 'true');
