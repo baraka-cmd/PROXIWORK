@@ -125,5 +125,4 @@ final class SharedComponentsTest extends TestCase
         $response->assertSee('value="pending" selected', false);
         $response->assertDontSee('value="approved" selected', false);
     }
-
 }
