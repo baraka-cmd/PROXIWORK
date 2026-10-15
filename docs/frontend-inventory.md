@@ -5,7 +5,7 @@
 - **Commit de référence constaté :** `bc8a743c8696af868bc4c200c98e211d00cedaed`
 - **Branche de travail Front-End :** `feature/frontend-redesign`
 - **Phase 0 :** inventaire documentaire et cartographie initiale.
-- **Phase 3.1 — Organisation CSS :** fondations A–E implémentées sur la branche de travail ; la clôture finale attend le CI des derniers commits et le contrôle visuel multi-écran dans un navigateur.
+- **Phase 3.1 — Organisation CSS :** fondations A–E implémentées ; CI du dernier commit de code réussi. Le contrôle visuel multi-écran dans un navigateur reste à exécuter.
 - **Portée actuelle :** changements applicatifs limités au Front-End ; aucun contrat métier, route ou contrôleur modifié.
 
 ## 1. Résumé de l'arborescence constatée
@@ -634,5 +634,5 @@ Ces mesures portent sur les couleurs exactes citées, pas sur toutes les combina
 ### Limites et critères de validation
 
 - Le premier passage CSS est implémenté, mais aucun navigateur ni capture d'écran automatisée n'a été utilisé dans cette exécution ; il ne faut pas présenter la validation visuelle comme faite.
-- Le CI doit confirmer que Vite compile les feuilles et que les tests existants restent verts.
+- Le CI du commit corrigeant la syntaxe des panneaux de connexion/inscription a réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38742207732. Le workflow de cette mise à jour documentaire reste en cours au moment de son enregistrement.
 - Après ce contrôle, les premières maquettes/captures sur dashboard, accueil public et connexion/inscription permettront de décider si les intensités, gradients et surfaces de la palette doivent être ajustés avant une généralisation aux autres pages.
