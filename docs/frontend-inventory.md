@@ -389,3 +389,44 @@ Ces points sont des constats d'audit à confirmer, pas des corrections déjà ef
 - [ ] Revue des éventuelles vues/ressources orphelines sans les supprimer automatiquement.
 
 Aucune route, aucun contrôleur, modèle, migration ou fichier applicatif n'a été modifié dans cette phase.
+
+
+## 12. Phase 1 — Fondations CSS : design tokens
+
+**Première livraison effectuée sur la branche de travail :** `resources/css/common/variables.css`.
+
+Le fichier conserve les noms de variables déjà utilisés par les feuilles CSS existantes et étend le système avec des tokens sémantiques regroupés par responsabilité :
+
+- **Couleurs de marque et d'interaction :** primaire, hover, active, teintes douces et bordures de marque.
+- **Surfaces et contenu :** fond de page, surface, surface élevée, surface au survol, bordures, textes principaux/secondaires/inversés, liens et overlay.
+- **États métier :** succès, avertissement, erreur et information, chacun avec teinte douce et bordure.
+- **Typographie :** famille Poppins avec fallbacks système, tailles jusqu'au display fluide, graisses, interlignes et approche typographique.
+- **Espacements :** échelle régulière basée sur un rythme de 4 px, en conservant les variables historiques.
+- **Formes et élévation :** rayons, ombres progressives, ombre de focus et ombre de survol de carte.
+- **Mise en page :** largeurs de conteneurs et de lecture, largeur de sidebar, hauteur de topbar et hauteurs de contrôles.
+- **Mouvement :** durées, courbes d'accélération et transitions sémantiques.
+- **Superposition :** échelle de z-index documentée pour les en-têtes, sidebars, overlays, menus, modales, toasts et tooltips.
+- **Thème sombre explicite :** valeurs de couleurs dédiées lorsque l'application applique `data-theme="dark"`; aucun changement automatique du thème utilisateur n'est imposé.
+- **Accessibilité du mouvement :** les tokens de transition sont neutralisés lorsque le système demande une réduction des animations.
+
+### Garanties de compatibilité
+
+- Aucun contrôleur, route, nom de variable Blade, endpoint ou contrat métier n'a été modifié.
+- Aucun nouveau framework ni dépendance npm n'a été ajouté.
+- Les anciens tokens `--color-primary`, `--space-*`, `--transition-*`, `--radius-*` et autres restent disponibles.
+- Les points d'entrée Vite ne sont pas modifiés dans cette livraison.
+- Les règles spécifiques aux pages ne sont pas remplacées par des styles génériques.
+
+### Validation
+
+- Le commit de cette première livraison est `37b15d27d3cac3a82365e4830ffd54a2bcfebc6e`.
+- Le workflow GitHub Actions déclenché pour ce commit est consultable ici : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734145918
+- Le statut doit être considéré comme **en cours** tant que GitHub Actions n'a pas publié de conclusion. Le succès des commits documentaires précédents ne constitue pas une validation de ce commit CSS.
+
+### Suite de Phase 1
+
+1. Vérifier le résultat CI du commit CSS.
+2. Examiner le reset et la typographie pour repérer les conflits de cascade, de focus et de couleurs avant de les modifier.
+3. Consolider les primitives partagées (boutons, champs, cartes, états) en réutilisant les tokens, sans réécrire les composants à l'aveugle.
+4. Auditer le JavaScript commun pour les interactions clavier, menu responsive, fermeture Escape, focus et nettoyage des événements.
+5. Construire ensuite les composants et pages par familles, en vérifiant chaque diff et le comportement existant.
