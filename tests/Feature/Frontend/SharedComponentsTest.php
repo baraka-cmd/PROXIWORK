@@ -103,4 +103,17 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('Aucun professionnel', $empty);
         $this->assertStringContainsString('Aucun résultat ne correspond à vos critères.', $empty);
     }
+    public function test_select_component_prefers_old_input_after_validation_failure(): void
+    {
+        $this->withSession(['_old_input' => ['status' => 'pending']]);
+
+        $html = Blade::render(
+            '<x-select name="status" label="Statut" :value="\'approved\'" :options="[\'approved\' => \'Approuvé\', \'pending\' => \'En attente\']" />',
+            ['errors' => new ViewErrorBag]
+        );
+
+        $this->assertStringContainsString('value="pending" selected', $html);
+        $this->assertStringNotContainsString('value="approved" selected', $html);
+    }
+
 }
