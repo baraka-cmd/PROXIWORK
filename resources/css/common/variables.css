@@ -30,7 +30,7 @@
 
     /* Neutral and semantic surfaces. */
     --color-white: #ffffff;
-    --color-page: #f7f9fc;
+    --color-page: #f8fafc;
     --color-surface: #ffffff;
     --color-surface-raised: #ffffff;
     --color-surface-muted: #f1f5f9;
@@ -44,6 +44,7 @@
     --color-text-muted: #64748b;
     --color-text-subtle: #94a3b8;
     --color-text-inverse: #f8fafc;
+    --color-text-on-dark-muted: #cbd5e1;
     --color-link: #0f766e;
     --color-link-hover: #0b5f59;
     --color-on-primary: #ffffff;
@@ -196,6 +197,7 @@
     --color-text-muted: #c0ccdc;
     --color-text-subtle: #91a2b8;
     --color-text-inverse: #0f172a;
+    --color-text-on-dark-muted: #c0ccdc;
     --color-link: #5eead4;
     --color-link-hover: #99f6e4;
     --color-secondary-soft: #1e293b;
