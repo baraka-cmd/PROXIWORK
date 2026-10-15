@@ -570,3 +570,57 @@
         min-width: 620px;
     }
 }
+
+
+/* Final table details shared by client, professional and admin screens. */
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) {
+    isolation: isolate;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table {
+    margin: 0;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table caption {
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    text-align: left;
+    caption-side: top;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort] {
+    color: var(--color-text);
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort]::after {
+    display: inline-block;
+    margin-left: var(--space-2);
+    color: var(--color-primary);
+    font-family: "Font Awesome 6 Free", sans-serif;
+    font-size: 0.7em;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort="ascending"]::after {
+    content: "▲";
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort="descending"]::after {
+    content: "▼";
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap):focus-visible {
+    outline-color: var(--color-link);
+    outline-offset: 3px;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table td:has(.button + .button),
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table td:has(.icon-button + .icon-button) {
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table tbody tr {
+        transition: none;
+    }
+}
