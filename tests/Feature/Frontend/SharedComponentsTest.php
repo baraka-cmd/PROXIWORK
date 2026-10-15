@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Frontend;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
@@ -105,7 +106,7 @@ final class SharedComponentsTest extends TestCase
     }
     public function test_select_component_prefers_old_input_after_validation_failure(): void
     {
-        \\Illuminate\\Support\\Facades\\Route::middleware('web')->get('/_test-select-old-input', static function () {
+        Route::middleware('web')->get('/_test-select-old-input', static function () {
             return Blade::render(
                 '<x-select name="status" label="Statut" :value="$selected" :options="$options" />',
                 [
