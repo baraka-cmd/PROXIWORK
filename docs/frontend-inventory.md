@@ -496,7 +496,7 @@ Cette phase prépare une base cohérente pour les boutons, champs, cartes, badge
 - Ajout d'une primitive `.table-responsive` avec surface, bordure, coins arrondis, scrollbar visible et interaction tactile.
 - Adaptation des conteneurs existants `.table-wrap`, `.admin-table-wrap` et `.finance-table-wrap` pour que les tableaux trop larges défilent à l'intérieur de leur propre zone plutôt que de provoquer un débordement de la page.
 - Largeur minimale contrôlée sur les tableaux de données pour préserver la lisibilité des colonnes ; la zone reste défilable horizontalement sur mobile.
-- Ajout de styles réutilisables de pagination (`.pagination`, `.pagination-list`) pour les vues qui utilisent ces primitives. Les paginateurs Blade/Laravel propres aux pages doivent encore être vérifiés et harmonisés individuellement.
+- Ajout de styles réutilisables de pagination (`.pagination`, `.pagination-list`) et d'une vue de pagination Laravel personnalisée dans `resources/views/vendor/pagination/tailwind.blade.php` : liens précédent/suivant, numéros, ellipses, état de page courante, résumé du nombre de résultats et libellés accessibles. Les paginateurs `simplePaginate()` et les éventuels composants de pagination entièrement spécifiques aux pages doivent encore être repérés et vérifiés individuellement.
 
 ### Dialogues de confirmation
 
