@@ -22,12 +22,18 @@ document.addEventListener('DOMContentLoaded', () => {
             dots.forEach((dot, dotIndex) => dot.classList.toggle('is-active', dotIndex === current));
         };
 
+        const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+
         const schedule = () => {
             window.clearInterval(timer);
-            if (!paused && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            if (!paused && !motionPreference.matches) {
                 timer = window.setInterval(() => show(current + 1), 7000);
             }
         };
+
+        // Re-evaluate motion preference if the user changes OS/browser settings
+        // while the page remains open.
+        motionPreference.addEventListener?.('change', schedule);
 
         previous?.addEventListener('click', () => { show(current - 1); schedule(); });
         next?.addEventListener('click', () => { show(current + 1); schedule(); });
