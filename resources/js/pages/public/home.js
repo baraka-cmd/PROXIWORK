@@ -35,7 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         pause?.addEventListener('click', () => {
             paused = !paused;
             pause.setAttribute('aria-label', paused ? 'Relancer le carrousel' : 'Mettre en pause le carrousel');
-            pause.innerHTML = paused ? '<i class="fa-solid fa-play" aria-hidden="true"></i>' : '<i class="fa-solid fa-pause" aria-hidden="true"></i>';
+            const icon = pause.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-play', paused);
+                icon.classList.toggle('fa-pause', !paused);
+            }
             schedule();
         });
         show(0);
