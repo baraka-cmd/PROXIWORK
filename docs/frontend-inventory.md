@@ -4,7 +4,9 @@
 - **Branche de référence auditée :** `audit/current-project-baseline`
 - **Commit de référence constaté :** `bc8a743c8696af868bc4c200c98e211d00cedaed`
 - **Branche de travail Front-End :** `feature/frontend-redesign`
-- **Portée de cette étape :** inventaire documentaire uniquement. Aucun fichier applicatif n'a été modifié.
+- **Phase 0 :** inventaire documentaire et cartographie initiale.
+- **Phase 1 en cours :** fondations CSS globales, en commençant par les design tokens.
+- **Portée actuelle :** changements applicatifs limités au Front-End ; aucun contrat métier, route ou contrôleur modifié.
 
 ## 1. Résumé de l'arborescence constatée
 
@@ -288,9 +290,9 @@ L'existence d'un workflow ne prouve pas qu'il a réussi sur le commit audité. L
 5. Chaque groupe de changements est contrôlé par diff, build/tests disponibles et revue de PR.
 6. Aucune fusion dans la branche de référence ne se fera sans autorisation explicite.
 
-## 10. Prochaine étape
+## 10. Clôture de l'inventaire initial et suite
 
-Compléter la matrice détaillée route → contrôleur → vue → layout → CSS/JS et vérifier les assets réellement chargés par chaque page. Aucun fichier applicatif ne doit être modifié tant que cette cartographie n'est pas suffisamment établie.
+La cartographie initiale est suffisante pour démarrer les fondations communes sans toucher aux contrats métier. Elle reste un document vivant : les associations route → contrôleur → vue → layout → CSS/JS seront précisées au fil de l'audit des pages et de la vérification des assets réellement chargés. Les changements applicatifs peuvent maintenant commencer dans la branche dédiée, avec un périmètre front-end contrôlé, un diff relu et des validations CI.
 
 
 ## 11. Matrice initiale contrôleur Web → vue
@@ -419,8 +421,8 @@ Le fichier conserve les noms de variables déjà utilisés par les feuilles CSS 
 
 ### Validation
 
-- Le commit de cette première livraison est `37b15d27d3cac3a82365e4830ffd54a2bcfebc6e`.
-- Le workflow GitHub Actions déclenché pour ce commit est consultable ici : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734145918
+- Le commit initial des tokens est `37b15d27d3cac3a82365e4830ffd54a2bcfebc6e`. Un correctif complémentaire (`06fbf9f6a873ab264874df48054a1e6616d94eb8`) applique aussi la préférence de réduction de mouvement aux tokens de durée.
+- Le workflow GitHub Actions du commit initial est consultable ici : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734145918. Le résultat du commit le plus récent doit être vérifié séparément.
 - Le statut doit être considéré comme **en cours** tant que GitHub Actions n'a pas publié de conclusion. Le succès des commits documentaires précédents ne constitue pas une validation de ce commit CSS.
 
 ### Suite de Phase 1
