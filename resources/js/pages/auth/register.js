@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const strengthLabel = form.querySelector('[data-register-strength-label]');
     const matchMessage = form.querySelector('[data-register-match]');
     const submitButton = form.querySelector('[data-register-submit]');
+    let isSubmitting = false;
 
     const checks = {
         length: (value) => value.length >= 8,
@@ -133,7 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmation?.addEventListener('input', updateMatch);
 
     form.addEventListener('submit', (event) => {
+        // This form uses novalidate for custom feedback, so the browser will
+        // not block invalid submissions automatically.
         if (!form.checkValidity()) {
+            event.preventDefault();
+            const firstInvalidField = form.querySelector(':invalid');
+            firstInvalidField?.focus();
+            firstInvalidField?.reportValidity();
             return;
         }
 
@@ -144,12 +151,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        if (isSubmitting) {
+            event.preventDefault();
+            return;
+        }
+
+        isSubmitting = true;
+
         if (!submitButton) {
             return;
         }
 
         submitButton.disabled = true;
-        submitButton.querySelector('span').textContent = 'Création...';
+        submitButton.setAttribute('aria-busy', 'true');
+        const label = submitButton.querySelector('span');
+
+        if (label) {
+            label.textContent = 'Création...';
+        }
 
         const icon = submitButton.querySelector('i');
 
