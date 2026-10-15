@@ -204,19 +204,26 @@ class ClientDashboardService
             ->get(['created_at'])
             ->each(function (ServiceRequest $request) use (&$months): void {
                 $key = $request->created_at->format('Y-m');
+
                 if ($months->has($key)) {
-                    $months[$key]['requests']++;
+                    $month = $months->get($key);
+                    $month['requests']++;
+
+                    $months->put($key, $month);
                 }
             });
-
         Order::query()
             ->where('client_id', $clientId)
             ->where('created_at', '>=', $start)
             ->get(['created_at'])
             ->each(function (Order $order) use (&$months): void {
                 $key = $order->created_at->format('Y-m');
+
                 if ($months->has($key)) {
-                    $months[$key]['orders']++;
+                    $month = $months->get($key);
+                    $month['orders']++;
+
+                    $months->put($key, $month);
                 }
             });
 
