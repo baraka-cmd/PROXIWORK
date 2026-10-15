@@ -104,6 +104,7 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('Aucun professionnel', $empty);
         $this->assertStringContainsString('Aucun résultat ne correspond à vos critères.', $empty);
     }
+
     public function test_select_component_prefers_old_input_after_validation_failure(): void
     {
         Route::middleware('web')->get('/_test-select-old-input', static function () {
