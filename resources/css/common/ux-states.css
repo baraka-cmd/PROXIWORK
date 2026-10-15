@@ -509,3 +509,64 @@
         transition: none;
     }
 }
+
+
+/* Adopt the same table behavior in the existing client, professional and
+   administration views without forcing their templates into a new component. */
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: var(--color-border-strong) var(--color-surface-muted);
+    scrollbar-width: thin;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar {
+    height: 10px;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar-track {
+    border-radius: var(--radius-full);
+    background: var(--color-surface-muted);
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar-thumb {
+    border: 2px solid var(--color-surface-muted);
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-subtle);
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table {
+    min-width: 680px;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table th,
+:where(.table-responsive) > table th {
+    vertical-align: middle;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table td {
+    overflow-wrap: anywhere;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table td :where(a, button) {
+    white-space: nowrap;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap):focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+    :where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table {
+        min-width: 620px;
+    }
+}
