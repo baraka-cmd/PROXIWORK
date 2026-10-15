@@ -660,3 +660,30 @@ L’audit a porté sur les points d’entrée et interactions JavaScript déjà 
 - Les changements d’interface ne constituent pas une garantie d’idempotence : les opérations financières et sensibles doivent continuer à être protégées côté serveur.
 - Les workflows GitHub Actions doivent être consultés pour le statut réel du build et des tests après ces commits. Une compilation réussie ne remplace pas un essai manuel des parcours dans un navigateur.
 - **À vérifier manuellement avant fusion :** menus mobile au clavier et au tactile, focus/restauration de focus de la modale, refus/acceptation d’une action destructive, aperçu d’image valide/invalide et trop grande, soumission répétée, comportement avec stockage désactivé, et préférence de réduction des animations. Aucun test visuel navigateur n’est déclaré comme effectué ici.
+
+## 19. Phase 3.4 — Fondations Blade : cohérence, sécurité et réutilisation
+
+### Périmètre vérifié en lecture seule avant correction
+
+L'audit ciblé de la branche `feature/frontend-redesign` a examiné les sept layouts (`app`, `public`, `auth`, `dashboard`, `client`, `professional`, `admin`), les composants Blade partagés pour boutons, champs, alertes, badges, cartes, confirmation et états UX, ainsi que des formulaires client et professionnel, les écrans de retraits administratifs, `routes/web.php`, `vite.config.js` et les tests des composants partagés.
+
+### Constat et correction minimale appliquée
+
+- **Anciennes valeurs d'un champ select :** le composant `resources/views/components/select.blade.php` comparait les options uniquement à la propriété `value`. Après un échec de validation, il pouvait donc réafficher la valeur métier initiale plutôt que la valeur saisie par l'utilisateur. Le composant utilise maintenant `old($name, $value)` : l'entrée de la session de validation est prioritaire, et la valeur fournie par la vue reste le repli normal.
+- **Régression couverte :** `tests/Feature/Frontend/SharedComponentsTest.php` contient désormais un test vérifiant que la valeur précédente sélectionnée prime sur la valeur initiale après une erreur de validation.
+- **Échappement :** les composants examinés affichent les libellés, messages et valeurs dynamiques avec les doubles accolades Blade. Aucune nécessité d'introduire `{!! !!}` n'a été identifiée dans ce correctif.
+- **Formulaires :** les formulaires examinés utilisent les jetons CSRF et les méthodes HTTP appropriées là où ils sont requis. Ces constats ciblés ne remplacent pas un audit exhaustif de toutes les vues et actions.
+- **Assets Vite :** la branche de travail déclare déjà `resources/css/pages/admin/withdrawals.css` dans les entrées de `vite.config.js`, ce qui correspond aux appels `@vite` des vues de retraits administratifs. La note historique de l'inventaire initial décrivait l'état de la référence auditée et ne doit pas être interprétée comme un défaut confirmé dans l'état actuel de cette branche.
+- **Réutilisation :** les layouts distincts et les composants partagés existants ont été conservés ; aucun deuxième système de boutons, de confirmation ou d'états n'a été ajouté.
+
+### Points à suivre dans les prochaines passes
+
+- Les layouts contiennent encore plusieurs liens de navigation fondés sur `url('/…')`. Il faut les migrer vers les routes nommées uniquement après vérification des noms, paramètres, middleware et destinations effectives, afin d'éviter de casser une navigation existante.
+- Le layout racine charge les feuilles Font Awesome du CDN et du chemin local. Il faut vérifier la version et la couverture d'icônes des deux sources avant de supprimer l'une d'elles ; aucun retrait non vérifié n'a été fait dans cette passe.
+- L'audit des vues reste ciblé et n'établit pas que chaque vue reçoit toujours toutes ses données dans chaque état métier. Les contrôleurs, politiques et contrats de données doivent être associés progressivement à chaque page avant sa refonte visuelle.
+- Les contrôles responsive et visuels nécessitent un navigateur réel ou un environnement de test navigateur. Ils ne sont pas considérés comme exécutés sur la seule base de la revue du code.
+
+### Vérifications à exécuter
+
+Le workflow CI déclenché par les commits du composant et du test doit être consulté pour confirmer le résultat effectif de la suite de tests et du build. Les tests de composants ne remplacent pas les vérifications manuelles de clavier, lecteur d'écran, affichage mobile et parcours métier. Aucun changement n'a été fusionné dans la branche de référence.
+
