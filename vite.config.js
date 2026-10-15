@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/css/pages/admin/dashboard.css','resources/js/pages/admin/dashboard.js',
                 'resources/css/pages/admin/orders.css','resources/css/pages/admin/payments.css',
                 'resources/css/pages/admin/analytics.css','resources/js/pages/admin/analytics.js',
+                'resources/css/pages/admin/withdrawals.css',
                 'resources/css/pages/client/dashboard.css','resources/js/pages/client/dashboard.js',
                 'resources/css/pages/client/services.css',
                 'resources/css/pages/public/home.css',
