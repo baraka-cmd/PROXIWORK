@@ -807,7 +807,7 @@
     overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 .message-new-messages {
-    position: sticky; bottom: .75rem; z-index: 1; display: block; width: fit-content;
+    position: sticky; top: .65rem; bottom: auto; z-index: 1; display: block; width: fit-content;
     max-width: 100%; margin: .5rem auto; padding: .65rem .9rem;
     border: 1px solid var(--color-primary); border-radius: 999px;
     background: var(--color-surface, #fff); color: var(--color-primary);
