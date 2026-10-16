@@ -3,7 +3,7 @@
         <div>
             <span class="eyebrow">FILTRES</span>
             <h2>Affiner les résultats</h2>
-            <p class="directory-filters__trust-note"><i class="fa-solid fa-shield-check" aria-hidden="true"></i> Profils publics vérifiés uniquement.</p>
+            <p class="directory-filters__trust-note"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Profils publics vérifiés uniquement.</p>
         </div>
 
         <button class="icon-button directory-filters__close" type="button" data-filters-close aria-label="Fermer les filtres">
