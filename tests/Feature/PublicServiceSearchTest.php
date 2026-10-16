@@ -112,3 +112,4 @@ class PublicServiceSearchTest extends TestCase
         ]);
     }
 }
+
