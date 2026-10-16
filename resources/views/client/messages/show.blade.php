@@ -195,7 +195,7 @@
                     <button type="button" class="icon-action" data-clear-reply aria-label="Annuler la réponse">×</button>
                 </div>
                 <label for="message-body">Votre message</label>
-                <textarea id="message-body" name="body" rows="3" maxlength="5000" placeholder="Écrire un message…" aria-describedby="message-body-help message-body-error" @if ($errors->has('body')) aria-invalid="true" @endif>{{ old('body') }}</textarea>
+                <textarea id="message-body" name="body" rows="3" maxlength="5000" placeholder="Écrire un message…" aria-describedby="message-body-help @if ($errors->has('body')) message-body-error @endif" @if ($errors->has('body')) aria-invalid="true" @endif>{{ old('body') }}</textarea>
                 <small id="message-body-help" class="message-field-help">5 000 caractères maximum. Vous pouvez envoyer un texte, des fichiers ou les deux.</small>
                 @error('body')<small id="message-body-error" class="message-field-error">{{ $message }}</small>@enderror
                 <div class="message-composer__footer">
