@@ -935,3 +935,10 @@
         transform: none;
     }
 }
+
+/* The clear-search icon is a nested control, not the leading search glyph. */
+.directory-page--search .directory-hero__search-field .search-clear-button i {
+    position: static;
+    inset: auto;
+    transform: none;
+}
