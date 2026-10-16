@@ -196,9 +196,13 @@ if (thread) {
                     csrfInput.value = csrf;
                     reportForm.append(csrfInput);
                 }
+                const reasonLabel = document.createElement('label');
+                reasonLabel.textContent = 'Motif du signalement';
                 const reason = document.createElement('select');
                 reason.name = 'reason_code';
                 reason.required = true;
+                reason.id = 'message-report-reason-' + message.id;
+                reasonLabel.htmlFor = reason.id;
                 [
                     ['SPAM', 'Spam'],
                     ['FRAUD', 'Fraude'],
@@ -216,16 +220,20 @@ if (thread) {
                     option.textContent = label;
                     reason.append(option);
                 });
+                const descriptionLabel = document.createElement('label');
+                descriptionLabel.textContent = 'Détails (facultatif)';
                 const description = document.createElement('textarea');
                 description.name = 'description';
+                description.id = 'message-report-description-' + message.id;
+                descriptionLabel.htmlFor = description.id;
                 description.rows = 2;
-                description.maxLength = 1000;
-                description.placeholder = 'Détails (facultatif)';
+                description.maxLength = 5000;
+                description.placeholder = 'Décrivez le problème sans données personnelles inutiles.';
                 const submit = document.createElement('button');
                 submit.className = 'btn btn-secondary';
                 submit.type = 'submit';
                 submit.textContent = 'Envoyer le signalement';
-                reportForm.append(reason, description, submit);
+                reportForm.append(reasonLabel, reason, descriptionLabel, description, submit);
                 details.append(summary, reportForm);
                 article.append(details);
             }
