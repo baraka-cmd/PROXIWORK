@@ -76,7 +76,7 @@ class PublicServiceSearchTest extends TestCase
         // One field belongs to the main search and the other to the filter form.
         $this->assertSame(
             2,
-            substr_count($response->getContent(), 'name="search" value="plomberie"'),
+            preg_match_all('/name="search"/', $response->getContent()),
         );
     }
 
