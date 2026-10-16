@@ -130,10 +130,14 @@
                                     'fixed' => $service->price !== null
                                         ? number_format((float) $service->price, 2, ',', ' ').' '.($service->currency ?? '')
                                         : 'Prix à confirmer',
+                                    'from' => $service->price !== null
+                                        ? 'Dès '.number_format((float) $service->price, 2, ',', ' ').' '.($service->currency ?? '')
+                                        : 'Prix à confirmer',
                                     'range' => $service->price_min !== null && $service->price_max !== null
                                         ? number_format((float) $service->price_min, 2, ',', ' ').' – '.number_format((float) $service->price_max, 2, ',', ' ').' '.($service->currency ?? '')
                                         : 'Prix à confirmer',
-                                    default => 'Sur devis',
+                                    'quote' => 'Sur devis',
+                                    default => 'Tarif à confirmer',
                                 };
                             @endphp
                             <article class="professional-profile__service-card">
