@@ -23,7 +23,7 @@
                     <span class="eyebrow">RÉSEAU PROXIWORK</span>
                     <h1>Trouvez le bon professionnel pour votre projet</h1>
                     <p>Comparez les spécialités, les compétences, les avis et les tarifs indicatifs de professionnels vérifiés sur PROXIWORK.</p>
-                    <p class="directory-section-header__trust"><i class="fa-solid fa-shield-check" aria-hidden="true"></i> Des profils publics vérifiés, avec des informations issues de la plateforme.</p>
+                    <p class="directory-section-header__trust"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Des profils publics vérifiés, avec des informations issues de la plateforme.</p>
                 </div>
 
                 <a class="button button--primary" href="{{ route('public.search') }}">
