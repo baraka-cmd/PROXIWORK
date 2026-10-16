@@ -12,8 +12,16 @@
 
 <article class="professional-card surface-card surface-card--interactive">
     <div class="professional-card__header">
-        <div class="avatar avatar--xl professional-card__avatar" aria-hidden="true">
-            {{ $initials ?: 'P' }}
+        <div class="professional-card__portrait" data-professional-portrait>
+            <span class="professional-card__avatar-fallback" aria-hidden="true">{{ $initials ?: 'P' }}</span>
+            <img
+                class="professional-card__photo"
+                data-professional-photo
+                src="{{ route('public.professionals.photo', $professional) }}"
+                alt="Photo de profil de {{ $displayName }}"
+                loading="lazy"
+                decoding="async"
+            >
         </div>
 
         <div class="professional-card__identity">
@@ -40,7 +48,7 @@
 
     <div class="professional-card__body">
         @if ($professional->description || $profile?->bio)
-            <p class="professional-card__bio">{{ \Illuminate\Support\Str::limit($professional->description ?: $profile->bio, 150) }}</p>
+            <p class="professional-card__bio">{{ \\Illuminate\\Support\\Str::limit($professional->description ?: $profile->bio, 150) }}</p>
         @endif
 
         <dl class="professional-card__meta">
@@ -52,9 +60,12 @@
             @endif
 
             @if ($professional->rating_count > 0)
-                <div>
+                <div class="professional-card__rating">
                     <dt><i class="fa-solid fa-star" aria-hidden="true"></i><span class="sr-only">Note</span></dt>
-                    <dd>{{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5 <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span></dd>
+                    <dd>
+                        <strong>{{ number_format((float) $professional->rating_average, 1, ',', ' ') }}/5</strong>
+                        <span class="professional-card__muted">({{ $professional->rating_count }} avis)</span>
+                    </dd>
                 </div>
             @else
                 <div>
@@ -73,7 +84,10 @@
             @if ($professional->starting_price !== null)
                 <div>
                     <dt><i class="fa-solid fa-tag" aria-hidden="true"></i><span class="sr-only">Prix indicatif</span></dt>
-                    <dd>Dès {{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}</dd>
+                    <dd>
+                        <span class="professional-card__muted">Tarif indicatif</span>
+                        <strong>Dès {{ number_format((float) $professional->starting_price, 2, ',', ' ') }} {{ $professional->currency }}</strong>
+                    </dd>
                 </div>
             @endif
 
@@ -85,31 +99,37 @@
 
         @if ($professional->skills->isNotEmpty())
             <div class="professional-card__skills" aria-label="Compétences principales">
-                @foreach ($professional->skills->take(5) as $skill)
+                @foreach ($professional->skills->take(3) as $skill)
                     <span class="badge badge--neutral">{{ $skill->name }}</span>
                 @endforeach
 
-                @if ($professional->skills->count() > 5)
-                    <span class="badge badge--neutral">+{{ $professional->skills->count() - 5 }}</span>
+                @if ($professional->skills->count() > 3)
+                    <span class="badge badge--neutral">+{{ $professional->skills->count() - 3 }}</span>
                 @endif
             </div>
         @endif
 
-        <div class="professional-card__actions" style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <a class="button button--ghost" href="{{ route('public.professionals.show', $professional) }}">
-                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        <div class="professional-card__actions">
+            <a class="button button--primary" href="{{ route('public.professionals.show', $professional) }}">
                 Voir le profil
+                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
             </a>
             @auth
                 @if (auth()->user()->hasRole('client'))
                     <form method="POST" action="{{ route('client.favorites.store', $professional) }}">
                         @csrf
                         @method('PUT')
-                        <button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button>
+                        <button class="button button--secondary" type="submit">
+                            <i class="fa-regular fa-heart" aria-hidden="true"></i>
+                            Favoris
+                        </button>
                     </form>
                 @endif
             @else
-                <a class="button button--secondary" href="{{ route('login') }}">Se connecter pour enregistrer</a>
+                <a class="button button--secondary" href="{{ route('login') }}">
+                    <i class="fa-regular fa-heart" aria-hidden="true"></i>
+                    Enregistrer
+                </a>
             @endauth
         </div>
     </div>
