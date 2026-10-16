@@ -22,6 +22,7 @@ export default defineConfig({
                 'resources/css/pages/public/home.css',
                 'resources/js/pages/public/home.js',
                 'resources/css/pages/public/search.css','resources/js/pages/public/search.js',
+                'resources/css/pages/public/service-detail.css','resources/js/pages/public/service-detail.js',
                 'resources/css/pages/public/professionals.css','resources/js/pages/public/professionals.js',
                 'resources/css/pages/professional/profile.css','resources/css/pages/professional/services.css','resources/css/pages/professional/quotes.css','resources/css/pages/professional/requests.css',
                 'resources/css/pages/professional/requests-quotes.css',
