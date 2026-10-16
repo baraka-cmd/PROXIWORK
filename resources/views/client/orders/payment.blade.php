@@ -27,10 +27,17 @@
         </div>
     @endif
 
-    <aside class="payment-simulation-notice" role="note">
-        <i class="fa-solid fa-flask" aria-hidden="true"></i>
-        <p><strong>Vous êtes en mode simulation.</strong> Aucun argent réel ne sera transféré. N’entrez aucun numéro de carte réel, code PIN Mobile Money ni secret bancaire.</p>
-    </aside>
+    @if($simulationEnabled)
+        <aside class="payment-simulation-notice" role="note">
+            <i class="fa-solid fa-flask" aria-hidden="true"></i>
+            <p><strong>Mode démonstration — aucun argent réel ne sera transféré.</strong> N’entrez aucun numéro de carte réel, code PIN Mobile Money ni secret bancaire.</p>
+        </aside>
+    @else
+        <aside class="payment-simulation-notice payment-simulation-notice--unavailable" role="status">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <p><strong>Aucun moyen de paiement n’est activé ici.</strong> La simulation est désactivée dans cet environnement et aucun prestataire de paiement réel n’est configuré.</p>
+        </aside>
+    @endif
 
     <section class="client-panel payment-checkout">
         <div class="payment-checkout__summary">
