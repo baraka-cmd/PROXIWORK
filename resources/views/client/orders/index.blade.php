@@ -134,8 +134,8 @@
             <strong>Filtres actifs</strong>
             <div>
                 @foreach($activeOrderFilters as $activeOrderFilter)
-                    <a href="{{ route('client.orders.index', collect($filters)->except($activeOrderFilter['key'])->all()) }}">
-                        <span>{{ $activeOrderFilter['label'] }}</span><i class="fa-solid fa-xmark" aria-hidden="true"></i><span class="sr-only">Retirer ce filtre</span>
+                    <a aria-label="Retirer le filtre : {{ $activeOrderFilter['label'] }}" href="{{ route('client.orders.index', collect($filters)->except($activeOrderFilter['key'])->all()) }}">
+                        <span>{{ $activeOrderFilter['label'] }}</span><i class="fa-solid fa-xmark" aria-hidden="true"></i>
                     </a>
                 @endforeach
             </div>
