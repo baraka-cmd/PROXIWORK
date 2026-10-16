@@ -48,7 +48,7 @@
 
     <div class="professional-card__body">
         @if ($professional->description || $profile?->bio)
-            <p class="professional-card__bio">{{ \\Illuminate\\Support\\Str::limit($professional->description ?: $profile->bio, 150) }}</p>
+            <p class="professional-card__bio">{{ \Illuminate\Support\Str::limit($professional->description ?: $profile->bio, 150) }}</p>
         @endif
 
         <dl class="professional-card__meta">
