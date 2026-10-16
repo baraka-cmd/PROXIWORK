@@ -12,6 +12,16 @@
     </div>
 
     <form method="GET" action="{{ $action }}" class="directory-filter-form" data-directory-form>
+        @if ($errors->any())
+            <div class="directory-filter-form__errors" role="alert" aria-labelledby="{{ $idPrefix }}-errors-title">
+                <strong id="{{ $idPrefix }}-errors-title">Certains critères doivent être corrigés.</strong>
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
         <div class="form-field directory-filter-form__search">
             <label class="form-label" for="{{ $idPrefix }}-search">Recherche</label>
             <div class="form-control-wrapper">
