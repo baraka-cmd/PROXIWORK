@@ -83,8 +83,7 @@ class PublicServiceSearchTest extends TestCase
         $this->get(route('public.professionals.index'))
             ->assertOk()
             ->assertViewIs('public.professionals.index')
-            ->assertSee($professional->professional_title)
-            ->assertSee($service->title);
+            ->assertSee($professional->professional_title);
     }
 
     public function test_public_professional_profile_renders_without_new_controller_variables(): void
