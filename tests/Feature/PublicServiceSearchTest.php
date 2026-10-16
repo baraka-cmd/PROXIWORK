@@ -75,6 +75,30 @@ class PublicServiceSearchTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_public_professional_directory_renders_the_existing_search_results(): void
+    {
+        $service = $this->service('Réparation visible', 'reparation-visible');
+        $professional = ProfessionalProfile::query()->findOrFail($service->professional_profile_id);
+
+        $this->get(route('public.professionals.index'))
+            ->assertOk()
+            ->assertViewIs('public.professionals.index')
+            ->assertSee($professional->professional_title)
+            ->assertSee($service->title);
+    }
+
+    public function test_public_professional_profile_renders_without_new_controller_variables(): void
+    {
+        $service = $this->service('Service du profil public', 'service-profil-public');
+        $professional = ProfessionalProfile::query()->findOrFail($service->professional_profile_id);
+
+        $this->get(route('public.professionals.show', $professional))
+            ->assertOk()
+            ->assertViewIs('public.professionals.show')
+            ->assertSee($service->title)
+            ->assertSee('Avis publiés');
+    }
+
     private function service(string $title, string $slug, array $overrides = []): Service
     {
         $user = User::factory()->create();
