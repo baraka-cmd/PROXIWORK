@@ -52,7 +52,7 @@
                 <form method="POST" action="{{ route('client.messages.archive', $conversation) }}">
                     @csrf
                     <input type="hidden" name="archived" value="1">
-                    <button class="btn btn-secondary" type="submit"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Archiver</button>
+                    <button class="btn btn-secondary" type="submit" title="L’archivage conserve l’historique"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Archiver</button>
                 </form>
                 @if ($conversation->status->value !== 'blocked')
                     <form method="POST" action="{{ route('client.messages.block', $conversation) }}" data-confirm data-confirm-title="Bloquer cette conversation ?" data-confirm-message="Aucun participant ne pourra envoyer de nouveaux messages. L’historique sera conservé." data-confirm-label="Bloquer">
@@ -90,7 +90,7 @@
         <section
             class="client-panel message-thread"
             aria-label="Historique des messages"
-            aria-live="polite"
+            aria-live="off"
             data-message-thread
             data-last-message-id="{{ $lastMessageId }}"
             data-user-id="{{ auth()->id() }}"
@@ -169,6 +169,10 @@
                         </span>
                     @endif
                 </article>
+            <button class="message-new-messages" type="button" data-scroll-latest hidden>
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Nouveaux messages · revenir en bas
+            </button>
+            <p class="message-announcement" data-message-announcement role="status" aria-atomic="true"></p>
             @empty
                 <div class="message-empty" data-empty-thread>
                     <span class="message-empty__icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
@@ -190,7 +194,9 @@
                     <button type="button" class="icon-action" data-clear-reply aria-label="Annuler la réponse">×</button>
                 </div>
                 <label for="message-body">Votre message</label>
-                <textarea id="message-body" name="body" rows="3" maxlength="5000" placeholder="Écrire un message…">{{ old('body') }}</textarea>
+                <textarea id="message-body" name="body" rows="3" maxlength="5000" placeholder="Écrire un message…" aria-describedby="message-body-help message-body-error" @if ($errors->has('body')) aria-invalid="true" @endif>{{ old('body') }}</textarea>
+                <small id="message-body-help" class="message-field-help">5 000 caractères maximum. Vous pouvez envoyer un texte, des fichiers ou les deux.</small>
+                @error('body')<small id="message-body-error" class="message-field-error">{{ $message }}</small>@enderror
                 <div class="message-composer__footer">
                     <div class="message-attachment-picker">
                         <label class="btn btn-secondary" for="message-attachments">
@@ -199,14 +205,15 @@
                         <input id="message-attachments" type="file" name="attachments[]" multiple
                                accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                data-attachment-input>
-                        <small data-attachment-names>Aucun fichier sélectionné · 5 fichiers maximum · 10 Mo par fichier</small>
+                        <div class="message-attachment-selection" data-attachment-list aria-label="Fichiers sélectionnés"></div>
+                        <small data-attachment-names>Formats : JPG, PNG, WebP, PDF, DOC ou DOCX · 5 fichiers maximum · 10 Mo par fichier</small>
                     </div>
                     <span class="message-character-count" data-character-count>0 / 5 000</span>
                     <button class="btn btn-primary" type="submit" data-send-button>
                         <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer
                     </button>
                 </div>
-                <p class="message-composer__privacy"><i class="fa-solid fa-lock" aria-hidden="true"></i> Les pièces jointes sont privées et téléchargeables uniquement par les participants autorisés.</p>
+                <p class="message-composer__privacy"><i class="fa-solid fa-lock" aria-hidden="true"></i> Les pièces jointes sont privées et téléchargeables uniquement par les participants autorisés. Si la validation échoue, les navigateurs peuvent demander de sélectionner à nouveau les fichiers.</p>
             </form>
         </section>
         @else
