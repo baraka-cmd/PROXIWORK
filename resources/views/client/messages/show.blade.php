@@ -170,10 +170,6 @@
                         </span>
                     @endif
                 </article>
-            <button class="message-new-messages" type="button" data-scroll-latest hidden>
-                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Nouveaux messages · revenir en bas
-            </button>
-            <p class="message-announcement" data-message-announcement role="status" aria-atomic="true"></p>
             @empty
                 <div class="message-empty" data-empty-thread>
                     <span class="message-empty__icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
@@ -181,6 +177,10 @@
                     <p>Présentez votre question ou précisez les détails de la prestation.</p>
                 </div>
             @endforelse
+            <button class="message-new-messages" type="button" data-scroll-latest hidden>
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Nouveaux messages · revenir en bas
+            </button>
+            <p class="message-announcement" data-message-announcement role="status" aria-atomic="true"></p>
             <p class="message-sync-status" data-message-sync-status aria-live="off">Connexion en cours…</p>
         </section>
 
