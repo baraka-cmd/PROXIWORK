@@ -513,7 +513,8 @@
     clip-path: inset(50%);
 }
 
-.message-attachment-picker input[type="file"]:focus-visible + small {
+.message-attachment-picker input[type="file"]:focus-visible ~ small,
+.message-attachment-picker input[type="file"]:focus-visible + .message-attachment-selection {
     outline: 2px solid var(--color-primary);
 }
 
@@ -833,7 +834,7 @@
 .message-composer textarea[aria-invalid="true"],
 .message-composer input[aria-invalid="true"] { border-color: var(--color-danger, #b42318); }
 @media (max-width: 650px) {
-    .message-new-messages { bottom: .35rem; width: 100%; justify-content: center; text-align: center; }
+    .message-new-messages { width: 100%; justify-content: center; text-align: center; }
     .message-attachment-chip { width: 100%; justify-content: space-between; }
 }
 @media (prefers-reduced-motion: reduce) {
