@@ -63,6 +63,9 @@ Réutilisation des classes, composants et tokens existants : surfaces claires, b
 - SaaSUI.Design, *SaaS Notification Center UI: Real Screenshots & UX Patterns (2026)* — hiérarchie lu/non lu, triage, préférences et états vides : https://www.saasui.design/blog/saas-notification-center-ux-patterns
 - SaaSUI.Design, *SaaS Chat & Messaging UX: Examples & Patterns (2026)* — fil, composeur, états d’envoi et accusés de lecture : https://www.saasui.design/blog/saas-chat-messaging-ux-patterns
 - SaaSUI.Design, *SaaS Email & Inbox UX: Real Examples & Patterns (2026)* — filtres, aperçu et parcours de réponse : https://www.saasui.design/blog/saas-email-inbox-ux-patterns
+- GitHub Docs, *Managing notifications from your inbox* — filtres, séparation lu/non lu, triage et actions groupées : https://docs.github.com/en/subscriptions-and-notifications/how-tos/viewing-and-triaging-notifications/managing-notifications-from-your-inbox
+- Slack Help, *View all your unread messages* — parcours de rattrapage des non-lus, filtres et accès aux messages récents : https://slack.com/help/articles/226410907-View-all-your-unread-messages
+- Intercom Help, *The Inbox explained* — vues de conversations organisées par filtres et contexte de traitement : https://www.intercom.com/help/en/articles/6258745-the-inbox-explained
 - W3C WAI, technique ARIA22 — annoncer les changements d’état via `role="status"` sans déplacer le focus : https://www.w3.org/WAI/WCAG21/Techniques/aria/ARIA22
 - W3C WAI, WCAG 2.1 — navigation clavier, identification des erreurs et messages d’état : https://www.w3.org/TR/WCAG21/
 
