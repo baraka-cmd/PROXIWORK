@@ -863,13 +863,6 @@
 }
 
 
-.messages-active-filters {
-    margin-top: -.35rem;
-}
-.messages-active-filters > span {
-    border-radius: 999px;
-}
-
 
 .messages-active-filters {
     display: flex;
