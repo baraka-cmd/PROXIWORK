@@ -53,6 +53,11 @@
     object-fit: cover;
 }
 
+.professional-profile__portrait > .professional-profile__initials,
+.professional-profile__portrait > .professional-profile__photo {
+    grid-area: 1 / 1;
+}
+
 .professional-profile__portrait.has-photo .professional-profile__initials {
     display: none;
 }
