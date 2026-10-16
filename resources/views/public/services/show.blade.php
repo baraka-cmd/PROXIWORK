@@ -97,7 +97,7 @@
                             @endif
                         </div>
                         @if ($images->count() > 1)
-                            <div class="public-service-page__thumbnails" aria-label="Autres photos du service">
+                            <div class="public-service-page__thumbnails" role="group" aria-label="Autres photos du service">
                                 @foreach ($images->take(6) as $image)
                                     <button class="public-service-page__thumbnail" type="button" data-service-gallery-thumb data-image-src="{{ asset('storage/'.$image->path) }}" data-image-alt="{{ $image->alt_text ?: $service->title }}" aria-label="Afficher la photo {{ $loop->iteration }}" aria-pressed="{{ $image->id === $cover?->id ? 'true' : 'false' }}">
                                         <img src="{{ asset('storage/'.$image->path) }}" alt="" loading="lazy" decoding="async" width="160" height="100">
