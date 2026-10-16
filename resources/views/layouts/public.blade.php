@@ -120,14 +120,40 @@
 
         <footer class="public-footer">
             <div class="page-container public-footer__inner">
-                <a class="brand" href="{{ url('/') }}" aria-label="PROXIWORK — accueil">
-                    <span class="brand-mark" aria-hidden="true">
-                        <i class="fa-solid fa-link"></i>
-                    </span>
-                    <span>PROXIWORK</span>
-                </a>
-                <p>Une plateforme pour connecter les clients aux professionnels de confiance.</p>
-                <small>&copy; {{ now()->year }} PROXIWORK. Tous droits réservés.</small>
+                <div class="public-footer__brand">
+                    <a class="brand" href="{{ url('/') }}" aria-label="PROXIWORK — accueil">
+                        <span class="brand-mark" aria-hidden="true">
+                            <i class="fa-solid fa-link"></i>
+                        </span>
+                        <span>PROXIWORK</span>
+                    </a>
+                    <p class="public-footer__description">
+                        Trouvez un professionnel, comparez les services et gardez vos échanges au même endroit.
+                    </p>
+                </div>
+
+                <nav class="public-footer__navigation" aria-label="Liens de pied de page">
+                    <a href="{{ url('/') }}">Accueil</a>
+
+                    @if (Route::has('public.search'))
+                        <a href="{{ route('public.search') }}">Rechercher un service</a>
+                    @endif
+
+                    @if (Route::has('public.professionals.index'))
+                        <a href="{{ route('public.professionals.index') }}">Professionnels</a>
+                    @endif
+
+                    @auth
+                        <a href="{{ url('/dashboard') }}">Mon espace</a>
+                    @elseif (Route::has('login'))
+                        <a href="{{ route('login') }}">Connexion</a>
+                    @endauth
+                </nav>
+
+                <div class="public-footer__legal">
+                    <small>&copy; {{ now()->year }} PROXIWORK</small>
+                    <small>Tous droits réservés.</small>
+                </div>
             </div>
         </footer>
     </div>

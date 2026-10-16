@@ -4,6 +4,7 @@
 @section('page_heading', 'Mes devis')
 
 @push('head')
+    @vite('resources/css/pages/professional/requests-quotes.css')
     @vite(['resources/css/pages/professional/quotes.css'])
 @endpush
 

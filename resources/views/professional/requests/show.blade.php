@@ -4,6 +4,7 @@
 @section('page_heading', 'Détail de la demande')
 
 @push('head')
+    @vite('resources/css/pages/professional/requests-quotes.css')
     @vite('resources/css/pages/professional/requests.css')
 @endpush
 

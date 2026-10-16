@@ -1,27 +1,27 @@
 'use strict';
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('form[data-confirm]').forEach((form) => {
-        form.addEventListener('submit', (event) => {
-            const message = form.dataset.confirm;
-
-            if (message && !window.confirm(message)) {
-                event.preventDefault();
-            }
-        });
-    });
+    const submittingForms = new WeakSet();
 
     document.querySelectorAll('.profile-form').forEach((form) => {
         form.addEventListener('submit', (event) => {
+            // The shared confirmation dialog must be allowed to cancel first.
             if (event.defaultPrevented) {
                 return;
             }
+
+            if (submittingForms.has(form)) {
+                event.preventDefault();
+                return;
+            }
+
+            submittingForms.add(form);
 
             const submitter = event.submitter;
 
             if (submitter instanceof HTMLButtonElement) {
                 submitter.disabled = true;
-                submitter.setAttribute('aria-disabled', 'true');
+                submitter.setAttribute('aria-busy', 'true');
                 submitter.dataset.originalLabel = submitter.textContent.trim();
                 submitter.textContent = 'Enregistrement…';
             }
@@ -57,6 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!file) {
             preview.hidden = true;
             preview.removeAttribute('src');
+
+            if (helpText) {
+                helpText.textContent = 'L’image est contrôlée côté serveur et stockée dans un espace non public.';
+                helpText.removeAttribute('role');
+                helpText.removeAttribute('aria-live');
+            }
+
             return;
         }
 
@@ -65,12 +72,61 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024) {
             preview.hidden = true;
             preview.removeAttribute('src');
+            avatarInput.value = '';
+
+            if (helpText) {
+                helpText.textContent = !allowedTypes.includes(file.type)
+                    ? 'Format non pris en charge. Choisissez une image JPG, PNG ou WebP.'
+                    : 'Image trop volumineuse. La taille maximale autorisée est de 2 Mo.';
+                helpText.setAttribute('role', 'alert');
+                helpText.setAttribute('aria-live', 'assertive');
+            }
+
             return;
         }
 
+        if (helpText) {
+            helpText.textContent = 'Aperçu local uniquement. Le serveur vérifiera à nouveau le format, la taille et les dimensions.';
+            helpText.setAttribute('role', 'status');
+            helpText.setAttribute('aria-live', 'polite');
+        }
+
         previewUrl = URL.createObjectURL(file);
+        preview.onload = () => {
+            if (preview.naturalWidth > 2000 || preview.naturalHeight > 2000) {
+                preview.hidden = true;
+                preview.removeAttribute('src');
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+                avatarInput.value = '';
+
+                if (helpText) {
+                    helpText.textContent = 'Les dimensions maximales sont de 2 000 × 2 000 pixels. Choisissez une image plus petite.';
+                    helpText.setAttribute('role', 'alert');
+                    helpText.setAttribute('aria-live', 'assertive');
+                }
+
+                return;
+            }
+
+            preview.hidden = false;
+        };
+        preview.onerror = () => {
+            preview.hidden = true;
+            preview.removeAttribute('src');
+
+            if (helpText) {
+                helpText.textContent = 'Impossible de prévisualiser ce fichier. Choisissez une image valide.';
+                helpText.setAttribute('role', 'alert');
+                helpText.setAttribute('aria-live', 'assertive');
+            }
+
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+                previewUrl = null;
+            }
+        };
         preview.src = previewUrl;
-        preview.hidden = false;
     });
 
     window.addEventListener('pagehide', () => {

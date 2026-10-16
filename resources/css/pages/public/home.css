@@ -89,7 +89,7 @@
 .home-preview-card--request { top: 12%; right: -1%; }
 .home-preview-card--quote { bottom: 12%; left: -2%; }
 .home-preview-mini-icon { width: 38px; height: 38px; border-radius: 11px; }
-.home-preview-mini-icon--amber { background: #fff4d6; color: #9a5b00; }
+.home-preview-mini-icon--amber { background: var(--color-accent-soft); color: var(--color-warning); }
 .home-preview-card--request strong, .home-preview-card--quote strong { display: block; color: var(--color-secondary); font-size: .8rem; }
 .home-preview-card--request p, .home-preview-card--quote p { margin: .2rem 0 0; color: var(--color-text-muted); font-size: .7rem; line-height: 1.5; }
 .home-preview-check { margin-left: auto; color: var(--color-success); }
@@ -130,9 +130,9 @@
 .home-steps-list p { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); line-height: 1.8; }
 .home-final-cta { padding: clamp(3rem, 5vw, 4.5rem) 0; background: var(--color-secondary); color: var(--color-white); }
 .home-final-cta__inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
-.home-final-cta .home-section-heading__eyebrow { color: #8be0d8; }
+.home-final-cta .home-section-heading__eyebrow { color: var(--color-primary-border); }
 .home-final-cta h2 { max-width: 650px; margin: .7rem 0; color: var(--color-white); font-size: clamp(1.8rem, 3vw, 2.6rem); letter-spacing: -.035em; line-height: 1.2; }
-.home-final-cta p { max-width: 620px; margin: 0; color: #cbd5e1; line-height: 1.75; }
+.home-final-cta p { max-width: 620px; margin: 0; color: var(--color-text-on-dark-muted); line-height: 1.75; }
 .home-final-cta__actions { display: flex; flex-wrap: wrap; gap: .8rem; flex-shrink: 0; }
 .button--accent { background: var(--color-accent); color: var(--color-on-accent); }
 .button--accent:hover:not(:disabled) { background: var(--color-accent-hover); color: var(--color-on-accent); }

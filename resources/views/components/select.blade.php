@@ -11,6 +11,7 @@
 
 @php
     $selectId = $id ?? str($name)->slug()->toString();
+    $selectedValue = old($name, $value);
     $validationErrors = app('view')->shared('errors');
     $hasError = $validationErrors?->has($name) ?? false;
     $errorId = "{$selectId}-error";
@@ -44,7 +45,7 @@
             @endif
 
             @foreach ($options as $optionValue => $optionLabel)
-                <option value="{{ $optionValue }}" @selected((string) $value === (string) $optionValue)>
+                <option value="{{ $optionValue }}" @selected((string) $selectedValue === (string) $optionValue)>
                     {{ $optionLabel }}
                 </option>
             @endforeach

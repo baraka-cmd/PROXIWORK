@@ -706,3 +706,84 @@
 /* Client navigation: unread notification count. */
 .dashboard-nav-link--notifications{gap:.55rem}
 .dashboard-nav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:1.35rem;height:1.35rem;margin-left:auto;padding:0 .35rem;border-radius:999px;background:var(--color-primary);color:#fff;font-size:.7rem;font-weight:800;line-height:1;white-space:nowrap}
+
+
+/* Shared interaction hardening: visible keyboard focus and tactile states. */
+:where(.button, .icon-button, .form-control-action, .surface-card--interactive):focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 3px;
+    box-shadow: var(--shadow-focus);
+}
+
+.button:focus:not(:focus-visible),
+.icon-button:focus:not(:focus-visible) {
+    outline: none;
+}
+
+.button--danger:hover:not(:disabled) {
+    background: var(--color-danger-hover);
+}
+
+.button--secondary:hover:not(:disabled) {
+    background: var(--color-secondary-hover);
+}
+
+.button--accent:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+}
+
+.surface-card--interactive:focus-within {
+    border-color: var(--color-primary-border);
+    box-shadow: var(--shadow-card-hover);
+}
+
+.badge {
+    max-width: 100%;
+    line-height: var(--line-height-snug);
+}
+
+.badge > span:last-child {
+    overflow-wrap: anywhere;
+}
+
+.form-control {
+    min-width: 0;
+}
+
+.form-control:read-only:not(:disabled) {
+    cursor: text;
+}
+
+.form-control:disabled,
+.form-control[readonly]:not(:disabled) {
+    opacity: 1;
+}
+
+.form-control:disabled {
+    color: var(--color-text-muted);
+}
+
+.alert__message {
+    line-height: var(--line-height-relaxed);
+    overflow-wrap: anywhere;
+}
+
+.alert__dismiss {
+    flex: 0 0 auto;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .button--primary:hover:not(:disabled),
+    .button--secondary:hover:not(:disabled),
+    .button--accent:hover:not(:disabled),
+    .button--danger:hover:not(:disabled) {
+        filter: saturate(1.04);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .button__spinner,
+    .spinner__circle {
+        animation: none;
+    }
+}

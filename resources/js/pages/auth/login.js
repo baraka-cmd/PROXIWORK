@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const strengthBar = document.querySelector('[data-strength-bar]');
     const strengthLabel = document.querySelector('[data-strength-label]');
     const submitButton = document.querySelector('[data-login-submit]');
+    let isSubmitting = false;
 
     if (!form || !password) {
         return;
@@ -80,13 +81,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    form.addEventListener('submit', () => {
-        if (!form.checkValidity() || !submitButton) {
+    form.addEventListener('submit', (event) => {
+        if (!form.checkValidity()) {
+            return;
+        }
+
+        if (isSubmitting) {
+            event.preventDefault();
+            return;
+        }
+
+        isSubmitting = true;
+
+        if (!submitButton) {
             return;
         }
 
         submitButton.disabled = true;
-        submitButton.querySelector('span').textContent = 'Connexion...';
+        submitButton.setAttribute('aria-busy', 'true');
+
+        const label = submitButton.querySelector('span');
+
+        if (label) {
+            label.textContent = 'Connexion...';
+        }
 
         const icon = submitButton.querySelector('i');
 

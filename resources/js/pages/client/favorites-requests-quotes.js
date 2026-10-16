@@ -29,5 +29,8 @@ document.addEventListener('submit', (event) => {
     button.setAttribute('aria-busy', 'true');
 
     const label = button.dataset.loadingLabel || 'Traitement…';
-    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> ' + label;
+    const spinner = document.createElement('i');
+    spinner.className = 'fa-solid fa-spinner fa-spin';
+    spinner.setAttribute('aria-hidden', 'true');
+    button.replaceChildren(spinner, document.createTextNode(' ' + label));
 });

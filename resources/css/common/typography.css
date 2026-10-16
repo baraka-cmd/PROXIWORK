@@ -23,6 +23,8 @@ h4 {
     color: var(--color-text);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+    text-wrap: balance;
 }
 
 h1 {
@@ -39,6 +41,7 @@ h3 {
 
 p {
     color: var(--color-text-muted);
+    text-wrap: pretty;
 }
 
 .text-muted {
@@ -66,6 +69,6 @@ p {
     color: var(--color-primary);
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-bold);
-    letter-spacing: 0.08em;
+    letter-spacing: var(--letter-spacing-caps);
     text-transform: uppercase;
 }

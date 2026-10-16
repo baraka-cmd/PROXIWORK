@@ -1,0 +1,689 @@
+# PROXIWORK — Inventaire initial du Front-End
+
+- **Dépôt :** `baraka-cmd/PROXIWORK`
+- **Branche de référence auditée :** `audit/current-project-baseline`
+- **Commit de référence constaté :** `bc8a743c8696af868bc4c200c98e211d00cedaed`
+- **Branche de travail Front-End :** `feature/frontend-redesign`
+- **Phase 0 :** inventaire documentaire et cartographie initiale.
+- **Phase 3.1 — Organisation CSS :** fondations A–E implémentées ; CI du dernier commit de code réussi. Le contrôle visuel multi-écran dans un navigateur reste à exécuter.
+- **Portée actuelle :** changements applicatifs limités au Front-End ; aucun contrat métier, route ou contrôleur modifié.
+
+## 1. Résumé de l'arborescence constatée
+
+L'arbre Git de la branche de référence contient 6 963 entrées (arbre Git récursif, tous types confondus). Les répertoires Front-End comportent :
+
+| Élément | Nombre constaté |
+|---|---:|
+| Vues Blade sous `resources/views` | 124 |
+| Layouts Blade | 7 |
+| Composants Blade dans `resources/views/components` | 17 |
+| Fichiers CSS sous `resources/css` | 42 |
+| Fichiers JavaScript sous `resources/js` | 26 |
+| Fichier de routes Web | `routes/web.php` |
+| Fichier de routes Admin | `routes/admin.php` |
+| Fichier de routes API | `routes/api.php` |
+| Configuration Vite | `vite.config.js` |
+| Configuration npm | `package.json` |
+| Workflow CI | `.github/workflows/ci.yml` |
+
+Ces nombres décrivent les fichiers versionnés dans la référence auditée, pas un résultat d'exécution de l'application.
+
+## 2. Arborescence des vues Blade
+
+```text
+resources/views/
+├── admin/
+│   ├── analytics/index.blade.php
+│   ├── audit/{index,show}.blade.php
+│   ├── auth/login.blade.php
+│   ├── categories/{create,edit,index,show}.blade.php
+│   ├── categories/partials/form.blade.php
+│   ├── dashboard.blade.php
+│   ├── orders/{index,show}.blade.php
+│   ├── payments/{index,show}.blade.php
+│   ├── permissions/{index,show}.blade.php
+│   ├── professionals/{index,show}.blade.php
+│   ├── rbac/index.blade.php
+│   ├── reports/{index,show}.blade.php
+│   ├── roles/{form,index,show}.blade.php
+│   ├── service-requests/{index,show}.blade.php
+│   ├── services/{index,show}.blade.php
+│   ├── support/{index,show}.blade.php
+│   ├── users/{index,show}.blade.php
+│   ├── verification/index.blade.php
+│   └── withdrawals/{index,show}.blade.php
+├── auth/
+│   ├── login.blade.php
+│   ├── register.blade.php
+│   ├── passwords/{email,reset}.blade.php
+│   └── verify-email.blade.php
+├── client/
+│   ├── addresses/{form,index}.blade.php
+│   ├── dashboard.blade.php
+│   ├── favorites/index.blade.php
+│   ├── messages/{index,show}.blade.php
+│   ├── notifications/index.blade.php
+│   ├── orders/{index,payment,show}.blade.php
+│   ├── payments/{index,receipt,show}.blade.php
+│   ├── profile/{edit,email-change-confirmation,show}.blade.php
+│   ├── quotes/{index,show}.blade.php
+│   ├── requests/{create,edit,index,show}.blade.php
+│   └── services/index.blade.php
+├── components/
+│   ├── alert, avatar, badge, button, card, confirmation
+│   ├── divider, empty-state, error-state, icon-button
+│   ├── input, loading, select, skeleton, spinner
+│   ├── success, textarea
+│   └── (tous sont des composants Blade .blade.php)
+├── emails/notifications/transactional.blade.php
+├── errors/{4xx,5xx}.blade.php
+├── layouts/
+│   ├── admin.blade.php
+│   ├── app.blade.php
+│   ├── auth.blade.php
+│   ├── client.blade.php
+│   ├── dashboard.blade.php
+│   ├── professional.blade.php
+│   └── public.blade.php
+├── professional/
+│   ├── dashboard.blade.php
+│   ├── documents/index.blade.php
+│   ├── messages/{index,show}.blade.php
+│   ├── notifications/index.blade.php
+│   ├── orders/{index,show}.blade.php
+│   ├── profile.blade.php
+│   ├── profile-edit.blade.php
+│   ├── quotes/{create,index,show}.blade.php
+│   ├── requests/{index,show}.blade.php
+│   ├── revenues/{index,show}.blade.php
+│   ├── reviews/index.blade.php
+│   ├── services/{form,index,preview}.blade.php
+│   └── withdrawals/{create,index,show}.blade.php
+├── public/
+│   ├── home.blade.php
+│   ├── home-dynamic.blade.php
+│   ├── search.blade.php
+│   ├── search-services.blade.php
+│   ├── professionals/{index,show}.blade.php
+│   ├── services/show.blade.php
+│   └── partials/{professional-card,professional-filters}.blade.php
+└── welcome.blade.php
+```
+
+## 3. Layouts et composants partagés
+
+### Layouts observés
+
+- `layouts.app` : document HTML racine, métadonnées, Font Awesome, chargement global Vite, messages de succès, contenu et pile de scripts.
+- `layouts.public` : navigation publique.
+- `layouts.auth` : enveloppe d'authentification.
+- `layouts.dashboard` : structure de dashboard partagée.
+- `layouts.client` : navigation et sections propres au client.
+- `layouts.professional` : navigation et sections propres au professionnel.
+- `layouts.admin` : navigation administrative.
+
+### Composants Blade constatés
+
+`alert`, `avatar`, `badge`, `button`, `card`, `confirmation`, `divider`, `empty-state`, `error-state`, `icon-button`, `input`, `loading`, `select`, `skeleton`, `spinner`, `success`, `textarea`.
+
+Avant de créer un composant supplémentaire, il faudra vérifier si l'un de ces composants peut être étendu sans casser les usages actuels.
+
+## 4. Styles CSS
+
+### Commun
+
+- `resources/css/app.css`
+- `resources/css/common/variables.css`
+- `resources/css/common/reset.css`
+- `resources/css/common/typography.css`
+- `resources/css/common/layouts.css`
+- `resources/css/common/components.css`
+- `resources/css/common/ux-states.css`
+- `resources/css/common/confirmation.css`
+
+Le fichier `app.css` importe uniquement les styles communs. La feuille `pages/professional/requests-quotes.css` est chargée par Vite uniquement dans les vues professionnelles concernées, afin de limiter les effets de bord entre pages.
+
+### Pages Admin
+
+- `pages/admin/analytics.css`
+- `pages/admin/dashboard.css`
+- `pages/admin/orders.css`
+- `pages/admin/payments.css`
+- `pages/admin/permissions-professionals.css`
+- `pages/admin/services-requests.css`
+- `pages/admin/users-roles.css`
+- `pages/admin/withdrawals.css`
+
+### Pages Authentification
+
+- `pages/auth/login.css`
+- `pages/auth/register.css`
+
+### Pages Client
+
+- `pages/client/addresses.css`
+- `pages/client/dashboard.css`
+- `pages/client/favorites-requests-quotes.css`
+- `pages/client/favorites.css`
+- `pages/client/messages.css`
+- `pages/client/notifications.css`
+- `pages/client/orders-payments.css`
+- `pages/client/profile.css`
+- `pages/client/service-requests.css`
+- `pages/client/services.css`
+
+### Pages Professionnel
+
+- `pages/professional/dashboard.css`
+- `pages/professional/notifications.css`
+- `pages/professional/orders-revenues.css`
+- `pages/professional/profile.css`
+- `pages/professional/quotes.css`
+- `pages/professional/requests-quotes.css`
+- `pages/professional/requests.css`
+- `pages/professional/revenues.css`
+- `pages/professional/reviews-messages.css`
+- `pages/professional/services.css`
+- `pages/professional/wallet-withdrawals.css`
+
+### Pages publiques
+
+- `pages/public/home.css`
+- `pages/public/professionals.css`
+- `pages/public/search.css`
+
+## 5. JavaScript
+
+### Points d'entrée et utilitaires communs
+
+- `resources/js/app.js`
+- `resources/js/common/app.js`
+- `resources/js/common/confirmation.js`
+
+`resources/js/app.js` importe les deux scripts communs et `pages/professional/services.js`.
+
+### Admin
+
+- `pages/admin/analytics.js`
+- `pages/admin/dashboard.js`
+- `pages/admin/permissions-professionals.js`
+- `pages/admin/services-requests.js`
+- `pages/admin/users-roles.js`
+
+### Authentification
+
+- `pages/auth/login.js`
+- `pages/auth/register.js`
+
+### Client
+
+- `pages/client/addresses.js`
+- `pages/client/dashboard.js`
+- `pages/client/favorites-requests-quotes.js`
+- `pages/client/messages.js`
+- `pages/client/orders-payments.js`
+- `pages/client/profile.js`
+
+### Professionnel
+
+- `pages/professional/dashboard.js`
+- `pages/professional/notifications.js`
+- `pages/professional/orders-revenues.js`
+- `pages/professional/revenues.js`
+- `pages/professional/reviews-messages.js`
+- `pages/professional/services.js`
+- `pages/professional/wallet-withdrawals.js`
+
+### Public
+
+- `pages/public/home.js`
+- `pages/public/professionals.js`
+- `pages/public/search.js`
+
+## 6. Familles de routes Web identifiées
+
+Le fichier `routes/web.php` définit les familles suivantes :
+
+- **Public :** accueil, recherche, détail d'un service, annuaire et profil professionnel, image de réalisation.
+- **Authentification :** inscription, connexion, déconnexion, récupération/réinitialisation du mot de passe, vérification d'e-mail.
+- **Client :** dashboard, catalogue de services, favoris, demandes et pièces jointes, devis et contre-offres, commandes, planning et livraison, paiements/reçus/remboursements, profil/photo/mot de passe/changement d'e-mail, adresses, notifications/préférences, conversations/messages et avis.
+- **Professionnel :** dashboard, demandes, devis, profil et compétences, documents, services et réalisations, commandes/planning/livraison, revenus/export/détail, portefeuille, retraits et support lié aux retraits, avis/réponses, conversations/messages, notifications/préférences.
+- **Admin :** les routes admin sont réparties entre `routes/web.php` (notamment dashboard/RBAC/retraits/auth) et `routes/admin.php` (utilisateurs, rôles/permissions, professionnels/vérification, catégories, services/réalisations, demandes, commandes, paiements, support, audit, analytics, rapports/modération).
+
+Les noms et URL complets doivent être consultés dans les fichiers de routes, car les préfixes et noms peuvent être hérités des groupes. Cette note ne remplace pas l'analyse détaillée route → contrôleur → vue.
+
+## 7. Configuration des assets et premier point à vérifier
+
+- `package.json` déclare les scripts `npm run build` et `npm run dev`, Vite, le plugin Laravel, Tailwind CSS v4 et Chart.js.
+- `vite.config.js` déclare 58 entrées de ressources après enregistrement des feuilles dédiées aux retraits admin et aux formulaires partagés de demandes/devis professionnels.
+- Le layout racine charge `resources/css/app.css` et `resources/js/app.js`, sauf en environnement de test.
+- Les pages utilisent aussi des appels `@vite` spécifiques via la pile `head`.
+
+### Point à vérifier avant toute refonte
+
+Les vues `resources/views/admin/withdrawals/index.blade.php` et `show.blade.php` appellent directement :
+
+```php
+@vite(['resources/css/pages/admin/withdrawals.css'])
+```
+
+Or `resources/css/pages/admin/withdrawals.css` n'apparaît pas dans la liste des entrées de `vite.config.js` et n'est pas importé par `resources/css/app.css` dans l'état audité. Cela peut provoquer une entrée absente du manifeste de production. Il faudra confirmer le résultat par le build CI et corriger ce point sur la branche de travail si nécessaire.
+
+Les fichiers communs non listés comme entrées individuelles ne sont pas automatiquement un problème : plusieurs sont importés par `app.css` ou `app.js`. Toute correction sera basée sur la chaîne d'import réelle, pas uniquement sur une comparaison de noms.
+
+## 8. Tests et CI repérés
+
+- Workflow : `.github/workflows/ci.yml`.
+- Job Laravel : installation Node/PHP, build Vite, validation Composer, suite PHPUnit et contrôle Pint ciblé sur les fichiers PHP modifiés.
+- Job MySQL : migrations fraîches, seeders et tests financiers/retraits sous MySQL.
+- Les tests sont organisés sous `tests/Feature`, `tests/Integration`, `tests/Support` et `tests/Unit`.
+- Des tests Front-End et de parcours Web existent notamment pour les composants partagés, l'authentification, les pages publiques, client, professionnel, retraits et administration.
+
+L'existence d'un workflow ne prouve pas qu'il a réussi sur le commit audité. Le statut réel du commit et les résultats CI doivent être consultés séparément avant de déclarer le projet validé.
+
+## 9. Principes de la refonte
+
+1. Le code métier et les contrats des vues sont préservés : routes, méthodes HTTP, CSRF, validation, variables Blade, autorisations et statuts.
+2. Les modifications se limitent au Front-End, sauf autorisation explicite distincte.
+3. Les composants communs sont améliorés en évitant les doublons.
+4. Chaque interface est reliée à une référence Figma pertinente, puis adaptée aux données réelles de PROXIWORK.
+5. Chaque groupe de changements est contrôlé par diff, build/tests disponibles et revue de PR.
+6. Aucune fusion dans la branche de référence ne se fera sans autorisation explicite.
+
+## 10. Clôture de l'inventaire initial et suite
+
+La cartographie initiale est suffisante pour démarrer les fondations communes sans toucher aux contrats métier. Elle reste un document vivant : les associations route → contrôleur → vue → layout → CSS/JS seront précisées au fil de l'audit des pages et de la vérification des assets réellement chargés. Les changements applicatifs peuvent maintenant commencer dans la branche dédiée, avec un périmètre front-end contrôlé, un diff relu et des validations CI.
+
+
+## 11. Matrice initiale contrôleur Web → vue
+
+Cette matrice a été vérifiée dans les contrôleurs Web présents sur la branche de référence. Elle indique les vues rendues explicitement par les méthodes consultées ; les actions qui redirigent ou ne rendent pas de page HTML sont omises.
+
+### Public et authentification
+
+| Contrôleur | Vue rendue |
+|---|---|
+| `HomePageController` | `public.home-dynamic` |
+| `PublicSearchController` | `public.search-services`, `public.services.show`, `public.professionals.index`, `public.professionals.show` |
+| `LoginController` | `auth.login` |
+| `RegisterController` | `auth.register` |
+| `PasswordResetLinkController` | `auth.passwords.email` |
+| `NewPasswordController` | `auth.passwords.reset` |
+| `EmailVerificationController` | `auth.verify-email` |
+
+### Client
+
+| Contrôleur | Vues rendues |
+|---|---|
+| `Client DashboardController` | `client.dashboard` |
+| `ServiceCatalogController` | `client.services.index` |
+| `FavoriteController` | `client.favorites.index` |
+| `ServiceRequestController` | `client.requests.index`, `client.requests.create`, `client.requests.show`, `client.requests.edit` |
+| `QuotationController` | `client.quotes.index`, `client.quotes.show` |
+| `OrderController` | `client.orders.index`, `client.orders.show`, `client.orders.payment` |
+| `PaymentController` | `client.payments.index`, `client.payments.show`, `client.payments.receipt` |
+| `ProfileController` | `client.profile.show`, `client.profile.edit`, `client.profile.email-change-confirmation` |
+| `AddressController` | `client.addresses.index`, `client.addresses.form` |
+| `NotificationController` | `client.notifications.index` |
+| `MessageController` | `client.messages.index`, `client.messages.show` |
+| `ReviewController` | Actions de soumission/signalement, redirection vers l'écran d'origine |
+
+### Professionnel
+
+| Contrôleur | Vues rendues |
+|---|---|
+| `Professional DashboardController` | `professional.dashboard` |
+| `DocumentController` | `professional.documents.index` |
+| `ProfileController` | `professional.profile`, `professional.profile-edit`, `professional.services.index`, `professional.services.form`, `professional.services.preview` |
+| `ServiceRequestController` | `professional.requests.index`, `professional.requests.show` |
+| `QuotationController` | `professional.quotes.index`, `professional.quotes.show`, `professional.quotes.create` |
+| `OrderController` | `professional.orders.index`, `professional.orders.show` |
+| `RevenueController` | `professional.revenues.index`, `professional.revenues.show` |
+| `WalletController` | `professional.wallet.index` |
+| `WithdrawalController` | `professional.withdrawals.index`, `professional.withdrawals.create`, `professional.withdrawals.show` |
+| `ReviewController` | `professional.reviews.index` |
+| `MessageController` | `professional.messages.index`, `professional.messages.show` |
+| `NotificationController` | `professional.notifications.index` |
+
+### Administration
+
+| Contrôleur | Vues rendues |
+|---|---|
+| `AdminAuthController` | `admin.auth.login` |
+| `Admin DashboardController` | `admin.dashboard` |
+| `AnalyticsController` | `admin.analytics.index` |
+| `AuditController` | `admin.audit.index`, `admin.audit.show` |
+| `CategoryController` | `admin.categories.index`, `admin.categories.create`, `admin.categories.show`, `admin.categories.edit` |
+| `OrderController` | `admin.orders.index`, `admin.orders.show` |
+| `PaymentController` | `admin.payments.index`, `admin.payments.show` |
+| `PermissionController` | `admin.permissions.index`, `admin.permissions.show` |
+| `ProfessionalController` | `admin.professionals.index`, `admin.professionals.show` |
+| `ReportController` | `admin.reports.index`, `admin.reports.show` |
+| `RoleController` | `admin.roles.index`, `admin.roles.form`, `admin.roles.show` |
+| `ServiceController` | `admin.services.index`, `admin.services.show` |
+| `ServiceRequestController` | `admin.service-requests.index`, `admin.service-requests.show` |
+| `SupportController` | `admin.support.index`, `admin.support.show` |
+| `UserController` | `admin.users.index`, `admin.users.show` |
+| `VerificationController` | `admin.verification.index`, réutilise `admin.professionals.show` pour le détail |
+| `WithdrawalController` | `admin.withdrawals.index`, `admin.withdrawals.show` |
+| `RbacDashboardController` | `admin.rbac.index` |
+
+Les contrôleurs de téléchargement de fichiers/réalisations et les actions de formulaire peuvent retourner des fichiers, des réponses HTTP ou des redirections plutôt qu'une vue.
+
+## 12. Vérifications complémentaires à effectuer avant la première refonte
+
+Ces points sont des constats d'audit à confirmer, pas des corrections déjà effectuées :
+
+1. **Entrée Vite des retraits admin :** les deux vues de retrait demandent directement `resources/css/pages/admin/withdrawals.css`, mais cette ressource ne figure pas dans les entrées Vite et n'est pas importée par `resources/css/app.css`. Confirmer par le build de production/CI.
+2. **Navigation publique Services :** `layouts.public` conditionne le lien Services à l'existence de `public.services.index`. Dans les routes Web examinées, le détail public `public.services.show` existe, mais aucune route `public.services.index` n'a été trouvée. Vérifier si le lien est volontairement masqué ou si la navigation doit pointer vers une route existante.
+3. **Vues publiques candidates à un usage ancien :** `public.home.blade.php` et `public.search.blade.php` sont présentes dans l'arborescence, alors que le contrôleur consulté rend respectivement `public.home-dynamic` et `public.search-services`. Vérifier les usages via includes, tests et routes avant de les déclarer obsolètes ; ne rien supprimer sur la seule base du nom.
+4. **Correspondance CSS/JS par page :** les feuilles et scripts sont partiellement regroupés par domaine (ex. commandes/paiements, demandes/devis, avis/messages). La cartographie doit suivre les appels `@vite`, `@push('head')`, `@push('scripts')`, `@stack` et les imports réels, plutôt que supposer une relation 1:1 entre chaque vue et un fichier.
+5. **Tests et CI :** le workflow déclenché par le commit documentaire est encore en cours au moment du premier contrôle. Son résultat final sera vérifié séparément.
+
+## 13. État d'avancement de cette phase
+
+- [x] Branche de travail créée à partir du commit exact de `audit/current-project-baseline`.
+- [x] Inventaire des dossiers, vues, layouts, composants, CSS et JavaScript.
+- [x] Première cartographie contrôleurs Web → vues.
+- [x] Lecture de la configuration Vite, de `package.json` et du workflow CI.
+- [ ] Cartographie finale route nommée → contrôleur/action → vue → layout → ressources CSS/JS.
+- [ ] Vérification du statut CI du commit de documentation.
+- [ ] Revue des éventuelles vues/ressources orphelines sans les supprimer automatiquement.
+
+Aucune route, aucun contrôleur, modèle, migration ou fichier applicatif n'a été modifié dans cette phase.
+
+
+## 12. Phase 1 — Fondations CSS : design tokens
+
+**Première livraison effectuée sur la branche de travail :** `resources/css/common/variables.css`.
+
+Le fichier conserve les noms de variables déjà utilisés par les feuilles CSS existantes et étend le système avec des tokens sémantiques regroupés par responsabilité :
+
+- **Couleurs de marque et d'interaction :** primaire, hover, active, teintes douces et bordures de marque.
+- **Surfaces et contenu :** fond de page, surface, surface élevée, surface au survol, bordures, textes principaux/secondaires/inversés, liens et overlay.
+- **États métier :** succès, avertissement, erreur et information, chacun avec teinte douce et bordure.
+- **Typographie :** famille Poppins avec fallbacks système, tailles jusqu'au display fluide, graisses, interlignes et approche typographique.
+- **Espacements :** échelle régulière basée sur un rythme de 4 px, en conservant les variables historiques.
+- **Formes et élévation :** rayons, ombres progressives, ombre de focus et ombre de survol de carte.
+- **Mise en page :** largeurs de conteneurs et de lecture, largeur de sidebar, hauteur de topbar et hauteurs de contrôles.
+- **Mouvement :** durées, courbes d'accélération et transitions sémantiques.
+- **Superposition :** échelle de z-index documentée pour les en-têtes, sidebars, overlays, menus, modales, toasts et tooltips.
+- **Thème sombre explicite :** valeurs de couleurs dédiées lorsque l'application applique `data-theme="dark"`; aucun changement automatique du thème utilisateur n'est imposé.
+- **Accessibilité du mouvement :** les tokens de transition sont neutralisés lorsque le système demande une réduction des animations.
+
+### Garanties de compatibilité
+
+- Aucun contrôleur, route, nom de variable Blade, endpoint ou contrat métier n'a été modifié.
+- Aucun nouveau framework ni dépendance npm n'a été ajouté.
+- Les anciens tokens `--color-primary`, `--space-*`, `--transition-*`, `--radius-*` et autres restent disponibles.
+- Les points d'entrée Vite ne sont pas modifiés dans cette livraison.
+- Les règles spécifiques aux pages ne sont pas remplacées par des styles génériques.
+
+### Validation
+
+- Le commit initial des tokens est `37b15d27d3cac3a82365e4830ffd54a2bcfebc6e`. Un correctif complémentaire (`06fbf9f6a873ab264874df48054a1e6616d94eb8`) applique aussi la préférence de réduction de mouvement aux tokens de durée.
+- Le workflow GitHub Actions du commit initial est consultable ici : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734145918. Le résultat du commit le plus récent doit être vérifié séparément.
+- Le statut doit être considéré comme **en cours** tant que GitHub Actions n'a pas publié de conclusion. Le succès des commits documentaires précédents ne constitue pas une validation de ce commit CSS.
+
+### Suite de Phase 1
+
+1. Vérifier le résultat CI du commit CSS.
+2. Examiner le reset et la typographie pour repérer les conflits de cascade, de focus et de couleurs avant de les modifier.
+3. Consolider les primitives partagées (boutons, champs, cartes, états) en réutilisant les tokens, sans réécrire les composants à l'aveugle.
+4. Auditer le JavaScript commun pour les interactions clavier, menu responsive, fermeture Escape, focus et nettoyage des événements.
+5. Construire ensuite les composants et pages par familles, en vérifiant chaque diff et le comportement existant.
+
+
+## 14. Phase 2 — Structures communes et navigation responsive
+
+**Livraison en cours sur `feature/frontend-redesign` : layouts partagés, sidebar, header et pied de page.**
+
+### Sidebar des espaces client, professionnel et administration
+
+- Sur grand écran, la navigation est compacte par défaut : rail d'icônes, avec largeur réservée au contenu.
+- Au survol ou au focus clavier, la sidebar s'élargit avec une transition courte et affiche les libellés, les sections et les actions de compte.
+- Les liens actifs conservent leur état visuel ; le compteur de notifications client reste visible dans le rail compact.
+- La sidebar développée se superpose au contenu au lieu de déplacer brutalement la page.
+- Sur tablette et mobile, le comportement hors-canvas existant est conservé : bouton hamburger, panneau latéral, bouton de fermeture et arrière-plan assombri.
+- Le JavaScript commun synchronise désormais l'état du voile mobile avec l'état réel du bouton et son attribut accessible `aria-hidden`.
+
+### Header partagé
+
+- Hiérarchie renforcée entre l'espace courant, le titre et les actions de page.
+- Espacements et taille des contrôles ajustés pour les largeurs intermédiaires et mobiles.
+- Identité du compte présentée dans une surface discrète, avec réduction de l'information secondaire sur petit écran.
+- Les actions propres à chaque page restent pilotées par le slot Blade existant : aucune fonctionnalité ou route fictive n'est ajoutée.
+
+### Pied de page public
+
+- Réorganisation en trois zones : identité et description, liens de navigation réellement disponibles, mentions de copyright.
+- Les liens sont conditionnés aux routes Laravel existantes ; le pied de page s'empile proprement sur mobile/tablette.
+- Aucune route métier ni logique de contrôleur n'a été modifiée.
+
+### Fichiers touchés
+
+- `resources/css/common/layouts.css` : rail d'icônes extensible, transitions, header et pied de page responsives.
+- `resources/views/layouts/public.blade.php` : structure du pied de page et navigation conditionnelle.
+- `resources/js/common/app.js` : synchronisation du voile de la sidebar mobile et de son état accessible.
+
+### Contrôles et limites
+
+- Le workflow CI a été déclenché pour le commit `45cee40d8003be7dab36fb20775382a2ecd06c00` ; au moment de cette mise à jour, il était encore en attente. Suivre le résultat réel ici : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38735832646.
+- Les deux contrôles CI de la fondation reset/typographie ont terminé avec succès : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734764897 et https://github.com/baraka-cmd/PROXIWORK/actions/runs/38734769970.
+- La validation visuelle dans un navigateur à plusieurs largeurs reste à faire ; le succès CI ne remplace pas ce contrôle.
+- Aucun merge ou pull request n'a été effectué.
+
+### Suite
+
+1. Attendre et examiner le résultat CI du dernier commit.
+2. Contrôler les règles de navigation et les interactions clavier dans le script commun, sans réécrire les comportements déjà corrects.
+3. Poursuivre la consolidation des primitives partagées, puis vérifier les pages par familles avec les routes, vues et assets existants.
+
+## 15. Phase 3 — Primitives UI partagées (livraison initiale)
+
+Cette phase prépare une base cohérente pour les boutons, champs, cartes, badges, alertes, tableaux, pagination et dialogues de confirmation. Elle reste volontairement progressive : les composants existants sont conservés, et les écrans seront migrés/contrôlés par familles au lieu d'une réécriture massive.
+
+### Boutons, champs, cartes et badges
+
+- États de focus clavier visibles et cohérents, états hover/active/disabled conservés.
+- États de chargement, champs en lecture seule et messages d'erreur rendus plus lisibles.
+- Cartes interactives : indication visuelle aussi lorsque le focus clavier se trouve dans la carte.
+- Badges : meilleure résistance aux libellés longs et aux petits écrans.
+- Respect renforcé de `prefers-reduced-motion` : les animations de spinners ne tournent plus pour les utilisateurs qui demandent une réduction des animations.
+
+### Tableaux et défilement horizontal
+
+- Ajout d'une primitive `.table-responsive` avec surface, bordure, coins arrondis, scrollbar visible et interaction tactile.
+- Adaptation des conteneurs existants `.table-wrap`, `.admin-table-wrap` et `.finance-table-wrap` pour que les tableaux trop larges défilent à l'intérieur de leur propre zone plutôt que de provoquer un débordement de la page.
+- Largeur minimale contrôlée sur les tableaux de données pour préserver la lisibilité des colonnes ; la zone reste défilable horizontalement sur mobile.
+- Ajout de styles réutilisables de pagination (`.pagination`, `.pagination-list`) et d'une vue de pagination Laravel personnalisée dans `resources/views/vendor/pagination/tailwind.blade.php` : liens précédent/suivant, numéros, ellipses, état de page courante, résumé du nombre de résultats et libellés accessibles. Les paginateurs `simplePaginate()` et les éventuels composants de pagination entièrement spécifiques aux pages doivent encore être repérés et vérifiés individuellement.
+
+### Dialogues de confirmation
+
+- Entrée visuelle discrète du fond et du dialogue, avec variante de type feuille sur petits écrans.
+- Contrastes et focus clavier renforcés ; les animations sont désactivées si `prefers-reduced-motion` est actif.
+- Le composant Blade et son contrôleur JavaScript existants sont conservés ; pas de nouvelle logique métier.
+
+### Fichiers modifiés
+
+- `resources/css/common/components.css`
+- `resources/css/common/ux-states.css`
+- `resources/css/common/confirmation.css`
+
+### Validation restante
+
+- Les modifications CSS sont soumises au workflow CI de la branche ; consulter le résultat le plus récent avant de considérer la livraison validée.
+- La CI valide compilation/tests, mais ne démontre pas à elle seule le rendu visuel de chaque vue. Le contrôle multi-écran réel et l'harmonisation des paginations propres aux différentes familles de pages restent nécessaires.
+- Aucun contrôleur, route, modèle, calcul métier ou règle d'autorisation n'a été modifié dans cette phase.
+
+
+### Dernier contrôle CI de la phase 3
+
+- Les workflows des commits d'interaction des composants, des tableaux/pagination, de la confirmation et de l'application du défilement horizontal aux conteneurs existants sont terminés avec succès :
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737428003
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737438033
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737647772
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38737938874
+- Les derniers ajustements de lisibilité des tableaux ont déclenché de nouveaux workflows ; vérifier leurs résultats avant validation finale :
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38738221879
+  - https://github.com/baraka-cmd/PROXIWORK/actions/runs/38738272207
+- L'audit statique des feuilles CSS partagées ne révèle aucune référence à un token CSS manquant. Cela ne remplace pas le contrôle visuel dans le navigateur.
+
+
+## 16. Phase 3.1 — Audit final de l'organisation CSS (A–E)
+
+### A. Design tokens globaux
+
+- Palette de marque et couleurs sémantiques, surfaces, bordures, états, typographie, rythme d'espacement, rayons, ombres, dimensions de conteneurs/contrôles, transitions et couches z-index centralisés dans `resources/css/common/variables.css`.
+- Alias historiques conservés pour limiter les régressions pendant la migration.
+- Palette sombre uniquement opt-in via `data-theme="dark"` ; aucune activation automatique.
+- Respect de `prefers-reduced-motion` dans les fondations et les composants.
+
+### B. Structures communes
+
+- `resources/css/common/layouts.css` centralise les structures publiques, d'authentification et de dashboard.
+- Sidebar dashboard en rail d'icônes sur desktop, extensible au survol/focus clavier ; navigation hors-canvas et bouton hamburger sur petits écrans.
+- Header et pied de page publics adaptés aux tailles d'écran.
+- JavaScript commun synchronise l'état du voile de la sidebar mobile avec l'état accessible du bouton.
+
+### C. Composants réutilisables
+
+- Primitives partagées pour boutons, contrôles, cartes, badges, alertes, états d'attente/erreur/vide, confirmation, tableaux et pagination.
+- La pagination Laravel partagée a une présentation cohérente et conserve les URL générées par le paginator.
+- Les tableaux défilent horizontalement dans leur conteneur ; les styles des anciens wrappers client/professionnel/admin sont harmonisés avec la primitive commune.
+- Les styles de tableau ont été consolidés pour éviter des blocs contradictoires.
+
+### D. Adaptation responsive
+
+- Audit statique des 34 feuilles CSS sous `resources/css/pages/` : chacune contient au moins une règle responsive `@media`.
+- Points de rupture communs couvrant petits mobiles, mobiles/tablettes et desktop ; conteneurs et grilles partagés utilisent des largeurs minimales contrôlées et des colonnes fluides.
+- Les tableaux larges gardent une largeur utile et défilent dans leur zone ; les actions et formulaires s'empilent sur petits écrans.
+- Les animations/transitions sont réduites ou supprimées selon `prefers-reduced-motion`.
+- Cet audit source n'est pas un remplacement du contrôle visuel réel sur appareils ou émulateurs.
+
+### E. Styles propres aux pages
+
+- Suppression de l'import global de `pages/professional/requests-quotes.css` depuis `resources/css/app.css`.
+- Enregistrement explicite de cette feuille dans Vite et chargement depuis les cinq vues professionnelles concernées (demandes/devis), pour que les styles partagés de ces écrans ne s'appliquent plus indistinctement à toutes les pages.
+- Correction de la règle d'impression de `pages/client/orders-payments.css` : les règles de reçu sont désormais conditionnées à la présence d'un reçu, au lieu de masquer la navigation/le pied de page lors de l'impression d'autres pages.
+- Ajout de `pages/admin/withdrawals.css` comme entrée Vite, car les vues admin l'appellent directement via `@vite` ; cette feuille n'était pas enregistrée dans la configuration d'entrée.
+- Audit des 34 feuilles de pages : aucune autre règle générique globale n'a été repérée par le contrôle statique ciblé. Une revue visuelle des écrans reste requise pour détecter les collisions qui ne se voient pas dans les sélecteurs.
+
+### Contrôles finaux observés
+
+- Consolidation responsive des tableaux : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38740176084
+- Enregistrement de la feuille des retraits admin dans Vite : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38740272773
+- Isolation de la feuille demandes/devis professionnels : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38739694030
+- Isolation des règles d'impression du reçu : CI réussi — https://github.com/baraka-cmd/PROXIWORK/actions/runs/38740085153
+- Contrôle statique des fichiers CSS modifiés : accolades équilibrées ; aucune référence à un token CSS manquant détectée dans les feuilles communes auditées.
+- Aucun contrôleur, modèle, calcul financier, route métier ou règle d'autorisation n'a été modifié dans ces changements.
+
+### État de clôture
+
+**Implémentation de l'organisation CSS 3.1 : terminée.** La validation automatisée des derniers commits a réussi. Le contrôle visuel multi-écran dans un navigateur n'a pas été exécuté dans cet environnement et ne doit pas être présenté comme réalisé. Avant d'ouvrir la phase 3.2, il faudra effectuer cette dernière vérification visuelle sur les vues principales client, professionnel et admin.
+
+
+## 17. Phase 3.2 — Identité visuelle proposée et premier test
+
+### Palette de travail (hypothèse, non figée)
+
+| Rôle | Valeur | Usage attendu |
+|---|---|---|
+| Primaire | `#0F766E` | Actions principales, liens, focus, repères de marque |
+| Bleu nuit | `#0F172A` | Titres, texte fort, navigation et surfaces sombres |
+| Fond | `#F8FAFC` | Fond global clair des pages |
+| Accent | `#F59E0B` | Mise en évidence, indicateurs, détails et actions secondaires |
+| Succès | `#15803D` | Succès et opérations confirmées |
+| Avertissement | `#92400E` | Avertissements lisibles sur fond clair |
+| Erreur | `#B91C1C` | Erreurs et actions destructives |
+| Information | `#0369A1` | Messages informatifs |
+
+Les quatre couleurs de base demandées sont maintenant appliquées aux tokens globaux ; le fond global est exactement `#F8FAFC`. La palette reste une proposition technique à confirmer après les premières captures/maquettes réelles.
+
+### Contrastes calculés pour les principales combinaisons
+
+Rapports de contraste calculés à partir des valeurs sRGB, selon la formule WCAG :
+
+| Combinaison | Contraste approximatif | Décision d'usage |
+|---|---:|---|
+| Primaire `#0F766E` sur blanc | 5,47:1 | Convient au texte courant selon WCAG AA |
+| Bleu nuit `#0F172A` sur blanc | 17,85:1 | Excellent contraste pour texte et titres |
+| Texte secondaire `#64748B` sur blanc | 4,76:1 | Convient au texte courant selon WCAG AA |
+| Accent `#F59E0B` sur blanc | 2,15:1 | **Ne pas utiliser seul pour du texte courant ou un petit pictogramme informatif** |
+| Bleu nuit `#172033` sur accent `#F59E0B` | 7,57:1 | Combinaison privilégiée pour le contenu posé sur l'accent |
+| Succès `#15803D` sur blanc | 5,02:1 | Convient au texte courant selon WCAG AA |
+| Avertissement `#92400E` sur blanc | 7,09:1 | Convient au texte courant selon WCAG AA |
+| Erreur `#B91C1C` sur blanc | 6,47:1 | Convient au texte courant selon WCAG AA |
+| Information `#0369A1` sur blanc | 5,93:1 | Convient au texte courant selon WCAG AA |
+
+Ces mesures portent sur les couleurs exactes citées, pas sur toutes les combinaisons possibles de la plateforme. Les états doivent également être distingués par leur libellé ou leur icône, pas uniquement par la couleur.
+
+### Écrans de référence utilisés pour le premier passage
+
+- **Dashboard client** — couleurs du panneau d'accueil, icônes, états favoris/avertissement, bordures et transitions migrés vers les tokens sémantiques.
+- **Page publique d'accueil dynamique** — accents de marque, mini-cartes, CTA et texte clair des panneaux sombres raccordés aux tokens ; les styles restent confinés à `pages/public/home.css`.
+- **Formulaires connexion et inscription** — panneau latéral, texte secondaire sur fond sombre et éléments de confiance alignés sur les tokens, sans changer les champs, routes, messages de validation ou soumission des formulaires.
+
+### Fichiers concernés
+
+- `resources/css/common/variables.css` — source de vérité des couleurs et ajout du token `--color-text-on-dark-muted`.
+- `resources/css/pages/client/dashboard.css` — couleurs, rayons, espacements et transitions partagés utilisés au lieu de valeurs répétées.
+- `resources/css/pages/public/home.css` — application des couleurs sémantiques de la palette.
+- `resources/css/pages/auth/login.css` et `register.css` — panneaux sombres et textes secondaires alignés sur les tokens.
+
+### Limites et critères de validation
+
+- Le premier passage CSS est implémenté, mais aucun navigateur ni capture d'écran automatisée n'a été utilisé dans cette exécution ; il ne faut pas présenter la validation visuelle comme faite.
+- Le CI du commit corrigeant la syntaxe des panneaux de connexion/inscription a réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38742207732. Le workflow de cette mise à jour documentaire reste en cours au moment de son enregistrement.
+- Après ce contrôle, les premières maquettes/captures sur dashboard, accueil public et connexion/inscription permettront de décider si les intensités, gradients et surfaces de la palette doivent être ajustés avant une généralisation aux autres pages.
+
+
+## 18. Phase 3.3 — Fondations JavaScript : sécurité et expérience utilisateur
+
+### Audit ciblé
+
+L’audit a porté sur les points d’entrée et interactions JavaScript déjà présents : navigation mobile, confirmation partagée, authentification, recherche publique, profil/photo, commandes/paiements, retraits professionnels et carrousel de la page d’accueil. L’objectif est de corriger les écarts sans introduire de nouvelle bibliothèque.
+
+### Corrections appliquées sur la branche de travail
+
+- **DOM et contenu dynamique :** les suggestions de recherche et le feedback de correspondance des mots de passe sont construits avec des nœuds DOM et du texte, pas avec du HTML interpolé. Les libellés de chargement d’actions sont également ajoutés comme texte.
+- **Historique de recherche :** les accès en lecture/écriture/suppression à `localStorage` sont tolérants aux erreurs de stockage. L’historique reste facultatif et ne doit pas empêcher une recherche.
+- **Formulaires :** garde contre les soumissions répétées sur connexion, inscription, profil, commandes/paiements et création de retrait. Les boutons indiquent l’état de chargement avec `aria-busy`. La validation côté client reste un retour UX seulement.
+- **Confirmations :** les formulaires du profil réutilisent la boîte de confirmation partagée plutôt que d’ajouter un second `window.confirm`. Les actions serveur restent responsables de l’autorisation et de la validation.
+- **Prévisualisation d’image :** le profil vérifie côté navigateur le type MIME déclaré, la taille et les dimensions avant d’afficher l’aperçu; les URL d’objet sont révoquées lors du remplacement ou de l’échec. Un message accessible annonce les erreurs. Ces vérifications ne prouvent pas qu’un fichier est sûr : la validation Laravel reste obligatoire.
+- **Accessibilité et mouvement :** le carrousel réévalue `prefers-reduced-motion` si la préférence change pendant que la page reste ouverte. La navigation mobile et la boîte de confirmation existantes conservent leurs mécanismes de clavier et de focus.
+
+### Limites et vérifications
+
+- Aucun nouvel outil ou paquet JavaScript n’a été ajouté.
+- Aucun contrôleur, modèle, route, règle métier, calcul financier ou mécanisme CSRF serveur n’a été modifié.
+- Les changements d’interface ne constituent pas une garantie d’idempotence : les opérations financières et sensibles doivent continuer à être protégées côté serveur.
+- Les workflows GitHub Actions doivent être consultés pour le statut réel du build et des tests après ces commits. Une compilation réussie ne remplace pas un essai manuel des parcours dans un navigateur.
+- **À vérifier manuellement avant fusion :** menus mobile au clavier et au tactile, focus/restauration de focus de la modale, refus/acceptation d’une action destructive, aperçu d’image valide/invalide et trop grande, soumission répétée, comportement avec stockage désactivé, et préférence de réduction des animations. Aucun test visuel navigateur n’est déclaré comme effectué ici.
+
+## 19. Phase 3.4 — Fondations Blade : cohérence, sécurité et réutilisation
+
+### Périmètre vérifié en lecture seule avant correction
+
+L'audit ciblé de la branche `feature/frontend-redesign` a examiné les sept layouts (`app`, `public`, `auth`, `dashboard`, `client`, `professional`, `admin`), les composants Blade partagés pour boutons, champs, alertes, badges, cartes, confirmation et états UX, ainsi que des formulaires client et professionnel, les écrans de retraits administratifs, `routes/web.php`, `vite.config.js` et les tests des composants partagés.
+
+### Constat et correction minimale appliquée
+
+- **Anciennes valeurs d'un champ select :** le composant `resources/views/components/select.blade.php` comparait les options uniquement à la propriété `value`. Après un échec de validation, il pouvait donc réafficher la valeur métier initiale plutôt que la valeur saisie par l'utilisateur. Le composant utilise maintenant `old($name, $value)` : l'entrée de la session de validation est prioritaire, et la valeur fournie par la vue reste le repli normal.
+- **Régression couverte :** `tests/Feature/Frontend/SharedComponentsTest.php` contient désormais un test vérifiant que la valeur précédente sélectionnée prime sur la valeur initiale après une erreur de validation.
+- **Échappement :** les composants examinés affichent les libellés, messages et valeurs dynamiques avec les doubles accolades Blade. Aucune nécessité d'introduire `{!! !!}` n'a été identifiée dans ce correctif.
+- **Formulaires :** les formulaires examinés utilisent les jetons CSRF et les méthodes HTTP appropriées là où ils sont requis. Ces constats ciblés ne remplacent pas un audit exhaustif de toutes les vues et actions.
+- **Assets Vite :** la branche de travail déclare déjà `resources/css/pages/admin/withdrawals.css` dans les entrées de `vite.config.js`, ce qui correspond aux appels `@vite` des vues de retraits administratifs. La note historique de l'inventaire initial décrivait l'état de la référence auditée et ne doit pas être interprétée comme un défaut confirmé dans l'état actuel de cette branche.
+- **Réutilisation :** les layouts distincts et les composants partagés existants ont été conservés ; aucun deuxième système de boutons, de confirmation ou d'états n'a été ajouté.
+
+### Points à suivre dans les prochaines passes
+
+- Les layouts contiennent encore plusieurs liens de navigation fondés sur `url('/…')`. Il faut les migrer vers les routes nommées uniquement après vérification des noms, paramètres, middleware et destinations effectives, afin d'éviter de casser une navigation existante.
+- Le layout racine charge les feuilles Font Awesome du CDN et du chemin local. Il faut vérifier la version et la couverture d'icônes des deux sources avant de supprimer l'une d'elles ; aucun retrait non vérifié n'a été fait dans cette passe.
+- L'audit des vues reste ciblé et n'établit pas que chaque vue reçoit toujours toutes ses données dans chaque état métier. Les contrôleurs, politiques et contrats de données doivent être associés progressivement à chaque page avant sa refonte visuelle.
+- Les contrôles responsive et visuels nécessitent un navigateur réel ou un environnement de test navigateur. Ils ne sont pas considérés comme exécutés sur la seule base de la revue du code.
+
+### Vérifications à exécuter
+
+Le workflow CI déclenché par les commits du composant et du test doit être consulté pour confirmer le résultat effectif de la suite de tests et du build. Les tests de composants ne remplacent pas les vérifications manuelles de clavier, lecteur d'écran, affichage mobile et parcours métier. Aucun changement n'a été fusionné dans la branche de référence.
+

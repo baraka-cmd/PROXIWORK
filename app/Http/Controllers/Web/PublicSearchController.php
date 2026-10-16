@@ -9,6 +9,7 @@ use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
+use App\Models\ServiceRealization;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
@@ -70,6 +71,29 @@ class PublicSearchController
     public function professional(ProfessionalProfile $professional): View
     {
         $professional = $this->searchService->findVisible($professional);
+
+        $reviews = $professional->reviews()
+            ->where('status', 'published')
+            ->with([
+                'response',
+                'order:id,service_request_id',
+                'order.serviceRequest:id,service_id',
+                'order.serviceRequest.service:id,title',
+            ])
+            ->latest('published_at')
+            ->paginate(6)
+            ->withQueryString();
+
+        $realizations = ServiceRealization::query()
+            ->whereIn('service_id', $professional->services->modelKeys())
+            ->where('status', ServiceRealization::STATUS_APPROVED)
+            ->where('participation_confirmed', true)
+            ->with('service')
+            ->latest('completed_at')
+            ->latest('id')
+            ->limit(12)
+            ->get();
+
         $executionModes = $professional->services
             ->map(fn ($service) => $service->execution_mode)
             ->filter()
@@ -77,7 +101,7 @@ class PublicSearchController
             ->map(fn ($mode) => $mode->label())
             ->values();
 
-        return view('public.professionals.show', compact('professional', 'executionModes'));
+        return view('public.professionals.show', compact('professional', 'executionModes', 'reviews', 'realizations'));
     }
 
     public function professionals(ProfessionalSearchRequest $request): View
