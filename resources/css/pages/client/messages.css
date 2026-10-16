@@ -839,3 +839,25 @@
 @media (prefers-reduced-motion: reduce) {
     .conversation-row, .message-thread { transition: none; scroll-behavior: auto; }
 }
+
+
+.message-contact > div { min-width: 0; }
+.message-conversation-state {
+    display: inline-flex;
+    width: fit-content;
+    margin-top: .4rem;
+    padding: .2rem .5rem;
+    border: 1px solid var(--color-border, #d9dee7);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+    font-size: .72rem;
+    font-weight: 700;
+}
+.message-conversation-state--open {
+    border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border, #d9dee7));
+    color: var(--color-primary);
+}
+.message-conversation-state--blocked {
+    border-color: color-mix(in srgb, var(--color-danger, #b42318) 35%, var(--color-border, #d9dee7));
+    color: var(--color-danger, #b42318);
+}
