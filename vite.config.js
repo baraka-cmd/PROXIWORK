@@ -28,7 +28,7 @@ export default defineConfig({
                 'resources/css/pages/professional/requests-quotes.css',
                 'resources/css/pages/client/favorites-requests-quotes.css','resources/js/pages/client/favorites-requests-quotes.js',
                 'resources/css/pages/client/service-requests.css',
-                'resources/css/pages/client/favorites.css',
+                'resources/css/pages/client/favorites.css','resources/js/pages/client/favorites.js',
                 'resources/css/pages/client/orders-payments.css','resources/js/pages/client/orders-payments.js',
                 'resources/css/pages/client/profile.css','resources/js/pages/client/profile.js','resources/css/pages/client/addresses.css','resources/js/pages/client/addresses.js',
                 'resources/css/pages/client/notifications.css','resources/css/pages/client/messages.css','resources/js/pages/client/messages.js',
