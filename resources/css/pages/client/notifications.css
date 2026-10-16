@@ -129,3 +129,29 @@
         transition: none;
     }
 }
+
+
+.notification-active-filters,
+.messages-active-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .45rem;
+    color: var(--color-text-muted);
+    font-size: .8rem;
+}
+.notification-active-filters > strong,
+.messages-active-filters > strong {
+    color: var(--color-text, #0f172a);
+    margin-right: .2rem;
+}
+.notification-active-filters > span,
+.messages-active-filters > span {
+    display: inline-flex;
+    max-width: 100%;
+    padding: .25rem .55rem;
+    border: 1px solid var(--color-border, #d9dee7);
+    border-radius: 999px;
+    background: var(--color-surface, #fff);
+    overflow-wrap: anywhere;
+}
