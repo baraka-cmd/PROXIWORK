@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
 @section('title', 'Professionnels — PROXIWORK')
-@section('meta_description', 'Découvrez les professionnels présents sur PROXIWORK et filtrez les profils selon vos besoins.')
+@section('meta_description', 'Trouvez un professionnel vérifié selon votre métier, votre budget et votre localisation.')
 
 @push('head')
     @unless (app()->environment('testing'))
@@ -16,13 +16,14 @@
 @endpush
 
 @section('content')
-    <section class="directory-page" data-directory-page>
+    <section class="directory-page directory-page--professionals" data-directory-page>
         <div class="page-container">
             <header class="directory-section-header">
                 <div>
                     <span class="eyebrow">RÉSEAU PROXIWORK</span>
-                    <h1>Professionnels</h1>
-                    <p>Explorez des professionnels proposant des services publiés et visibles sur la plateforme.</p>
+                    <h1>Trouvez le bon professionnel pour votre projet</h1>
+                    <p>Comparez les spécialités, les compétences, les avis et les tarifs indicatifs de professionnels vérifiés sur PROXIWORK.</p>
+                    <p class="directory-section-header__trust"><i class="fa-solid fa-shield-check" aria-hidden="true"></i> Des profils publics vérifiés, avec des informations issues de la plateforme.</p>
                 </div>
 
                 <a class="button button--primary" href="{{ route('public.search') }}">
@@ -33,7 +34,7 @@
 
             <div class="directory-layout">
                 <aside class="directory-sidebar" aria-label="Filtres professionnels">
-                    <button class="button button--ghost directory-mobile-filter-toggle" type="button" data-filters-open aria-controls="professionals-filters">
+                    <button class="button button--ghost directory-mobile-filter-toggle" type="button" data-filters-open aria-controls="professionals-filters" aria-expanded="false">
                         <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                         Filtres
                     </button>
@@ -50,7 +51,7 @@
                         </div>
 
                         <span class="directory-results__page">
-                            Page {{ $professionals->currentPage() }} / {{ $professionals->lastPage() }}
+                            Page {{ $professionals->currentPage() }} sur {{ max(1, $professionals->lastPage()) }}
                         </span>
                     </div>
 
@@ -59,7 +60,8 @@
                             <div>
                                 <div class="state-empty__icon"><i class="fa-solid fa-users-slash" aria-hidden="true"></i></div>
                                 <h2>Aucun professionnel disponible</h2>
-                                <p>Aucun profil ne correspond aux critères actuels. Modifiez les filtres pour élargir la recherche.</p>
+                                <p>Aucun profil ne correspond aux critères actuels. Essayez une autre spécialité, élargissez la localisation ou retirez quelques filtres.</p>
+                                <a class="button button--primary" href="{{ route('public.professionals.index') }}">Réinitialiser les filtres</a>
                             </div>
                         </div>
                     @else
