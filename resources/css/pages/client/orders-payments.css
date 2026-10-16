@@ -412,3 +412,19 @@
 @media(max-width:900px){.client-order-filter-form{grid-template-columns:repeat(2,minmax(0,1fr))}.client-order-statistics{grid-template-columns:repeat(2,minmax(0,1fr))}.client-order-card__actions{min-width:0}}
 @media(max-width:700px){.client-orders__intro{align-items:stretch}.client-orders__intro .btn{width:100%;justify-content:center}.client-order-statistics{gap:.6rem}.client-order-stat{padding:.8rem;gap:.3rem .55rem}.client-order-stat__icon{width:36px;height:36px}.client-order-filter-form{grid-template-columns:1fr}.client-order-search{grid-column:auto}.client-order-filter-actions{align-items:stretch;flex-direction:column}.client-order-filter-actions .btn{width:100%;justify-content:center}.client-order-card__actions{display:grid;grid-template-columns:1fr;width:100%}.client-order-card__actions .btn{width:100%;white-space:normal}.client-order-next-action{grid-template-columns:1fr}.client-order-next-action>.btn{width:100%;justify-content:center}.client-order-schedule__dates{grid-template-columns:1fr}.client-payment-checkout .payment-method-options{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.client-order-stat,.client-order-card{transition:none}.client-order-stat:hover{transform:none}}
+
+
+/* Active filters and explicit payment-environment states */
+.client-order-active-filters{display:grid;gap:.6rem}
+.client-order-active-filters>strong{font-size:.86rem}
+.client-order-active-filters>div{display:flex;flex-wrap:wrap;gap:.5rem}
+.client-order-active-filters a{display:inline-flex;align-items:center;gap:.55rem;max-width:100%;padding:.45rem .7rem;border:1px solid var(--color-border);border-radius:999px;background:var(--color-surface);color:var(--color-text);font-size:.82rem;text-decoration:none}
+.client-order-active-filters a span{overflow-wrap:anywhere}
+.client-order-active-filters a i{color:var(--color-primary)}
+.client-order-active-filters a:hover{border-color:var(--color-primary)}
+.client-order-active-filters a:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}
+.client-payment-checkout .payment-simulation-notice--unavailable{border-color:var(--color-border);background:var(--color-background)}
+.client-payment-checkout .payment-simulation-notice--unavailable>i{color:var(--color-text-muted)}
+.client-payment-checkout .payment-method-fieldset{display:grid;gap:.65rem;min-width:0;margin:0;padding:0;border:0}
+.client-payment-checkout .payment-method-fieldset legend{margin-bottom:.25rem;font-weight:700}
+@media(max-width:700px){.client-order-active-filters a{width:100%;justify-content:space-between;border-radius:var(--radius-md)}}
