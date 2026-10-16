@@ -27,6 +27,51 @@
         'expired' => 'Expiré',
         'refunded' => 'Remboursé',
     ];
+    $latestScheduleEvent = $order->statusHistories->last(fn ($history) => in_array(data_get($history->metadata, 'event'), ['schedule_proposed', 'schedule_confirmed', 'schedule_change_requested'], true));
+    $latestDelivery = $order->statusHistories->last(fn ($history) => ($history->to_status?->value ?? $history->to_status) === 'delivery_submitted' && data_get($history->metadata, 'event') === 'delivery_submitted');
+    $orderStatusLabel = $orderStatusLabels[$order->status->value] ?? 'Statut à vérifier';
+    $nextActionTitle = 'Consulter le suivi';
+    $nextActionDescription = 'Retrouvez les informations enregistrées et les dernières mises à jour de cette commande.';
+    $nextActionUrl = '#order-progress-history';
+    $nextActionLabel = 'Voir le suivi';
+    if ($order->status === \App\Enums\OrderStatus::PENDING_PAYMENT) {
+        if (! $order->payment || in_array($order->payment->status->value, ['failed', 'cancelled', 'expired'], true)) {
+            $nextActionTitle = 'Le paiement reste à effectuer';
+            $nextActionDescription = 'Vérifiez le récapitulatif et utilisez uniquement le parcours de démonstration disponible dans cet environnement.';
+            $nextActionUrl = route('client.orders.payment', $order);
+            $nextActionLabel = 'Accéder au paiement';
+        } else {
+            $nextActionTitle = 'Vérifiez l’état du paiement';
+            $nextActionDescription = 'Un dossier de paiement existe déjà. Consultez son état enregistré avant de recommencer une tentative.';
+            $nextActionUrl = route('client.payments.show', $order->payment);
+            $nextActionLabel = 'Consulter le paiement';
+        }
+    } elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED && data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_proposed' && ! $order->schedule_confirmed_at) {
+        $nextActionTitle = 'Votre décision est attendue pour le planning';
+        $nextActionDescription = 'Examinez les dates proposées avant de les confirmer ou de demander une modification.';
+        $nextActionUrl = '#order-schedule';
+        $nextActionLabel = 'Examiner le planning';
+    } elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED && data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested') {
+        $nextActionTitle = 'Une nouvelle proposition de planning est attendue';
+        $nextActionDescription = 'Votre demande est enregistrée. L’ancien planning reste dans l’historique jusqu’à une nouvelle proposition.';
+    } elseif ($order->status === \App\Enums\OrderStatus::IN_PROGRESS) {
+        $nextActionTitle = 'La prestation est en cours';
+        $nextActionDescription = 'Consultez les mises à jour et échangez avec le professionnel si une précision est nécessaire.';
+        $nextActionLabel = 'Suivre la réalisation';
+    } elseif ($order->status === \App\Enums\OrderStatus::DELIVERY_SUBMITTED) {
+        $nextActionTitle = 'Le livrable attend votre vérification';
+        $nextActionDescription = 'Lisez le résumé, téléchargez les fichiers utiles, puis acceptez la livraison ou demandez une correction.';
+        $nextActionUrl = '#delivery-review';
+        $nextActionLabel = 'Vérifier le livrable';
+    } elseif ($order->status === \App\Enums\OrderStatus::COMPLETED && ! $order->review) {
+        $nextActionTitle = 'La commande est terminée';
+        $nextActionDescription = 'Vous pouvez maintenant partager votre évaluation de la prestation réellement reçue.';
+        $nextActionUrl = '#client-review-title';
+        $nextActionLabel = 'Évaluer la prestation';
+    } elseif (in_array($order->status, [\App\Enums\OrderStatus::CANCELLED, \App\Enums\OrderStatus::DISPUTED], true)) {
+        $nextActionTitle = $order->status === \App\Enums\OrderStatus::DISPUTED ? 'Cette commande est contestée' : 'Cette commande est annulée';
+        $nextActionDescription = 'Consultez les informations et événements conservés. Aucune étape de progression normale n’est supposée.';
+    }
 @endphp
 
 <div class="client-module client-order-detail">
@@ -36,7 +81,7 @@
             <h1>{{ $order->items->first()?->service_title ?? 'Prestation de service' }}</h1>
             <p>Référence <strong>{{ $order->order_number ?? '#'.$order->id }}</strong></p>
         </div>
-        <span class="status-badge status-badge--{{ $order->status->value }}">{{ $orderStatusLabels[$order->status->value] ?? $order->status->value }}</span>
+        <span class="status-badge status-badge--{{ $order->status->value }}">{{ $orderStatusLabel }}</span>
     </header>
 
     <section class="client-panel client-order-overview">
@@ -58,6 +103,16 @@
                 <div><dt>Annulation enregistrée</dt><dd>{{ $order->cancelled_at->format('d/m/Y à H:i') }}</dd></div>
             @endif
         </dl>
+    </section>
+
+    <section class="client-panel client-order-next-action" aria-labelledby="order-next-action-title">
+        <div class="client-order-next-action__content">
+            <span class="client-order-next-action__icon" aria-hidden="true"><i class="fa-solid fa-compass"></i></span>
+            <p class="client-module__eyebrow">PROCHAINE ÉTAPE</p>
+            <h2 id="order-next-action-title">{{ $nextActionTitle }}</h2>
+            <p>{{ $nextActionDescription }}</p>
+        </div>
+        <a class="btn btn-primary" href="{{ $nextActionUrl }}">{{ $nextActionLabel }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </section>
 
     <div class="client-detail-grid client-order-detail-grid">
@@ -160,7 +215,7 @@
             <ol class="client-timeline client-order-timeline">
                 @foreach($order->statusHistories as $history)
                     <li>
-                        <strong>{{ $history->to_status ? ($orderStatusLabels[$history->to_status->value] ?? $history->to_status->value) : 'Événement enregistré' }}</strong>
+                        <strong>{{ $history->to_status ? ($orderStatusLabels[$history->to_status->value] ?? 'Mise à jour de la commande') : 'Événement enregistré' }}</strong>
                         <span>{{ optional($history->created_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</span>
                         @if($history->reason)
                             <p>{{ $history->reason }}</p>
@@ -177,7 +232,7 @@
         <div class="client-panel__header">
             <h2>Paiement associé</h2>
             @if($order->payment)
-                <span class="status-badge status-badge--{{ $order->payment->status->value }}">{{ $paymentStatusLabels[$order->payment->status->value] ?? $order->payment->status->value }}</span>
+                <span class="status-badge status-badge--{{ $order->payment->status->value }}">{{ $paymentStatusLabels[$order->payment->status->value] ?? 'État du paiement à vérifier' }}</span>
             @endif
         </div>
 
@@ -259,23 +314,19 @@
     </footer>
 
 
-    @php
-        $latestScheduleEvent = $order->statusHistories->last(
-            fn ($history) => in_array(data_get($history->metadata, 'event'), ['schedule_proposed', 'schedule_confirmed', 'schedule_change_requested'], true)
-        );
-        $latestDelivery = $order->statusHistories->last(
-            fn ($history) => ($history->to_status?->value ?? $history->to_status) === 'delivery_submitted'
-                && data_get($history->metadata, 'event') === 'delivery_submitted'
-        );
-    @endphp
-
     @if (session('success'))
         <div class="alert alert--success" role="status">{{ session('success') }}</div>
     @endif
     @if ($errors->any())
-        <div class="alert alert--error" role="alert">
-            <strong>Votre action n’a pas pu être enregistrée.</strong>
-            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        <div class="client-order-error-summary alert alert--error" role="alert" tabindex="-1" data-order-error-summary>
+            <h2>Votre action n’a pas pu être enregistrée</h2>
+            <ul>
+                @foreach ($errors->getMessages() as $field => $messages)
+                    @foreach ($messages as $message)
+                        <li>@if ($field === 'reason')<a href="#{{ $order->status === \App\Enums\OrderStatus::DELIVERY_SUBMITTED ? 'delivery-change-reason' : 'schedule-change-reason' }}">{{ $message }}</a>@else{{ $message }}@endif</li>
+                    @endforeach
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -359,17 +410,19 @@
     @endif
 
     @if ($order->schedule_confirmed_at)
-        <section class="client-panel client-order-schedule">
+        <section id="order-schedule" class="client-panel client-order-schedule">
             <p class="client-module__eyebrow">PLANIFICATION</p>
             <h2>Planning confirmé</h2>
-            <p>Début convenu : <strong>{{ $order->scheduled_start_at?->format('d/m/Y à H:i') ?? '—' }}</strong></p>
-            <p>Fin prévue : <strong>{{ $order->scheduled_end_at?->format('d/m/Y à H:i') ?? '—' }}</strong></p>
+            <div class="client-order-schedule__dates"><div class="client-order-schedule__date"><span>Début convenu</span><strong>{{ $order->scheduled_start_at?->format('d/m/Y à H:i') ?? '—' }}</strong></div><div class="client-order-schedule__date"><span>Fin prévue</span><strong>{{ $order->scheduled_end_at?->format('d/m/Y à H:i') ?? '—' }}</strong></div></div>
+            <p class="client-order-form-hint">Fuseau horaire de l’application : {{ config('app.timezone') }}.</p>
             <p class="muted">Confirmé le {{ $order->schedule_confirmed_at->format('d/m/Y à H:i') }}.</p>
             @if ($order->status === \App\Enums\OrderStatus::CONFIRMED)
                 <form method="POST" action="{{ route('client.orders.request-schedule-change', $order) }}">
                     @csrf
-                    <label for="schedule-change-reason">Demander une modification</label>
-                    <textarea id="schedule-change-reason" name="reason" rows="3" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea>
+                    <label for="schedule-change-reason">Pourquoi souhaitez-vous modifier le planning ?</label>
+                    <p class="client-order-form-hint" id="schedule-change-hint">Indiquez les contraintes ou dates à prendre en compte. Motif obligatoire : 10 à 2 000 caractères.</p>
+                    <textarea id="schedule-change-reason" name="reason" rows="3" minlength="10" maxlength="2000" required aria-describedby="schedule-change-hint schedule-change-count" data-character-counter="schedule-change-count">{{ old('reason') }}</textarea>
+                    <p class="client-order-character-count"><span id="schedule-change-count" aria-live="polite">{{ mb_strlen((string) old('reason')) }}</span>/2 000 caractères</p>
                     @error('reason')<small class="field-error">{{ $message }}</small>@enderror
                     <button class="btn btn-secondary" type="submit" data-confirm-submit="Demander une modification du planning convenu ?">Demander une modification</button>
                 </form>
@@ -379,8 +432,8 @@
         <section class="client-panel client-order-schedule">
             <p class="client-module__eyebrow">PLANIFICATION À CONFIRMER</p>
             <h2>Le professionnel propose ces dates</h2>
-            <p>Début proposé : <strong>{{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</strong></p>
-            <p>Fin prévue : <strong>{{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</strong></p>
+            <div class="client-order-schedule__dates"><div class="client-order-schedule__date"><span>Début proposé</span><strong>{{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</strong></div><div class="client-order-schedule__date"><span>Fin prévue</span><strong>{{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</strong></div></div>
+            <p class="client-order-form-hint">Fuseau horaire de l’application : {{ config('app.timezone') }}. Ces dates ne seront convenues qu’après confirmation enregistrée.</p>
             @if (filled(data_get($latestScheduleEvent->metadata, 'note')))
                 <p>{{ data_get($latestScheduleEvent->metadata, 'note') }}</p>
             @endif
@@ -391,8 +444,10 @@
                 </form>
                 <form method="POST" action="{{ route('client.orders.request-schedule-change', $order) }}">
                     @csrf
-                    <label for="schedule-change-reason">Dates ou conditions à modifier</label>
-                    <textarea id="schedule-change-reason" name="reason" rows="3" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea>
+                    <label for="schedule-change-reason">Pourquoi souhaitez-vous modifier le planning ?</label>
+                    <p class="client-order-form-hint" id="schedule-change-hint">Décrivez les contraintes ou dates à prendre en compte. Motif obligatoire : 10 à 2 000 caractères.</p>
+                    <textarea id="schedule-change-reason" name="reason" rows="3" minlength="10" maxlength="2000" required aria-describedby="schedule-change-hint schedule-change-count" data-character-counter="schedule-change-count">{{ old('reason') }}</textarea>
+                    <p class="client-order-character-count"><span id="schedule-change-count" aria-live="polite">{{ mb_strlen((string) old('reason')) }}</span>/2 000 caractères</p>
                     @error('reason')<small class="field-error">{{ $message }}</small>@enderror
                     <button class="btn btn-secondary" type="submit">Demander une modification</button>
                 </form>
@@ -406,9 +461,10 @@
     @endif
 
     @if ($order->status === \App\Enums\OrderStatus::DELIVERY_SUBMITTED)
-        <section class="client-panel client-order-delivery">
+        <section id="delivery-review" class="client-panel client-order-delivery">
             <p class="client-module__eyebrow">RÉCEPTION DE LA PRESTATION</p>
             <h2>Le professionnel a soumis le résultat</h2>
+            <p class="client-order-form-hint">L’acceptation termine la commande. Si un élément doit être repris, envoyez plutôt une demande de correction détaillée.</p>
             <p>Vérifiez le travail décrit ci-dessous. Confirmez la réception si le résultat correspond à ce qui a été convenu, ou demandez une correction en précisant les éléments à reprendre.</p>
             @if ($latestDelivery)
                 <div class="client-order-delivery__summary">
@@ -420,7 +476,7 @@
                         <h3>Fichiers remis</h3>
                         <ul class="client-order-delivery-files">
                             @foreach ($order->deliveryAttachments->whereIn('id', $latestAttachmentIds) as $attachment)
-                                <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}">{{ $attachment->original_name }}</a> <span class="muted">({{ number_format($attachment->size_bytes / 1024, 1, ',', ' ') }} Ko)</span></li>
+                                <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span>{{ $attachment->original_name }}</span></a><span>{{ number_format($attachment->size_bytes / 1024, 1, ',', ' ') }} Ko · Téléchargement privé</span></li>
                             @endforeach
                         </ul>
                     @endif
@@ -433,8 +489,10 @@
                 </form>
                 <form method="POST" action="{{ route('client.orders.request-delivery-changes', $order) }}">
                     @csrf
-                    <label for="delivery-change-reason">Corrections demandées</label>
-                    <textarea id="delivery-change-reason" name="reason" rows="4" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea>
+                    <label for="delivery-change-reason">Quelles corrections souhaitez-vous ?</label>
+                    <p class="client-order-form-hint" id="delivery-change-hint">Précisez l’élément à reprendre, le résultat attendu et le fichier concerné si utile. Motif obligatoire : 10 à 2 000 caractères.</p>
+                    <textarea id="delivery-change-reason" name="reason" rows="4" minlength="10" maxlength="2000" required aria-describedby="delivery-change-hint delivery-change-count" data-character-counter="delivery-change-count">{{ old('reason') }}</textarea>
+                    <p class="client-order-character-count"><span id="delivery-change-count" aria-live="polite">{{ mb_strlen((string) old('reason')) }}</span>/2 000 caractères</p>
                     @error('reason')<small class="field-error">{{ $message }}</small>@enderror
                     <button class="btn btn-secondary" type="submit" data-confirm-submit="Envoyer cette demande de correction au professionnel ?">Demander une correction</button>
                 </form>
@@ -442,7 +500,7 @@
         </section>
     @endif
 
-    <section class="client-panel client-order-delivery-history">
+    <section id="order-progress-history" class="client-panel client-order-delivery-history">
         <h2>Suivi de réalisation</h2>
         @forelse ($order->statusHistories->filter(fn ($history) => filled(data_get($history->metadata, 'event'))) as $event)
             <article class="timeline-item">
@@ -472,7 +530,7 @@
                 @if (is_array($eventAttachmentIds) && $eventAttachmentIds !== [])
                     <ul class="client-order-delivery-files">
                         @foreach ($order->deliveryAttachments->whereIn('id', $eventAttachmentIds) as $attachment)
-                            <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}">{{ $attachment->original_name }}</a></li>
+                            <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span>{{ $attachment->original_name }}</span></a><span>Téléchargement privé</span></li>
                         @endforeach
                     </ul>
                 @endif
