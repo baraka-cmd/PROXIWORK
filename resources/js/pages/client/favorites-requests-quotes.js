@@ -31,3 +31,14 @@ document.addEventListener('submit', (event) => {
     const label = button.dataset.loadingLabel || 'Traitement…';
     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> ' + label;
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const summary = document.querySelector('[data-error-summary]');
+    if (summary instanceof HTMLElement) {
+        summary.focus({ preventScroll: true });
+        summary.scrollIntoView({
+            block: 'start',
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        });
+    }
+});
