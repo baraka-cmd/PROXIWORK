@@ -28,7 +28,7 @@
             @endif
         </header>
 
-        @if (session('success'))
+        @if (session('success') && session('success') !== 'Vos préférences de notification ont été enregistrées.')
             <div class="client-panel notification-alert" role="status">{{ session('success') }}</div>
         @endif
 
@@ -254,6 +254,10 @@
                     <p>Les notifications internes restent activées pour conserver votre historique PROXIWORK.</p>
                 </div>
             </div>
+
+            @if (session('success') === 'Vos préférences de notification ont été enregistrées.')
+                <div class="notification-alert notification-alert--success" role="status">{{ session('success') }}</div>
+            @endif
 
             <form method="POST" action="{{ route('client.notifications.preferences.update') }}" class="notification-preferences__form">
                 @csrf
