@@ -7,6 +7,7 @@
 @endpush
 
 @section('content')
+@php($pricingLabels = ['fixed' => 'Prix fixe', 'range' => 'Fourchette de prix', 'from' => 'À partir de', 'quote' => 'Sur devis'])
 <div class="client-module client-request-form-page">
     <div class="client-module__header">
         <div>
@@ -43,7 +44,7 @@
             </div>
             <dl class="client-definition-list">
                 <div><dt>Mode d’exécution</dt><dd>{{ $service->execution_mode->label() }}</dd></div>
-                <div><dt>Tarification</dt><dd>{{ ucfirst($service->pricing_type->value) }}</dd></div>
+                <div><dt>Tarification</dt><dd>{{ $pricingLabels[$service->pricing_type->value] ?? 'Tarification à confirmer' }}</dd></div>
                 <div><dt>Devise</dt><dd>{{ $service->currency }}</dd></div>
                 <div><dt>Durée</dt><dd>{{ $service->estimated_duration_minutes ? $service->estimated_duration_minutes.' min' : 'À définir' }}</dd></div>
             </dl>
@@ -89,7 +90,7 @@
                     <div class="client-form-note"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Aucune adresse enregistrée. Vous pouvez sauvegarder ce brouillon maintenant, mais vous devrez ajouter une adresse avant de l’envoyer au professionnel.</span></div>
                 @else
                     <div class="client-address-options">
-                        <label class="client-address-option"><input id="address_id" type="radio" name="address_id" value="" @checked(old('address_id') === '')><span><strong>À définir</strong><small>Vous pourrez choisir une adresse avant l’envoi au professionnel.</small></span></label>
+                        <label class="client-address-option"><input id="address_id" type="radio" name="address_id" value="" @checked((string) old('address_id', '') === '')><span><strong>À définir</strong><small>Vous pourrez choisir une adresse avant l’envoi au professionnel.</small></span></label>
                         @foreach($addresses as $address)
                             <label class="client-address-option"><input type="radio" name="address_id" value="{{ $address->id }}" @checked((string) old('address_id', $address->is_default ? $address->id : '') === (string) $address->id)><span><strong>{{ $address->label }}</strong><small>{{ $address->city }}{{ $address->province ? ', '.$address->province : '' }} · {{ $address->address_line_1 }}</small></span></label>
                         @endforeach
