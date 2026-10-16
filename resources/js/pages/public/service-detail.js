@@ -50,6 +50,21 @@ if (cover && mainImage) {
     });
 }
 
+document.querySelectorAll('.public-service-page__realization img').forEach((image) => {
+    image.addEventListener('error', () => {
+        const card = image.closest('.public-service-page__realization');
+        const section = image.closest('[aria-labelledby="service-realizations-title"]');
+
+        if (card) {
+            card.hidden = true;
+        }
+
+        if (section && !section.querySelector('.public-service-page__realization:not([hidden])')) {
+            section.hidden = true;
+        }
+    }, { once: true });
+});
+
 document.querySelectorAll('[data-service-avatar-image]').forEach((image) => {
     const avatar = image.closest('[data-service-avatar]');
 
