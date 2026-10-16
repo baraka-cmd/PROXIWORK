@@ -861,3 +861,11 @@
     border-color: color-mix(in srgb, var(--color-danger, #b42318) 35%, var(--color-border, #d9dee7));
     color: var(--color-danger, #b42318);
 }
+
+
+.messages-active-filters {
+    margin-top: -.35rem;
+}
+.messages-active-filters > span {
+    border-radius: 999px;
+}
