@@ -449,3 +449,17 @@
         transform: none;
     }
 }
+
+.directory-page--professionals .directory-filter-form__errors {
+    padding: var(--space-3);
+    border: 1px solid var(--color-danger-border, #fecaca);
+    border-radius: var(--radius-md);
+    background: var(--color-danger-soft, #fef2f2);
+    color: var(--color-danger, #991b1b);
+    font-size: var(--font-size-sm);
+}
+
+.directory-page--professionals .directory-filter-form__errors ul {
+    margin: var(--space-2) 0 0;
+    padding-left: 1.25rem;
+}
