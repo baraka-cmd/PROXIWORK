@@ -91,15 +91,6 @@ class ProfessionalSearchService
                     ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
                     ->with(['category', 'skills', 'images'])
                     ->latest('published_at'),
-                'reviews' => fn ($reviews) => $reviews
-                    ->where('status', 'published')
-                    ->with([
-                        'response',
-                        'order:id,service_request_id',
-                        'order.serviceRequest:id,service_id',
-                        'order.serviceRequest.service:id,title',
-                    ])
-                    ->latest('published_at'),
             ])
             ->firstOrFail();
     }
