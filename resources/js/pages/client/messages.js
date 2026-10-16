@@ -6,7 +6,7 @@ if (thread) {
     const pollingEnabled = thread.dataset.pollingEnabled !== 'false';
     const syncStatus = document.querySelector('[data-message-sync-status]');
     const scrollLatestButton = thread.querySelector('[data-scroll-latest]');
-    const messageAnnouncement = thread.querySelector('[data-message-announcement]');
+    const messageAnnouncement = document.querySelector('[data-message-announcement]');
     let pollInProgress = false;
     let pollingStopped = false;
     let pollInterval = null;
