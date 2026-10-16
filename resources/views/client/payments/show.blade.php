@@ -19,7 +19,7 @@
         'failed' => 'Échec simulé',
         'cancelled' => 'Annulé',
         'expired' => 'Expiré',
-        'refunded' => 'Remboursé',
+        'refunded' => 'Remboursé (simulation)',
     ];
     $transactionLabels = [
         'initiated' => 'Tentative créée',
@@ -30,7 +30,7 @@
         'failed' => 'Échec simulé',
         'cancelled' => 'Annulée',
         'expired' => 'Expirée',
-        'refunded' => 'Remboursée',
+        'refunded' => 'Remboursée (simulation)',
     ];
     $eventLabels = [
         'attempt.created' => 'Tentative créée',
@@ -47,7 +47,7 @@
     $refundLabels = [
         'requested' => 'Demande enregistrée — examen requis',
         'processing' => 'Examen / traitement en cours',
-        'succeeded' => 'Remboursement confirmé',
+        'succeeded' => 'Remboursement confirmé (simulation)',
         'failed' => 'Échec du remboursement',
         'rejected' => 'Demande refusée',
         'cancelled' => 'Demande annulée',
@@ -122,7 +122,7 @@
                 @php($attemptReference = $transaction->provider === 'fake' ? 'SIM-TXN-'.str_pad((string) $transaction->id, 8, '0', STR_PAD_LEFT) : ($transaction->provider_reference ?? $transaction->provider_transaction_id ?? 'Tentative #'.$transaction->id))
                 <div class="payment-attempt__top">
                     <div><strong>{{ $attemptReference }}</strong><small>{{ optional($transaction->created_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</small></div>
-                    <span class="status-badge status-badge--{{ $transaction->status->value }}">{{ $transactionLabels[$transaction->status->value] ?? $transaction->status->value }}</span>
+                    <span class="status-badge status-badge--{{ $transaction->status->value }}">{{ $transactionLabels[$transaction->status->value] ?? 'État de tentative à vérifier' }}</span>
                 </div>
                 <dl class="client-definition-list">
                     <div><dt>Montant attendu</dt><dd>{{ number_format((float) $transaction->amount, 2, ',', ' ') }} {{ $transaction->currency }}</dd></div>

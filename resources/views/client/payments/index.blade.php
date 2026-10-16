@@ -7,6 +7,8 @@
     $advancedFiltersActive = collect(['method', 'provider', 'currency', 'transaction_status', 'created_from', 'created_to', 'confirmed_from', 'confirmed_to'])
         ->contains(fn ($key) => filled($filters[$key] ?? null));
     $hasActiveFilters = collect($filters)->contains(fn ($value) => filled($value));
+    $statusLabels['refunded'] = 'Remboursé (simulation)';
+    $transactionStatusLabels['refunded'] = 'Remboursée (simulation)';
 @endphp
 
 @push('head')
@@ -84,7 +86,7 @@
                 <h3>Vérifiez les critères de recherche</h3>
                 <ul>
                     @foreach($errors->all() as $message)
-                        <li><a href="#{{ $errors->has('created_from') || $errors->has('created_to') ? 'created-to' : ($errors->has('confirmed_from') || $errors->has('confirmed_to') ? 'confirmed-to' : 'payment-search') }}">{{ $message }}</a></li>
+                        <li><a href="#{{ $errors->has('created_from') ? 'created-from' : ($errors->has('created_to') ? 'created-to' : ($errors->has('confirmed_from') ? 'confirmed-from' : ($errors->has('confirmed_to') ? 'confirmed-to' : 'payment-search'))) }}">{{ $message }}</a></li>
                     @endforeach
                 </ul>
             </div>
@@ -138,14 +140,14 @@
                     </label>
                     <fieldset class="payment-date-filter">
                         <legend>Date de création</legend>
-                        <label><span>Du</span><input type="date" name="created_from" value="{{ $filters['created_from'] ?? '' }}" @if($errors->has('created_from')) aria-invalid="true" aria-describedby="created-from-error" @endif></label>
+                        <label><span>Du</span><input id="created-from" type="date" name="created_from" value="{{ $filters['created_from'] ?? '' }}" @if($errors->has('created_from')) aria-invalid="true" aria-describedby="created-from-error" @endif></label>
                         <label><span>Au</span><input id="created-to" type="date" name="created_to" value="{{ $filters['created_to'] ?? '' }}" @if($errors->has('created_to')) aria-invalid="true" aria-describedby="created-to-error" @endif></label>
                         @if($errors->has('created_from'))<p class="payment-field-error" id="created-from-error">{{ $errors->first('created_from') }}</p>@endif
                         @if($errors->has('created_to'))<p class="payment-field-error" id="created-to-error">{{ $errors->first('created_to') }}</p>@endif
                     </fieldset>
                     <fieldset class="payment-date-filter">
                         <legend>Date de confirmation</legend>
-                        <label><span>Du</span><input type="date" name="confirmed_from" value="{{ $filters['confirmed_from'] ?? '' }}" @if($errors->has('confirmed_from')) aria-invalid="true" aria-describedby="confirmed-from-error" @endif></label>
+                        <label><span>Du</span><input id="confirmed-from" type="date" name="confirmed_from" value="{{ $filters['confirmed_from'] ?? '' }}" @if($errors->has('confirmed_from')) aria-invalid="true" aria-describedby="confirmed-from-error" @endif></label>
                         <label><span>Au</span><input id="confirmed-to" type="date" name="confirmed_to" value="{{ $filters['confirmed_to'] ?? '' }}" @if($errors->has('confirmed_to')) aria-invalid="true" aria-describedby="confirmed-to-error" @endif></label>
                         @if($errors->has('confirmed_from'))<p class="payment-field-error" id="confirmed-from-error">{{ $errors->first('confirmed_from') }}</p>@endif
                         @if($errors->has('confirmed_to'))<p class="payment-field-error" id="confirmed-to-error">{{ $errors->first('confirmed_to') }}</p>@endif
