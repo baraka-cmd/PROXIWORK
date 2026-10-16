@@ -3,6 +3,7 @@
         <div>
             <span class="eyebrow">FILTRES</span>
             <h2>Affiner les résultats</h2>
+            <p class="directory-filters__trust-note"><i class="fa-solid fa-shield-check" aria-hidden="true"></i> Profils publics vérifiés uniquement.</p>
         </div>
 
         <button class="icon-button directory-filters__close" type="button" data-filters-close aria-label="Fermer les filtres">
@@ -113,18 +114,6 @@
             </div>
         </div>
 
-        <div class="form-field">
-            <label class="form-label" for="{{ $idPrefix }}-verification">Vérification</label>
-            <div class="form-select-wrapper">
-                <select id="{{ $idPrefix }}-verification" class="form-control form-select" name="verification">
-                    <option value="">Tous les profils</option>
-                    <option value="verified" @selected(($filters['verification'] ?? '') === 'verified')>Vérifiés</option>
-                    <option value="pending" @selected(($filters['verification'] ?? '') === 'pending')>En attente</option>
-                    <option value="under_review" @selected(($filters['verification'] ?? '') === 'under_review')>En vérification</option>
-                </select>
-                <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
-            </div>
-        </div>
 
         <div class="form-field">
             <label class="form-label" for="{{ $idPrefix }}-sort">Trier par</label>
