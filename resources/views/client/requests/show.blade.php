@@ -30,7 +30,13 @@
     @if($errors->any())
         <div class="client-form-alert client-form-alert--summary" role="alert" tabindex="-1" data-error-summary>
             <strong>La demande n’a pas pu être traitée.</strong>
-            <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            <ul>
+                @foreach($errors->getMessages() as $field => $messages)
+                    @foreach($messages as $message)
+                        <li><a href="{{ $field === 'attachment' ? '#request-attachment' : ($field === 'address_id' ? '#request-address-id' : '#request-actions') }}">{{ $message }}</a></li>
+                    @endforeach
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -224,7 +230,7 @@
         </section>
     @endif
 
-    <div class="client-action-bar">
+    <div id="request-actions" class="client-action-bar">
         @if($serviceRequest->status === \App\Enums\ServiceRequestStatus::DRAFT)
             <a class="btn btn-secondary" href="{{ route('client.requests.edit', $serviceRequest) }}">
                 <i class="fa-solid fa-pen" aria-hidden="true"></i> Modifier le brouillon
