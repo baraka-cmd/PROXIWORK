@@ -30,9 +30,11 @@
             && \Illuminate\Support\Facades\Storage::disk('local')->exists($profile->avatar_path);
         $images = $service->images;
         $cover = $images->firstWhere('is_cover', true) ?? $images->first();
-        $realizations = $service->realizations
-            ->where('status', 'approved')
-            ->where('participation_confirmed', true);
+        $realizations = $professional->verified_at !== null
+            ? $service->realizations
+                ->where('status', 'approved')
+                ->where('participation_confirmed', true)
+            : collect();
         $currency = trim((string) $service->currency);
         $formatPrice = fn ($amount) => number_format((float) $amount, 2, ',', ' ');
         $pricingType = $service->pricing_type->value;
