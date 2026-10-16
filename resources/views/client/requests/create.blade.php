@@ -90,9 +90,9 @@
                     <div class="client-form-note"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Aucune adresse enregistrée. Vous pouvez sauvegarder ce brouillon maintenant, mais vous devrez ajouter une adresse avant de l’envoyer au professionnel.</span></div>
                 @else
                     <div class="client-address-options">
-                        <label class="client-address-option"><input id="address_id" type="radio" name="address_id" value="" @checked((string) old('address_id', '') === '')><span><strong>À définir</strong><small>Vous pourrez choisir une adresse avant l’envoi au professionnel.</small></span></label>
+                        <label class="client-address-option"><input id="address_id" type="radio" name="address_id" value="" @checked((string) old('address_id', $addresses->firstWhere('is_default', true)?->id ?? '') === '')><span><strong>À définir</strong><small>Vous pourrez choisir une adresse avant l’envoi au professionnel.</small></span></label>
                         @foreach($addresses as $address)
-                            <label class="client-address-option"><input type="radio" name="address_id" value="{{ $address->id }}" @checked((string) old('address_id', $address->is_default ? $address->id : '') === (string) $address->id)><span><strong>{{ $address->label }}</strong><small>{{ $address->city }}{{ $address->province ? ', '.$address->province : '' }} · {{ $address->address_line_1 }}</small></span></label>
+                            <label class="client-address-option"><input type="radio" name="address_id" value="{{ $address->id }}" @checked((string) old('address_id', $addresses->firstWhere('is_default', true)?->id ?? '') === (string) $address->id)><span><strong>{{ $address->label }}</strong><small>{{ $address->city }}{{ $address->province ? ', '.$address->province : '' }} · {{ $address->address_line_1 }}</small></span></label>
                         @endforeach
                     </div>
                 @endif
