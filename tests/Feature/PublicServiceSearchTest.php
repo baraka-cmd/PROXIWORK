@@ -65,6 +65,21 @@ class PublicServiceSearchTest extends TestCase
             ->assertSee('per_page=1');
     }
 
+    public function test_filter_form_preserves_the_current_search_term(): void
+    {
+        $this->service('Réparation plomberie', 'reparation-plomberie');
+
+        $response = $this->get('/search?search=plomberie');
+
+        $response->assertOk();
+
+        // One field belongs to the main search and the other to the filter form.
+        $this->assertSame(
+            2,
+            substr_count($response->getContent(), 'name="search" value="plomberie"'),
+        );
+    }
+
     public function test_private_service_detail_is_not_publicly_accessible(): void
     {
         $service = $this->service('Service non publié', 'service-non-publie', [
