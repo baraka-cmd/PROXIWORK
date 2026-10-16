@@ -41,7 +41,7 @@
                 <span class="request-card__reference">#{{ $serviceRequest->id }}</span>
             </div>
             <p class="client-detail-text">{{ $serviceRequest->description }}</p>
-            @if($serviceRequest->status === \\App\\Enums\\ServiceRequestStatus::DRAFT)
+            @if($serviceRequest->status === \App\Enums\ServiceRequestStatus::DRAFT)
                 <div class="request-draft-notice"><i class="fa-regular fa-floppy-disk" aria-hidden="true"></i><div><strong>Votre demande est encore en brouillon.</strong><p>Elle n’a pas encore été transmise au professionnel. Vérifiez les informations et les documents, puis utilisez le bouton « Envoyer la demande » lorsque tout est prêt.</p></div></div>
             @elseif($serviceRequest->status->requiresClientAction())
                 <div class="request-action-notice"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i><div><strong>Une réponse nécessite votre attention.</strong><p>Consultez le devis associé pour examiner les conditions et décider de la suite.</p></div></div>
