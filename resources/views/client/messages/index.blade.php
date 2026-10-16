@@ -64,6 +64,15 @@
             </form>
         </section>
 
+        @if ($search !== '' || $category !== 'all' || $status !== 'all')
+            <div class="messages-active-filters" aria-label="Filtres actifs">
+                <strong>Filtres actifs</strong>
+                @if ($search !== '')<span>Recherche : {{ $search }}</span>@endif
+                @if ($category !== 'all')<span>Contexte : {{ match ($category) { 'requests' => 'Demandes', 'orders' => 'Commandes', 'general' => 'Conversations générales', default => 'Tous' } }}</span>@endif
+                @if ($status === 'unread')<span>Messages non lus</span>@endif
+            </div>
+        @endif
+
         <section class="client-panel conversation-list-panel" aria-label="Liste des conversations">
             <div class="messages-list-heading">
                 <div>
