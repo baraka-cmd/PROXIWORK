@@ -53,16 +53,17 @@
         'cancelled' => 'Demande annulée',
     ];
     $hasOpenRefund = $payment->refunds->contains(fn ($refund) => $refund->status->isOpen());
+    $formatFinancialStatus = fn ($value) => $statusLabels[$value] ?? $transactionLabels[$value] ?? $refundLabels[$value] ?? 'État mis à jour';
 @endphp
 
 <div class="client-module client-payment-detail">
-    <header class="client-module__header">
+    <header class="client-module__header payment-detail-header">
         <div>
             <p class="client-module__eyebrow">DÉTAIL FINANCIER</p>
             <h1>PAY-{{ str_pad((string) $payment->id, 8, '0', STR_PAD_LEFT) }}</h1>
             <p>Commande {{ $payment->order?->order_number ?? '#'.$payment->order_id }}</p>
         </div>
-        <span class="status-badge status-badge--{{ $payment->status->value }}">{{ $statusLabels[$payment->status->value] ?? $payment->status->value }}</span>
+        <span class="status-badge status-badge--{{ $payment->status->value }}">{{ $statusLabels[$payment->status->value] ?? 'État à vérifier' }}</span>
     </header>
 
     <aside class="payment-simulation-notice" role="note">
@@ -70,8 +71,17 @@
         <p><strong>Mode simulation.</strong> Ce suivi et les reçus associés ne constituent pas une preuve de transfert Mobile Money, bancaire ou par carte réel.</p>
     </aside>
 
-    @if(session('success'))<div class="payment-feedback payment-feedback--success" role="status">{{ session('success') }}</div>@endif
-    @if($errors->any())<div class="payment-feedback payment-feedback--error" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
+    @if(session('success'))<div class="payment-feedback payment-feedback--success" role="status"><i class="fa-solid fa-circle-check" aria-hidden="true"></i><div><strong>Information enregistrée</strong><p>{{ session('success') }}</p></div></div>@endif
+    @if($errors->any())
+        <div class="payment-error-summary" role="alert" tabindex="-1" data-error-summary>
+            <h2>Une vérification est nécessaire</h2>
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li><a href="{{ $errors->has('reason') ? '#refund-reason' : '#refund-requests' }}">{{ $error }}</a></li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
     <section class="client-panel payment-detail-summary">
         <div class="payment-detail-summary__heading">
@@ -118,10 +128,16 @@
                     <div><dt>Montant attendu</dt><dd>{{ number_format((float) $transaction->amount, 2, ',', ' ') }} {{ $transaction->currency }}</dd></div>
                     <div><dt>Initialisée</dt><dd>{{ optional($transaction->initiated_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
                     <div><dt>Traitée</dt><dd>{{ optional($transaction->processed_at)->format('d/m/Y à H:i') ?? '—' }}</dd></div>
-                    @if($transaction->failure_code)<div><dt>Code de résultat</dt><dd>{{ $transaction->failure_code }}</dd></div>@endif
-                    @if($transaction->status->value === 'unknown')<div><dt>À faire</dt><dd>Revenir vérifier cette même opération. Ne pas conclure à un échec ni lancer un doublon.</dd></div>@endif
+                        @if($transaction->status->value === 'unknown')<div><dt>À faire</dt><dd>Vérifiez cette même opération plus tard. Ne concluez pas à un échec et ne lancez pas de doublon.</dd></div>@endif
                 </dl>
-                @if($transaction->failure_message)<p class="payment-muted">{{ $transaction->failure_message }}</p>@endif
+                @if($transaction->status->value === 'failed')
+                    <p class="payment-attempt__safe-message">Cette tentative n’a pas abouti dans le simulateur. Consultez le statut enregistré avant de décider de la suite.</p>
+                @elseif($transaction->status->value === 'unknown')
+                    <div class="payment-uncertain-notice" role="note"><strong>Résultat incertain</strong><p>Le résultat n’est pas confirmé. Revenez vérifier cette même opération et n’en lancez pas une autre à l’aveugle.</p></div>
+                @endif
+                @if($transaction->failure_code)
+                    <details class="payment-technical-details"><summary>Informations techniques</summary><dl class="client-definition-list"><div><dt>Code de résultat</dt><dd class="payment-hash">{{ $transaction->failure_code }}</dd></div></dl></details>
+                @endif
             </article>
         @empty
             <p class="payment-muted">Aucune tentative n’est associée à ce paiement.</p>
@@ -134,8 +150,8 @@
             <article class="payment-event-item">
                 <span class="payment-event-item__marker" aria-hidden="true"><i class="fa-solid fa-circle"></i></span>
                 <div class="payment-event-item__body">
-                    <strong>{{ $eventLabels[$event->event_type] ?? str_replace('.', ' ', $event->event_type) }}</strong>
-                    <p>@if($event->from_status) {{ $event->from_status }} → @endif{{ $event->to_status }} <span>Source : {{ $event->source }}</span></p>
+                    <strong>{{ $eventLabels[$event->event_type] ?? 'État mis à jour' }}</strong>
+                    <p>@if($event->from_status) {{ $formatFinancialStatus($event->from_status) }} → @endif{{ $formatFinancialStatus($event->to_status) }}</p>
                     <small>{{ optional($event->occurred_at)->format('d/m/Y à H:i:s') ?? 'Date non disponible' }}</small>
                 </div>
             </article>
@@ -144,13 +160,17 @@
         @endforelse
     </section>
 
-    <section class="client-panel">
+    <section class="client-panel payment-refunds-panel" id="refund-requests">
         <div class="payment-section-heading"><div><h2>Demandes de remboursement</h2><p>Une demande n’est pas un remboursement effectué. Seule une confirmation par un processus autorisé pourra changer cet état.</p></div></div>
         @forelse($payment->refunds as $refund)
-            <article class="payment-refund-item">
-                <div><strong>{{ $refund->reference }}</strong><small>Demandée le {{ optional($refund->requested_at)->format('d/m/Y à H:i') }}</small></div>
-                <div><strong>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</strong><span class="status-badge status-badge--{{ $refund->status->value }}">{{ $refundLabels[$refund->status->value] ?? $refund->status->value }}</span></div>
-                <p>{{ $refund->reason }}</p>
+            <article class="payment-refund-item payment-refund-item--{{ $refund->status->value }}">
+                <div class="payment-refund-item__identity"><strong>{{ $refund->reference }}</strong><small>Demande enregistrée le {{ optional($refund->requested_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</small></div>
+                <div class="payment-refund-item__amount"><strong>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</strong><span class="status-badge status-badge--{{ $refund->status->value }}">{{ $refundLabels[$refund->status->value] ?? 'État de remboursement à vérifier' }}</span></div>
+                @if($refund->status->value === 'requested')<p class="payment-refund-item__state">Votre demande est enregistrée et attend son examen. Aucun remboursement n’a encore été exécuté.</p>
+                @elseif($refund->status->value === 'processing')<p class="payment-refund-item__state">La demande est en cours d’examen ou de traitement. Cela ne confirme pas encore un remboursement.</p>
+                @elseif($refund->status->value === 'succeeded')<p class="payment-refund-item__state">Remboursement confirmé dans la simulation PROXIWORK ; aucun transfert réel n’a été effectué.</p>
+                @endif
+                <p class="payment-refund-item__reason"><strong>Motif fourni</strong>{{ $refund->reason }}</p>
             </article>
         @empty
             <p class="payment-muted">Aucune demande de remboursement enregistrée.</p>
@@ -159,14 +179,27 @@
         @if($payment->status === \App\Enums\PaymentStatus::SUCCEEDED && !$hasOpenRefund)
             <form method="POST" action="{{ route('client.payments.refunds.store', $payment) }}" class="payment-refund-form">
                 @csrf
-                <h3>Demander un examen de remboursement</h3>
-                <p>Cette action transmet une demande à examiner. Elle ne confirme pas un remboursement et ne transfère pas d’argent.</p>
-                <label for="refund-reason">Expliquez le problème</label>
-                <textarea id="refund-reason" name="reason" rows="4" minlength="10" maxlength="1000" required>{{ old('reason') }}</textarea>
-                <button class="btn btn-secondary" type="submit">Envoyer la demande</button>
+                <div class="payment-refund-form__intro">
+                    <span class="payment-panel-icon" aria-hidden="true"><i class="fa-solid fa-rotate-left"></i></span>
+                    <div><h3>Demander l’examen d’un remboursement</h3><p>Cette demande sera examinée. Son envoi ne signifie pas qu’elle est acceptée ou que l’argent a été remboursé.</p></div>
+                </div>
+                <div class="payment-refund-context" aria-label="Paiement concerné par la demande">
+                    <div><span>Référence</span><strong>PAY-{{ str_pad((string) $payment->id, 8, '0', STR_PAD_LEFT) }}</strong></div>
+                    <div><span>Montant enregistré</span><strong>{{ number_format((float) $payment->amount, 2, ',', ' ') }} {{ $payment->currency }}</strong></div>
+                    <div><span>Date de création</span><strong>{{ optional($payment->created_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</strong></div>
+                    <div><span>État</span><strong>{{ $statusLabels[$payment->status->value] ?? 'État à vérifier' }}</strong></div>
+                </div>
+                <div class="payment-refund-field">
+                    <label for="refund-reason">Pourquoi demandez-vous un remboursement ?</label>
+                    <p id="refund-reason-help">Décrivez ce qui s’est passé et pourquoi vous demandez un examen. Saisissez entre 10 et 1 000 caractères.</p>
+                    @if($errors->has('reason'))<p class="payment-field-error" id="refund-reason-error">{{ $errors->first('reason') }}</p>@endif
+                    <textarea id="refund-reason" name="reason" rows="5" minlength="10" maxlength="1000" required data-char-count aria-describedby="refund-reason-help refund-reason-count @if($errors->has('reason'))refund-reason-error @endif" @if($errors->has('reason')) aria-invalid="true" @endif>{{ old('reason') }}</textarea>
+                    <small class="payment-character-count" id="refund-reason-count" data-char-counter data-count-for="refund-reason" aria-live="polite">0 / 1 000 caractères</small>
+                </div>
+                <div class="payment-refund-form__actions"><p><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Le montant demandé est calculé par PROXIWORK. Vous n’avez pas à saisir de montant.</p><button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Envoyer la demande</button></div>
             </form>
         @elseif($hasOpenRefund)
-            <p class="payment-muted">Une demande est déjà ouverte pour ce paiement. Une nouvelle demande identique n’est pas créée.</p>
+            <div class="payment-open-refund-note" role="status"><span class="payment-panel-icon" aria-hidden="true"><i class="fa-solid fa-hourglass-half"></i></span><div><strong>Une demande est déjà en cours</strong><p>La demande ouverte ci-dessus doit être examinée avant toute nouvelle demande pour ce paiement. Aucun remboursement n’est confirmé à ce stade.</p></div></div>
         @endif
     </section>
 
@@ -175,7 +208,7 @@
         @if($payment->status !== \App\Enums\PaymentStatus::SUCCEEDED && $payment->order?->status === \App\Enums\OrderStatus::PENDING_PAYMENT && $payment->status->isFinal())
             <a class="btn btn-primary" href="{{ route('client.orders.payment', $payment->order) }}">Nouvelle tentative</a>
         @endif
-        <a class="payment-text-link" href="{{ route('client.orders.show', $payment->order) }}">Voir la commande</a>
+        @if($payment->order)<a class="payment-text-link" href="{{ route('client.orders.show', $payment->order) }}">Voir la commande</a>@endif
     </footer>
 </div>
 @endsection
