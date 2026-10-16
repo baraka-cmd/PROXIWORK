@@ -98,6 +98,9 @@
             data-polling-enabled="{{ request()->query('cursor') ? 'false' : 'true' }}"
             data-updates-url="{{ route('client.messages.updates', $conversation) }}"
         >
+            <button class="message-new-messages" type="button" data-scroll-latest hidden>
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Nouveaux messages · revenir en bas
+            </button>
             @php($previousMessageDate = null)
             @forelse (collect($messages->items())->reverse() as $message)
                 @php($currentMessageDate = $message->created_at?->toDateString())
@@ -177,12 +180,9 @@
                     <p>Présentez votre question ou précisez les détails de la prestation.</p>
                 </div>
             @endforelse
-            <button class="message-new-messages" type="button" data-scroll-latest hidden>
-                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Nouveaux messages · revenir en bas
-            </button>
-            <p class="message-announcement" data-message-announcement role="status" aria-atomic="true"></p>
             <p class="message-sync-status" data-message-sync-status aria-live="off">Connexion en cours…</p>
         </section>
+                    <p class="message-announcement" data-message-announcement role="status" aria-atomic="true"></p>
 
         @if ($conversation->status->value === 'open')
         <section class="client-panel message-composer-panel">
