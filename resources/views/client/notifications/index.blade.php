@@ -104,6 +104,15 @@
             </form>
         </section>
 
+        @if ($search !== '' || $category !== 'all' || $status !== 'all')
+            <div class="notification-active-filters" aria-label="Filtres actifs">
+                <strong>Filtres actifs</strong>
+                @if ($search !== '')<span>Recherche : {{ $search }}</span>@endif
+                @if ($category !== 'all')<span>Catégorie : {{ match ($category) { 'service_request' => 'Demandes', 'quotation' => 'Devis', 'order' => 'Commandes', 'payment' => 'Paiements', 'message' => 'Messages', 'review' => 'Avis', 'account' => 'Compte et sécurité', default => 'Plateforme' } }}</span>@endif
+                @if ($status !== 'all')<span>État : {{ $status === 'unread' ? 'Non lues' : 'Lues' }}</span>@endif
+            </div>
+        @endif
+
         <section class="notification-results" aria-labelledby="notification-results-title">
             <div class="notification-results__heading">
                 <div>
@@ -123,7 +132,11 @@
                         @if ($search !== '' || $category !== 'all' || $status !== 'all')
                             Essayez de modifier vos filtres. Les notifications correspondant à votre recherche apparaîtront ici.
                         @else
-                            Vous êtes à jour. Les événements importants de votre activité apparaîtront ici.
+                            @if ($archived)
+                                Les notifications archivées sont conservées ici. Vous pouvez revenir à la boîte de réception pour consulter les nouvelles mises à jour.
+                            @else
+                                Vous êtes à jour. Les événements importants de votre activité apparaîtront ici.
+                            @endif
                         @endif
                     </p>
                     @if ($search !== '' || $category !== 'all' || $status !== 'all')
@@ -143,7 +156,7 @@
                                 'order' => 'fa-cart-shopping',
                                 'quotation' => 'fa-file-invoice-dollar',
                                 'service_request' => 'fa-file-lines',
-                                'account' => 'fa-shield-halved',
+                                'account', 'profile_updated', 'password_changed', 'password_reset', 'email_changed' => 'fa-shield-halved',
                                 default => 'fa-bell',
                             };
                             $linkLabel = match ($action) {
