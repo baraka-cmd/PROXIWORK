@@ -47,7 +47,20 @@
                 <ul>
                     @foreach ($errors->getMessages() as $field => $messages)
                         @foreach ($messages as $message)
-                            <li><a href="{{ in_array($field, ['amount', 'duration_value', 'duration_unit', 'valid_until', 'description', 'conditions'], true) ? '#counter-offer-form' : '#quote-decision' }}">{{ $message }}</a></li>
+                            <li>
+                                @php
+                                    $errorTarget = match ($field) {
+                                        'amount' => '#counter-amount',
+                                        'duration_value' => '#counter-duration',
+                                        'duration_unit' => '#counter-duration-unit',
+                                        'valid_until' => '#counter-valid-until',
+                                        'description' => '#counter-description',
+                                        'conditions' => '#counter-conditions',
+                                        default => '#quote-decision',
+                                    };
+                                @endphp
+                                <a href="{{ $errorTarget }}">{{ $message }}</a>
+                            </li>
                         @endforeach
                     @endforeach
                 </ul>
