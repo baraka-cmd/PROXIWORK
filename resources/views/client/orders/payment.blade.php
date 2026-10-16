@@ -17,7 +17,7 @@
             <h1>Récapitulatif de commande</h1>
             <p>{{ $order->items->first()?->service_title ?? 'Prestation de service' }} · Référence <strong>{{ $order->order_number ?? '#'.$order->id }}</strong></p>
         </div>
-        <span class="status-badge status-badge--pending">Paiement à effectuer</span>
+        <span class="status-badge status-badge--pending_payment">Paiement à effectuer</span>
     </header>
 
     @if($errors->any())
