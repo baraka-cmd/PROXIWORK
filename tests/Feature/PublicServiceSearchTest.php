@@ -73,9 +73,9 @@ class PublicServiceSearchTest extends TestCase
 
         $response->assertOk();
 
-        // One field belongs to the main search and the other to the filter form.
+        // The main search, filter form, and result-sort form retain the keyword.
         $this->assertSame(
-            2,
+            3,
             preg_match_all('/name="search"/', $response->getContent()),
         );
     }
