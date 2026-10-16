@@ -118,6 +118,30 @@
         </form>
     </section>
 
+    @php
+        $activeOrderFilters = [];
+        if (filled($filters['q'] ?? null)) $activeOrderFilters[] = ['key' => 'q', 'label' => 'Recherche : '.$filters['q']];
+        if (filled($filters['status'] ?? null)) $activeOrderFilters[] = ['key' => 'status', 'label' => 'Commande : '.($statusLabels[$filters['status']] ?? 'Statut sélectionné')];
+        if (filled($filters['payment_status'] ?? null)) $activeOrderFilters[] = ['key' => 'payment_status', 'label' => 'Paiement : '.($paymentStatusLabels[$filters['payment_status']] ?? 'Paiement sélectionné')];
+        if (filled($filters['professional_id'] ?? null)) $activeOrderFilters[] = ['key' => 'professional_id', 'label' => 'Professionnel : '.($professionals->firstWhere('id', (int) $filters['professional_id'])?->user?->name ?? 'Professionnel sélectionné')];
+        if (filled($filters['service_id'] ?? null)) $activeOrderFilters[] = ['key' => 'service_id', 'label' => 'Service : '.($services->firstWhere('service_id', (int) $filters['service_id'])?->service_title ?? 'Service sélectionné')];
+        if (filled($filters['created_from'] ?? null)) $activeOrderFilters[] = ['key' => 'created_from', 'label' => 'Créée depuis le '.$filters['created_from']];
+        if (filled($filters['created_to'] ?? null)) $activeOrderFilters[] = ['key' => 'created_to', 'label' => 'Créée jusqu’au '.$filters['created_to']];
+        if (filled($filters['bucket'] ?? null) && $filters['bucket'] !== 'all') $activeOrderFilters[] = ['key' => 'bucket', 'label' => match($filters['bucket']) {'active' => 'Commandes actives', 'pending_payment' => 'À payer', 'completed' => 'Terminées', default => 'Catégorie'}];
+    @endphp
+    @if(count($activeOrderFilters) > 0)
+        <section class="client-order-active-filters" aria-label="Filtres actifs">
+            <strong>Filtres actifs</strong>
+            <div>
+                @foreach($activeOrderFilters as $activeOrderFilter)
+                    <a href="{{ route('client.orders.index', collect($filters)->except($activeOrderFilter['key'])->all()) }}">
+                        <span>{{ $activeOrderFilter['label'] }}</span><i class="fa-solid fa-xmark" aria-hidden="true"></i><span class="sr-only">Retirer ce filtre</span>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <div class="client-order-results-heading">
         <div>
             <h2>Résultats</h2>
