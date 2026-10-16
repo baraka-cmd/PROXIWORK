@@ -14,7 +14,7 @@
 
         @if ($errors->any())
             <div class="client-panel messages-feedback messages-feedback--error" role="alert">
-                <strong>Votre message n'a pas été envoyé.</strong>
+                <strong>Cette action n'a pas pu être traitée.</strong>
                 <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
             </div>
         @endif
