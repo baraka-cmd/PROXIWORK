@@ -159,3 +159,293 @@
     margin-bottom: .3rem;
     font-size: .9rem;
 }
+
+
+/* P03 — professional directory refinement */
+.directory-page--professionals .directory-section-header {
+    align-items: flex-start;
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.directory-page--professionals .directory-section-header h1 {
+    max-width: 19ch;
+    margin-top: var(--space-2);
+    letter-spacing: var(--letter-spacing-tight, -0.035em);
+}
+
+.directory-page--professionals .directory-section-header p {
+    max-width: 66ch;
+}
+
+.directory-section-header__trust {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-3) !important;
+    color: var(--color-primary) !important;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium, 500);
+}
+
+.directory-page--professionals .directory-layout {
+    gap: clamp(var(--space-5), 2.5vw, var(--space-8));
+}
+
+.directory-page--professionals .directory-filter-panel {
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.directory-page--professionals .directory-filters__trust-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin: var(--space-3) 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-relaxed);
+}
+
+.directory-page--professionals .directory-filters__trust-note i {
+    margin-top: .15rem;
+    color: var(--color-primary);
+}
+
+.directory-page--professionals .directory-results__header {
+    align-items: center;
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.directory-page--professionals .directory-results__header h2 {
+    margin-bottom: 0;
+    letter-spacing: var(--letter-spacing-tight, -0.02em);
+}
+
+.directory-page--professionals .professional-grid {
+    align-items: stretch;
+    gap: clamp(var(--space-4), 1.8vw, var(--space-6));
+}
+
+.directory-page--professionals .professional-card {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.directory-page--professionals .professional-card:hover {
+    border-color: var(--color-primary-border);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.directory-page--professionals .professional-card__header {
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+    background: linear-gradient(135deg, var(--color-primary-subtle, #f0fdfa), var(--color-surface) 72%);
+}
+
+.directory-page--professionals .professional-card__portrait {
+    position: relative;
+    display: grid;
+    width: 5.25rem;
+    height: 5.25rem;
+    flex: 0 0 5.25rem;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--color-primary-border);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(145deg, var(--color-primary-soft), var(--color-surface));
+    color: var(--color-primary);
+}
+
+.directory-page--professionals .professional-card__avatar-fallback {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold, 700);
+    letter-spacing: .04em;
+}
+
+.directory-page--professionals .professional-card__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.directory-page--professionals .professional-card__portrait.has-photo .professional-card__photo {
+    opacity: 1;
+}
+
+.directory-page--professionals .professional-card__identity {
+    min-width: 0;
+    padding-top: .1rem;
+}
+
+.directory-page--professionals .professional-card__badges {
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.directory-page--professionals .professional-card__identity h3 {
+    overflow: visible;
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-tight);
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.directory-page--professionals .professional-card__title {
+    line-height: var(--line-height-relaxed);
+    overflow-wrap: anywhere;
+}
+
+.directory-page--professionals .professional-card__body {
+    gap: var(--space-4);
+    padding: var(--space-5);
+}
+
+.directory-page--professionals .professional-card__bio {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-height: var(--line-height-relaxed);
+}
+
+.directory-page--professionals .professional-card__meta {
+    gap: var(--space-3);
+}
+
+.directory-page--professionals .professional-card__meta > div {
+    align-items: flex-start;
+    gap: var(--space-3);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-relaxed);
+}
+
+.directory-page--professionals .professional-card__meta dt {
+    flex: 0 0 18px;
+    margin-top: .1rem;
+}
+
+.directory-page--professionals .professional-card__meta dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.directory-page--professionals .professional-card__rating dt {
+    color: var(--color-accent, #f59e0b);
+}
+
+.directory-page--professionals .professional-card__rating strong {
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold, 600);
+}
+
+.directory-page--professionals .professional-card__skills {
+    align-self: auto;
+    gap: var(--space-2);
+}
+
+.directory-page--professionals .professional-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-2);
+}
+
+.directory-page--professionals .professional-card__actions > a:first-child {
+    flex: 1 1 9rem;
+    justify-content: center;
+}
+
+.directory-page--professionals .professional-card__actions form {
+    display: flex;
+    flex: 0 1 auto;
+    margin: 0;
+}
+
+.directory-page--professionals .professional-card__actions .button {
+    min-height: var(--control-height-md, 2.75rem);
+    white-space: nowrap;
+}
+
+.directory-page--professionals .professional-card__actions form .button {
+    justify-content: center;
+}
+
+.directory-page--professionals .directory-pagination {
+    padding-top: var(--space-2);
+}
+
+.directory-page--professionals .state-empty {
+    padding: clamp(var(--space-6), 4vw, var(--space-10));
+    text-align: center;
+}
+
+.directory-page--professionals .state-empty .button {
+    margin-top: var(--space-3);
+}
+
+@media (max-width: 767px) {
+    .directory-page--professionals .directory-section-header {
+        padding-bottom: var(--space-5);
+    }
+
+    .directory-page--professionals .directory-section-header h1 {
+        max-width: 16ch;
+        font-size: clamp(1.85rem, 8vw, 2.5rem);
+    }
+
+    .directory-page--professionals .directory-results__header {
+        align-items: flex-start;
+    }
+
+    .directory-page--professionals .professional-card__header,
+    .directory-page--professionals .professional-card__body {
+        padding: var(--space-4);
+    }
+
+    .directory-page--professionals .professional-card__portrait {
+        width: 4.5rem;
+        height: 4.5rem;
+        flex-basis: 4.5rem;
+    }
+
+    .directory-page--professionals .professional-card__actions > a:first-child {
+        flex-basis: 100%;
+    }
+
+    .directory-page--professionals .professional-card__actions form,
+    .directory-page--professionals .professional-card__actions form .button,
+    .directory-page--professionals .professional-card__actions > a.button--secondary {
+        flex: 1 1 auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .directory-page--professionals .professional-card,
+    .directory-page--professionals .professional-card__photo {
+        transition: none;
+    }
+
+    .directory-page--professionals .professional-card:hover {
+        transform: none;
+    }
+}
