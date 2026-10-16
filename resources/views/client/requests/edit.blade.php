@@ -25,7 +25,7 @@
             <ul>
                 @foreach($errors->getMessages() as $field => $messages)
                     @foreach($messages as $message)
-                        <li><a href="#{{ $field }}">{{ $message }}</a></li>
+                        <li><a href="{{ in_array($field, ['service_id', 'idempotency_key'], true) ? '#request-form' : '#'.$field }}">{{ $message }}</a></li>
                     @endforeach
                 @endforeach
             </ul>
@@ -49,7 +49,7 @@
             </dl>
         </aside>
 
-        <form class="client-panel client-request-form" method="POST" action="{{ route('client.requests.update', $serviceRequest) }}">
+        <form id="request-form" class="client-panel client-request-form" method="POST" action="{{ route('client.requests.update', $serviceRequest) }}">
             @csrf
             @method('PUT')
 
@@ -63,7 +63,7 @@
                     </div>
                     <div class="client-field client-form-grid__full">
                         <label for="description">Description détaillée <span>*</span></label>
-                        <textarea id="description" name="description" rows="8" minlength="20" maxlength="10000" required aria-describedby="description-hint" aria-invalid="{{ $errors->has('description') ? 'true' : 'false' }}" placeholder="Expliquez le contexte, vos objectifs, les fonctionnalités attendues et toute contrainte importante...">{{ old('description', $serviceRequest->description) }}</textarea>
+                        <textarea id="description" name="description" rows="8" minlength="20" maxlength="10000" required @if($errors->has('description')) aria-describedby="description-hint description-error" @else aria-describedby="description-hint" @endif aria-invalid="{{ $errors->has('description') ? 'true' : 'false' }}" placeholder="Expliquez le contexte, vos objectifs, les fonctionnalités attendues et toute contrainte importante...">{{ old('description', $serviceRequest->description) }}</textarea>
                         <small id="description-hint" class="client-field-hint">Décrivez le résultat attendu, le contexte, les contraintes et les éléments à prendre en compte. 20 à 10 000 caractères.</small>
                         @error('description')<small id="description-error" class="client-field-error">{{ $message }}</small>@enderror
                     </div>
