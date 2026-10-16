@@ -344,7 +344,7 @@
                         <div class="client-review-rating-options">
                             @for ($star = 5; $star >= 1; $star--)
                                 <label for="review-rating-{{ $star }}">
-                                    <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" @checked((string) old('rating') === (string) $star) required>
+                                    <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" aria-label="{{ $star }} étoiles sur 5" @checked((string) old('rating') === (string) $star) required>
                                     <span aria-hidden="true">★</span>
                                     <span>{{ $star }}</span>
                                 </label>
