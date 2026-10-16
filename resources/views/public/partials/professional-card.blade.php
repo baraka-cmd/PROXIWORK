@@ -33,7 +33,7 @@
                     </span>
                 @endif
 
-                @if ($professional->availability_status->value === 'available')
+                @if ($professional->availability_status?->value === 'available')
                     <span class="badge badge--primary">
                         <span class="badge__dot" aria-hidden="true"></span>
                         Disponible
