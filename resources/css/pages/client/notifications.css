@@ -64,3 +64,68 @@
 @media(max-width:1100px){.notification-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.notification-filter-actions{grid-column:1/-1}}
 @media(max-width:720px){.notification-overview{grid-template-columns:1fr}.notification-overview__card{padding:.85rem}.notification-filters{grid-template-columns:1fr}.notification-filter-actions{grid-column:auto}.notification-page-header{display:grid}.notification-results__heading{align-items:flex-start;flex-direction:column;gap:.25rem}.notification-item{grid-template-columns:2.35rem minmax(0,1fr);gap:.75rem;padding:.9rem}.notification-icon{width:2.35rem;height:2.35rem}.notification-meta time{margin-left:0;width:100%}.notification-preferences__actions .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){.notification-overview__card--link,.notification-item{transition:none}}
+
+
+/* P12 — communication client : états lisibles, sans dépendre uniquement de la couleur. */
+.notification-overview__card[aria-current="page"] {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary-soft, rgb(15 118 110 / 12%));
+}
+.notification-overview__card:focus-visible,
+.notification-reset-link:focus-visible,
+.link-button:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: .35rem;
+}
+.notification-filters input:focus-visible,
+.notification-filters select:focus-visible {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
+}
+.notification-item.is-read {
+    opacity: 1;
+    border-left: 3px solid var(--color-border, #d9dee7);
+}
+.notification-state--read {
+    color: var(--color-text-muted);
+}
+.notification-category {
+    font-weight: 650;
+    text-transform: none;
+}
+.notification-preference input[type="checkbox"] {
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+    cursor: pointer;
+}
+.notification-preference:focus-within {
+    border-radius: .5rem;
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+.notification-preferences__form > .notification-preference:first-child {
+    border-top: 1px solid var(--color-border, #e3e6ec);
+}
+@media (max-width: 720px) {
+    .notification-page-header > form,
+    .notification-page-header > form .btn,
+    .notification-filter-actions .btn {
+        width: 100%;
+    }
+    .notification-filter-actions {
+        align-items: stretch;
+    }
+    .notification-filter-actions > * {
+        justify-content: center;
+        text-align: center;
+    }
+    .notification-preference {
+        align-items: flex-start;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .notification-overview__card--link {
+        transition: none;
+    }
+}
