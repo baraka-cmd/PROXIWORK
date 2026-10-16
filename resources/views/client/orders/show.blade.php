@@ -339,9 +339,9 @@
                 <p>Votre commande est terminée. Partagez une évaluation honnête de la prestation que vous avez réellement reçue.</p>
                 <form method="POST" action="{{ route('client.orders.review.store', $order) }}" class="client-review-form">
                     @csrf
-                    <fieldset>
+                    <fieldset @if ($errors->has('rating')) aria-describedby="review-rating-error" aria-invalid="true" @endif>
                         <legend>Votre note (obligatoire)</legend>
-                        <div class="client-review-rating-options" @if ($errors->has('rating')) aria-describedby="review-rating-error" @endif>
+                        <div class="client-review-rating-options">
                             @for ($star = 5; $star >= 1; $star--)
                                 <label for="review-rating-{{ $star }}">
                                     <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" @checked((string) old('rating') === (string) $star) required>
