@@ -98,5 +98,6 @@ Les références visuelles ont servi d’inspiration de hiérarchie et de struct
 
 - L’audit backend était en lecture seule ; aucune modification backend n’a été faite.
 - Aucun test n’a été exécuté dans un navigateur pendant l’implémentation via GitHub. L’affichage réel, le parcours de photo, la navigation clavier, le lecteur d’écran, les erreurs de validation, le mobile et la confirmation/suppression restent à vérifier manuellement.
-- Le build Vite, les tests Laravel, les tests Feature des adresses/profil et les migrations doivent être évalués par la CI déclenchée sur la PR. Les résultats seront rapportés seulement après consultation effective de cette exécution.
+- CI GitHub Actions vérifiée sur le commit `40f358322eb6604b347fe38032324b0deecb10b6` : succès du build Vite, de la suite Laravel, du contrôle de style PHP, des migrations MySQL fraîches et des tests de régression financiers MySQL. Exécution : https://github.com/baraka-cmd/PROXIWORK/actions/runs/38885395174.
+- Aucun test navigateur manuel, test clavier/lecteur d’écran ou contrôle visuel mobile n’a été exécuté ; ces vérifications restent à faire.
 - Cette branche est proposée en PR ; elle ne doit pas être fusionnée sans autorisation explicite.
