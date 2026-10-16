@@ -30,6 +30,7 @@
                     <p class="client-module__eyebrow">CONVERSATION PRIVÉE</p>
                     <h1>{{ $conversation->professional?->user?->name ?? 'Professionnel' }}</h1>
                     <p>{{ $conversation->professional?->professional_title ?? 'Échange professionnel PROXIWORK' }}</p>
+                    <span class="message-conversation-state message-conversation-state--{{ $conversation->status->value }}">{{ $conversation->status->value === 'open' ? 'Conversation active' : ($conversation->status->value === 'blocked' ? 'Conversation bloquée' : 'Conversation fermée') }}</span>
                 </div>
             </div>
             <div class="message-header-actions">
@@ -44,7 +45,7 @@
                 <form method="POST" action="{{ route('client.messages.read-receipts', $conversation) }}">
                     @csrf
                     <input type="hidden" name="share_read_receipts" value="{{ $conversation->share_read_receipts ? '0' : '1' }}">
-                    <button class="btn btn-secondary" type="submit" title="Contrôler le partage des accusés de lecture">
+                    <button class="btn btn-secondary" type="submit" aria-pressed="{{ $conversation->share_read_receipts ? 'true' : 'false' }}" title="Contrôler le partage des accusés de lecture">
                         <i class="fa-solid fa-eye{{ $conversation->share_read_receipts ? '' : '-slash' }}" aria-hidden="true"></i>
                         {{ $conversation->share_read_receipts ? 'Désactiver accusés' : 'Activer accusés' }}
                     </button>
@@ -180,7 +181,7 @@
                     <p>Présentez votre question ou précisez les détails de la prestation.</p>
                 </div>
             @endforelse
-            <p class="message-sync-status" data-message-sync-status role="status">Connexion en cours…</p>
+            <p class="message-sync-status" data-message-sync-status aria-live="off">Connexion en cours…</p>
         </section>
 
         @if ($conversation->status->value === 'open')
