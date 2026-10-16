@@ -9,6 +9,12 @@
     @endunless
 @endpush
 
+@push('scripts')
+    @unless (app()->environment('testing'))
+        @vite('resources/js/pages/public/professionals.js')
+    @endunless
+@endpush
+
 @section('content')
     @php
         $profile = $professional->user->profile;
@@ -33,18 +39,18 @@
         </nav>
 
         <header class="surface-card public-professional-detail__hero professional-profile__hero">
-            <div class="professional-profile__portrait" aria-label="Portrait de {{ $displayName }}">
+            <div class="professional-profile__portrait" data-professional-portrait aria-label="Portrait de {{ $displayName }}">
+                <span class="professional-profile__initials" aria-hidden="true">{{ $initials ?: 'P' }}</span>
                 @if ($hasAvatar)
                     <img
                         class="professional-profile__photo"
+                        data-professional-photo
                         src="{{ route('public.professionals.photo', $professional) }}"
                         alt="Photo de {{ $displayName }}"
                         width="144"
                         height="144"
                         fetchpriority="high"
                     >
-                @else
-                    <span class="professional-profile__initials" aria-hidden="true">{{ $initials ?: 'P' }}</span>
                 @endif
             </div>
 
@@ -177,6 +183,40 @@
                     </div>
                 </section>
 
+                @if ($realizations->isNotEmpty())
+                    <section class="surface-card professional-profile__section" aria-labelledby="professional-realizations-title">
+                        <div class="professional-profile__section-heading">
+                            <span class="professional-profile__section-icon"><i class="fa-regular fa-images" aria-hidden="true"></i></span>
+                            <div>
+                                <p class="eyebrow">EXEMPLES DE TRAVAUX</p>
+                                <h2 id="professional-realizations-title">Réalisations approuvées <span class="professional-profile__count">{{ $realizations->count() }}</span></h2>
+                                <p class="professional-profile__section-intro">Des réalisations partagées par ce professionnel, approuvées et associées à une participation confirmée.</p>
+                            </div>
+                        </div>
+                        <div class="professional-profile__realizations">
+                            @foreach ($realizations as $realization)
+                                <figure class="professional-profile__realization">
+                                    <img
+                                        src="{{ route('public.service-realizations.image', $realization) }}"
+                                        alt="{{ $realization->caption ?: 'Réalisation du service '.($realization->service?->title ?? '') }}"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
+                                    <figcaption>
+                                        <strong>{{ $realization->caption ?: 'Réalisation' }}</strong>
+                                        @if ($realization->service?->title)
+                                            <span>{{ $realization->service->title }}</span>
+                                        @endif
+                                        @if ($realization->completed_at)
+                                            <small>Réalisée le {{ $realization->completed_at->format('d/m/Y') }}</small>
+                                        @endif
+                                    </figcaption>
+                                </figure>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+
                 <section class="surface-card professional-profile__section" aria-labelledby="professional-skills-title">
                     <div class="professional-profile__section-heading">
                         <span class="professional-profile__section-icon"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i></span>
@@ -228,7 +268,7 @@
                         @endif
                     </div>
                     <div class="public-profile-reviews professional-profile__reviews">
-                        @forelse ($professional->reviews as $review)
+                        @forelse ($reviews as $review)
                             <article class="public-review-card professional-profile__review">
                                 <div class="public-review-card__heading">
                                     <strong><span class="professional-profile__review-stars" aria-label="{{ $review->rating }} sur 5">{{ $review->rating }}/5 <span aria-hidden="true">★</span></span></strong>
@@ -258,6 +298,11 @@
                             </div>
                         @endforelse
                     </div>
+                    @if ($reviews->hasPages())
+                        <div class="directory-pagination professional-profile__review-pagination">
+                            {{ $reviews->onEachSide(1)->links() }}
+                        </div>
+                    @endif
                 </section>
             </div>
 
