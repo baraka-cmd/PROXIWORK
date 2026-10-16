@@ -161,19 +161,19 @@
             <nav class="client-quote-active-filters" aria-label="Critères de recherche actifs">
                 <span class="client-quote-active-filters__label">Filtres actifs</span>
                 @if ($activeBucket !== '')
-                    <a class="client-quote-filter-chip" href="{{ route('client.quotes.index', request()->except(['bucket', 'page'])) }}">
+                    <a class="client-quote-filter-chip" href="{{ route('client.quotes.index', collect($filters)->except(['bucket'])->all()) }}">
                         {{ match ($activeBucket) { 'review' => 'À examiner', 'negotiating' => 'En négociation', 'accepted' => 'Acceptés', 'history' => 'Historique', default => 'Catégorie' } }}
                         <span aria-hidden="true">×</span><span class="sr-only">Retirer ce filtre</span>
                     </a>
                 @endif
                 @foreach ($filters as $key => $value)
-                    @if (filled($value) && ! ($key === 'sort' && $value === 'newest'))
+                    @if ($key !== 'bucket' && filled($value) && ! ($key === 'sort' && $value === 'newest'))
                         @php
                             $displayFilterValue = $key === 'status'
                                 ? (\App\Enums\QuotationStatus::tryFrom((string) $value)?->label() ?? 'Statut sélectionné')
                                 : ($quoteFilterValues[$value] ?? $value);
                         @endphp
-                        <a class="client-quote-filter-chip" href="{{ route('client.quotes.index', request()->except([$key, 'page'])) }}">
+                        <a class="client-quote-filter-chip" href="{{ route('client.quotes.index', collect($filters)->except([$key])->all()) }}">
                             {{ $quoteFilterLabels[$key] ?? 'Filtre' }} : {{ $displayFilterValue }}
                             <span aria-hidden="true">×</span><span class="sr-only">Retirer ce filtre</span>
                         </a>
