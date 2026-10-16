@@ -14,7 +14,7 @@
     @php
         $activeBucket = $filters['bucket'] ?? '';
         $activeStatuses = \App\Enums\QuotationStatus::cases();
-        $hasFilters = collect($filters)->contains(fn ($value) => $value !== null && $value !== '') || $activeBucket !== '';
+        $hasFilters = collect($filters)->contains(fn ($value, $key) => $key !== 'bucket' && $value !== null && $value !== '' && ! ($key === 'sort' && $value === 'newest')) || $activeBucket !== '';
     @endphp
 
     <div class="client-module client-quotes">
