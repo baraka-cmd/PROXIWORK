@@ -251,7 +251,7 @@
                         <article>
                             <div>
                                 <strong>Transaction #{{ $transaction->id }}</strong>
-                                <span>Résultat : {{ $paymentStatusLabels[$transaction->status->value] ?? $transaction->status->value }}</span>
+                                <span>Résultat : {{ $paymentStatusLabels[$transaction->status->value] ?? 'État de transaction à vérifier' }}</span>
                                 <span>{{ $transaction->provider_reference ? 'Référence fournisseur : '.$transaction->provider_reference : 'Référence fournisseur non disponible' }}</span>
                                 <small>
                                     @if($transaction->processed_at)
@@ -479,6 +479,8 @@
                                 <li><a href="{{ route('client.orders.delivery-attachments.download', [$order, $attachment]) }}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i><span>{{ $attachment->original_name }}</span></a><span>{{ number_format($attachment->size_bytes / 1024, 1, ',', ' ') }} Ko · Téléchargement privé</span></li>
                             @endforeach
                         </ul>
+                    @else
+                        <p class="client-order-muted">Aucun fichier n’a été joint à cette livraison. Le résumé du professionnel reste disponible ci-dessus.</p>
                     @endif
                 </div>
             @endif
