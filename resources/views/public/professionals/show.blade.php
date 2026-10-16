@@ -184,18 +184,18 @@
                 </section>
 
                 @if ($realizations->isNotEmpty())
-                    <section class="surface-card professional-profile__section" aria-labelledby="professional-realizations-title">
+                    <section class="surface-card professional-profile__section" aria-labelledby="professional-realizations-title" data-professional-realizations>
                         <div class="professional-profile__section-heading">
                             <span class="professional-profile__section-icon"><i class="fa-regular fa-images" aria-hidden="true"></i></span>
                             <div>
                                 <p class="eyebrow">EXEMPLES DE TRAVAUX</p>
-                                <h2 id="professional-realizations-title">Réalisations approuvées <span class="professional-profile__count">{{ $realizations->count() }}</span></h2>
+                                <h2 id="professional-realizations-title">Réalisations approuvées <span class="professional-profile__count" data-professional-realization-count>{{ $realizations->count() }}</span></h2>
                                 <p class="professional-profile__section-intro">Des réalisations partagées par ce professionnel, approuvées et associées à une participation confirmée.</p>
                             </div>
                         </div>
                         <div class="professional-profile__realizations">
                             @foreach ($realizations as $realization)
-                                <figure class="professional-profile__realization">
+                                <figure class="professional-profile__realization" data-professional-realization>
                                     <img
                                         src="{{ route('public.service-realizations.image', $realization) }}"
                                         alt="{{ $realization->caption ?: 'Réalisation du service '.($realization->service?->title ?? '') }}"
