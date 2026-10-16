@@ -15,7 +15,12 @@ const saveHistory = (value) => {
     const normalized = value.trim();
     if (!normalized) return;
     const history = [normalized, ...readHistory().filter((entry) => entry.toLowerCase() !== normalized.toLowerCase())].slice(0, 5);
-    localStorage.setItem(historyKey, JSON.stringify(history));
+    try {
+        localStorage.setItem(historyKey, JSON.stringify(history));
+    } catch {
+        // Search history is optional; private browsing or storage restrictions
+        // must never prevent a search from being submitted.
+    }
 };
 
 document.querySelectorAll('[data-service-search-form]').forEach((form) => {
@@ -51,7 +56,13 @@ document.querySelectorAll('[data-service-search-form]').forEach((form) => {
             button.type = 'button';
             button.className = 'search-suggestion';
             button.setAttribute('role', 'option');
-            button.innerHTML = `<span>${match.label}</span><small>${match.category}</small>`;
+            const label = document.createElement('span');
+            label.textContent = match.label;
+
+            const category = document.createElement('small');
+            category.textContent = match.category;
+
+            button.replaceChildren(label, category);
             button.addEventListener('click', () => {
                 input.value = match.label;
                 closeSuggestions();
@@ -64,8 +75,22 @@ document.querySelectorAll('[data-service-search-form]').forEach((form) => {
     };
 
     input.addEventListener('input', () => {
-        clear.hidden = input.value.length === 0;
+        if (clear) clear.hidden = input.value.length === 0;
         renderSuggestions();
+    });
+
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' && !suggestions.hidden) {
+            const firstSuggestion = suggestions.querySelector('.search-suggestion');
+            if (firstSuggestion) {
+                event.preventDefault();
+                firstSuggestion.focus();
+            }
+        }
+
+        if (event.key === 'Escape') {
+            closeSuggestions();
+        }
     });
     clear?.addEventListener('click', () => {
         input.value = '';
@@ -77,7 +102,18 @@ document.querySelectorAll('[data-service-search-form]').forEach((form) => {
     document.addEventListener('click', (event) => {
         if (!form.contains(event.target)) closeSuggestions();
     });
-    clear.hidden = input.value.length === 0;
+    if (clear) clear.hidden = input.value.length === 0;
+});
+
+document.querySelectorAll('[data-results-sort]').forEach((select) => {
+    select.addEventListener('change', () => {
+        const form = select.form;
+        if (form && typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else if (form) {
+            form.submit();
+        }
+    });
 });
 
 document.querySelectorAll('[data-search-history]').forEach((container) => {
@@ -95,7 +131,11 @@ document.querySelectorAll('[data-search-history]').forEach((container) => {
         container.hidden = history.length === 0;
     };
     clear?.addEventListener('click', () => {
-        localStorage.removeItem(historyKey);
+        try {
+            localStorage.removeItem(historyKey);
+        } catch {
+            // The history panel remains optional when storage is unavailable.
+        }
         render();
     });
     render();

@@ -7,6 +7,7 @@
 html {
     min-height: 100%;
     scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--topbar-height) + var(--space-4));
 }
 
 body {
@@ -61,12 +62,22 @@ button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--color-accent) 65%, transparent);
-    outline-offset: 2px;
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 3px;
+    box-shadow: var(--shadow-focus);
+}
+
+/* Disabled controls should communicate their state without relying on colour alone. */
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+    cursor: not-allowed;
 }
 
 ::selection {
-    background: var(--color-primary);
+    background: var(--color-selection);
     color: var(--color-on-primary);
 }

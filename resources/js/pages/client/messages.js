@@ -5,6 +5,11 @@ if (thread) {
     const currentUserId = String(thread.dataset.userId || '');
     const pollingEnabled = thread.dataset.pollingEnabled !== 'false';
     const syncStatus = document.querySelector('[data-message-sync-status]');
+    const scrollLatestButton = thread.querySelector('[data-scroll-latest]');
+    const messageAnnouncement = document.querySelector('[data-message-announcement]');
+    let pollInProgress = false;
+    let pollingStopped = false;
+    let pollInterval = null;
 
     const updateStatus = (message) => {
         if (syncStatus) {
@@ -191,9 +196,13 @@ if (thread) {
                     csrfInput.value = csrf;
                     reportForm.append(csrfInput);
                 }
+                const reasonLabel = document.createElement('label');
+                reasonLabel.textContent = 'Motif du signalement';
                 const reason = document.createElement('select');
                 reason.name = 'reason_code';
                 reason.required = true;
+                reason.id = 'message-report-reason-' + message.id;
+                reasonLabel.htmlFor = reason.id;
                 [
                     ['SPAM', 'Spam'],
                     ['FRAUD', 'Fraude'],
@@ -211,16 +220,20 @@ if (thread) {
                     option.textContent = label;
                     reason.append(option);
                 });
+                const descriptionLabel = document.createElement('label');
+                descriptionLabel.textContent = 'Détails (facultatif)';
                 const description = document.createElement('textarea');
                 description.name = 'description';
+                description.id = 'message-report-description-' + message.id;
+                descriptionLabel.htmlFor = description.id;
                 description.rows = 2;
-                description.maxLength = 1000;
-                description.placeholder = 'Détails (facultatif)';
+                description.maxLength = 5000;
+                description.placeholder = 'Décrivez le problème sans données personnelles inutiles.';
                 const submit = document.createElement('button');
                 submit.className = 'btn btn-secondary';
                 submit.type = 'submit';
                 submit.textContent = 'Envoyer le signalement';
-                reportForm.append(reason, description, submit);
+                reportForm.append(reasonLabel, reason, descriptionLabel, description, submit);
                 details.append(summary, reportForm);
                 article.append(details);
             }
@@ -242,9 +255,11 @@ if (thread) {
     };
 
     const poll = async () => {
-        if (document.visibilityState !== 'visible') {
+        if (pollInProgress || pollingStopped || document.visibilityState !== 'visible') {
             return;
         }
+
+        pollInProgress = true;
 
         try {
             const url = new URL(thread.dataset.updatesUrl, window.location.origin);
@@ -259,6 +274,8 @@ if (thread) {
             });
 
             if (response.status === 401 || response.status === 419) {
+                pollingStopped = true;
+                if (pollInterval !== null) window.clearInterval(pollInterval);
                 updateStatus('Votre session a expiré. Reconnectez-vous pour continuer.');
                 return;
             }
@@ -275,25 +292,47 @@ if (thread) {
                 return;
             }
 
+            const wasNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 100;
+            const newMessages = payload.data.filter((message) => !thread.querySelector('[data-message-id="' + message.id + '"]'));
+            const incomingCount = newMessages.filter((message) => String(message.sender?.id ?? '') !== currentUserId).length;
+
             payload.data.forEach(appendMessage);
             updateReadReceipts(payload.meta?.recipient_last_read_message_id);
             lastMessageId = Math.max(lastMessageId, Number(payload.meta?.last_message_id) || 0);
             thread.dataset.lastMessageId = String(lastMessageId);
             updateStatus(`Synchronisé à ${new Intl.DateTimeFormat('fr-FR', { hour: '2-digit', minute: '2-digit' }).format(new Date())}`);
 
-            if (payload.data.length > 0) {
-                thread.scrollTop = thread.scrollHeight;
+            if (newMessages.length > 0) {
+                if (wasNearBottom) {
+                    thread.scrollTop = thread.scrollHeight;
+                    if (scrollLatestButton) scrollLatestButton.hidden = true;
+                } else if (scrollLatestButton) {
+                    scrollLatestButton.hidden = false;
+                }
+
+                if (incomingCount > 0 && messageAnnouncement) {
+                    messageAnnouncement.textContent = incomingCount === 1
+                        ? 'Nouveau message reçu.'
+                        : incomingCount + ' nouveaux messages reçus.';
+                }
             }
         } catch {
             updateStatus('Connexion interrompue. Les messages enregistrés restent conservés; nouvelle tentative automatique…');
+        } finally {
+            pollInProgress = false;
         }
     };
 
     thread.scrollTop = thread.scrollHeight;
 
+    scrollLatestButton?.addEventListener('click', () => {
+        thread.scrollTop = thread.scrollHeight;
+        scrollLatestButton.hidden = true;
+    });
+
     if (pollingEnabled) {
         updateStatus('Synchronisation active');
-        window.setInterval(poll, 8000);
+        pollInterval = window.setInterval(poll, 8000);
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 void poll();
@@ -356,16 +395,49 @@ document.querySelectorAll('[data-message-form]').forEach((form) => {
         }
 
         const files = Array.from(attachmentInput.files || []);
+        const allowedExtensions = new Set(['jpg', 'jpeg', 'png', 'webp', 'pdf', 'doc', 'docx']);
+        const invalidType = files.some((file) => {
+            const extension = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
+            return !allowedExtensions.has(extension);
+        });
+
         attachmentNames.textContent = files.length === 0
-            ? 'Aucun fichier sélectionné · 5 fichiers maximum · 10 Mo par fichier'
-            : files.map((file) => file.name).join(' · ');
+            ? 'Formats : JPG, PNG, WebP, PDF, DOC ou DOCX · 5 fichiers maximum · 10 Mo par fichier'
+            : files.length + ' fichier' + (files.length > 1 ? 's sélectionnés' : ' sélectionné') + ' · ' + files.map((file) => file.name).join(' · ');
+
+        const attachmentList = form.querySelector('[data-attachment-list]');
+        if (attachmentList) {
+            attachmentList.replaceChildren();
+            files.forEach((file, index) => {
+                const chip = document.createElement('span');
+                chip.className = 'message-attachment-chip';
+                const name = document.createElement('span');
+                name.className = 'message-attachment-chip__name';
+                name.textContent = file.name + ' · ' + (file.size / (1024 * 1024)).toFixed(2).replace('.', ',') + ' Mo';
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.setAttribute('aria-label', 'Retirer le fichier ' + file.name);
+                remove.textContent = '×';
+                remove.addEventListener('click', () => {
+                    if (typeof DataTransfer === 'undefined') return;
+                    const transfer = new DataTransfer();
+                    Array.from(attachmentInput.files || []).forEach((selectedFile, selectedIndex) => {
+                        if (selectedIndex !== index) transfer.items.add(selectedFile);
+                    });
+                    attachmentInput.files = transfer.files;
+                    updateAttachmentNames();
+                });
+                chip.append(name, remove);
+                attachmentList.append(chip);
+            });
+        }
 
         attachmentInput.setCustomValidity(
             files.length > 5
                 ? 'Vous pouvez joindre au maximum cinq fichiers.'
                 : (files.some((file) => file.size > 10 * 1024 * 1024)
                     ? 'Chaque fichier doit faire au maximum 10 Mo.'
-                    : ''),
+                    : (invalidType ? 'Choisissez un fichier JPG, PNG, WebP, PDF, DOC ou DOCX.' : '')),
         );
     };
 

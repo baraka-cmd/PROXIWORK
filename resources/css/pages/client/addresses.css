@@ -67,3 +67,52 @@
 .address-form-actions{display:flex;justify-content:flex-end;gap:.65rem;flex-wrap:wrap;padding-top:.3rem}
 @media(max-width:700px){.address-page-header{flex-direction:column;align-items:stretch}.address-page-header>.btn{align-self:flex-start}.address-form-grid{grid-template-columns:1fr}.address-field--full{grid-column:auto}.address-card__actions{align-items:stretch}.address-card__actions>.btn,.address-card__actions form,.address-card__actions form button{width:100%}.address-form-actions{display:grid;grid-template-columns:1fr}.address-form-actions>.btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.address-card,.address-field input,.address-field textarea{transition:none}}
+
+
+/* Address-book refinement (C35-C38). */
+.address-error-summary{align-items:flex-start;scroll-margin-top:1rem}
+.address-error-summary:focus{outline:3px solid color-mix(in srgb,var(--color-danger,#b42318) 30%,transparent);outline-offset:3px}
+.address-error-summary p{margin:.35rem 0;color:var(--color-text-muted);font-size:.9rem}
+.address-error-summary ul{display:grid;gap:.35rem;margin:.5rem 0 0;padding-left:1.25rem}
+.address-error-summary a{color:var(--color-danger,#b42318);font-weight:650;text-decoration:underline;text-underline-offset:2px}
+.address-editing-label{display:flex;align-items:center;gap:.4rem;overflow-wrap:anywhere}
+.address-editing-label i{color:var(--color-primary)}
+.address-required-note{margin:0;color:var(--color-text-muted);font-size:.88rem}
+.address-required-note>span{color:var(--color-primary);font-weight:800}
+.address-form-group{display:grid;gap:1rem;min-width:0;margin:0;padding:1.25rem 0 0;border:0;border-top:1px solid var(--color-border)}
+.address-form-group>legend{display:flex;align-items:center;gap:.8rem;width:100%;padding:0 0 .1rem}
+.address-form-group>legend>span:last-child{display:grid;gap:.2rem;min-width:0}
+.address-form-group>legend strong{font-size:1.02rem;color:var(--color-text)}
+.address-form-group>legend small{color:var(--color-text-muted);font-size:.86rem;font-weight:400;line-height:1.45}
+.address-form-group__number{display:grid;place-items:center;flex:0 0 2.25rem;width:2.25rem;height:2.25rem;border:1px solid var(--color-border);border-radius:50%;color:var(--color-primary);font-size:.78rem;font-weight:800}
+.address-form-group__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.address-form-group .address-form-grid{margin-top:.1rem}
+.address-form-group--gps{padding:1.1rem;border:1px solid var(--color-border);border-radius:var(--radius-md,10px);background:var(--color-surface-muted,var(--color-surface))}
+.address-gps-note{display:flex;align-items:flex-start;gap:.5rem;margin:0;color:var(--color-text-muted);font-size:.88rem;line-height:1.5}
+.address-gps-note i{margin-top:.2rem;color:var(--color-primary)}
+.address-optional{color:var(--color-text-muted);font-size:.82rem;font-weight:400}
+.address-field input[aria-invalid=true],.address-field textarea[aria-invalid=true]{border-color:var(--color-danger,#b42318);box-shadow:0 0 0 1px color-mix(in srgb,var(--color-danger,#b42318) 10%,transparent)}
+.address-field input:focus-visible,.address-field textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--color-primary) 28%,transparent);outline-offset:2px}
+.address-field-error{display:block;color:var(--color-danger,#b42318)!important;font-size:.84rem;font-weight:650}
+.address-default-control{background:var(--color-surface)}
+.address-default-control:focus-within{border-color:var(--color-primary)}
+.address-form-actions{padding-top:1rem;border-top:1px solid var(--color-border)}
+.address-form button:disabled{cursor:wait;opacity:.75}
+.address-form[aria-busy=true]{opacity:.92}
+.address-card__actions .btn{min-height:40px}
+.address-card__actions button:focus-visible,.address-card__actions a:focus-visible{outline:3px solid color-mix(in srgb,var(--color-primary) 35%,transparent);outline-offset:2px}
+@media(max-width:700px){
+ .address-form-group{padding-top:1rem}
+ .address-form-group--gps{padding:1rem}
+ .address-form-group__number{flex-basis:2rem;width:2rem;height:2rem}
+ .address-form-group>legend strong{font-size:.98rem}
+ .address-form-group .address-form-grid{grid-template-columns:minmax(0,1fr)}
+ .address-form-group .address-field--full{grid-column:auto}
+ .address-form-group--preferences .address-default-control{padding:.85rem}
+}
+@media(prefers-reduced-motion:reduce){
+ .address-card:hover{transform:none}
+}
+
+.address-form-group{width:100%;box-sizing:border-box;min-inline-size:0}
+.address-form-group>legend{box-sizing:border-box}
