@@ -12,7 +12,7 @@
             <div>
                 <p class="client-module__eyebrow">COMMUNICATION PROFESSIONNELLE</p>
                 <h1>Messages</h1>
-                <p>Échangez avec vos professionnels. Les décisions officielles restent dans les demandes, devis et commandes.</p>
+                <p>Retrouvez vos échanges avec les professionnels, en lien avec vos demandes et commandes. Les décisions officielles restent dans leurs espaces dédiés.</p>
             </div>
         </header>
 
@@ -59,7 +59,7 @@
                 </label>
                 <div class="messages-filter-actions">
                     <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Rechercher</button>
-                    <a href="{{ route('client.messages.index') }}" class="messages-reset-link">Réinitialiser</a>
+                    <a href="{{ route('client.messages.index', ['archived' => $archived ? '1' : '0']) }}" class="messages-reset-link">Réinitialiser les filtres</a>
                 </div>
             </form>
         </section>
@@ -68,15 +68,15 @@
             <div class="messages-list-heading">
                 <div>
                     <h2>{{ $archived ? 'Conversations archivées' : 'Vos conversations' }}</h2>
-                    <p>{{ $conversations->count() }} conversation(s) sur cette page</p>
+                    <p>{{ $conversations->count() }} {{ $conversations->count() > 1 ? 'conversations affichées' : 'conversation affichée' }}</p>
                 </div>
             </div>
 
             @if ($conversations->isEmpty())
                 <div class="message-empty">
                     <span class="message-empty__icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
-                    <h3>{{ $archived ? 'Aucune conversation archivée' : 'Aucune conversation pour le moment' }}</h3>
-                    <p>{{ $search !== '' ? 'Aucun résultat ne correspond à votre recherche.' : 'Lorsque vous contacterez un professionnel, votre échange apparaîtra ici.' }}</p>
+                    <h3>{{ $search !== '' || $category !== 'all' || $status !== 'all' ? 'Aucun résultat pour ces filtres' : ($archived ? 'Aucune conversation archivée' : 'Aucune conversation pour le moment') }}</h3>
+                    <p>{{ $search !== '' || $category !== 'all' || $status !== 'all' ? 'Essayez de modifier la recherche ou les filtres pour retrouver un échange.' : ($archived ? 'Les conversations que vous archivez apparaîtront ici. Vous pourrez les restaurer à tout moment.' : 'Lorsque vous contacterez un professionnel, votre échange apparaîtra ici.') }}</p>
                     @if ($search !== '' || $category !== 'all' || $status !== 'all' || $archived)
                         <a class="btn btn-secondary" href="{{ route('client.messages.index') }}">Afficher toutes les conversations</a>
                     @endif
@@ -95,7 +95,7 @@
                                 $preview = 'Démarrez la conversation';
                             }
                         @endphp
-                        <article class="conversation-row {{ $selected === $conversation->id ? 'is-selected' : '' }}">
+                        <article class="conversation-row {{ $selected === $conversation->id ? 'is-selected' : '' }} {{ $conversation->unread_count > 0 ? 'is-unread' : '' }} {{ $conversation->is_pinned ? 'is-pinned' : '' }}">
                             <a class="conversation-row__main" href="{{ route('client.messages.show', $conversation) }}">
                                 <span class="conversation-avatar" aria-hidden="true">{{ strtoupper(mb_substr($participantName, 0, 1)) }}</span>
                                 <span class="conversation-content">
@@ -108,11 +108,11 @@
                                     <span class="conversation-preview">{{ \Illuminate\Support\Str::limit($preview, 100) }}</span>
                                     <span class="conversation-tags">
                                         @if ($conversation->order_id)
-                                            <span class="message-context-tag">Commande #{{ $conversation->order_id }}</span>
+                                            <span class="message-context-tag"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i> Commande #{{ $conversation->order_id }}</span>
                                         @elseif ($conversation->service_request_id)
-                                            <span class="message-context-tag">Demande #{{ $conversation->service_request_id }}</span>
+                                            <span class="message-context-tag"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Demande #{{ $conversation->service_request_id }}</span>
                                         @else
-                                            <span class="message-context-tag">Conversation générale</span>
+                                            <span class="message-context-tag"><i class="fa-regular fa-comments" aria-hidden="true"></i> Conversation générale</span>
                                         @endif
                                         @if ($conversation->is_pinned)
                                             <span class="message-context-tag"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Épinglée</span>
