@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Frontend;
 
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
@@ -102,5 +103,26 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('state-empty', $empty);
         $this->assertStringContainsString('Aucun professionnel', $empty);
         $this->assertStringContainsString('Aucun résultat ne correspond à vos critères.', $empty);
+    }
+
+    public function test_select_component_prefers_old_input_after_validation_failure(): void
+    {
+        Route::middleware('web')->get('/_test-select-old-input', static function () {
+            return Blade::render(
+                '<x-select name="status" label="Statut" :value="$selected" :options="$options" />',
+                [
+                    'errors' => new ViewErrorBag,
+                    'selected' => 'approved',
+                    'options' => ['approved' => 'Approuvé', 'pending' => 'En attente'],
+                ]
+            );
+        });
+
+        $response = $this->withSession(['_old_input' => ['status' => 'pending']])
+            ->get('/_test-select-old-input');
+
+        $response->assertOk();
+        $response->assertSee('value="pending" selected', false);
+        $response->assertDontSee('value="approved" selected', false);
     }
 }

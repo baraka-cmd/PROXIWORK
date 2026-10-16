@@ -98,3 +98,79 @@ body.confirmation-is-open {
         scroll-behavior: auto;
     }
 }
+
+
+/* Dialog motion and hierarchy: restrained, fast and keyboard-friendly. */
+.confirmation__backdrop {
+    background: var(--color-overlay);
+    animation: confirmation-backdrop-in var(--transition-fast) both;
+}
+
+.confirmation__dialog {
+    animation: confirmation-dialog-in var(--transition-surface) both;
+    transform-origin: center;
+}
+
+.confirmation__icon {
+    box-shadow: inset 0 0 0 1px rgb(15 23 42 / 4%);
+}
+
+.confirmation__actions .button {
+    min-width: 112px;
+}
+
+.confirmation__actions .button--danger {
+    background: var(--color-danger);
+    color: #fff;
+}
+
+.confirmation__actions .button--danger:hover:not(:disabled) {
+    background: var(--color-danger-hover);
+}
+
+.confirmation__dialog :where(button, a, input, select, textarea):focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 3px;
+}
+
+@keyframes confirmation-backdrop-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes confirmation-dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 519px) {
+    .confirmation__dialog {
+        max-height: min(88dvh, 640px);
+        padding-bottom: max(var(--space-5), env(safe-area-inset-bottom));
+        animation-name: confirmation-sheet-in;
+    }
+
+    @keyframes confirmation-sheet-in {
+        from {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .confirmation__backdrop,
+    .confirmation__dialog {
+        animation: none;
+    }
+}

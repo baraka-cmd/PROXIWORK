@@ -22,6 +22,23 @@ document.addEventListener('DOMContentLoaded', () => {
         );
 
         body.classList.toggle('navigation-is-open', Boolean(hasOpenNavigation));
+
+        // The dashboard drawer uses a dedicated backdrop; keep its visual and
+        // accessibility state synchronized with the actual mobile toggle.
+        const dashboardToggle = document.querySelector(
+            '[data-mobile-menu-toggle][aria-controls="dashboard-sidebar"]',
+        );
+        const sidebarOverlay = document.querySelector('[data-sidebar-overlay]');
+        const dashboardSidebarIsOpen = Boolean(
+            compactViewport.matches
+            && dashboardToggle
+            && dashboardToggle.getAttribute('aria-expanded') === 'true',
+        );
+
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.toggle('is-visible', dashboardSidebarIsOpen);
+            sidebarOverlay.setAttribute('aria-hidden', String(!dashboardSidebarIsOpen));
+        }
     };
 
     const setToggleState = (toggle, isOpen) => {

@@ -14,7 +14,7 @@
     @php
         $activeBucket = $filters['bucket'] ?? '';
         $activeStatuses = \App\Enums\QuotationStatus::cases();
-        $hasFilters = collect($filters)->contains(fn ($value) => $value !== null && $value !== '');
+        $hasFilters = collect($filters)->contains(fn ($value, $key) => $key !== 'bucket' && $value !== null && $value !== '' && ! ($key === 'sort' && $value === 'newest')) || $activeBucket !== '';
     @endphp
 
     <div class="client-module client-quotes">
@@ -39,28 +39,28 @@
 
         <section class="client-quote-statistics" aria-label="Résumé de mes devis">
             <a class="client-quote-stat {{ $activeBucket === 'review' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', ['bucket' => 'review']) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'review']) }}" @if ($activeBucket === 'review') aria-current="page" @endif>
                 <span class="client-quote-stat__icon client-quote-stat__icon--review"><i class="fa-solid fa-eye" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">À examiner</span>
                 <strong>{{ $statistics['review'] }}</strong>
                 <small>Une proposition du professionnel attend votre décision</small>
             </a>
             <a class="client-quote-stat {{ $activeBucket === 'negotiating' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', ['bucket' => 'negotiating']) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'negotiating']) }}" @if ($activeBucket === 'negotiating') aria-current="page" @endif>
                 <span class="client-quote-stat__icon client-quote-stat__icon--negotiating"><i class="fa-solid fa-comments" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">En négociation</span>
                 <strong>{{ $statistics['negotiating'] }}</strong>
                 <small>Propositions successives à suivre</small>
             </a>
             <a class="client-quote-stat {{ $activeBucket === 'accepted' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', ['bucket' => 'accepted']) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'accepted']) }}" @if ($activeBucket === 'accepted') aria-current="page" @endif>
                 <span class="client-quote-stat__icon client-quote-stat__icon--accepted"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">Acceptés</span>
                 <strong>{{ $statistics['accepted'] }}</strong>
                 <small>Retrouvez la commande associée</small>
             </a>
             <a class="client-quote-stat {{ $activeBucket === 'history' ? 'is-active' : '' }}"
-               href="{{ route('client.quotes.index', ['bucket' => 'history']) }}">
+               href="{{ route('client.quotes.index', ['bucket' => 'history']) }}" @if ($activeBucket === 'history') aria-current="page" @endif>
                 <span class="client-quote-stat__icon client-quote-stat__icon--history"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span>
                 <span class="client-quote-stat__label">Historique</span>
                 <strong>{{ $statistics['history'] }}</strong>
@@ -153,6 +153,36 @@
             </form>
         </section>
 
+        @php
+            $quoteFilterLabels = ['q' => 'Recherche', 'status' => 'Statut', 'validity' => 'Validité', 'currency' => 'Devise', 'received_from' => 'Reçu à partir du', 'received_to' => 'Reçu jusqu’au', 'sort' => 'Tri'];
+            $quoteFilterValues = ['valid' => 'Encore valable', 'expiring' => 'Expire dans les 3 jours', 'expired' => 'Expiré', 'newest' => 'Plus récents', 'oldest' => 'Plus anciens', 'deadline' => 'Date limite', 'amount_asc' => 'Montant croissant (par devise)', 'amount_desc' => 'Montant décroissant (par devise)'];
+        @endphp
+        @if ($hasFilters)
+            <nav class="client-quote-active-filters" aria-label="Critères de recherche actifs">
+                <span class="client-quote-active-filters__label">Filtres actifs</span>
+                @if ($activeBucket !== '')
+                    <a class="client-quote-filter-chip" href="{{ route('client.quotes.index', collect($filters)->except(['bucket'])->all()) }}">
+                        {{ match ($activeBucket) { 'review' => 'À examiner', 'negotiating' => 'En négociation', 'accepted' => 'Acceptés', 'history' => 'Historique', default => 'Catégorie' } }}
+                        <span aria-hidden="true">×</span><span class="sr-only">Retirer ce filtre</span>
+                    </a>
+                @endif
+                @foreach ($filters as $key => $value)
+                    @if ($key !== 'bucket' && filled($value) && ! ($key === 'sort' && $value === 'newest'))
+                        @php
+                            $displayFilterValue = $key === 'status'
+                                ? (\App\Enums\QuotationStatus::tryFrom((string) $value)?->label() ?? 'Statut sélectionné')
+                                : ($quoteFilterValues[$value] ?? $value);
+                        @endphp
+                        <a class="client-quote-filter-chip" href="{{ route('client.quotes.index', collect($filters)->except([$key])->all()) }}">
+                            {{ $quoteFilterLabels[$key] ?? 'Filtre' }} : {{ $displayFilterValue }}
+                            <span aria-hidden="true">×</span><span class="sr-only">Retirer ce filtre</span>
+                        </a>
+                    @endif
+                @endforeach
+                <a class="client-filter-clear" href="{{ route('client.quotes.index') }}">Tout réinitialiser</a>
+            </nav>
+        @endif
+
         <div class="client-quote-results-heading">
             <div>
                 <h2>
@@ -194,7 +224,7 @@
                             && $offer->valid_until?->isFuture();
                         $isExpiringSoon = $isAwaitingClient && $offer->valid_until->lte(now()->addDays(3));
                     @endphp
-                    <article class="client-quote-card">
+                    <article class="client-quote-card {{ $isAwaitingClient ? 'client-quote-card--needs-action' : '' }}">
                         <div class="client-quote-card__top">
                             <div class="client-quote-card__identity">
                                 <span class="client-quote-card__icon"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i></span>
@@ -210,7 +240,12 @@
                                     </p>
                                 </div>
                             </div>
-                            <span class="status-badge status-badge--{{ $quote->status->value }}">{{ $quote->status->label() }}</span>
+                            <div class="client-quote-card__status">
+                                <span class="status-badge status-badge--{{ $quote->status->value }}">{{ $quote->status->label() }}</span>
+                                @if ($isAwaitingClient)
+                                    <span class="client-quote-action-label"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> Votre décision</span>
+                                @endif
+                            </div>
                         </div>
 
                         <div class="client-quote-card__body">
@@ -240,7 +275,7 @@
                         </div>
 
                         @if ($isExpiringSoon)
-                            <p class="client-quote-expiry-note"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Cette proposition arrive bientôt à échéance.</p>
+                            <p class="client-quote-expiry-note"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Décision attendue avant le {{ $offer->valid_until->format('d/m/Y à H:i') }}.</p>
                         @elseif ($offer && ! $offer->valid_until?->isFuture() && in_array($quote->status, [\App\Enums\QuotationStatus::SENT, \App\Enums\QuotationStatus::NEGOTIATING], true))
                             <p class="client-quote-expiry-note client-quote-expiry-note--expired"><i class="fa-solid fa-clock" aria-hidden="true"></i> La date limite est dépassée ; l'acceptation est bloquée.</p>
                         @elseif ($offer?->actor_type === \App\Enums\QuotationOfferActor::CLIENT && $quote->status === \App\Enums\QuotationStatus::NEGOTIATING)
@@ -257,7 +292,7 @@
                                 </a>
                             @endif
                             <a class="btn btn-primary btn-sm" href="{{ route('client.quotes.show', $quote) }}">
-                                Examiner le devis <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                {{ $isAwaitingClient ? 'Répondre au devis' : 'Voir le devis' }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                             </a>
                         </div>
                     </article>

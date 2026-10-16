@@ -128,16 +128,7 @@
     height: 1.15rem;
 }
 
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
-.table-responsive > table {
-    min-width: 640px;
-}
+/* Table scrolling and visual treatment are consolidated below. */
 
 .responsive-grid {
     display: grid;
@@ -259,5 +250,370 @@
     .state-skeleton__line {
         animation: none;
         background: var(--color-surface-muted);
+    }
+}
+
+
+/* =========================================================
+   Reusable data tables and pagination.
+   Tables scroll within their own surface rather than forcing
+   the entire page to overflow on smaller screens.
+   ========================================================= */
+.table-responsive {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    scrollbar-color: var(--color-border-strong) var(--color-surface-muted);
+    scrollbar-width: thin;
+    overscroll-behavior-inline: contain;
+}
+
+.table-responsive::-webkit-scrollbar {
+    height: 10px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    border-radius: var(--radius-full);
+    background: var(--color-surface-muted);
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    border: 2px solid var(--color-surface-muted);
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-subtle);
+}
+
+.table-responsive:focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 3px;
+}
+
+.table-responsive > table {
+    width: 100%;
+    min-width: 680px;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+}
+
+.table-responsive > table thead {
+    background: var(--color-surface-muted);
+}
+
+.table-responsive > table th {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-strong);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide);
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.table-responsive > table td {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border-subtle);
+    vertical-align: middle;
+}
+
+.table-responsive > table tbody tr {
+    background: var(--color-surface);
+    transition: background var(--transition-fast);
+}
+
+.table-responsive > table tbody tr:hover {
+    background: var(--color-surface-hover);
+}
+
+.table-responsive > table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.table-responsive > table th:first-child,
+.table-responsive > table td:first-child {
+    padding-left: var(--space-5);
+}
+
+.table-responsive > table th:last-child,
+.table-responsive > table td:last-child {
+    padding-right: var(--space-5);
+}
+
+.table-responsive > table td :where(.button, .icon-button) {
+    vertical-align: middle;
+}
+
+.table-responsive > table td .badge {
+    vertical-align: middle;
+}
+
+.table-responsive__hint {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border-top: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.table-responsive__hint i {
+    color: var(--color-primary);
+}
+
+.pagination,
+.pagination-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.pagination {
+    justify-content: space-between;
+    gap: var(--space-3) var(--space-5);
+}
+
+.pagination__summary {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.pagination-list {
+    justify-content: flex-end;
+}
+
+.pagination-list a,
+.pagination-list button,
+.pagination-list span,
+.pagination a,
+.pagination button,
+.pagination span {
+    display: inline-flex;
+    min-width: 40px;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-3);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    text-decoration: none;
+    transition:
+        color var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+.pagination-list a:hover,
+.pagination-list button:hover,
+.pagination a:hover,
+.pagination button:hover {
+    border-color: var(--color-border);
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+.pagination [aria-current='page'],
+.pagination-list [aria-current='page'] {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+}
+
+.pagination [aria-disabled='true'],
+.pagination button:disabled,
+.pagination-list [aria-disabled='true'],
+.pagination-list button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.pagination :where(a, button, span):focus-visible,
+.pagination-list :where(a, button, span):focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 2px;
+}
+
+@media (max-width: 767px) {
+    .table-responsive {
+        border-radius: var(--radius-md);
+    }
+
+    .table-responsive > table {
+        min-width: 620px;
+    }
+
+    .table-responsive > table th {
+        padding: var(--space-3);
+    }
+
+    .table-responsive > table td {
+        padding: var(--space-3);
+    }
+
+    .table-responsive > table th:first-child,
+    .table-responsive > table td:first-child {
+        padding-left: var(--space-3);
+    }
+
+    .table-responsive > table th:last-child,
+    .table-responsive > table td:last-child {
+        padding-right: var(--space-3);
+    }
+
+    .pagination {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .pagination-list {
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .table-responsive > table tbody tr,
+    .pagination-list a,
+    .pagination-list button,
+    .pagination a,
+    .pagination button {
+        transition: none;
+    }
+}
+
+
+/* Adopt the same table behavior in the existing client, professional and
+   administration views without forcing their templates into a new component. */
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: var(--color-border-strong) var(--color-surface-muted);
+    scrollbar-width: thin;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar {
+    height: 10px;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar-track {
+    border-radius: var(--radius-full);
+    background: var(--color-surface-muted);
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar-thumb {
+    border: 2px solid var(--color-surface-muted);
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap)::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-subtle);
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table {
+    min-width: 680px;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table th,
+:where(.table-responsive) > table th {
+    vertical-align: middle;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table td {
+    overflow-wrap: anywhere;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table td :where(a, button) {
+    white-space: nowrap;
+}
+
+:where(.table-wrap, .admin-table-wrap, .finance-table-wrap):focus-visible {
+    outline: 3px solid var(--color-link);
+    outline-offset: 3px;
+}
+
+@media (max-width: 767px) {
+    :where(.table-wrap, .admin-table-wrap, .finance-table-wrap) > table {
+        min-width: 620px;
+    }
+}
+
+
+/* Final table details shared by client, professional and admin screens. */
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) {
+    isolation: isolate;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table {
+    margin: 0;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table caption {
+    padding: var(--space-3) var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    text-align: left;
+    caption-side: top;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort] {
+    color: var(--color-text);
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort]::after {
+    display: inline-block;
+    margin-left: var(--space-2);
+    color: var(--color-primary);
+    font-size: 0.7em;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort="ascending"]::after {
+    content: "▲";
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table th[aria-sort="descending"]::after {
+    content: "▼";
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap):focus-visible {
+    outline-color: var(--color-link);
+    outline-offset: 3px;
+}
+
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table td:has(.button + .button),
+:where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table td:has(.icon-button + .icon-button) {
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :where(.table-responsive, .table-wrap, .admin-table-wrap, .finance-table-wrap) > table tbody tr {
+        transition: none;
     }
 }
