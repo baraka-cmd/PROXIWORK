@@ -75,8 +75,22 @@ document.querySelectorAll('[data-service-search-form]').forEach((form) => {
     };
 
     input.addEventListener('input', () => {
-        clear.hidden = input.value.length === 0;
+        if (clear) clear.hidden = input.value.length === 0;
         renderSuggestions();
+    });
+
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowDown' && !suggestions.hidden) {
+            const firstSuggestion = suggestions.querySelector('.search-suggestion');
+            if (firstSuggestion) {
+                event.preventDefault();
+                firstSuggestion.focus();
+            }
+        }
+
+        if (event.key === 'Escape') {
+            closeSuggestions();
+        }
     });
     clear?.addEventListener('click', () => {
         input.value = '';
@@ -88,7 +102,18 @@ document.querySelectorAll('[data-service-search-form]').forEach((form) => {
     document.addEventListener('click', (event) => {
         if (!form.contains(event.target)) closeSuggestions();
     });
-    clear.hidden = input.value.length === 0;
+    if (clear) clear.hidden = input.value.length === 0;
+});
+
+document.querySelectorAll('[data-results-sort]').forEach((select) => {
+    select.addEventListener('change', () => {
+        const form = select.form;
+        if (form && typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+        } else if (form) {
+            form.submit();
+        }
+    });
 });
 
 document.querySelectorAll('[data-search-history]').forEach((container) => {
