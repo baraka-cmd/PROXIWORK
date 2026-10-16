@@ -8,31 +8,32 @@
 @endpush
 
 <div class="client-module client-orders">
-    <header class="client-module__header">
+    <header class="client-module__header client-orders__intro">
         <div>
-            <p class="client-module__eyebrow">ESPACE CLIENT</p>
+            <p class="client-module__eyebrow">ESPACE CLIENT · SUIVI DES PRESTATIONS</p>
             <h1>Mes commandes</h1>
-            <p>Suivez vos prestations, les conditions convenues et l’état de leur paiement.</p>
+            <p>Retrouvez chaque étape, les conditions convenues et les prochaines actions à effectuer.</p>
         </div>
+        <a class="btn btn-secondary" href="{{ route('client.services.index') }}"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Découvrir les services</a>
     </header>
 
     <nav class="client-order-statistics" aria-label="Filtres rapides des commandes">
-        <a class="client-order-stat {{ ($filters['bucket'] ?? 'all') === 'all' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'all']) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? 'all') === 'all' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'all']) }}" @if(($filters['bucket'] ?? 'all') === 'all') aria-current="page" @endif>
             <span class="client-order-stat__icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
             <span class="client-order-stat__label">Toutes mes commandes</span>
             <strong>{{ $statistics['total'] }}</strong>
         </a>
-        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'active' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'active']) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'active' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'active']) }}" @if(($filters['bucket'] ?? '') === 'active') aria-current="page" @endif>
             <span class="client-order-stat__icon client-order-stat__icon--active" aria-hidden="true"><i class="fa-solid fa-list-check"></i></span>
             <span class="client-order-stat__label">Confirmées / en cours</span>
             <strong>{{ $statistics['active'] }}</strong>
         </a>
-        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'pending_payment' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'pending_payment']) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'pending_payment' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'pending_payment']) }}" @if(($filters['bucket'] ?? '') === 'pending_payment') aria-current="page" @endif>
             <span class="client-order-stat__icon client-order-stat__icon--attention" aria-hidden="true"><i class="fa-solid fa-credit-card"></i></span>
             <span class="client-order-stat__label">À payer</span>
             <strong>{{ $statistics['pending_payment'] }}</strong>
         </a>
-        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'completed' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'completed']) }}">
+        <a class="client-order-stat {{ ($filters['bucket'] ?? '') === 'completed' ? 'is-active' : '' }}" href="{{ route('client.orders.index', ['bucket' => 'completed']) }}" @if(($filters['bucket'] ?? '') === 'completed') aria-current="page" @endif>
             <span class="client-order-stat__icon client-order-stat__icon--completed" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
             <span class="client-order-stat__label">Terminées</span>
             <strong>{{ $statistics['completed'] }}</strong>
@@ -120,12 +121,29 @@
     <div class="client-order-results-heading">
         <div>
             <h2>Résultats</h2>
-            <p>{{ $orders->total() }} commande(s) correspondant à votre recherche</p>
+            <p><strong>{{ $orders->total() }}</strong> {{ $orders->total() > 1 ? 'commandes correspondent' : 'commande correspond' }} à votre recherche</p>
         </div>
+        @if(filled($filters['q'] ?? null) || filled($filters['status'] ?? null) || filled($filters['payment_status'] ?? null) || filled($filters['professional_id'] ?? null) || filled($filters['service_id'] ?? null) || filled($filters['created_from'] ?? null) || filled($filters['created_to'] ?? null) || (($filters['bucket'] ?? 'all') !== 'all'))
+            <a class="client-filter-clear" href="{{ route('client.orders.index') }}">Réinitialiser la recherche</a>
+        @endif
     </div>
 
     @if($orders->isEmpty())
-        <x-empty-state icon="fa-bag-shopping" title="Aucune commande trouvée" message="Vos commandes apparaîtront ici après l’acceptation d’un devis. Vous pouvez modifier ou effacer les filtres pour élargir la recherche." />
+        @if(($statistics['total'] ?? 0) === 0)
+            <section class="client-panel client-order-empty" aria-labelledby="orders-empty-title">
+                <span class="client-order-empty__icon" aria-hidden="true"><i class="fa-solid fa-bag-shopping"></i></span>
+                <h2 id="orders-empty-title">Votre première commande apparaîtra ici</h2>
+                <p>Lorsque vous accepterez un devis, vous pourrez suivre le paiement, le planning et la livraison depuis cet espace.</p>
+                <a class="btn btn-primary" href="{{ route('client.services.index') }}">Explorer les services</a>
+            </section>
+        @else
+            <section class="client-panel client-order-empty" aria-labelledby="orders-empty-title">
+                <span class="client-order-empty__icon" aria-hidden="true"><i class="fa-solid fa-filter-circle-xmark"></i></span>
+                <h2 id="orders-empty-title">Aucune commande ne correspond à ces critères</h2>
+                <p>Essayez une autre recherche ou retirez les filtres pour retrouver vos commandes.</p>
+                <a class="btn btn-primary" href="{{ route('client.orders.index') }}">Effacer les filtres</a>
+            </section>
+        @endif
     @else
         <div class="client-list client-order-list">
             @foreach($orders as $order)
@@ -135,7 +153,7 @@
                         <div class="client-order-card__body">
                             <div class="client-order-card__title-row">
                                 <h3>{{ $order->items->first()?->service_title ?? 'Prestation de service' }}</h3>
-                                <span class="status-badge status-badge--{{ $order->status->value }}">{{ $statusLabels[$order->status->value] ?? $order->status->value }}</span>
+                                <span class="status-badge status-badge--{{ $order->status->value }}">{{ $statusLabels[$order->status->value] ?? 'Statut à vérifier' }}</span>
                             </div>
                             <p class="client-order-reference">Référence : <strong>{{ $order->order_number ?? '#'.$order->id }}</strong></p>
                             <p>Professionnel : <strong>{{ $order->professional?->user?->name ?? $order->professional?->professional_title ?? 'Non disponible' }}</strong></p>
@@ -146,7 +164,7 @@
                             <p class="client-order-payment-state">
                                 <span> Paiement : </span>
                                 @if($order->payment)
-                                    <span class="status-badge status-badge--{{ $order->payment->status->value }}">{{ $paymentStatusLabels[$order->payment->status->value] ?? $order->payment->status->value }}</span>
+                                    <span class="status-badge status-badge--{{ $order->payment->status->value }}">{{ $paymentStatusLabels[$order->payment->status->value] ?? 'État du paiement à vérifier' }}</span>
                                 @else
                                     <span class="client-order-muted">Aucun paiement enregistré</span>
                                 @endif
@@ -159,7 +177,7 @@
                         @elseif($order->payment)
                             <a class="btn btn-secondary btn-sm" href="{{ route('client.payments.show', $order->payment) }}">Consulter le paiement</a>
                         @endif
-                        <a class="btn btn-secondary btn-sm" href="{{ route('client.orders.show', $order) }}">Voir le détail <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                        <a class="btn btn-secondary btn-sm" href="{{ route('client.orders.show', $order) }}">Suivre la commande <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
                     </div>
                 </article>
             @endforeach
