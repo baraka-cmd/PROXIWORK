@@ -955,3 +955,7 @@
     width: auto;
     margin-bottom: var(--space-2);
 }
+
+.directory-page--search .directory-results__sort-submit {
+    flex: 0 0 auto;
+}
