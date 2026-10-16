@@ -344,3 +344,71 @@
 .client-review-report textarea {
     resize: vertical;
 }
+
+
+/* P09 — parcours commandes et livraison : améliorations strictement limitées au module client */
+.client-orders__intro{align-items:center}
+.client-orders__intro>div{min-width:0}
+.client-orders__intro .btn{flex:none}
+.client-order-stat[aria-current="page"]{border-color:var(--color-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--color-primary) 12%,transparent),var(--shadow-md)}
+.client-order-stat:focus-visible,.client-order-card__actions a:focus-visible,.client-order-empty a:focus-visible{outline:3px solid var(--color-primary);outline-offset:3px}
+.client-order-empty{display:grid;justify-items:start;gap:.75rem;padding:clamp(1.5rem,4vw,2.5rem);border-style:dashed}
+.client-order-empty h2,.client-order-empty p{margin:0}
+.client-order-empty p{max-width:42rem;color:var(--color-text-muted);line-height:1.65}
+.client-order-empty__icon{display:grid;place-items:center;width:3.25rem;height:3.25rem;border-radius:1rem;background:var(--color-primary-soft);color:var(--color-primary);font-size:1.35rem}
+.client-order-results-heading{gap:1rem;flex-wrap:wrap}
+.client-order-card__body{overflow-wrap:anywhere}
+.client-order-card__title-row .status-badge{flex:none}
+.client-order-card__actions{min-width:12rem}
+.client-order-card__actions .btn{justify-content:center}
+.client-payment-checkout{max-width:900px;margin-inline:auto}
+.client-payment-checkout>.client-module__header{padding-bottom:.25rem}
+.client-payment-checkout .payment-simulation-notice{display:flex;align-items:flex-start;gap:.8rem;padding:1rem 1.1rem;border:1px solid color-mix(in srgb,var(--color-warning) 40%,var(--color-border));border-radius:var(--radius-lg);background:color-mix(in srgb,var(--color-warning) 8%,var(--color-surface))}
+.client-payment-checkout .payment-simulation-notice>i{margin-top:.2rem;color:var(--color-warning);font-size:1.1rem}
+.client-payment-checkout .payment-simulation-notice p{margin:0;line-height:1.6}
+.client-payment-checkout .payment-checkout__summary{padding:1.2rem;border-radius:var(--radius-lg);background:linear-gradient(135deg,var(--color-primary-soft),var(--color-surface))}
+.client-payment-checkout .payment-checkout__summary p{max-width:42rem;margin-bottom:0;color:var(--color-text-muted);font-size:.88rem;line-height:1.6}
+.client-payment-checkout .payment-checkout__summary .payment-amount{margin:.45rem 0;font-size:clamp(2rem,5vw,2.8rem);font-weight:800;line-height:1.15;font-variant-numeric:tabular-nums}
+.client-payment-checkout .payment-amount span{font-size:.9rem;color:var(--color-text-muted)}
+.client-payment-checkout .payment-checkout__provider{display:flex;align-items:flex-start;gap:.75rem;padding:.9rem 1rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-background)}
+.client-payment-checkout .payment-checkout__provider>i{margin-top:.15rem;color:var(--color-primary)}
+.client-payment-checkout .payment-checkout__provider span{display:grid;gap:.2rem;min-width:0}
+.client-payment-checkout .payment-checkout__provider small{color:var(--color-text-muted);line-height:1.5}
+.client-payment-checkout .payment-method-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
+.client-payment-checkout .payment-method-option{position:relative;display:flex;align-items:flex-start;gap:.6rem;min-width:0;padding:.9rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);cursor:pointer}
+.client-payment-checkout .payment-method-option:has(input:checked){border-color:var(--color-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--color-primary) 12%,transparent);background:color-mix(in srgb,var(--color-primary) 5%,var(--color-surface))}
+.client-payment-checkout .payment-method-option input{margin-top:.2rem;accent-color:var(--color-primary)}
+.client-payment-checkout .payment-method-option span{display:grid;gap:.25rem;min-width:0}
+.client-payment-checkout .payment-method-option small{font-size:.78rem;font-weight:400;color:var(--color-text-muted);line-height:1.4}
+.client-payment-checkout .payment-method-option:focus-within{outline:3px solid var(--color-primary);outline-offset:2px}
+.client-order-next-action{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:1rem;border-color:color-mix(in srgb,var(--color-primary) 35%,var(--color-border));background:linear-gradient(120deg,var(--color-surface),color-mix(in srgb,var(--color-primary) 7%,var(--color-surface)))}
+.client-order-next-action h2{margin:.25rem 0;font-size:1.1rem}
+.client-order-next-action p{margin:0;color:var(--color-text-muted);line-height:1.6}
+.client-order-next-action__icon{display:grid;place-items:center;width:2.75rem;height:2.75rem;margin-bottom:.65rem;border-radius:.9rem;background:var(--color-primary-soft);color:var(--color-primary)}
+.client-order-next-action__content{min-width:0}
+.client-order-schedule__dates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.client-order-schedule__date{padding:1rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-background)}
+.client-order-schedule__date span{display:block;margin-bottom:.35rem;color:var(--color-text-muted);font-size:.82rem}
+.client-order-schedule__date strong{overflow-wrap:anywhere}
+.client-order-form-hint{margin:.25rem 0 0;color:var(--color-text-muted);font-size:.82rem;line-height:1.5}
+.client-order-character-count{display:flex;justify-content:flex-end;color:var(--color-text-muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+.client-order-action-form{display:grid;gap:.65rem}
+.client-order-action-form label{font-weight:700}
+.client-order-action-form textarea{width:100%;min-height:7rem;padding:.8rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font:inherit;line-height:1.55;resize:vertical}
+.client-order-action-form textarea:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}
+.client-order-error-summary{padding:1rem 1.15rem;border:1px solid var(--color-danger,#b91c1c);border-left-width:4px;border-radius:var(--radius-md);background:color-mix(in srgb,var(--color-danger,#b91c1c) 5%,var(--color-surface))}
+.client-order-error-summary:focus{outline:3px solid var(--color-primary);outline-offset:3px}
+.client-order-error-summary h2{margin:0 0 .5rem;font-size:1rem}
+.client-order-error-summary ul{margin:0;padding-left:1.25rem}
+.client-order-error-summary a{color:var(--color-danger,#b91c1c);text-decoration:underline;text-underline-offset:.15em}
+.client-order-delivery-files{list-style:none;padding:0}
+.client-order-delivery-files li{display:flex;align-items:center;justify-content:space-between;gap:.8rem;min-width:0;padding:.75rem .85rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}
+.client-order-delivery-files li a{display:inline-flex;align-items:center;gap:.55rem;min-width:0;overflow-wrap:anywhere}
+.client-order-delivery-files li a i{flex:none}
+.client-order-delivery-files li span{flex:none;color:var(--color-text-muted);font-size:.8rem}
+.client-order-timeline li{position:relative;padding:.1rem 0 .75rem .35rem;border-bottom:1px solid var(--color-border)}
+.client-order-timeline li:last-child{border-bottom:0}
+.client-order-detail .status-badge{white-space:normal}
+@media(max-width:900px){.client-order-filter-form{grid-template-columns:repeat(2,minmax(0,1fr))}.client-order-statistics{grid-template-columns:repeat(2,minmax(0,1fr))}.client-order-card__actions{min-width:0}}
+@media(max-width:700px){.client-orders__intro{align-items:stretch}.client-orders__intro .btn{width:100%;justify-content:center}.client-order-statistics{gap:.6rem}.client-order-stat{padding:.8rem;gap:.3rem .55rem}.client-order-stat__icon{width:36px;height:36px}.client-order-filter-form{grid-template-columns:1fr}.client-order-search{grid-column:auto}.client-order-filter-actions{align-items:stretch;flex-direction:column}.client-order-filter-actions .btn{width:100%;justify-content:center}.client-order-card__actions{display:grid;grid-template-columns:1fr;width:100%}.client-order-card__actions .btn{width:100%;white-space:normal}.client-order-next-action{grid-template-columns:1fr}.client-order-next-action>.btn{width:100%;justify-content:center}.client-order-schedule__dates{grid-template-columns:1fr}.client-payment-checkout .payment-method-options{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.client-order-stat,.client-order-card{transition:none}.client-order-stat:hover{transform:none}}
