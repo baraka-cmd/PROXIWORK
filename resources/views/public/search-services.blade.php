@@ -301,6 +301,9 @@
                                     Plus récents
                                 </option>
                             </select>
+                            <button class="button button--secondary button--sm directory-results__sort-submit" type="submit">
+                                Trier
+                            </button>
                         </form>
                     </div>
 
