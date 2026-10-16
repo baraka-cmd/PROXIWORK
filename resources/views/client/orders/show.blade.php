@@ -308,25 +308,29 @@
                             <strong>Réponse du professionnel</strong>
                             <p>{{ $order->review->response->response }}</p>
                         </div>
-                        <details class="client-review-report">
+                        <details class="client-review-report" @if ($errors->has('reason_code') || $errors->has('description')) open @endif>
                             <summary>Signaler cette réponse à PROXIWORK</summary>
+                            <p class="client-review-report__intro">Utilisez ce formulaire si la réponse enfreint les règles de la plateforme. Le signalement sera examiné par la modération et ne supprime pas automatiquement le contenu.</p>
                             <form method="POST" action="{{ route('client.orders.review-response.report', $order) }}">
                                 @csrf
                                 <input type="hidden" name="target_type" value="review_response">
                                 <input type="hidden" name="target_id" value="{{ $order->review->response->id }}">
                                 <label for="response-report-reason">Motif du signalement</label>
-                                <select id="response-report-reason" name="reason_code" required>
+                                <select id="response-report-reason" name="reason_code" required @if ($errors->has('reason_code')) aria-invalid="true" aria-describedby="response-report-reason-error" @endif>
                                     <option value="">Sélectionner un motif</option>
-                                    <option value="SPAM">Spam ou contenu répétitif</option>
-                                    <option value="FRAUD">Fraude ou contenu trompeur</option>
-                                    <option value="HARASSMENT">Harcèlement ou menace</option>
-                                    <option value="ABUSIVE_CONTENT">Contenu injurieux</option>
-                                    <option value="INAPPROPRIATE_CONTENT">Divulgation de données privées ou contenu inapproprié</option>
-                                    <option value="OTHER">Autre motif</option>
+                                    <option value="SPAM" @selected(old('reason_code') === 'SPAM')>Spam ou contenu répétitif</option>
+                                    <option value="FRAUD" @selected(old('reason_code') === 'FRAUD')>Fraude ou contenu trompeur</option>
+                                    <option value="HARASSMENT" @selected(old('reason_code') === 'HARASSMENT')>Harcèlement ou menace</option>
+                                    <option value="ABUSIVE_CONTENT" @selected(old('reason_code') === 'ABUSIVE_CONTENT')>Contenu injurieux</option>
+                                    <option value="INAPPROPRIATE_CONTENT" @selected(old('reason_code') === 'INAPPROPRIATE_CONTENT')>Divulgation de données privées ou contenu inapproprié</option>
+                                    <option value="OTHER" @selected(old('reason_code') === 'OTHER')>Autre motif</option>
                                 </select>
+                                @error('reason_code')<small id="response-report-reason-error" class="field-error" role="alert">{{ $message }}</small>@enderror
                                 <label for="response-report-description">Détails utiles (facultatif)</label>
-                                <textarea id="response-report-description" name="description" rows="2" maxlength="5000" placeholder="Décrivez le problème sans ajouter de données personnelles inutiles."></textarea>
-                                <button class="btn btn-secondary" type="submit">Transmettre le signalement</button>
+                                <textarea id="response-report-description" name="description" rows="3" maxlength="5000" aria-describedby="response-report-description-help @if ($errors->has('description')) response-report-description-error @endif" @if ($errors->has('description')) aria-invalid="true" @endif placeholder="Décrivez le problème sans ajouter de données personnelles inutiles.">{{ old('description') }}</textarea>
+                                <small id="response-report-description-help" class="client-order-muted">Facultatif · 5 000 caractères maximum. Restez factuel et évitez les données personnelles inutiles.</small>
+                                @error('description')<small id="response-report-description-error" class="field-error" role="alert">{{ $message }}</small>@enderror
+                                <button class="btn btn-secondary" type="submit" data-confirm-submit="Transmettre ce signalement à la modération ? Cela ne supprime pas automatiquement la réponse.">Transmettre le signalement</button>
                             </form>
                         </details>
                     @endif
@@ -335,22 +339,23 @@
                 <p>Votre commande est terminée. Partagez une évaluation honnête de la prestation que vous avez réellement reçue.</p>
                 <form method="POST" action="{{ route('client.orders.review.store', $order) }}" class="client-review-form">
                     @csrf
-                    <fieldset>
+                    <fieldset @if ($errors->has('rating')) aria-describedby="review-rating-error" aria-invalid="true" @endif>
                         <legend>Votre note (obligatoire)</legend>
                         <div class="client-review-rating-options">
                             @for ($star = 5; $star >= 1; $star--)
                                 <label for="review-rating-{{ $star }}">
-                                    <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" @checked((string) old('rating') === (string) $star) required>
+                                    <input id="review-rating-{{ $star }}" type="radio" name="rating" value="{{ $star }}" aria-label="{{ $star }} étoiles sur 5" @checked((string) old('rating') === (string) $star) required>
                                     <span aria-hidden="true">★</span>
                                     <span>{{ $star }}</span>
                                 </label>
                             @endfor
                         </div>
-                        @error('rating')<small class="field-error">{{ $message }}</small>@enderror
+                        @error('rating')<small id="review-rating-error" class="field-error" role="alert">{{ $message }}</small>@enderror
                     </fieldset>
                     <label for="review-comment">Votre commentaire (facultatif)</label>
-                    <textarea id="review-comment" name="comment" rows="4" maxlength="2000" placeholder="Décrivez votre expérience de manière honnête et respectueuse.">{{ old('comment') }}</textarea>
-                    @error('comment')<small class="field-error">{{ $message }}</small>@enderror
+                    <textarea id="review-comment" name="comment" rows="4" maxlength="2000" aria-describedby="review-comment-help @if ($errors->has('comment')) review-comment-error @endif" @if ($errors->has('comment')) aria-invalid="true" @endif placeholder="Décrivez votre expérience de manière honnête et respectueuse.">{{ old('comment') }}</textarea>
+                    <small id="review-comment-help" class="client-order-muted">2 000 caractères maximum. Évitez les coordonnées et les informations privées.</small>
+                    @error('comment')<small id="review-comment-error" class="field-error" role="alert">{{ $message }}</small>@enderror
                     <p class="client-order-muted">Votre avis concerne cette commande. N’incluez pas de coordonnées, d’adresse ou d’informations privées.</p>
                     <button class="btn btn-primary" type="submit" data-confirm-submit="Publier votre note et votre commentaire ? Vous ne pourrez pas modifier la note après publication.">Publier mon avis</button>
                 </form>

@@ -344,3 +344,57 @@
 .client-review-report textarea {
     resize: vertical;
 }
+
+
+/* P12 — avis et signalements : validation visible et saisie préservée. */
+.client-order-review .client-review-form textarea:focus-visible,
+.client-order-review .client-review-report select:focus-visible,
+.client-order-review .client-review-report textarea:focus-visible {
+    outline: 3px solid var(--color-primary, #0f766e);
+    outline-offset: 2px;
+}
+.client-review-rating-options label:focus-within {
+    outline: 3px solid var(--color-primary, #0f766e);
+    outline-offset: 2px;
+}
+.client-review-rating-options[aria-describedby] {
+    border-radius: .5rem;
+}
+.client-order-review [aria-invalid="true"] {
+    border-color: var(--color-danger, #b42318);
+}
+.client-order-review .field-error {
+    display: block;
+    margin-top: .35rem;
+    color: var(--color-danger, #b42318);
+    font-size: .82rem;
+    font-weight: 650;
+    line-height: 1.5;
+}
+.client-review-report__intro {
+    max-width: 48rem;
+    color: var(--color-text-muted);
+    font-size: .88rem;
+    line-height: 1.6;
+}
+.client-review-report summary:focus-visible {
+    outline: 3px solid var(--color-primary, #0f766e);
+    outline-offset: 3px;
+    border-radius: .35rem;
+}
+.client-review-report form button {
+    justify-self: start;
+}
+@media (max-width: 640px) {
+    .client-review-report form button {
+        width: 100%;
+        justify-content: center;
+    }
+    .client-review-rating-options {
+        gap: .4rem;
+    }
+    .client-review-rating-options label {
+        min-width: 3rem;
+        justify-content: center;
+    }
+}
