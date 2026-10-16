@@ -14,7 +14,7 @@
             <div>
                 <p class="client-module__eyebrow">CENTRE DE COMMUNICATION</p>
                 <h1>Mes notifications</h1>
-                <p>Suivez les événements importants de vos demandes, devis, commandes et paiements.</p>
+                <p>Retrouvez les mises à jour de vos demandes, devis, commandes, paiements et échanges avec vos professionnels.</p>
             </div>
 
             @if (! $archived && $unreadCount > 0)
@@ -49,12 +49,12 @@
                 <span><strong>{{ $unreadCount }}</strong><small>Non lues</small></span>
             </div>
             <a class="client-panel notification-overview__card notification-overview__card--link"
-               href="{{ route('client.notifications.index', ['status' => 'all', 'archived' => '0']) }}">
+               href="{{ route('client.notifications.index', ['status' => 'all', 'archived' => '0']) }}" @if (! $archived) aria-current="page" @endif>
                 <span class="notification-overview__icon" aria-hidden="true"><i class="fa-solid fa-inbox"></i></span>
                 <span><strong>Boîte de réception</strong><small>Vos notifications actives</small></span>
             </a>
             <a class="client-panel notification-overview__card notification-overview__card--link"
-               href="{{ route('client.notifications.index', ['archived' => '1']) }}">
+               href="{{ route('client.notifications.index', ['archived' => '1']) }}" @if ($archived) aria-current="page" @endif>
                 <span class="notification-overview__icon" aria-hidden="true"><i class="fa-solid fa-box-archive"></i></span>
                 <span><strong>Archives</strong><small>Historique conservé</small></span>
             </a>
@@ -99,7 +99,7 @@
                     <button class="btn btn-primary" type="submit">
                         <i class="fa-solid fa-filter" aria-hidden="true"></i> Appliquer
                     </button>
-                    <a class="notification-reset-link" href="{{ route('client.notifications.index') }}">Réinitialiser</a>
+                    <a class="notification-reset-link" href="{{ route('client.notifications.index', ['archived' => $archived ? '1' : '0']) }}">Réinitialiser les filtres</a>
                 </div>
             </form>
         </section>
@@ -118,7 +118,7 @@
                     <span class="notification-empty__icon" aria-hidden="true">
                         <i class="fa-regular {{ $archived ? 'fa-folder-open' : 'fa-bell-slash' }}"></i>
                     </span>
-                    <h3>{{ $archived ? 'Aucune notification archivée' : 'Aucune notification à afficher' }}</h3>
+                    <h3>{{ $search !== '' || $category !== 'all' || $status !== 'all' ? 'Aucun résultat pour ces filtres' : ($archived ? 'Aucune notification archivée' : 'Vous êtes à jour') }}</h3>
                     <p>
                         @if ($search !== '' || $category !== 'all' || $status !== 'all')
                             Essayez de modifier vos filtres. Les notifications correspondant à votre recherche apparaîtront ici.
@@ -156,6 +156,16 @@
                                 default => 'Consulter PROXIWORK',
                             };
                             $priority = (string) ($data['priority'] ?? 'normal');
+                            $categoryLabel = match ($action) {
+                                'service_request' => 'Demande',
+                                'quotation' => 'Devis',
+                                'order' => 'Commande',
+                                'payment' => 'Paiement',
+                                'message' => 'Message',
+                                'review' => 'Avis',
+                                'account', 'profile_updated', 'password_changed', 'password_reset', 'email_changed' => 'Compte et sécurité',
+                                default => 'Plateforme',
+                            };
                         @endphp
 
                         <article class="client-panel notification-item {{ $notification->read_at ? 'is-read' : 'is-unread' }}">
@@ -167,15 +177,17 @@
                                 <div class="notification-heading">
                                     <h3>{{ $data['title'] ?? 'Notification PROXIWORK' }}</h3>
                                     @if (! $notification->read_at)
-                                        <span class="unread-dot" aria-label="Non lue"></span>
+                                        <span class="unread-dot" aria-hidden="true"></span>
                                         <span class="notification-state">Non lue</span>
+                                    @else
+                                        <span class="notification-state notification-state--read">Lue</span>
                                     @endif
                                 </div>
 
-                                <p>{{ $data['message'] ?? '' }}</p>
+                                <p>{{ filled($data['message'] ?? null) ? $data['message'] : 'Une mise à jour de votre activité est disponible.' }}</p>
 
                                 <div class="notification-meta">
-                                    <span class="notification-category">{{ str_replace('_', ' ', $action) }}</span>
+                                    <span class="notification-category">{{ $categoryLabel }}</span>
                                     @if ($priority === 'critical')
                                         <span class="notification-priority notification-priority--critical">Alerte de sécurité</span>
                                     @elseif ($priority === 'important')
