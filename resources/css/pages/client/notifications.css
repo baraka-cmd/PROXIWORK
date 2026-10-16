@@ -152,3 +152,9 @@
     background: var(--color-surface, #fff);
     overflow-wrap: anywhere;
 }
+
+
+.notification-alert--success {
+    border-left-color: var(--color-success, #15803d);
+    background: color-mix(in srgb, var(--color-success, #15803d) 6%, var(--color-surface, #fff));
+}
