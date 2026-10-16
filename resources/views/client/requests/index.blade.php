@@ -73,7 +73,7 @@
                     ? $queryWithoutStatus
                     : array_merge($queryWithoutStatus, ['status' => $value]);
             @endphp
-            <a class="request-status-filter {{ $selectedStatus === $value ? 'is-active' : '' }}" @if($selectedStatus === $value) aria-current="page" @endif
+            <a class="request-status-filter {{ $selectedStatus === $value ? 'is-active' : '' }}"
                href="{{ route('client.requests.index', $statusQuery) }}"
                @if($selectedStatus === $value) aria-current="page" @endif>
                 {{ $label }}
