@@ -1,15 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Requête impossible — '.config('app.name', 'PROXIWORK'))
+@php
+    $isEmailConfirmationUnavailable = $exception->getStatusCode() === 403
+        && str_contains($exception->getMessage(), 'Ce lien de confirmation est invalide ou a expiré.');
+    $errorRecoveryUrl = $isEmailConfirmationUnavailable && auth()->check()
+        ? route('client.profile.edit').'#profile-email'
+        : url('/');
+@endphp
+
+@section('title', ($isEmailConfirmationUnavailable ? 'Lien de confirmation indisponible' : 'Requête impossible').' — '.config('app.name', 'PROXIWORK'))
 
 @section('body')
-    @php
-        $isEmailConfirmationUnavailable = $exception->getStatusCode() === 403
-            && str_contains($exception->getMessage(), 'Ce lien de confirmation est invalide ou a expiré.');
-        $errorRecoveryUrl = $isEmailConfirmationUnavailable && auth()->check()
-            ? route('client.profile.edit').'#profile-email'
-            : url('/');
-    @endphp
     <main id="main-content" class="public-main">
         <div class="page-container error-page-container">
             <x-error-state
