@@ -76,7 +76,7 @@
                         <span><i class="fa-solid fa-briefcase" aria-hidden="true"></i>{{ $professional->years_experience }} {{ $professional->years_experience > 1 ? 'ans' : 'an' }} d’expérience déclarée</span>
                     @endif
                     @if ($executionModes->isNotEmpty())
-                        <span><i class="fa-solid fa-laptop-house" aria-hidden="true"></i>{{ $executionModes->join(' · ') }}</span>
+                        <span><i class="fa-solid fa-laptop-house" aria-hidden="true"></i>Modes de prestation : {{ $executionModes->join(' · ') }}</span>
                     @endif
                 </div>
             </div>
@@ -114,7 +114,7 @@
                     @if (filled($professional->description))
                         <p class="professional-profile__bio">{{ $professional->description }}</p>
                     @else
-                        <p class="professional-profile__empty">Ce professionnel n’a pas encore ajouté de présentation.</p>
+                        <p class="professional-profile__empty">Aucune présentation professionnelle publiée pour le moment.</p>
                     @endif
                 </section>
 
