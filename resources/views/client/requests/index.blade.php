@@ -73,7 +73,7 @@
                     ? $queryWithoutStatus
                     : array_merge($queryWithoutStatus, ['status' => $value]);
             @endphp
-            <a class="request-status-filter {{ $selectedStatus === $value ? 'is-active' : '' }}"
+            <a class="request-status-filter {{ $selectedStatus === $value ? 'is-active' : '' }}" @if($selectedStatus === $value) aria-current="page" @endif
                href="{{ route('client.requests.index', $statusQuery) }}"
                @if($selectedStatus === $value) aria-current="page" @endif>
                 {{ $label }}
@@ -194,7 +194,7 @@
     @else
         <div class="request-card-list">
             @foreach($requests as $item)
-                <article class="request-card">
+                <article class="request-card {{ $item->status->requiresClientAction() ? 'request-card--needs-action' : '' }}">
                     <div class="request-card__top">
                         <div class="request-card__identity">
                             <span class="request-card__icon"><i class="fa-solid fa-file-lines" aria-hidden="true"></i></span>
@@ -229,13 +229,13 @@
                     </div>
 
                     <div class="request-card__footer">
-                        <div class="request-card__next-step">
+                        <div class="request-card__next-step {{ $item->status->requiresClientAction() ? 'request-card__next-step--action' : '' }}">
                             @if($item->status->value === 'draft')
                                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i> Vérifiez les informations puis envoyez la demande.
                             @elseif($item->status->value === 'requested')
                                 <i class="fa-regular fa-clock" aria-hidden="true"></i> En attente de la réponse du professionnel.
                             @elseif($item->status->value === 'quoted')
-                                <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i> Un devis attend votre décision.
+                                <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i> <strong>Action requise :</strong> un devis attend votre décision.
                             @elseif($item->status->value === 'accepted' && $item->order)
                                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Consultez la commande associée pour poursuivre.
                             @elseif($item->status->value === 'accepted')
