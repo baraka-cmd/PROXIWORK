@@ -1,4 +1,16 @@
-document.querySelectorAll('[data-notification-read-all], .notification-list form, [data-notification-preferences]').forEach((form) => {
+const notificationForms = new Set([
+    ...document.querySelectorAll('.notification-list form, [data-notification-preferences]'),
+]);
+
+document.querySelectorAll('[data-notification-read-all]').forEach((control) => {
+    const form = control.closest('form');
+
+    if (form) {
+        notificationForms.add(form);
+    }
+});
+
+notificationForms.forEach((form) => {
     form.addEventListener('submit', () => {
         if (form.dataset.submitting === 'true') {
             return;
