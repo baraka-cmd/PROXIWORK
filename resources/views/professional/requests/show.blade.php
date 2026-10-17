@@ -54,7 +54,7 @@
             </dl>
         </section>
 
-        <aside class="surface-card content-card">
+        <aside class="surface-card content-card professional-request-detail__client">
             <h2>Client</h2>
             <p>{{ $serviceRequest->client?->name ?? 'Client' }}</p>
             @if ($serviceRequest->execution_mode->requiresClientAddress())
