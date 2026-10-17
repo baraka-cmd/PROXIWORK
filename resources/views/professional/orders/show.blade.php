@@ -79,11 +79,23 @@
             <h2>Historique des statuts</h2>
             <ol class="professional-order-status-timeline">
                 @forelse ($order->statusHistories as $history)
-                    @php($historyStatusValue = $history->to_status?->value ?? $history->to_status)
+                    @php
+                        $historyStatusValue = $history->to_status?->value ?? $history->to_status;
+                        $historyStatusLabel = match ($historyStatusValue) {
+                            'pending_payment' => 'En attente de paiement',
+                            'confirmed' => 'Commande confirmée',
+                            'in_progress' => 'Prestation en cours',
+                            'delivery_submitted' => 'Livrable soumis',
+                            'completed' => 'Commande terminée',
+                            'cancelled' => 'Commande annulée',
+                            'disputed' => 'Commande contestée',
+                            default => ucfirst(str_replace('_', ' ', (string) $historyStatusValue)),
+                        };
+                    @endphp
                     <li>
                         <span class="professional-order-status-timeline__marker" aria-hidden="true"></span>
                         <div>
-                            <strong>{{ match($historyStatusValue) { 'pending_payment' => 'En attente de paiement', 'confirmed' => 'Commande confirmée', 'in_progress' => 'Prestation en cours', 'delivery_submitted' => 'Livrable soumis', 'completed' => 'Commande terminée', 'cancelled' => 'Commande annulée', 'disputed' => 'Commande contestée', default => ucfirst(str_replace('_', ' ', (string) $historyStatusValue)) } }}</strong>
+                            <strong>{{ $historyStatusLabel }}</strong>
                             <time datetime="{{ $history->created_at?->toIso8601String() }}">{{ $history->created_at?->format('d/m/Y à H:i') ?? 'Date indisponible' }}</time>
                             @if (filled($history->reason))
                                 <p>{{ $history->reason }}</p>
