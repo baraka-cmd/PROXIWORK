@@ -33,6 +33,11 @@
 [data-theme='dark'] .dashboard-content,
 [data-theme='dark'] .dashboard-main,
 [data-theme='dark'] .public-main,
+[data-theme='dark'] .auth-shell {
+    background-color: var(--color-page);
+    color: var(--color-text);
+}
+
 [data-theme='dark'] .button--danger {
     color: #1f0a0d;
 }
@@ -40,11 +45,6 @@
 [data-theme='dark'] .button--danger:hover:not(:disabled) {
     background: #fca5a5;
     color: #1f0a0d;
-}
-
-[data-theme='dark'] .auth-shell {
-    background-color: var(--color-page);
-    color: var(--color-text);
 }
 
 [data-theme='dark'] .public-header,
