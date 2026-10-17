@@ -26,3 +26,19 @@ document.querySelectorAll('[data-review-response-form], .review-report__form').f
         }
     });
 });
+
+document.querySelectorAll('[data-review-response-input]').forEach((textarea) => {
+    const counterId = textarea.getAttribute('aria-describedby')?.split(' ').find((id) => id.startsWith('response-count-'));
+    const counter = counterId ? document.getElementById(counterId) : null;
+
+    if (!counter) {
+        return;
+    }
+
+    const updateCount = () => {
+        counter.textContent = `${textarea.value.length.toLocaleString('fr-FR')} / 2 000 caractères`;
+    };
+
+    textarea.addEventListener('input', updateCount);
+    updateCount();
+});
