@@ -213,3 +213,16 @@
     background-color: var(--color-surface);
     color: var(--color-text);
 }
+
+[data-theme='dark'] .button--danger {
+    color: #240b0b;
+}
+
+[data-theme='dark'] .button--danger:hover:not(:disabled) {
+    background: #fca5a5;
+    color: #240b0b;
+}
+
+[data-theme='dark'] .dashboard-nav-badge {
+    color: var(--color-on-primary);
+}
