@@ -61,8 +61,14 @@
             icon="fa-solid fa-file-invoice-dollar"
         />
     @else
-        <div class="table-responsive surface-card">
-            <table class="data-table">
+        @if ($actionRequired)
+            <div class="professional-quote-alert professional-quote-alert--action" role="status">
+                <strong>Votre réponse est attendue</strong>
+                <p>Ces devis ont une contre-proposition du client en cours. Vérifiez les conditions et répondez depuis le détail du devis.</p>
+            </div>
+        @endif
+        <div class="table-responsive surface-card professional-quote-table-wrap">
+            <table class="data-table professional-quote-table">
                 <thead><tr><th>Demande</th><th>Client</th><th>Montant proposé</th><th>Statut</th><th>Validité</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($quotations as $quotation)
