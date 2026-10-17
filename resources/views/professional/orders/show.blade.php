@@ -48,16 +48,25 @@
             </dl>
         </section>
 
-        <section class="data-card">
-            <h2>Historique</h2>
-            @forelse ($order->statusHistories as $history)
-                <div class="timeline-item">
-                    <strong>{{ str_replace('_', ' ', $history->status->value ?? $history->status) }}</strong>
-                    <span>{{ $history->created_at?->format('d/m/Y H:i') }}</span>
-                </div>
-            @empty
-                <p class="muted">Aucun historique disponible.</p>
-            @endforelse
+        <section class="data-card professional-order-history-card">
+            <h2>Historique des statuts</h2>
+            <ol class="professional-order-status-timeline">
+                @forelse ($order->statusHistories as $history)
+                    @php($historyStatusValue = $history->to_status?->value ?? $history->to_status)
+                    <li>
+                        <span class="professional-order-status-timeline__marker" aria-hidden="true"></span>
+                        <div>
+                            <strong>{{ match($historyStatusValue) { 'pending_payment' => 'En attente de paiement', 'confirmed' => 'Commande confirmée', 'in_progress' => 'Prestation en cours', 'delivery_submitted' => 'Livrable soumis', 'completed' => 'Commande terminée', 'cancelled' => 'Commande annulée', 'disputed' => 'Commande contestée', default => ucfirst(str_replace('_', ' ', (string) $historyStatusValue)) } }}</strong>
+                            <time datetime="{{ $history->created_at?->toIso8601String() }}">{{ $history->created_at?->format('d/m/Y à H:i') ?? 'Date indisponible' }}</time>
+                            @if (filled($history->reason))
+                                <p>{{ $history->reason }}</p>
+                            @endif
+                        </div>
+                    </li>
+                @empty
+                    <li><div><strong>{{ $orderStatusLabel }}</strong><p class="muted">Aucun historique complémentaire enregistré.</p></div></li>
+                @endforelse
+            </ol>
         </section>
 
         <section class="data-card">
