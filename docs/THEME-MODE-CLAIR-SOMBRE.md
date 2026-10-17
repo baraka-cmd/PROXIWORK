@@ -1,11 +1,11 @@
 # Mode clair et mode sombre — PROXIWORK
 
 ## Comportement
-- Un contrôle partagé est disponible dans la navigation publique et la barre supérieure des espaces client, professionnel et administration.
+- Un contrôle partagé est disponible dans la navigation publique, les écrans d’authentification et la barre supérieure des espaces client, professionnel et administration.
 - Le choix explicite « clair » ou « sombre » est conservé dans le navigateur sous la clé `proxiwork-theme`.
 - En l'absence de choix enregistré, le thème suit la préférence système (`prefers-color-scheme`) et se met à jour si celle-ci change.
 - Le thème initial est appliqué dans le document avant les feuilles de style afin de limiter le flash de thème.
-- Le contrôle expose son état avec `aria-pressed`, un libellé accessible explicite et une icône décorative.
+- Le contrôle expose son état avec `aria-pressed`, conserve un nom accessible stable et utilise une icône décorative.
 
 ## Architecture et périmètre
 - Le thème s'appuie sur les variables CSS existantes et ajoute des couleurs sémantiques adaptées au fond sombre.
