@@ -243,25 +243,6 @@
                     </ul>
                 @endif
             @endif
-        @elseif ($order->status === \App\Enums\OrderStatus::DELIVERY_SUBMITTED)
-            <div class="professional-order-workflow__notice" role="status">
-                <strong>Résultat soumis — réception du client attendue</strong>
-                <p>Le client doit confirmer la réception ou demander une correction. Vous ne pouvez pas clôturer vous-même cette commande.</p>
-            </div>
-            @if ($latestDelivery)
-                <h3>Dernier résultat soumis</h3>
-                <p class="professional-order-workflow__summary">{{ data_get($latestDelivery->metadata, 'delivery_summary') }}</p>
-                <p class="muted">Soumis le {{ $latestDelivery->created_at?->format('d/m/Y à H:i') ?? '—' }}</p>
-                @php($latestAttachmentIds = data_get($latestDelivery->metadata, 'attachment_ids', []))
-                @if ($order->deliveryAttachments->whereIn('id', $latestAttachmentIds)->isNotEmpty())
-                    <h3>Fichiers remis au client</h3>
-                    <ul class="professional-order-delivery-files">
-                        @foreach ($order->deliveryAttachments->whereIn('id', $latestAttachmentIds) as $attachment)
-                            <li><a href="{{ route('professional.orders.delivery-attachments.download', [$order, $attachment]) }}">{{ $attachment->original_name }}</a> <span class="muted">({{ number_format($attachment->size_bytes / 1024, 1, ',', ' ') }} Ko)</span></li>
-                        @endforeach
-                    </ul>
-                @endif
-            @endif
         @elseif ($order->status === \App\Enums\OrderStatus::COMPLETED)
             <div class="professional-order-workflow__notice" role="status">
                 <strong>Réception confirmée</strong>
