@@ -66,3 +66,6 @@
 .profile-visibility-reasons a { display:inline-flex; align-items:center; gap:var(--space-2); margin-left:var(--space-2); color:var(--color-primary); font-weight:var(--font-weight-semibold); }
 .profile-visibility-notice--blocked { align-items:flex-start; }
 @media(max-width:600px) { .profile-visibility-reasons a { display:flex; margin:var(--space-2) 0 0; } }
+
+.profile-edit-section [aria-invalid="true"] { border-color:var(--color-danger); }
+.profile-edit-section [aria-invalid="true"]:focus-visible { outline-color:var(--color-danger); }
