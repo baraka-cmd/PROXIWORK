@@ -24,10 +24,11 @@ const applyTheme = (theme, { persist = false } = {}) => {
 
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
         const isDark = theme === 'dark';
-        const label = isDark ? 'Activer le thème clair' : 'Activer le thème sombre';
+        const label = 'Mode sombre';
+        const title = isDark ? 'Thème sombre activé — passer au thème clair' : 'Activer le thème sombre';
 
         button.setAttribute('aria-label', label);
-        button.setAttribute('title', label);
+        button.setAttribute('title', title);
         button.setAttribute('aria-pressed', String(isDark));
 
         button.querySelector('[data-theme-icon="dark"]')?.toggleAttribute('hidden', isDark);
