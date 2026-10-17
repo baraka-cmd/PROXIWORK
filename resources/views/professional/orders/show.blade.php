@@ -296,6 +296,14 @@
                     <p>Début proposé : {{ \Carbon\CarbonImmutable::parse(data_get($event->metadata, 'proposed_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
                     <p>Fin prévue : {{ \Carbon\CarbonImmutable::parse(data_get($event->metadata, 'proposed_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
                     @if (filled(data_get($event->metadata, 'note')))<p>{{ data_get($event->metadata, 'note') }}</p>@endif
+                @elseif (data_get($event->metadata, 'event') === 'schedule_change_requested')
+                    @if (filled(data_get($event->metadata, 'previous_start_at')))
+                        <p>Début précédent : {{ \Carbon\CarbonImmutable::parse(data_get($event->metadata, 'previous_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    @endif
+                    @if (filled(data_get($event->metadata, 'previous_end_at')))
+                        <p>Fin précédente : {{ \Carbon\CarbonImmutable::parse(data_get($event->metadata, 'previous_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    @endif
+                    @if (filled(data_get($event->metadata, 'reason')))<p><strong>Motif de modification :</strong> {{ data_get($event->metadata, 'reason') }}</p>@endif
                 @endif
                 @php($eventAttachmentIds = data_get($event->metadata, 'attachment_ids', []))
                 @if (is_array($eventAttachmentIds) && $eventAttachmentIds !== [])
