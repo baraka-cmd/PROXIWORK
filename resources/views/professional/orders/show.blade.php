@@ -188,8 +188,11 @@
                     @error('summary')<small class="field-error">{{ $message }}</small>@enderror
                     <label for="delivery-attachments">Fichiers livrés (facultatif, 5 fichiers maximum)</label>
                     <input id="delivery-attachments" type="file" name="attachments[]" multiple
-                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip">
-                    <small class="muted">PDF, images, documents Office ou ZIP. 10 Mo maximum par fichier.</small>
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.zip"
+                        aria-describedby="delivery-attachments-help delivery-attachments-error" data-delivery-files>
+                    <small id="delivery-attachments-help" class="muted">5 fichiers maximum, 10 Mo par fichier. Formats acceptés : PDF, JPG/PNG, DOC/DOCX, XLS/XLSX et ZIP. Le serveur effectue la validation définitive.</small>
+                    <p id="delivery-attachments-error" class="field-error" data-delivery-file-error role="alert" hidden></p>
+                    <ul class="professional-order-file-preview" data-delivery-file-list aria-live="polite"></ul>
                     @error('attachments')<small class="field-error">{{ $message }}</small>@enderror
                     @error('attachments.*')<small class="field-error">{{ $message }}</small>@enderror
                     <button class="button button--primary" type="submit" data-confirm-submit="Soumettre le résultat au client pour vérification ?">Soumettre pour réception</button>
