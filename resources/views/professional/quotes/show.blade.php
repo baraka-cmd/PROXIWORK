@@ -32,6 +32,9 @@
             <div class="dashboard-page-header__actions">
                 <a class="button button--ghost" href="{{ route('professional.quotes.index') }}">Retour aux devis</a>
                 <a class="button button--ghost" href="{{ route('professional.requests.show', $quotation->serviceRequest) }}">Voir la demande</a>
+                @if ($quotation->order)
+                    <a class="button button--primary" href="{{ route('professional.orders.show', $quotation->order) }}">Suivre la commande</a>
+                @endif
             </div>
         </div>
 
