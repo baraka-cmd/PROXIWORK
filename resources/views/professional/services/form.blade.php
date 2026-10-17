@@ -57,25 +57,29 @@
             <div class="surface-card__body service-form-grid">
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="title">Titre <span class="form-label__required">*</span></label>
-                    <input class="form-control" id="title" name="title" value="{{ old('title', $service?->title) }}" required maxlength="160">
+                    <input class="form-control" id="title" name="title" value="{{ old('title', $service?->title) }}" required maxlength="160" @error('title') aria-invalid="true" aria-describedby="title-error" @enderror>
+                    @error('title')<p class="form-error" id="title-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="short_description">Description courte</label>
-                    <input class="form-control" id="short_description" name="short_description" value="{{ old('short_description', $service?->short_description) }}" maxlength="300">
+                    <input class="form-control" id="short_description" name="short_description" value="{{ old('short_description', $service?->short_description) }}" maxlength="300" @error('short_description') aria-invalid="true" aria-describedby="short_description-error" @enderror>
+                    @error('short_description')<p class="form-error" id="short_description-error">{{ $message }}</p>@enderror
                     <p class="form-help">Un résumé pour aider les clients à comprendre rapidement votre offre.</p>
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="description">Description complète <span class="form-label__required">*</span></label>
-                    <textarea class="form-control form-control--textarea" id="description" name="description" required minlength="20" maxlength="10000" rows="6">{{ old('description', $service?->description) }}</textarea>
+                    <textarea class="form-control form-control--textarea" id="description" name="description" required minlength="20" maxlength="10000" rows="6" @error('description') aria-invalid="true" aria-describedby="description-error" @enderror>{{ old('description', $service?->description) }}</textarea>
+                    @error('description')<p class="form-error" id="description-error">{{ $message }}</p>@enderror
                     <p class="form-help">Expliquez le besoin auquel vous répondez, le travail effectué et les limites de la prestation.</p>
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="execution_mode">Mode d’exécution <span class="form-label__required">*</span></label>
-                    <select class="form-control form-select" id="execution_mode" name="execution_mode" required>
+                    <select class="form-control form-select" id="execution_mode" name="execution_mode" required @error('execution_mode') aria-invalid="true" aria-describedby="execution_mode-error" @enderror>
                         @foreach(\App\Enums\ServiceExecutionMode::cases() as $mode)
                             <option value="{{ $mode->value }}" @selected(old('execution_mode', $service?->execution_mode?->value ?? 'client_location') === $mode->value)>{{ $mode->label() }}</option>
                         @endforeach
                     </select>
+                    @error('execution_mode')<p class="form-error" id="execution_mode-error">{{ $message }}</p>@enderror
                     <p class="form-help">Les prestations chez le client exigent un lieu d’intervention avant l’envoi de la demande. Les prestations à distance n’exigent pas d’adresse physique.</p>
                 </div>
             </div>
@@ -88,20 +92,22 @@
             <div class="surface-card__body service-form-grid">
                 <div class="form-field">
                     <label class="form-label" for="category_id">Catégorie <span class="form-label__required">*</span></label>
-                    <select class="form-control form-select" id="category_id" name="category_id" required>
+                    <select class="form-control form-select" id="category_id" name="category_id" required @error('category_id') aria-invalid="true" aria-describedby="category_id-error" @enderror>
                         <option value="">Choisir une catégorie</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" @selected(old('category_id', $service?->category_id) == $category->id)>{{ $category->name }}</option>
                         @endforeach
                     </select>
+                    @error('category_id')<p class="form-error" id="category_id-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field">
                     <label class="form-label" for="skill_ids">Compétences associées</label>
-                    <select class="form-control form-select" id="skill_ids" name="skill_ids[]" multiple size="6">
+                    <select class="form-control form-select" id="skill_ids" name="skill_ids[]" multiple size="6" @error('skill_ids') aria-invalid="true" aria-describedby="skill_ids-error" @enderror>
                         @foreach($skills as $skill)
                             <option value="{{ $skill->id }}" @selected(in_array($skill->id, old('skill_ids', $service?->skills->pluck('id')->all() ?? [])))>{{ $skill->name }}</option>
                         @endforeach
                     </select>
+                    @error('skill_ids')<p class="form-error" id="skill_ids-error">{{ $message }}</p>@enderror
                     <p class="form-help">Choisissez jusqu’à 10 compétences actives liées à cette prestation. Cela ne crée pas de nouveau service.</p>
                 </div>
             </div>
@@ -114,34 +120,40 @@
             <div class="surface-card__body service-form-grid">
                 <div class="form-field">
                     <label class="form-label" for="pricing_type">Type de tarification <span class="form-label__required">*</span></label>
-                    <select class="form-control form-select" id="pricing_type" name="pricing_type" data-pricing-type required>
+                    <select class="form-control form-select" id="pricing_type" name="pricing_type" data-pricing-type required @error('pricing_type') aria-invalid="true" aria-describedby="pricing_type-error" @enderror>
                         @foreach(\App\Enums\ServicePricingType::cases() as $type)
                             <option value="{{ $type->value }}" @selected(old('pricing_type', $service?->pricing_type->value ?? 'quote') === $type->value)>
                                 {{ match($type->value) { 'fixed' => 'Prix fixe', 'from' => 'À partir de', 'range' => 'Fourchette', 'quote' => 'Sur devis' } }}
                             </option>
                         @endforeach
                     </select>
+                    @error('pricing_type')<p class="form-error" id="pricing_type-error">{{ $message }}</p>@enderror
                     <p class="service-pricing-help" data-pricing-help aria-live="polite">Le prix dépend du mode de tarification sélectionné.</p>
                 </div>
                 <div class="form-field" data-price-field>
                     <label class="form-label" for="price">Prix</label>
-                    <input class="form-control" id="price" name="price" type="number" step="0.01" min="0" value="{{ old('price', $service?->price) }}">
+                    <input class="form-control" id="price" name="price" type="number" step="0.01" min="0" value="{{ old('price', $service?->price) }}" @error('price') aria-invalid="true" aria-describedby="price-error" @enderror>
+                    @error('price')<p class="form-error" id="price-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field" data-range-field>
                     <label class="form-label" for="price_min">Prix minimum</label>
-                    <input class="form-control" id="price_min" name="price_min" type="number" step="0.01" min="0" value="{{ old('price_min', $service?->price_min) }}">
+                    <input class="form-control" id="price_min" name="price_min" type="number" step="0.01" min="0" value="{{ old('price_min', $service?->price_min) }}" @error('price_min') aria-invalid="true" aria-describedby="price_min-error" @enderror>
+                    @error('price_min')<p class="form-error" id="price_min-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field" data-range-field>
                     <label class="form-label" for="price_max">Prix maximum</label>
-                    <input class="form-control" id="price_max" name="price_max" type="number" step="0.01" min="0" value="{{ old('price_max', $service?->price_max) }}">
+                    <input class="form-control" id="price_max" name="price_max" type="number" step="0.01" min="0" value="{{ old('price_max', $service?->price_max) }}" @error('price_max') aria-invalid="true" aria-describedby="price_max-error" @enderror>
+                    @error('price_max')<p class="form-error" id="price_max-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field" data-currency-field>
                     <label class="form-label" for="currency">Devise</label>
-                    <input class="form-control" id="currency" name="currency" maxlength="3" value="{{ old('currency', $service?->currency) }}" placeholder="USD">
+                    <input class="form-control" id="currency" name="currency" maxlength="3" value="{{ old('currency', $service?->currency) }}" placeholder="USD" @error('currency') aria-invalid="true" aria-describedby="currency-error" @enderror>
+                    @error('currency')<p class="form-error" id="currency-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field">
                     <label class="form-label" for="estimated_duration_minutes">Durée estimée (minutes)</label>
-                    <input class="form-control" id="estimated_duration_minutes" name="estimated_duration_minutes" type="number" min="1" max="525600" value="{{ old('estimated_duration_minutes', $service?->estimated_duration_minutes) }}">
+                    <input class="form-control" id="estimated_duration_minutes" name="estimated_duration_minutes" type="number" min="1" max="525600" value="{{ old('estimated_duration_minutes', $service?->estimated_duration_minutes) }}" @error('estimated_duration_minutes') aria-invalid="true" aria-describedby="estimated_duration_minutes-error" @enderror>
+                    @error('estimated_duration_minutes')<p class="form-error" id="estimated_duration_minutes-error">{{ $message }}</p>@enderror
                 </div>
             </div>
         </section>
@@ -154,25 +166,30 @@
             <div class="surface-card__body service-form-grid">
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="included_items">Ce qui est inclus</label>
-                    <textarea class="form-control form-control--textarea" id="included_items" name="included_items" rows="3" maxlength="5000">{{ old('included_items', $service?->included_items) }}</textarea>
+                    <textarea class="form-control form-control--textarea" id="included_items" name="included_items" rows="3" maxlength="5000" @error('included_items') aria-invalid="true" aria-describedby="included_items-error" @enderror>{{ old('included_items', $service?->included_items) }}</textarea>
+                    @error('included_items')<p class="form-error" id="included_items-error">{{ $message }}</p>@enderror
                     <p class="form-help">Une action ou un élément par ligne.</p>
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="excluded_items">Ce qui n’est pas inclus</label>
-                    <textarea class="form-control form-control--textarea" id="excluded_items" name="excluded_items" rows="3" maxlength="5000">{{ old('excluded_items', $service?->excluded_items) }}</textarea>
+                    <textarea class="form-control form-control--textarea" id="excluded_items" name="excluded_items" rows="3" maxlength="5000" @error('excluded_items') aria-invalid="true" aria-describedby="excluded_items-error" @enderror>{{ old('excluded_items', $service?->excluded_items) }}</textarea>
+                    @error('excluded_items')<p class="form-error" id="excluded_items-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="client_requirements">Informations ou préparatifs attendus du client</label>
-                    <textarea class="form-control form-control--textarea" id="client_requirements" name="client_requirements" rows="3" maxlength="5000">{{ old('client_requirements', $service?->client_requirements) }}</textarea>
+                    <textarea class="form-control form-control--textarea" id="client_requirements" name="client_requirements" rows="3" maxlength="5000" @error('client_requirements') aria-invalid="true" aria-describedby="client_requirements-error" @enderror>{{ old('client_requirements', $service?->client_requirements) }}</textarea>
+                    @error('client_requirements')<p class="form-error" id="client_requirements-error">{{ $message }}</p>@enderror
                     <p class="form-help">Ne demandez que les informations nécessaires à l’exécution de la prestation.</p>
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="deliverables">Livrables ou résultat attendu</label>
-                    <textarea class="form-control form-control--textarea" id="deliverables" name="deliverables" rows="3" maxlength="5000">{{ old('deliverables', $service?->deliverables) }}</textarea>
+                    <textarea class="form-control form-control--textarea" id="deliverables" name="deliverables" rows="3" maxlength="5000" @error('deliverables') aria-invalid="true" aria-describedby="deliverables-error" @enderror>{{ old('deliverables', $service?->deliverables) }}</textarea>
+                    @error('deliverables')<p class="form-error" id="deliverables-error">{{ $message }}</p>@enderror
                 </div>
                 <div class="form-field service-form-grid__full">
                     <label class="form-label" for="commercial_conditions">Conditions commerciales particulières</label>
-                    <textarea class="form-control form-control--textarea" id="commercial_conditions" name="commercial_conditions" rows="3" maxlength="5000">{{ old('commercial_conditions', $service?->commercial_conditions) }}</textarea>
+                    <textarea class="form-control form-control--textarea" id="commercial_conditions" name="commercial_conditions" rows="3" maxlength="5000" @error('commercial_conditions') aria-invalid="true" aria-describedby="commercial_conditions-error" @enderror>{{ old('commercial_conditions', $service?->commercial_conditions) }}</textarea>
+                    @error('commercial_conditions')<p class="form-error" id="commercial_conditions-error">{{ $message }}</p>@enderror
                     <p class="form-help">Ces conditions ne doivent pas contredire les règles générales de PROXIWORK.</p>
                 </div>
             </div>
