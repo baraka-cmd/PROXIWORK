@@ -82,7 +82,7 @@
         @if ($errors->has('service_request'))
             <div class="alert alert--danger" role="alert">{{ $errors->first('service_request') }}</div>
         @endif
-        <section class="professional-quote-review" aria-labelledby="quote-review-title" aria-live="polite">
+        <section class="professional-quote-review" aria-labelledby="quote-review-title">
             <div><span class="eyebrow">RÉCAPITULATIF</span><h2 id="quote-review-title">Vérifiez votre proposition</h2></div>
             <dl>
                 <div><dt>Montant</dt><dd data-quote-summary-amount>À renseigner</dd></div>
