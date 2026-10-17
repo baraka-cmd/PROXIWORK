@@ -6,11 +6,11 @@
     @push('head')
         @vite(['resources/css/pages/professional/orders-revenues.css', 'resources/js/pages/professional/orders-revenues.js'])
     @endpush
-    <div class="page-header">
+    <div class="page-header professional-orders-page-header">
         <div>
-            <p class="page-kicker">ACTIVITÉ</p>
+            <p class="page-kicker">ESPACE PROFESSIONNEL · ACTIVITÉ</p>
             <h1>Mes commandes</h1>
-            <p class="page-description">Suivez les commandes qui vous sont attribuées.</p>
+            <p class="page-description">Retrouvez les prochaines actions, les échéances et l’état réel de chaque commande.</p>
         </div>
     </div>
 
