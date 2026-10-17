@@ -145,5 +145,4 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('aria-describedby="description-help"', $textarea);
         $this->assertStringContainsString('Décrivez le besoin.', $textarea);
     }
-
 }
