@@ -28,6 +28,10 @@
         </div>
     </div>
 
+    @if (session('success'))
+        <div class="alert alert--success professional-alert" role="status" aria-live="polite">{{ session('success') }}</div>
+    @endif
+
     @if($errors->any())
         <section class="surface-card service-validation-summary" role="alert" aria-labelledby="service-validation-title">
             <h2 id="service-validation-title">Certaines informations doivent être corrigées</h2>
