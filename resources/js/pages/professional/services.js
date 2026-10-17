@@ -19,9 +19,15 @@ if (pricingType) {
 
     const updatePricingVisibility = () => {
         const type = pricingType.value;
-        document.querySelectorAll('[data-price-field]').forEach((field) => { field.hidden = !(type === 'fixed' || type === 'from'); });
-        document.querySelectorAll('[data-range-field]').forEach((field) => { field.hidden = type !== 'range'; });
-        document.querySelectorAll('[data-currency-field]').forEach((field) => { field.hidden = type === 'quote'; });
+        document.querySelectorAll('[data-price-field]').forEach((field) => {
+            field.hidden = !(type === 'fixed' || type === 'from') && !field.querySelector('[aria-invalid="true"]');
+        });
+        document.querySelectorAll('[data-range-field]').forEach((field) => {
+            field.hidden = type !== 'range' && !field.querySelector('[aria-invalid="true"]');
+        });
+        document.querySelectorAll('[data-currency-field]').forEach((field) => {
+            field.hidden = type === 'quote' && !field.querySelector('[aria-invalid="true"]');
+        });
         if (pricingHelp) pricingHelp.textContent = pricingMessages[type] || 'Choisissez le mode de tarification de cette prestation.';
     };
 
