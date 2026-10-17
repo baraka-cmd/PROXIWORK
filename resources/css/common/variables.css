@@ -20,7 +20,7 @@
     --color-text-muted: #64748b;
     --color-text-subtle: #64748b;
     --color-on-primary: #ffffff;
-    --color-on-secondary: #0f172a;
+    --color-on-secondary: #ffffff;
     --color-on-accent: #172033;
 
     --color-success: #15803d;
@@ -111,7 +111,7 @@
     --color-text-muted: #cbd5e1;
     --color-text-subtle: #a8b7ca;
     --color-on-primary: #042f2e;
-    --color-on-secondary: #ffffff;
+    --color-on-secondary: #0f172a;
     --color-on-accent: #172033;
 
     --color-success: #4ade80;
