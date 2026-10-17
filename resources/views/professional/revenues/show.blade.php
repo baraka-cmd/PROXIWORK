@@ -23,7 +23,7 @@
                     <span class="revenue-muted">Montant net enregistré</span>
                     <strong>{{ number_format((float) $commission->net_amount, 2, ',', ' ') }} {{ $commission->currency }}</strong>
                 </div>
-                <span class="revenue-status">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</span>
+                <span class="revenue-status {{ $commission->status->value === 'reversed' ? 'revenue-status--reversed' : '' }}">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</span>
             </div>
             <dl class="revenue-detail-grid">
                 <div><dt>Référence</dt><dd>COM-{{ $commission->id }}</dd></div>
@@ -34,7 +34,7 @@
                 <div><dt>Taux enregistré</dt><dd>{{ number_format((float) $commission->commission_rate, 2, ',', ' ') }} %</dd></div>
                 <div><dt>Frais de plateforme</dt><dd>{{ number_format((float) $commission->commission_amount, 2, ',', ' ') }} {{ $commission->currency }}</dd></div>
                 <div><dt>Calcul</dt><dd>{{ $commission->calculation_type }}</dd></div>
-                <div><dt>État</dt><dd>{{ $commission->status->value }}</dd></div>
+                <div><dt>État</dt><dd>{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</dd></div>
                 <div><dt>Date de correction</dt><dd>{{ $commission->reversed_at?->format('d/m/Y H:i') ?? '—' }}</dd></div>
                 <div><dt>Paiement associé</dt><dd>{{ $commission->payment?->id ? 'PAY-'.$commission->payment->id : '—' }}</dd></div>
                 <div><dt>Paiement confirmé le</dt><dd>{{ $commission->payment?->paid_at?->format('d/m/Y H:i') ?? '—' }}</dd></div>
@@ -53,7 +53,7 @@
                             <td>Commission enregistrée</td>
                             <td>{{ $commission->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
                             <td>COM-{{ $commission->id }}</td>
-                            <td>{{ $commission->status->value }}</td>
+                            <td>{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</td>
                         </tr>
                         @if ($commission->reversed_at)
                             <tr>
