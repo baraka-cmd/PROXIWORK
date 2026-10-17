@@ -96,7 +96,7 @@
     --color-primary: #2dd4bf;
     --color-primary-hover: #5eead4;
     --color-primary-soft: #123d3a;
-    --color-secondary: #e2e8f0;
+    --color-secondary: #0f172a;
     --color-secondary-soft: #1e293b;
     --color-accent: #fbbf24;
     --color-accent-hover: #fcd34d;
@@ -111,7 +111,7 @@
     --color-text-muted: #cbd5e1;
     --color-text-subtle: #a8b7ca;
     --color-on-primary: #042f2e;
-    --color-on-secondary: #0f172a;
+    --color-on-secondary: #ffffff;
     --color-on-accent: #172033;
 
     --color-success: #4ade80;
