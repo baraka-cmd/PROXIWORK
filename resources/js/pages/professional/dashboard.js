@@ -176,4 +176,65 @@ if (root && payload) {
             },
         });
     }
+
+    const syncDashboardCharts = () => {
+        const currentStyles = getComputedStyle(root);
+        const colors = {
+            primary: currentStyles.getPropertyValue('--color-primary').trim() || '#0f766e',
+            success: currentStyles.getPropertyValue('--color-success').trim() || '#15803d',
+            warning: currentStyles.getPropertyValue('--color-warning').trim() || '#92400e',
+            info: currentStyles.getPropertyValue('--color-info').trim() || '#0369a1',
+            muted: currentStyles.getPropertyValue('--color-text-muted').trim() || '#64748b',
+            border: currentStyles.getPropertyValue('--color-border').trim() || '#e2e8f0',
+            surface: currentStyles.getPropertyValue('--color-surface').trim() || '#ffffff',
+            text: currentStyles.getPropertyValue('--color-text').trim() || '#0f172a',
+        };
+        const currentPalette = [colors.primary, colors.success, colors.warning, colors.info, '#a78bfa', '#fb7185'];
+
+        Chart.defaults.color = colors.muted;
+        Chart.defaults.borderColor = colors.border;
+
+        Object.values(Chart.instances).forEach((chart) => {
+            if (!root.contains(chart.canvas)) return;
+
+            chart.options.color = colors.muted;
+            Object.values(chart.options.scales || {}).forEach((scale) => {
+                if (scale.ticks) scale.ticks.color = colors.muted;
+                if (scale.grid) scale.grid.color = colors.border;
+            });
+
+            const legendLabels = chart.options.plugins?.legend?.labels;
+            if (legendLabels) legendLabels.color = colors.muted;
+
+            const tooltip = chart.options.plugins?.tooltip;
+            if (tooltip) {
+                tooltip.backgroundColor = colors.surface;
+                tooltip.titleColor = colors.text;
+                tooltip.bodyColor = colors.text;
+                tooltip.borderColor = colors.border;
+                tooltip.borderWidth = 1;
+            }
+
+            chart.data.datasets.forEach((dataset, index) => {
+                if (chart.canvas.dataset.chart === 'activity') {
+                    dataset.backgroundColor = [colors.primary, colors.info, colors.success][index] || colors.primary;
+                } else if (chart.canvas.dataset.chart === 'revenue') {
+                    dataset.borderColor = colors.primary;
+                    dataset.backgroundColor = colors.primary;
+                } else if (chart.canvas.dataset.chart === 'orders') {
+                    dataset.backgroundColor = currentPalette;
+                    dataset.borderColor = colors.surface;
+                } else if (chart.canvas.dataset.chart === 'services') {
+                    dataset.backgroundColor = (dashboardCharts.top_services || []).map(
+                        (_item, itemIndex) => currentPalette[itemIndex % currentPalette.length],
+                    );
+                }
+            });
+
+            chart.update('none');
+        });
+    };
+
+    document.addEventListener('proxiwork:theme-change', syncDashboardCharts);
+    syncDashboardCharts();
 }
