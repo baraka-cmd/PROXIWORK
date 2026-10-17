@@ -21,6 +21,10 @@
         </div>
     </div>
 
+    @if (session('success'))
+        <div class="alert alert--success professional-alert" role="status" aria-live="polite">{{ session('success') }}</div>
+    @endif
+
     @if ($errors->any())
         <div class="profile-form-alert" role="alert" aria-live="assertive">
             <strong>Certains éléments doivent être corrigés.</strong>
