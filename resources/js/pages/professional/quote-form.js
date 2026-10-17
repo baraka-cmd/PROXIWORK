@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const amountSummary = form.querySelector('[data-quote-summary-amount]');
     const durationSummary = form.querySelector('[data-quote-summary-duration]');
     const validitySummary = form.querySelector('[data-quote-summary-validity]');
+    const description = form.querySelector('#description');
+    const descriptionSummary = form.querySelector('[data-quote-summary-description]');
 
     const units = {
         hours: ['heure', 'heures'],
