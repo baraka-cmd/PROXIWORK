@@ -11,8 +11,9 @@ document.querySelectorAll('[data-notification-read-all]').forEach((control) => {
 });
 
 notificationForms.forEach((form) => {
-    form.addEventListener('submit', () => {
+    form.addEventListener('submit', (event) => {
         if (form.dataset.submitting === 'true') {
+            event.preventDefault();
             return;
         }
 
