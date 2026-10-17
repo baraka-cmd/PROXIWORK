@@ -50,8 +50,8 @@
     </form>
 
     <nav class="professional-quote-filters" aria-label="Filtrer les devis">
-        <a href="{{ route('professional.quotes.index') }}" class="professional-quote-filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
-        <a href="{{ route('professional.quotes.index', ['action_required' => 1]) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
+        <a href="{{ route('professional.quotes.index', collect($filters)->except('action_required')->all()) }}" class="professional-quote-filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
+        <a href="{{ route('professional.quotes.index', array_merge(collect($filters)->except('action_required')->all(), ['action_required' => 1])) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
     </nav>
 
     @if ($quotations->isEmpty())
