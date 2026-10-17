@@ -286,6 +286,74 @@
     border-color: var(--color-border-strong);
 }
 
+/* Additional page-specific controls use the same semantic palette. */
+[data-theme='dark'] .filter-chip,
+[data-theme='dark'] .filter-form,
+[data-theme='dark'] .data-card,
+[data-theme='dark'] .metric-card,
+[data-theme='dark'] .revenue-card,
+[data-theme='dark'] .revenue-metric {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .filter-chip.is-active,
+[data-theme='dark'] .revenue-button--primary,
+[data-theme='dark'] .favorites-type-tab.is-active {
+    color: var(--color-on-primary);
+}
+
+[data-theme='dark'] .professional-table th,
+[data-theme='dark'] .detail-list dt,
+[data-theme='dark'] .timeline-item span,
+[data-theme='dark'] .muted,
+[data-theme='dark'] .metric-card span,
+[data-theme='dark'] .metric-card small {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .status-badge,
+[data-theme='dark'] .revenue-status {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .status-badge--pending_payment,
+[data-theme='dark'] .revenue-status--reversed,
+[data-theme='dark'] .notification-priority {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+[data-theme='dark'] .status-badge--confirmed,
+[data-theme='dark'] .revenue-status:not(.revenue-status--reversed):not(.revenue-status--pending) {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .status-badge--in_progress,
+[data-theme='dark'] .revenue-status--pending {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .client-review-rating-options label:has(input:checked),
+[data-theme='dark'] .client-review-existing blockquote,
+[data-theme='dark'] .client-review-response,
+[data-theme='dark'] .public-review-card__response {
+    background: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .address-alert--success > i {
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .address-alert--error > i,
+[data-theme='dark'] .address-field-error {
+    color: var(--color-danger);
+}
+
 @media (max-width: 767px) {
     .theme-toggle {
         min-width: 42px;
