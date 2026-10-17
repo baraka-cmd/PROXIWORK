@@ -39,7 +39,8 @@ Cette inspection est un audit statique des templates, pas une validation visuell
 7. **Comportement desktop de la navigation** : lors de la synchronisation après redimensionnement, les menus non-sidebar pouvaient rester `aria-hidden` et `inert` sur desktop. Le code rétablit désormais l'accès aux navigations visibles sur grand écran.
 9. **Entrée JavaScript redondante** : `resources/js/app.js` importait `resources/js/pages/professional/services.js`, alors que les vues professionnelles de services chargent déjà ce script via leur propre entrée Vite. L'import global a été retiré pour éviter de réexécuter les gestionnaires sur les pages qui le chargent explicitement.
 10. **Focus et mouvement réduit** : le contour de focus utilise désormais la couleur primaire pleine. Le défilement fluide est désactivé pour les personnes qui demandent une réduction des animations ; l'animation du squelette de chargement est également désactivée avec `prefers-reduced-motion`. Le contraste du focus doit toujours être mesuré sur les fonds réels.
-11. **Composants déjà disponibles** : `empty-state`, `loading`, `error-state`, `alert`, `success`, les composants de formulaire et `.table-responsive` existent. Aucune nouvelle variante redondante n'a été ajoutée.
+11. **Variante d'alerte d'erreur non harmonisée** : plusieurs vues utilisent `alert--error`, mais le style partagé ne définissait que `alert--danger`. La variante `alert--error` est maintenant explicitement alignée sur le style danger existant, sans changer les textes ni le comportement métier.
+12. **Composants déjà disponibles** : `empty-state`, `loading`, `error-state`, `alert`, `success`, les composants de formulaire et `.table-responsive` existent. Aucune nouvelle variante redondante n'a été ajoutée.
 
 ## Références de conception consultées
 
@@ -57,6 +58,7 @@ Principes retenus : états vides qui expliquent la situation et la suite possibl
 - `resources/js/app.js` — retrait du script de services professionnels de l'entrée globale, car les vues concernées le chargent déjà comme entrée de page.
 - `resources/css/common/reset.css` et `resources/css/common/ux-states.css` — contour de focus plus net et réduction du mouvement pour le défilement fluide et l'animation des skeletons.
 - `resources/views/components/alert.blade.php` — niveaux d'annonce cohérents entre `role` et `aria-live`, y compris pour les types `error` et `danger`.
+- `resources/css/common/components.css` — style de la variante `alert--error` aligné sur `alert--danger`.
 - `resources/views/components/input.blade.php` — association simultanée de l'aide et de l'erreur.
 - `resources/views/components/select.blade.php` — association simultanée de l'aide et de l'erreur.
 - `resources/views/components/textarea.blade.php` — association simultanée de l'aide et de l'erreur.
