@@ -128,17 +128,6 @@
         @endif
     </section>
 
-        @if ($professional->published_services_count === 0)
-            <div class="profile-visibility-notice profile-service-notice" role="status">
-                <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
-                <div>
-                    <strong>Aucun service publié</strong>
-                    <p>La complétude de votre profil est indépendante du catalogue. Pour apparaître dans l’annuaire, gérez vos offres et publiez au moins un service admissible.</p>
-                    <a class="button button--secondary button--sm" href="{{ route('professional.services.index') }}">Gérer mes services</a>
-                </div>
-            </div>
-        @endif
-
     <div class="professional-profile-grid">
         <section class="surface-card surface-card--md" aria-labelledby="profile-about-heading">
             <div class="surface-card__header"><h2 id="profile-about-heading">Présentation professionnelle</h2></div>
