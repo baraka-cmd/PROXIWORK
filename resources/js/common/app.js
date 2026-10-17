@@ -194,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
         navigationControllers.forEach(({ navigation, toggle, isOpen, close }) => {
             if (!compactViewport.matches) {
                 close({ restoreFocus: false });
-                const isDashboardSidebar = navigation.hasAttribute('data-dashboard-sidebar');
                 navigation.setAttribute('aria-hidden', 'false');
                 navigation.inert = false;
                 return;
