@@ -26,6 +26,7 @@ Identité conservée : Poppins, teal `#0F766E`, navy `#0F172A`, surfaces claires
 - États vides distinguant une boîte réellement vide des filtres sans résultat ; ajout d’un retour vers la liste sans filtres tout en conservant l’état boîte/archives.
 - Indication visuelle discrète des conversations non lues, en plus du compteur textuel.
 - Fil de conversation déclaré comme journal accessible (`role=log`) pour annoncer les nouveaux messages, avec annonces limitées aux ajouts/textes.
+- Statuts des commandes et demandes associés affichés en français à partir des valeurs réellement définies dans les enums existants ; aucune transition n’est simulée.
 - Ajustements responsive ciblés à l’espace professionnel pour les actions de l’en-tête, le contexte et le compositeur.
 - Le JavaScript partagé de messagerie reste responsable de la synchronisation ; aucun moteur parallèle n’a été créé. Son rendu des messages reçus utilise des nœuds DOM et `textContent`, et les pièces jointes continuent à utiliser les URL de téléchargement existantes.
 
