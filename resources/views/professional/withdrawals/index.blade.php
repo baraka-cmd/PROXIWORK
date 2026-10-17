@@ -8,9 +8,13 @@
 @section('page_title','Mes retraits')
 @section('page_description','Consultez vos demandes, les montants réservés et l’état de leur traitement.')
 @section('page_actions')
-@if($canRequestWithdrawal)
-<a class="button button--primary" href="{{ route('professional.withdrawals.create') }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Demander un retrait</a>
-@endif
+<div class="finance-page__navigation" aria-label="Navigation financière">
+    <a class="button button--secondary" href="{{ route('professional.wallet') }}">Mon portefeuille</a>
+    <a class="button button--secondary" href="{{ route('professional.revenues.index') }}">Mes revenus</a>
+    @if($canRequestWithdrawal)
+    <a class="button button--primary" href="{{ route('professional.withdrawals.create') }}"><i class="fa-solid fa-plus" aria-hidden="true"></i> Demander un retrait</a>
+    @endif
+</div>
 @endsection
 @section('content')
 <div class="finance-page">
@@ -65,7 +69,7 @@
         <div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date de demande</th><th>Référence</th><th>Montant demandé</th><th>Canal demandé</th><th>Statut</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>
         @foreach($withdrawals as $withdrawal)
             <tr>
-                <td>{{ $withdrawal->requested_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                <td>@if($withdrawal->requested_at)<time datetime="{{ $withdrawal->requested_at->toISOString() }}">{{ $withdrawal->requested_at->format('d/m/Y H:i') }}</time>@else — @endif</td>
                 <td><strong class="wallet-transaction-reference">WD-{{ str_pad((string)$withdrawal->getKey(), 8, '0', STR_PAD_LEFT) }}</strong></td>
                 <td><strong>{{ \App\Support\MoneyFormatter::format((string)$withdrawal->amount) }} {{ $withdrawal->currency }}</strong></td>
                 <td>{{ $withdrawal->provider === 'mobile_money' ? 'Mobile Money — manuel' : ($withdrawal->provider === 'bank_transfer' ? 'Virement bancaire — manuel' : 'Autre canal') }}</td>
