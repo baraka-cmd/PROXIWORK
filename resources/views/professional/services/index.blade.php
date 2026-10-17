@@ -5,7 +5,7 @@
 
 @push('head')
     @unless (app()->environment('testing'))
-        @vite('resources/css/pages/professional/services.css')
+        @vite(['resources/css/pages/professional/services.css', 'resources/js/pages/professional/services.js'])
     @endunless
 @endpush
 
