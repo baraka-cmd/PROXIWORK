@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigation.classList.remove('is-open');
         navigation.setAttribute('aria-hidden', 'true');
+        navigation.inert = true;
 
         setToggleState(toggle, false);
         syncBodyScrollLock();
@@ -73,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigation.classList.add('is-open');
         navigation.setAttribute('aria-hidden', 'false');
+        navigation.inert = false;
         setToggleState(toggle, true);
         syncBodyScrollLock();
 
@@ -111,6 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigation.classList.toggle('is-open', false);
         navigation.setAttribute('aria-hidden', String(shouldStartClosed));
+        navigation.inert = shouldStartClosed || !navigation.hasAttribute('data-dashboard-sidebar');
 
         if (shouldStartClosed) {
             setToggleState(toggle, false);
@@ -191,13 +194,18 @@ document.addEventListener('DOMContentLoaded', () => {
         navigationControllers.forEach(({ navigation, toggle, isOpen, close }) => {
             if (!compactViewport.matches) {
                 close({ restoreFocus: false });
-                navigation.setAttribute('aria-hidden', navigation.hasAttribute('data-dashboard-sidebar') ? 'false' : 'true');
+                const isDashboardSidebar = navigation.hasAttribute('data-dashboard-sidebar');
+                navigation.setAttribute('aria-hidden', isDashboardSidebar ? 'false' : 'true');
+                navigation.inert = !isDashboardSidebar;
                 return;
             }
 
             if (!isOpen()) {
                 navigation.setAttribute('aria-hidden', 'true');
+                navigation.inert = true;
                 setToggleState(toggle, false);
+            } else {
+                navigation.inert = false;
             }
         });
 

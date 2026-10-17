@@ -8,9 +8,6 @@
     <title>@yield('title', config('app.name', 'PROXIWORK'))</title>
     <meta name="description" content="@yield('meta_description', 'PROXIWORK — trouvez des professionnels et développez votre activité.')">
 
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-
     <link
         rel="stylesheet"
         href="{{ asset('assets/fontawesome/css/all.min.css') }}"
