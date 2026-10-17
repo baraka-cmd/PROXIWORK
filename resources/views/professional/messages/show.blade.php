@@ -75,10 +75,22 @@
             <div>
                 <span class="message-context__label">Contexte</span>
                 @if ($conversation->order)
-                    <strong>Commande #{{ $conversation->order->id }} · {{ $conversation->order->status?->value ?? 'En suivi' }}</strong>
+                    @php
+                        $orderContextStatus = match ($conversation->order->status?->value) {
+                            'pending_payment' => 'Paiement en attente',
+                            'confirmed' => 'Confirmée',
+                            'in_progress' => 'En cours',
+                            'delivery_submitted' => 'Livraison soumise',
+                            'completed' => 'Terminée',
+                            'cancelled' => 'Annulée',
+                            'disputed' => 'En litige',
+                            default => 'Statut indisponible',
+                        };
+                    @endphp
+                    <strong>Commande #{{ $conversation->order->id }} · {{ $orderContextStatus }}</strong>
                     <a href="{{ route('professional.orders.show', $conversation->order) }}">Consulter la commande <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                 @elseif ($conversation->serviceRequest)
-                    <strong>Demande #{{ $conversation->serviceRequest->id }} · {{ $conversation->serviceRequest->status?->value ?? 'En cours' }}</strong>
+                    <strong>Demande #{{ $conversation->serviceRequest->id }} · {{ $conversation->serviceRequest->status?->label() ?? 'Statut indisponible' }}</strong>
                     <a href="{{ route('professional.requests.show', $conversation->serviceRequest) }}">Consulter la demande <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                 @else
                     <strong>Conversation générale</strong>
@@ -211,7 +223,9 @@
                 </form>
             </section>
         @else
-            <div class="notice-box">Cette conversation n'accepte plus de nouveaux messages.</div>
+            <div class="notice-box" role="status">
+                {{ $conversation->status->value === 'blocked' ? 'Cette conversation est bloquée et n’accepte plus de nouveaux messages.' : 'Cette conversation est fermée et n’accepte plus de nouveaux messages.' }}
+            </div>
         @endif
     </div>
 @endsection
