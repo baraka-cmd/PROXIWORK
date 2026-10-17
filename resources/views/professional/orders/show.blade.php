@@ -165,7 +165,6 @@
                     <h3>{{ data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested' ? 'Proposer un nouveau planning' : 'Proposer un planning au client' }}</h3>
                     <p>Les dates restent proposées tant que le client ne les a pas confirmées. La date souhaitée par le client n’est pas automatiquement un engagement.</p>
                     <label for="schedule-starts-at">Début proposé</label>
-                    <label for="schedule-starts-at">Début proposé</label>
                     <input id="schedule-starts-at" name="starts_at" type="datetime-local" min="{{ now()->format('Y-m-d\\TH:i') }}" value="{{ old('starts_at') }}" required aria-describedby="schedule-starts-at-help">
                     <small id="schedule-starts-at-help" class="muted">Choisissez une date future selon le fuseau horaire configuré par PROXIWORK.</small>
                     @error('starts_at')<small class="field-error">{{ $message }}</small>@enderror
