@@ -781,3 +781,94 @@
     border-radius: 999px;
     background: var(--color-surface, #fff);
 }
+
+/* Phase 5.4 — shared conversation improvements, scoped to the professional thread */
+.client-message-thread-page .message-conversation-header {
+    align-items: start;
+}
+.client-message-thread-page .message-header-actions {
+    justify-content: flex-end;
+    min-width: 0;
+}
+.client-message-thread-page .message-context {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.client-message-thread-page .message-context__status {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--color-text-muted);
+    font-size: .82rem;
+}
+.client-message-thread-page .message-thread {
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
+}
+.client-message-thread-page .message-sync-status {
+    position: sticky;
+    bottom: 0;
+    width: fit-content;
+    max-width: 100%;
+    justify-self: center;
+    padding: .25rem .65rem;
+    border: 1px solid var(--color-border, #d9dee7);
+    border-radius: 999px;
+    background: var(--color-surface, #fff);
+}
+.client-message-thread-page .message-report-control summary:focus-visible,
+.client-message-thread-page .message-reply-button:focus-visible,
+.client-message-thread-page .message-header-actions button:focus-visible,
+.client-message-thread-page .message-back-link:focus-visible {
+    outline: 2px solid var(--color-primary, #0f766e);
+    outline-offset: 2px;
+}
+@media (max-width: 900px) {
+    .client-message-thread-page .message-conversation-header {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    .client-message-thread-page .message-header-actions {
+        justify-content: flex-start;
+    }
+}
+@media (max-width: 600px) {
+    .client-message-thread-page .message-context {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .client-message-thread-page .message-header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+    .client-message-thread-page .message-header-actions form,
+    .client-message-thread-page .message-header-actions button {
+        width: 100%;
+        min-width: 0;
+    }
+    .client-message-thread-page .message-header-actions button {
+        justify-content: center;
+        white-space: normal;
+    }
+    .client-message-thread-page .message-thread {
+        max-height: 58vh;
+        padding: .8rem;
+    }
+    .client-message-thread-page .message-bubble {
+        max-width: 94%;
+        overflow-wrap: anywhere;
+    }
+    .client-message-thread-page .message-composer__footer {
+        align-items: stretch;
+    }
+    .client-message-thread-page .message-composer__footer > * {
+        max-width: 100%;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .client-message-thread-page .message-thread {
+        scroll-behavior: auto;
+    }
+}
