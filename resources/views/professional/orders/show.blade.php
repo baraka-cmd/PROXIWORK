@@ -68,7 +68,7 @@
         <section class="data-card">
             <h2>Finances</h2>
             <dl class="detail-list">
-                <div><dt>État du paiement</dt><dd>{{ match($order->payment?->status?->value) { 'initiated' => 'Initialisé', 'pending' => 'En attente', 'processing' => 'En cours de traitement', 'succeeded' => 'Réussi', 'failed' => 'Échec', 'cancelled' => 'Annulé', 'expired' => 'Expiré', 'refunded' => 'Remboursé', default => 'Non disponible' } }}</dd></div>
+                <div><dt>État du paiement</dt><dd>{{ $paymentStatusLabel }}</dd></div>
                 <div><dt>Revenu brut</dt><dd>{{ $order->commission ? number_format((float) $order->commission->gross_amount, 2, ',', ' ').' '.$order->commission->currency : '—' }}</dd></div>
                 <div><dt>Commission PROXIWORK</dt><dd>{{ $order->commission ? number_format((float) $order->commission->commission_amount, 2, ',', ' ').' '.$order->commission->currency : '—' }}</dd></div>
                 <div><dt>Revenu net professionnel</dt><dd>{{ $order->commission ? number_format((float) $order->commission->net_amount, 2, ',', ' ').' '.$order->commission->currency : '—' }}</dd></div>
