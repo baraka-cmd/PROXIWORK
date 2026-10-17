@@ -3,7 +3,7 @@ const profileForms = [...document.querySelectorAll('.profile-edit-section form')
 const fileInput = document.querySelector('#avatar');
 if (fileInput) {
     const form = fileInput.closest('form');
-    const status = document.createElement('p');
+    const status = document.createElement('div');
     status.className = 'profile-photo-preview';
     status.hidden = true;
     status.setAttribute('aria-live', 'polite');
