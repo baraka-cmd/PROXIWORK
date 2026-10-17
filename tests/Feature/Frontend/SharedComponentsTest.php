@@ -104,6 +104,7 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('Aucun professionnel', $empty);
         $this->assertStringContainsString('Aucun résultat ne correspond à vos critères.', $empty);
     }
+
     public function test_informational_alert_uses_polite_status_announcement(): void
     {
         $html = Blade::render(
