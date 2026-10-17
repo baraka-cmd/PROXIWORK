@@ -90,8 +90,8 @@
                 <p>{{ $requests->total() }} résultat{{ $requests->total() > 1 ? 's' : '' }} dans votre espace professionnel.</p>
             </div>
         </div>
-        <div class="table-responsive surface-card">
-            <table class="data-table">
+        <div class="table-responsive surface-card professional-request-table-wrap">
+            <table class="data-table professional-request-table">
                 <thead>
                     <tr>
                         <th>Demande</th>
