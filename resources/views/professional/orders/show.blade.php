@@ -20,6 +20,18 @@
             'disputed' => 'Contestée',
             default => ucfirst(str_replace('_', ' ', $order->status->value)),
         };
+        $paymentStatusLabel = match ($order->payment?->status?->value) {
+            'initiated' => 'Initialisé',
+            'pending' => 'En attente',
+            'processing' => 'En cours de traitement',
+            'succeeded' => 'Réussi',
+            'failed' => 'Échec',
+            'cancelled' => 'Annulé',
+            'expired' => 'Expiré',
+            'refunded' => 'Remboursé',
+            default => 'Non disponible',
+        };
+        $requiresClientAddress = $order->serviceRequest?->execution_mode?->requiresClientAddress() ?? false;
     @endphp
     <div class="page-header professional-order-detail-header">
         <div>
