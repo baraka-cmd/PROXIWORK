@@ -7,7 +7,6 @@ if (fileInput) {
     status.className = 'profile-photo-preview';
     status.hidden = true;
     status.setAttribute('aria-live', 'polite');
-    status.innerHTML = '';
     const previewImage = document.createElement('img');
     previewImage.alt = 'Aperçu local de la nouvelle photo';
     previewImage.hidden = true;
@@ -52,6 +51,15 @@ if (fileInput) {
         if (previewUrl) URL.revokeObjectURL(previewUrl);
     });
 }
+
+document.querySelectorAll('.profile-edit-section .form-error').forEach((error, index) => {
+    const container = error.closest('.form-field');
+    const field = container?.querySelector('input:not([type="hidden"]):not([type="file"]), select, textarea');
+    if (!field) return;
+    if (!error.id) error.id = `profile-field-error-${index + 1}`;
+    field.setAttribute('aria-invalid', 'true');
+    field.setAttribute('aria-describedby', [field.getAttribute('aria-describedby'), error.id].filter(Boolean).join(' '));
+});
 
 document.querySelectorAll('.profile-edit-section textarea[maxlength], .profile-edit-section input[maxlength]').forEach((field) => {
     if (!field.id || field.type === 'file' || field.type === 'hidden') return;
