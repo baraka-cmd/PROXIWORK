@@ -108,3 +108,7 @@
 .service-empty-state__actions { display:flex; justify-content:center; flex-wrap:wrap; gap:var(--space-3); margin-top:var(--space-4); }
 .service-empty-state__actions .button { min-width:0; }
 @media(max-width:480px) { .service-empty-state__actions { flex-direction:column; } .service-empty-state__actions .button { width:100%; } }
+
+
+/* Pricing mode and file preview toggles rely on the native hidden attribute. */
+.service-form [hidden], .service-file-preview[hidden] { display:none!important; }
