@@ -176,3 +176,92 @@
         transition: none;
     }
 }
+
+/* Phase 5.4 — compact, accessible notification triage and preferences */
+.notification-card--unread {
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 3%, var(--notification-surface));
+}
+.notification-card--read .notification-card__icon {
+    background: #f1f5f9;
+    color: var(--notification-muted);
+}
+.notification-card__meta form {
+    margin: 0;
+}
+.notification-card__meta button:focus-visible,
+.notification-filters input:focus-visible,
+.notification-filters select:focus-visible,
+.notification-filters button:focus-visible,
+.notification-filters a:focus-visible,
+.notification-preferences summary:focus-visible,
+.notification-preferences input:focus-visible,
+.notification-preferences button:focus-visible {
+    outline: 2px solid var(--color-primary, #0f766e);
+    outline-offset: 2px;
+}
+.notification-card button:disabled,
+.notification-preferences button:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+.notification-empty .button {
+    margin-top: .35rem;
+}
+.notification-preferences {
+    padding: 1rem 1.25rem;
+    margin-top: 1.25rem;
+    border: 1px solid var(--notification-border);
+    border-radius: 1rem;
+    background: var(--notification-surface);
+}
+.notification-preferences summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: .4rem .75rem;
+    cursor: pointer;
+    list-style-position: inside;
+}
+.notification-preferences summary strong {
+    color: var(--color-text, #0f172a);
+}
+.notification-preferences summary span {
+    color: var(--notification-muted);
+    font-size: .88rem;
+    font-weight: 400;
+}
+.notification-preferences > p {
+    max-width: 70rem;
+    color: var(--notification-muted);
+    line-height: 1.6;
+}
+.notification-preferences .notification-filters {
+    align-items: center;
+    gap: .75rem 1rem;
+    padding-top: .75rem;
+}
+.notification-preferences .notification-filters label {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 2.5rem;
+    padding: .45rem .65rem;
+    border: 1px solid var(--notification-border);
+    border-radius: .65rem;
+}
+.notification-preferences input[type="checkbox"] {
+    accent-color: var(--color-primary, #0f766e);
+}
+@media (max-width: 700px) {
+    .notification-preferences {
+        padding: .9rem;
+    }
+    .notification-preferences .notification-filters {
+        align-items: stretch;
+        flex-direction: column;
+    }
+    .notification-preferences .notification-filters label {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

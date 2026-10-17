@@ -62,7 +62,7 @@
             <div class="messages-list-heading">
                 <div>
                     <h2>{{ $archived ? 'Conversations archivées' : 'Vos conversations' }}</h2>
-                    <p>{{ $conversations->count() }} conversation(s) sur cette page</p>
+                    <p>{{ $conversations->count() }} conversation(s) affichée(s) dans cette sélection</p>
                 </div>
             </div>
 
@@ -70,7 +70,12 @@
                 <div class="message-empty">
                     <span class="message-empty__icon"><i class="fa-regular fa-comments" aria-hidden="true"></i></span>
                     <h3>{{ $archived ? 'Aucune conversation archivée' : 'Aucune conversation pour le moment' }}</h3>
-                    <p>{{ $search !== '' ? 'Aucun résultat ne correspond à votre recherche.' : 'Les conversations initiées par vos clients apparaîtront ici.' }}</p>
+                    @if ($search !== '' || $category !== 'all' || $status !== 'all')
+                        <p>Aucune conversation ne correspond aux critères sélectionnés. Essayez d’élargir la recherche ou de réinitialiser les filtres.</p>
+                        <a class="button button--secondary" href="{{ route('professional.messages', ['archived' => $archived ? '1' : '0']) }}">Effacer les filtres</a>
+                    @else
+                        <p>{{ $archived ? 'Les conversations archivées et leur historique restent consultables ici.' : 'Les conversations initiées par vos clients apparaîtront ici.' }}</p>
+                    @endif
                 </div>
             @else
                 <div class="conversation-list">
@@ -86,7 +91,7 @@
                                 $preview = 'Démarrez la conversation';
                             }
                         @endphp
-                        <article class="conversation-row">
+                        <article class="conversation-row {{ $conversation->unread_count > 0 ? 'conversation-row--unread' : '' }}">
                             <a class="conversation-row__main" href="{{ route('professional.messages.show', $conversation) }}">
                                 <span class="conversation-avatar" aria-hidden="true">{{ strtoupper(mb_substr($clientName, 0, 1)) }}</span>
                                 <span class="conversation-content">
