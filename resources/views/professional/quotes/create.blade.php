@@ -87,7 +87,7 @@
             <dl>
                 <div><dt>Montant</dt><dd data-quote-summary-amount>À renseigner</dd></div>
                 <div><dt>Délai</dt><dd data-quote-summary-duration>À renseigner</dd></div>
-                <div><dt>Validité</dt><dd data-quote-summary-validity>À renseigner</dd></div>
+                <div><dt>Validité · fuseau PROXIWORK</dt><dd data-quote-summary-validity>À renseigner</dd></div>
                 <div class="professional-quote-review__scope"><dt>Périmètre</dt><dd data-quote-summary-description>À renseigner</dd></div>
             </dl>
             <p>Ce récapitulatif est une aide visuelle. Le serveur valide et enregistre les conditions définitives du devis.</p>
