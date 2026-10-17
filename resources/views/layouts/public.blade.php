@@ -42,6 +42,7 @@
                 </div>
 
                 <div class="public-nav-actions">
+                    <x-theme-toggle />
                     @auth
                         <a class="public-nav-link optional-desktop-action" data-nav-link href="{{ url('/dashboard') }}">
                             <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
