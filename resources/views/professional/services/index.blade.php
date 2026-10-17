@@ -145,12 +145,18 @@
         </div>
         <div class="professional-pagination">{{ $services->links() }}</div>
     @else
-        <section class="surface-card state-empty">
+        @php($hasServiceFilters = filled($filters['search'] ?? null) || filled($filters['status'] ?? null) || filled($filters['category_id'] ?? null))
+        <section class="surface-card state-empty service-empty-state">
             <div>
-                <span class="state-empty__icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>
-                <h2>Aucun service trouvé</h2>
-                <p>Modifiez vos filtres ou créez votre première prestation.</p>
-                <a class="button button--primary" href="{{ route('professional.services.create') }}">Créer un service</a>
+                <span class="state-empty__icon"><i class="fa-solid {{ $hasServiceFilters ? 'fa-filter-circle-xmark' : 'fa-layer-group' }}" aria-hidden="true"></i></span>
+                <h2>{{ $hasServiceFilters ? 'Aucun service ne correspond à ces filtres' : 'Votre catalogue est prêt à commencer' }}</h2>
+                <p>{{ $hasServiceFilters ? 'Aucun service ne correspond aux critères actuels. Réinitialisez les filtres pour revoir tout votre catalogue.' : 'Créez votre première prestation, définissez son prix et préparez sa présentation avant publication.' }}</p>
+                <div class="service-empty-state__actions">
+                    @if ($hasServiceFilters)
+                        <a class="button button--secondary" href="{{ route('professional.services.index') }}">Réinitialiser les filtres</a>
+                    @endif
+                    <a class="button button--primary" href="{{ route('professional.services.create') }}">Créer un service</a>
+                </div>
             </div>
         </section>
     @endif
