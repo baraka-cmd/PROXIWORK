@@ -23,6 +23,13 @@
         </div>
     </div>
 
+    @if (session('success'))
+        <div class="alert alert--success professional-alert" role="status" aria-live="polite">{{ session('success') }}</div>
+    @endif
+    @if ($errors->any())
+        <div class="alert alert--error professional-alert" role="alert" aria-live="assertive">{{ $errors->first() }}</div>
+    @endif
+
     <section class="service-summary-grid" aria-label="Résumé du catalogue">
         @foreach([
             ['label' => 'Tous les services', 'value' => $serviceCounts['all'], 'icon' => 'fa-layer-group'],
