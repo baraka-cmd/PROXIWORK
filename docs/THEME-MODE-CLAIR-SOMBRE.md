@@ -8,7 +8,7 @@
 - Le contrôle expose son état avec `aria-pressed`, conserve un nom accessible stable et utilise une icône décorative.
 
 ## Architecture et périmètre
-- Le thème s'appuie sur les variables CSS existantes et ajoute des couleurs sémantiques adaptées au fond sombre.
+- Le thème s'appuie sur les variables CSS existantes et ajuste les couleurs sémantiques, y compris le contraste des actions principales, pour le fond sombre.
 - Le script est chargé par l'entrée JavaScript globale Vite.
 - Le changement est purement visuel côté navigateur : aucun endpoint, rôle, permission, donnée, calcul financier ou règle serveur n'est modifié.
 
