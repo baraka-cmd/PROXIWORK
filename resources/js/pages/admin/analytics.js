@@ -79,4 +79,55 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     line('admin-analytics-finance', financial);
+
+    const syncAnalyticsCharts = () => {
+        const styles = getComputedStyle(root);
+        const colors = {
+            primary: styles.getPropertyValue('--color-primary').trim() || '#0f766e',
+            success: styles.getPropertyValue('--color-success').trim() || '#15803d',
+            warning: styles.getPropertyValue('--color-warning').trim() || '#92400e',
+            info: styles.getPropertyValue('--color-info').trim() || '#0369a1',
+            muted: styles.getPropertyValue('--color-text-muted').trim() || '#64748b',
+            border: styles.getPropertyValue('--color-border').trim() || '#e2e8f0',
+            surface: styles.getPropertyValue('--color-surface').trim() || '#ffffff',
+            text: styles.getPropertyValue('--color-text').trim() || '#0f172a',
+        };
+        const palette = [colors.primary, colors.info, colors.success, colors.warning, '#a78bfa', '#fb7185'];
+
+        Chart.defaults.color = colors.muted;
+        Chart.defaults.borderColor = colors.border;
+
+        Object.values(Chart.instances).forEach((chart) => {
+            if (!root.contains(chart.canvas)) return;
+
+            chart.options.color = colors.muted;
+            Object.values(chart.options.scales || {}).forEach((scale) => {
+                if (scale.ticks) scale.ticks.color = colors.muted;
+                if (scale.grid) scale.grid.color = colors.border;
+            });
+
+            const legendLabels = chart.options.plugins?.legend?.labels;
+            if (legendLabels) legendLabels.color = colors.muted;
+
+            const tooltip = chart.options.plugins?.tooltip;
+            if (tooltip) {
+                tooltip.backgroundColor = colors.surface;
+                tooltip.titleColor = colors.text;
+                tooltip.bodyColor = colors.text;
+                tooltip.borderColor = colors.border;
+                tooltip.borderWidth = 1;
+            }
+
+            chart.data.datasets.forEach((item, index) => {
+                item.borderColor = palette[index % palette.length];
+                item.backgroundColor = palette[index % palette.length];
+                item.pointBackgroundColor = palette[index % palette.length];
+            });
+
+            chart.update('none');
+        });
+    };
+
+    document.addEventListener('proxiwork:theme-change', syncAnalyticsCharts);
+    syncAnalyticsCharts();
 });
