@@ -34,3 +34,29 @@
 @media(max-width:600px){.profile-photo-editor{flex-direction:column}.profile-skill-option__details{grid-template-columns:1fr}.profile-price{align-items:flex-start;flex-direction:column}}
 
 .service-mini-card__mode{display:inline-flex;align-items:center;gap:var(--space-2);margin:.25rem 0 .75rem;color:var(--color-text-muted);font-size:var(--font-size-xs);line-height:var(--line-height-relaxed)}
+
+
+/* Phase 5 UI refinement: professional profile, forms and private media. */
+.professional-profile-hero,.professional-profile-grid>.surface-card,.professional-section.surface-card,.profile-edit-section { min-width:0; }
+.professional-profile-hero { padding:clamp(var(--space-4),2.4vw,var(--space-8)); }
+.professional-profile-identity { min-width:0; }
+.professional-profile-title-row h2 { overflow-wrap:anywhere; }
+.professional-meta span { display:inline-flex; align-items:center; gap:var(--space-2); }
+.profile-visibility-notice { border-left:4px solid var(--color-info); }
+.profile-visibility-notice strong { color:var(--color-text); }
+.professional-profile-grid { align-items:start; }
+.professional-section .surface-card__body,.profile-edit-section .surface-card__body { min-width:0; }
+.completion-track { overflow:hidden; }
+.completion-track span { transition:width var(--transition-base); }
+.completion-list li { line-height:1.5; }
+.profile-skill-option { min-width:0; }
+.profile-skill-option__details { display:grid; }
+.profile-skill-option input:focus-visible,.profile-edit-section input:focus-visible,.profile-edit-section select:focus-visible,.profile-edit-section textarea:focus-visible { outline:3px solid color-mix(in srgb,var(--color-primary) 45%,transparent); outline-offset:2px; }
+.profile-photo-preview { display:grid; grid-template-columns:72px minmax(0,1fr); align-items:center; gap:var(--space-3); max-width:480px; margin-top:var(--space-3); padding:var(--space-3); border:1px solid var(--color-border); border-radius:var(--radius-md); background:var(--color-surface-muted); }
+.profile-photo-preview img { width:72px; height:72px; object-fit:cover; border-radius:var(--radius-lg); }
+.profile-photo-preview p { margin:0; overflow-wrap:anywhere; color:var(--color-text-muted); font-size:var(--font-size-sm); }
+.profile-char-count { display:flex; justify-content:flex-end; margin-top:var(--space-1); color:var(--color-text-muted); font-size:var(--font-size-xs); font-variant-numeric:tabular-nums; }
+.profile-char-count.is-near-limit { color:var(--color-warning); }
+.profile-form-alert ul { margin:var(--space-2) 0 0; padding-left:var(--space-5); }
+@media(max-width:600px) { .profile-photo-editor { flex-direction:column; } .profile-photo-editor__controls { width:100%; } .profile-price { align-items:flex-start; flex-direction:column; } .profile-skills-grid { grid-template-columns:1fr; } }
+@media(prefers-reduced-motion:reduce) { .profile-edit-section * { transition:none!important; } }
