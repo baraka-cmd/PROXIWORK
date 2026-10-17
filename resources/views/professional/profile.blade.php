@@ -26,6 +26,35 @@
             && $verification === 'verified'
             && $professional->published_services_count > 0
             && $accountStatus === 'active';
+
+        $serviceStatusLabels = [
+            'draft' => 'Brouillon',
+            'published' => 'Publié',
+            'unpublished' => 'Dépublié',
+            'archived' => 'Archivé',
+        ];
+        $visibilityReasons = [];
+        if ($accountStatus !== 'active') {
+            $visibilityReasons[] = ['message' => 'Votre compte n’est pas actif. Cet état ne peut pas être modifié depuis le profil professionnel.', 'url' => null, 'action' => null];
+        }
+        if ($professional->status !== \\App\\Models\\ProfessionalProfile::STATUS_ACTIVE) {
+            $visibilityReasons[] = ['message' => 'Votre profil professionnel n’est pas dans l’état actif requis pour l’annuaire.', 'url' => null, 'action' => null];
+        }
+        if ($verification !== 'verified') {
+            $visibilityReasons[] = [
+                'message' => $verification === 'rejected'
+                    ? 'La vérification administrative n’est pas approuvée. Consultez votre dossier avant de transmettre d’autres justificatifs.'
+                    : 'La vérification administrative doit être approuvée avant l’affichage public.',
+                'url' => route('professional.documents.index'),
+                'action' => 'Consulter mes documents',
+            ];
+        }
+        if ($professional->visibility !== \\App\\Models\\ProfessionalProfile::VISIBILITY_PUBLIC) {
+            $visibilityReasons[] = ['message' => 'Votre préférence de visibilité est réglée sur privé.', 'url' => route('professional.profile.edit'), 'action' => 'Modifier la visibilité'];
+        }
+        if ($professional->published_services_count === 0) {
+            $visibilityReasons[] = ['message' => 'Aucun service admissible n’est actuellement publié.', 'url' => route('professional.services.index'), 'action' => 'Gérer mes services'];
+        }
     @endphp
 
     <div class="dashboard-page-header">
@@ -79,11 +108,21 @@
             </div>
         </div>
         @if (! $isPubliclyVisible)
-            <div class="profile-visibility-notice" role="status">
+            <div class="profile-visibility-notice profile-visibility-notice--blocked" role="status" aria-labelledby="profile-visibility-title">
                 <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
                 <div>
-                    <strong>Votre profil n’est pas actuellement visible dans l’annuaire public.</strong>
-                    <p>La visibilité effective dépend du compte actif, du profil actif, de la vérification administrative, de la préférence de visibilité et d’au moins un service publié.</p>
+                    <strong id="profile-visibility-title">Votre profil n’est pas actuellement visible dans l’annuaire public.</strong>
+                    <p>Les conditions non remplies sont indiquées ci-dessous. La complétude du profil ne remplace pas la vérification administrative.</p>
+                    <ul class="profile-visibility-reasons">
+                        @foreach ($visibilityReasons as $reason)
+                            <li>
+                                <span>{{ $reason['message'] }}</span>
+                                @if ($reason['url'])
+                                    <a href="{{ $reason['url'] }}">{{ $reason['action'] }} <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
         @endif
@@ -191,7 +230,7 @@
                 <div class="service-mini-grid">
                     @foreach ($professional->services as $service)
                         <article class="service-mini-card">
-                            <div class="service-mini-card__head"><span class="service-mini-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><span class="badge badge--{{ $service->status->value === 'published' ? 'success' : ($service->status->value === 'draft' ? 'warning' : 'neutral') }}">{{ $service->status->value }}</span></div>
+                            <div class="service-mini-card__head"><span class="service-mini-icon"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span><span class="badge badge--{{ $service->status->value === 'published' ? 'success' : ($service->status->value === 'draft' ? 'warning' : 'neutral') }}">{{ $serviceStatusLabels[$service->status->value] ?? 'Statut à confirmer' }}</span></div>
                             <h3>{{ $service->title }}</h3>
                             <p>{{ $service->short_description ?: 'Aucune description courte.' }}</p>
                             <small class="service-mini-card__mode"><i class="fa-solid fa-laptop-house" aria-hidden="true"></i> {{ $service->execution_mode?->label() ?? 'Mode non renseigné' }}</small>
