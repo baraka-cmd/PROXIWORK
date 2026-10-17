@@ -418,10 +418,50 @@
 }
 
 [data-theme='dark'] .withdrawal-status--failed,
-[data-theme='dark'] .withdrawal-status--rejected,
-[data-theme='dark'] .withdrawal-status--cancelled {
+[data-theme='dark'] .withdrawal-status--rejected {
     background: var(--color-danger-soft);
     color: var(--color-danger);
+}
+
+[data-theme='dark'] .withdrawal-status--cancelled,
+[data-theme='dark'] .withdrawal-status--unknown,
+[data-theme='dark'] .wallet-bucket-label,
+[data-theme='dark'] .wallet-bucket-label--unknown {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .withdrawal-status--review_required,
+[data-theme='dark'] .wallet-bucket-label--pending,
+[data-theme='dark'] .wallet-ledger-disclaimer,
+[data-theme='dark'] .alert--warning {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .wallet-bucket-label--available,
+[data-theme='dark'] .alert--success {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .wallet-bucket-label--locked,
+[data-theme='dark'] .withdrawal-status--processing {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .alert--error {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .withdrawal-timeline li.is-complete > span,
+[data-theme='dark'] .withdrawal-step-heading__number {
+    color: var(--color-on-primary);
 }
 
 [data-theme='dark'] .request-status-filter span {
