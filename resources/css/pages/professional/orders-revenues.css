@@ -117,3 +117,8 @@
  .professional-order-detail-header .status-badge{justify-self:start}
 }
 @media(max-width:420px){.professional-order-table tbody td{grid-template-columns:1fr;gap:.25rem}}
+.professional-order-contract-scope{display:grid;gap:.45rem;margin-top:1rem;padding:1rem;border-radius:var(--radius-md,.65rem);background:var(--color-background,#f8fafc);border:1px solid var(--color-border,#e2e8f0)}
+.professional-order-contract-scope h3,.professional-order-contract-scope h4{margin:0;font-size:.95rem}
+.professional-order-contract-scope p{margin:0;white-space:pre-line;overflow-wrap:anywhere;line-height:1.6}
+.professional-order-schedule-form [aria-invalid="true"]{border-color:var(--color-danger,#b91c1c)}
+.professional-order-workflow .field-error{color:var(--color-danger,#b91c1c);font-size:.82rem}
