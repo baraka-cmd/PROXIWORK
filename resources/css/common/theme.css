@@ -313,7 +313,11 @@
     color: var(--color-text-muted);
 }
 
-[data-theme='dark'] .status-badge,
+[data-theme='dark'] .status-badge {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
 [data-theme='dark'] .revenue-status {
     background: var(--color-success-soft);
     color: var(--color-success);
