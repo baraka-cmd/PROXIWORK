@@ -123,39 +123,47 @@
                 <p>Fin prévue : {{ $order->scheduled_end_at?->format('d/m/Y à H:i') ?? '—' }}</p>
                 <p class="muted">Confirmation enregistrée le {{ $order->schedule_confirmed_at->format('d/m/Y à H:i') }}</p>
             </div>
-        @elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED && data_get($latestScheduleEvent?->metadata, 'event') !== 'schedule_proposed')
-            @if (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested')
-                <div class="professional-order-workflow__notice professional-order-workflow__notice--attention" role="status">
-                    <strong>Le client a demandé une modification du planning</strong>
-                    @if (filled(data_get($latestScheduleEvent->metadata, 'reason')))
-                        <p><strong>Motif :</strong> {{ data_get($latestScheduleEvent->metadata, 'reason') }}</p>
-                    @endif
-                    @if (filled(data_get($latestScheduleEvent->metadata, 'previous_start_at')))
-                        <p>Début précédent : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'previous_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
-                    @endif
-                    @if (filled(data_get($latestScheduleEvent->metadata, 'previous_end_at')))
-                        <p>Fin précédente : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'previous_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
-                    @endif
-                    <p>Envoyez une nouvelle proposition uniquement après avoir tenu compte de cette demande.</p>
+        @elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED)
+            @if (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_proposed')
+                <div class="professional-order-workflow__notice" role="status">
+                    <strong>Proposition de planning envoyée</strong>
+                    <p>Le client doit confirmer les dates ou demander une modification avant qu’une nouvelle proposition soit possible.</p>
+                    <p>Début proposé : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    <p>Fin prévue : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'proposed_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    @if (filled(data_get($latestScheduleEvent->metadata, 'note')))<p>{{ data_get($latestScheduleEvent->metadata, 'note') }}</p>@endif
                 </div>
-            @elseif (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_proposed')
-                <div class="professional-order-workflow__notice" role="status"><strong>Proposition de planning envoyée</strong><p>Le client doit confirmer les dates ou demander une modification avant qu’une nouvelle proposition soit possible.</p></div>
+            @else
+                @if (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested')
+                    <div class="professional-order-workflow__notice professional-order-workflow__notice--attention" role="status">
+                        <strong>Le client a demandé une modification du planning</strong>
+                        @if (filled(data_get($latestScheduleEvent->metadata, 'reason')))
+                            <p><strong>Motif :</strong> {{ data_get($latestScheduleEvent->metadata, 'reason') }}</p>
+                        @endif
+                        @if (filled(data_get($latestScheduleEvent->metadata, 'previous_start_at')))
+                            <p>Début précédent : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'previous_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                        @endif
+                        @if (filled(data_get($latestScheduleEvent->metadata, 'previous_end_at')))
+                            <p>Fin précédente : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'previous_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                        @endif
+                        <p>Envoyez une nouvelle proposition après avoir tenu compte de cette demande.</p>
+                    </div>
+                @endif
+                <form method="POST" action="{{ route('professional.orders.schedule', $order) }}" class="professional-order-schedule-form" data-schedule-form>
+                    @csrf
+                    <h3>{{ data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested' ? 'Proposer un nouveau planning' : 'Proposer un planning au client' }}</h3>
+                    <p>Les dates restent proposées tant que le client ne les a pas confirmées. La date souhaitée par le client n’est pas automatiquement un engagement.</p>
+                    <label for="schedule-starts-at">Début proposé</label>
+                    <input id="schedule-starts-at" name="starts_at" type="datetime-local" min="{{ now()->format('Y-m-d\\TH:i') }}" value="{{ old('starts_at') }}" required aria-describedby="schedule-starts-at-error">
+                    @error('starts_at')<small id="schedule-starts-at-error" class="field-error">{{ $message }}</small>@enderror
+                    <label for="schedule-ends-at">Fin prévue</label>
+                    <input id="schedule-ends-at" name="ends_at" type="datetime-local" min="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" value="{{ old('ends_at') }}" required aria-describedby="schedule-ends-at-error">
+                    @error('ends_at')<small id="schedule-ends-at-error" class="field-error">{{ $message }}</small>@enderror
+                    <label for="schedule-note">Note (facultative)</label>
+                    <textarea id="schedule-note" name="note" rows="2" maxlength="1000" aria-describedby="schedule-note-error">{{ old('note') }}</textarea>
+                    @error('note')<small id="schedule-note-error" class="field-error">{{ $message }}</small>@enderror
+                    <button class="button button--secondary" type="submit" data-confirm-submit="Envoyer cette proposition de planning au client ?">Envoyer la proposition</button>
+                </form>
             @endif
-            <form method="POST" action="{{ route('professional.orders.schedule', $order) }}" class="professional-order-schedule-form">
-                @csrf
-                <h3>Proposer un planning au client</h3>
-                <p>Les dates restent proposées tant que le client ne les a pas confirmées. La date souhaitée par le client n’est pas automatiquement un engagement.</p>
-                <label for="schedule-starts-at">Début proposé</label>
-                <input id="schedule-starts-at" name="starts_at" type="datetime-local" min="{{ now()->format('Y-m-d\\TH:i') }}" value="{{ old('starts_at') }}" required>
-                @error('starts_at')<small class="field-error">{{ $message }}</small>@enderror
-                <label for="schedule-ends-at">Fin prévue</label>
-                <input id="schedule-ends-at" name="ends_at" type="datetime-local" min="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" value="{{ old('ends_at') }}" required>
-                @error('ends_at')<small class="field-error">{{ $message }}</small>@enderror
-                <label for="schedule-note">Note (facultative)</label>
-                <textarea id="schedule-note" name="note" rows="2" maxlength="1000">{{ old('note') }}</textarea>
-                @error('note')<small class="field-error">{{ $message }}</small>@enderror
-                <button class="button button--secondary" type="submit">Envoyer la proposition</button>
-            </form>
         @endif
 
         @if ($order->status === \App\Enums\OrderStatus::PENDING_PAYMENT)
