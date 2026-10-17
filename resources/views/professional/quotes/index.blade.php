@@ -60,10 +60,11 @@
         <a href="{{ route('professional.quotes.index', array_merge(collect($filters)->except('action_required')->all(), ['action_required' => 1])) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
     </nav>
 
+    @php($hasQuoteFilters = filled($filters['status'] ?? null) || filled($filters['q'] ?? null) || filled($filters['from'] ?? null) || filled($filters['to'] ?? null))
     @if ($quotations->isEmpty())
         <x-empty-state
-            :title="$actionRequired ? 'Aucun devis à traiter' : 'Aucun devis envoyé'"
-            :description="$actionRequired ? 'Aucune contre-proposition client ne nécessite actuellement votre réponse.' : 'Lorsqu’une demande reçoit votre proposition, le devis apparaîtra ici.'"
+            :title="$hasQuoteFilters ? 'Aucun devis ne correspond à ces critères' : ($actionRequired ? 'Aucun devis à traiter' : 'Aucun devis envoyé')"
+            :description="$hasQuoteFilters ? 'Modifiez votre recherche ou vos filtres. Les propositions déjà envoyées restent consultables dans le catalogue des devis.' : ($actionRequired ? 'Aucune contre-proposition client ne nécessite actuellement votre réponse.' : 'Lorsqu’une demande reçoit votre proposition, le devis apparaîtra ici.')"
             icon="fa-solid fa-file-invoice-dollar"
         />
     @else
