@@ -2,7 +2,7 @@
     class="button button--ghost theme-toggle"
     type="button"
     data-theme-toggle
-    aria-label="Changer le thème d’affichage"
+    aria-label="Basculer entre le mode clair et le mode sombre"
     title="Changer le thème d’affichage"
     aria-pressed="false"
 >
