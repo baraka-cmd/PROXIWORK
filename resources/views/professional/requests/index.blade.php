@@ -104,16 +104,19 @@
                 </thead>
                 <tbody>
                     @foreach ($requests as $serviceRequest)
-                        <tr>
-                            <td>
+                        <tr @class(['professional-request-row--priority' => $serviceRequest->status->value === 'requested'])>
+                            <td data-label="Demande">
                                 <strong>{{ $serviceRequest->title }}</strong>
                                 <p class="table-secondary">PW-REQ-{{ str_pad((string) $serviceRequest->id, 6, '0', STR_PAD_LEFT) }}</p>
+                                @if ($serviceRequest->status->value === 'requested')
+                                    <span class="professional-workflow-priority">À examiner</span>
+                                @endif
                             </td>
-                            <td>{{ $serviceRequest->service?->title ?? 'Service indisponible' }}</td>
-                            <td>{{ $serviceRequest->client?->name ?? 'Client' }}</td>
-                            <td><span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">{{ $statusLabels[$serviceRequest->status->value] ?? $serviceRequest->status->label() }}</span></td>
-                            <td>{{ $serviceRequest->requested_at?->format('d/m/Y H:i') ?? $serviceRequest->created_at?->format('d/m/Y H:i') }}</td>
-                            <td><a class="button button--ghost button--sm" href="{{ route('professional.requests.show', $serviceRequest) }}">Consulter</a></td>
+                            <td data-label="Service">{{ $serviceRequest->service?->title ?? 'Service indisponible' }}</td>
+                            <td data-label="Client">{{ $serviceRequest->client?->name ?? 'Client' }}</td>
+                            <td data-label="Statut"><span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">{{ $statusLabels[$serviceRequest->status->value] ?? $serviceRequest->status->label() }}</span></td>
+                            <td data-label="Reçue le">{{ $serviceRequest->requested_at?->format('d/m/Y H:i') ?? $serviceRequest->created_at?->format('d/m/Y H:i') }}</td>
+                            <td data-label="Action"><a class="button button--ghost button--sm" href="{{ route('professional.requests.show', $serviceRequest) }}">Consulter</a></td>
                         </tr>
                     @endforeach
                 </tbody>
