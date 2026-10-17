@@ -76,6 +76,7 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('type="email"', $html);
         $this->assertStringContainsString('Adresse e-mail', $html);
         $this->assertStringContainsString('Utilisez une adresse valide.', $html);
+        $this->assertStringContainsString('aria-describedby="email-help"', $html);
     }
 
     public function test_password_input_includes_accessible_visibility_control(): void
@@ -102,5 +103,46 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('state-empty', $empty);
         $this->assertStringContainsString('Aucun professionnel', $empty);
         $this->assertStringContainsString('Aucun résultat ne correspond à vos critères.', $empty);
+    }
+
+    public function test_informational_alert_uses_polite_status_announcement(): void
+    {
+        $html = Blade::render(
+            '<x-alert type="info">Information utile.</x-alert>'
+        );
+
+        $this->assertStringContainsString('role="status"', $html);
+        $this->assertStringContainsString('aria-live="polite"', $html);
+        $this->assertStringContainsString('alert--info', $html);
+    }
+
+    public function test_error_alert_uses_assertive_announcement(): void
+    {
+        $html = Blade::render(
+            '<x-alert type="error">L’action n’a pas abouti.</x-alert>'
+        );
+
+        $this->assertStringContainsString('role="alert"', $html);
+        $this->assertStringContainsString('aria-live="assertive"', $html);
+        $this->assertStringContainsString('alert--error', $html);
+    }
+
+    public function test_select_and_textarea_reference_their_help_text(): void
+    {
+        $errors = new ViewErrorBag;
+
+        $select = Blade::render(
+            '<x-select name="category" label="Catégorie" help="Choisissez une catégorie." />',
+            ['errors' => $errors]
+        );
+        $textarea = Blade::render(
+            '<x-textarea name="description" label="Description" help="Décrivez le besoin." />',
+            ['errors' => $errors]
+        );
+
+        $this->assertStringContainsString('aria-describedby="category-help"', $select);
+        $this->assertStringContainsString('Choisissez une catégorie.', $select);
+        $this->assertStringContainsString('aria-describedby="description-help"', $textarea);
+        $this->assertStringContainsString('Décrivez le besoin.', $textarea);
     }
 }

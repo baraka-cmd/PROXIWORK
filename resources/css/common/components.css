@@ -360,13 +360,15 @@
     background: color-mix(in srgb, var(--color-warning) 12%, transparent);
 }
 
-.alert--danger {
+.alert--danger,
+.alert--error {
     border-color: color-mix(in srgb, var(--color-danger) 25%, var(--color-border));
     background: var(--color-danger-soft);
     color: var(--color-danger);
 }
 
-.alert--danger .alert__icon {
+.alert--danger .alert__icon,
+.alert--error .alert__icon {
     background: color-mix(in srgb, var(--color-danger) 12%, transparent);
 }
 

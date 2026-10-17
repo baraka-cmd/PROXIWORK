@@ -10,11 +10,15 @@
         'info' => 'fa-solid fa-circle-info',
         'warning' => 'fa-solid fa-triangle-exclamation',
         'danger' => 'fa-solid fa-circle-exclamation',
+        'error' => 'fa-solid fa-circle-exclamation',
     ];
+
+    $isUrgent = in_array($type, ['danger', 'error', 'warning'], true);
 @endphp
 
 <div
-    role="alert"
+    role="{{ $isUrgent ? 'alert' : 'status' }}"
+    aria-live="{{ $isUrgent ? 'assertive' : 'polite' }}"
     {{ $attributes->merge(['class' => "alert alert--{$type}"]) }}
 >
     <div class="alert__icon" aria-hidden="true">
