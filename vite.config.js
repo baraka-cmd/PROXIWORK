@@ -22,7 +22,7 @@ export default defineConfig({
                 'resources/js/pages/public/home.js',
                 'resources/css/pages/public/search.css','resources/js/pages/public/search.js',
                 'resources/css/pages/public/professionals.css','resources/js/pages/public/professionals.js',
-                'resources/css/pages/professional/profile.css','resources/css/pages/professional/services.css','resources/css/pages/professional/quotes.css','resources/css/pages/professional/requests.css',
+                'resources/css/pages/professional/profile.css','resources/js/pages/professional/profile-edit.js','resources/css/pages/professional/documents.css','resources/js/pages/professional/documents.js','resources/css/pages/professional/services.css','resources/css/pages/professional/quotes.css','resources/css/pages/professional/requests.css',
                 'resources/css/pages/client/favorites-requests-quotes.css','resources/js/pages/client/favorites-requests-quotes.js',
                 'resources/css/pages/client/service-requests.css',
                 'resources/css/pages/client/favorites.css',
