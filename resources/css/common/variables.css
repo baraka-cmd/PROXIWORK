@@ -90,6 +90,11 @@
 
 [data-theme='dark'] {
     color-scheme: dark;
+    --color-primary: #5eead4;
+    --color-primary-hover: #2dd4bf;
+    --color-on-primary: #062e2b;
+    --color-secondary: #334155;
+    --color-on-secondary: #f8fafc;
     --color-accent: #fbbf24;
     --color-accent-hover: #f59e0b;
     --color-success: #4ade80;
