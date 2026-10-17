@@ -42,7 +42,7 @@
             <input id="orders-from" type="date" name="from" value="{{ $from }}">
         </label>
         <label for="orders-to">Au
-            <input id="orders-to" type="date" name="to" value="{{ $to }}">
+            <input id="orders-to" type="date" name="to" min="{{ $from }}" value="{{ $to }}">
         </label>
         <button class="button button--secondary button--sm" type="submit">Appliquer les dates</button>
         @if ($from !== '' || $to !== '')
