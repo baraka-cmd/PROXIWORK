@@ -16,6 +16,7 @@
     $hasError = $validationErrors?->has($name) ?? false;
     $errorId = "{$inputId}-error";
     $helpId = "{$inputId}-help";
+    $describedBy = trim(($help ? $helpId : '').' '.($hasError ? $errorId : ''));
 @endphp
 
 <div class="form-field">
@@ -37,7 +38,8 @@
             placeholder="{{ $placeholder }}"
             @if ($required) required @endif
             @if ($autocomplete) autocomplete="{{ $autocomplete }}" @endif
-            @if ($hasError) aria-invalid="true" aria-describedby="{{ $errorId }}" @elseif ($help) aria-describedby="{{ $helpId }}" @endif
+            @if ($hasError) aria-invalid="true" @endif
+            @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
             {{ $attributes->except(['id', 'name', 'type', 'value', 'placeholder', 'required', 'autocomplete'])->merge(['class' => 'form-control']) }}
         />
 
@@ -54,7 +56,7 @@
         @endif
     </div>
 
-    @if ($help && ! $hasError)
+    @if ($help)
         <p id="{{ $helpId }}" class="form-help">{{ $help }}</p>
     @endif
 

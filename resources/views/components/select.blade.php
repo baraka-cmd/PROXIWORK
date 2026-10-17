@@ -15,6 +15,7 @@
     $hasError = $validationErrors?->has($name) ?? false;
     $errorId = "{$selectId}-error";
     $helpId = "{$selectId}-help";
+    $describedBy = trim(($help ? $helpId : '').' '.($hasError ? $errorId : ''));
     $htmlAttributes = $attributes
         ->except(['id', 'name', 'required', 'options'])
         ->filter(fn ($attributeValue) => is_scalar($attributeValue) || $attributeValue === null)
@@ -36,7 +37,8 @@
             id="{{ $selectId }}"
             name="{{ $name }}"
             @if ($required) required @endif
-            @if ($hasError) aria-invalid="true" aria-describedby="{{ $errorId }}" @elseif ($help) aria-describedby="{{ $helpId }}" @endif
+            @if ($hasError) aria-invalid="true" @endif
+            @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
             {{ $htmlAttributes }}
         >
             @if ($placeholder)
@@ -55,7 +57,7 @@
         <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
     </div>
 
-    @if ($help && ! $hasError)
+    @if ($help)
         <p id="{{ $helpId }}" class="form-help">{{ $help }}</p>
     @endif
 

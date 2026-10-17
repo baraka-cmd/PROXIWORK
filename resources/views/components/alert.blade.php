@@ -14,7 +14,8 @@
 @endphp
 
 <div
-    role="alert"
+    role="{{ in_array($type, ['danger', 'warning'], true) ? 'alert' : 'status' }}"
+    aria-live="{{ in_array($type, ['danger', 'warning'], true) ? 'assertive' : 'polite' }}"
     {{ $attributes->merge(['class' => "alert alert--{$type}"]) }}
 >
     <div class="alert__icon" aria-hidden="true">

@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigation.classList.remove('is-open');
         navigation.setAttribute('aria-hidden', 'true');
-        navigation.inert = compactViewport.matches || !navigation.hasAttribute('data-dashboard-sidebar');
+        navigation.inert = compactViewport.matches;
 
         setToggleState(toggle, false);
         syncBodyScrollLock();
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigation.classList.toggle('is-open', false);
         navigation.setAttribute('aria-hidden', String(shouldStartClosed));
-        navigation.inert = shouldStartClosed || !navigation.hasAttribute('data-dashboard-sidebar');
+        navigation.inert = shouldStartClosed;
 
         if (shouldStartClosed) {
             setToggleState(toggle, false);
@@ -195,8 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!compactViewport.matches) {
                 close({ restoreFocus: false });
                 const isDashboardSidebar = navigation.hasAttribute('data-dashboard-sidebar');
-                navigation.setAttribute('aria-hidden', isDashboardSidebar ? 'false' : 'true');
-                navigation.inert = !isDashboardSidebar;
+                navigation.setAttribute('aria-hidden', 'false');
+                navigation.inert = false;
                 return;
             }
 
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('[data-alert-dismiss]').forEach((dismissButton) => {
         dismissButton.addEventListener('click', () => {
-            const alert = dismissButton.closest('[role="alert"]');
+            const alert = dismissButton.closest('.alert');
 
             if (!alert) {
                 return;
