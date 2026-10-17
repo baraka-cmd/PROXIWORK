@@ -260,13 +260,6 @@ hr,
     color: var(--color-success);
 }
 
-[data-theme='dark'] .request-status-badge--accepted,
-[data-theme='dark'] .status-badge--confirmed,
-[data-theme='dark'] .status-badge--completed,
-[data-theme='dark'] .wallet-bucket-label--available {
-    color: var(--color-success);
-}
-
 [data-theme='dark'] .request-status-badge--rejected,
 [data-theme='dark'] .status-badge--disputed,
 [data-theme='dark'] .withdrawal-status--failed,
