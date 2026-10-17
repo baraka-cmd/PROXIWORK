@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         navigation.classList.remove('is-open');
         navigation.setAttribute('aria-hidden', 'true');
-        navigation.inert = true;
+        navigation.inert = compactViewport.matches || !navigation.hasAttribute('data-dashboard-sidebar');
 
         setToggleState(toggle, false);
         syncBodyScrollLock();
