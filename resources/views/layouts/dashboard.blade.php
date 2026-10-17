@@ -57,6 +57,7 @@
                 </div>
 
                 <div class="dashboard-topbar__actions">
+                    <x-theme-toggle />
                     @yield('dashboard_topbar_actions')
 
                     @auth
