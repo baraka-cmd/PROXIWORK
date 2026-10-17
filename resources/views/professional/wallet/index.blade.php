@@ -53,7 +53,7 @@
 @else
 @if($wallet->status !== 'active')
 <div class="alert alert--warning" role="status">
-    <strong>Portefeuille non actif.</strong>
+    <strong>Portefeuille {{ str_replace('_', ' ', $wallet->status) }}.</strong>
     <span>Certains mouvements peuvent être indisponibles. Contactez le support si vous pensez qu’il s’agit d’une erreur.</span>
 </div>
 @endif
