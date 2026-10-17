@@ -89,6 +89,21 @@ document.querySelectorAll('.profile-edit-section textarea[maxlength], .profile-e
     }
 });
 
+document.querySelectorAll('.profile-edit-section form[data-confirm]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        const message = form.getAttribute('data-confirm');
+        if (message && !window.confirm(message)) {
+            event.preventDefault();
+            return;
+        }
+        const button = form.querySelector('button[type="submit"]');
+        if (button) {
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+        }
+    });
+});
+
 const serializeForm = (form) => [...form.elements]
     .filter((element) => element.name && !element.disabled && element.type !== 'submit' && element.type !== 'button' && element.type !== 'file')
     .map((element) => {
