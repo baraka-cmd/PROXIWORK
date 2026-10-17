@@ -58,9 +58,9 @@
             <p>Les commandes liées à vos services apparaîtront ici.</p>
         </div>
     @else
-        <div class="data-card">
-            <div class="table-wrap">
-                <table class="professional-table">
+        <div class="data-card professional-order-list-card">
+            <div class="table-wrap professional-order-table-wrap">
+                <table class="professional-table professional-order-table">
                     <thead>
                         <tr><th>Commande</th><th>Client</th><th>Statut</th><th>Montant</th><th>Date</th><th></th></tr>
                     </thead>
