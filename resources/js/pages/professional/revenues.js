@@ -13,13 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
             payload = JSON.parse(canvas.dataset.chartPayload || '{}');
         } catch {
             const fallback = canvas.closest('[data-chart-container]');
-            if (fallback) fallback.textContent = 'Les données du graphique sont momentanément indisponibles.';
+            if (fallback) {
+                fallback.textContent = 'Les données du graphique sont momentanément indisponibles.';
+                fallback.setAttribute('role', 'status');
+            }
             return;
         }
 
         if (!Array.isArray(payload.labels) || !Array.isArray(payload.values) || payload.labels.length === 0) {
             const container = canvas.closest('[data-chart-container]');
-            if (container) container.innerHTML = '<p class="revenue-empty">Aucune donnée comptabilisée pour cette période.</p>';
+            if (container) {
+                const emptyState = document.createElement('p');
+                emptyState.className = 'revenue-empty';
+                emptyState.setAttribute('role', 'status');
+                emptyState.textContent = 'Aucune donnée comptabilisée pour cette période.';
+                container.replaceChildren(emptyState);
+            }
             return;
         }
 

@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!submit) return;
         submit.disabled = true;
         submit.setAttribute('aria-busy', 'true');
-        submit.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enregistrement…';
+        submit.textContent = 'Enregistrement…';
     });
 
     update();

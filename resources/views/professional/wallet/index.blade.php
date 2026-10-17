@@ -5,12 +5,16 @@
 @endunless
 @endpush
 @section('page_eyebrow','FINANCES')
-@section('page_title','Wallet')
+@section('page_title','Portefeuille')
 @section('page_description','Consultez vos soldes par devise et retrouvez les mouvements enregistrés sur votre portefeuille.')
 @section('page_actions')
-@if($wallet && $wallet->status === 'active')
-<a class="button button--primary" href="{{ route('professional.withdrawals.create', ['currency' => $wallet->currency]) }}"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> Demander un retrait</a>
-@endif
+<div class="finance-page__navigation" aria-label="Navigation financière">
+    <a class="button button--secondary" href="{{ route('professional.revenues.index') }}">Mes revenus</a>
+    <a class="button button--secondary" href="{{ route('professional.withdrawals') }}">Historique des retraits</a>
+    @if($wallet && $wallet->status === 'active')
+    <a class="button button--primary" href="{{ route('professional.withdrawals.create', ['currency' => $wallet->currency]) }}"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> Demander un retrait</a>
+    @endif
+</div>
 @endsection
 @section('content')
 <div class="finance-page">
@@ -135,9 +139,9 @@
                 <td><time datetime="{{ $transaction->created_at?->toISOString() }}">{{ $transaction->created_at?->format('d/m/Y H:i') }}</time></td>
                 <td><span class="wallet-transaction-reference">#{{ $transaction->id }}</span>@if($transaction->reference_id)<small class="wallet-reference-detail">Réf. liée : {{ class_basename((string) $transaction->reference_type) }} #{{ $transaction->reference_id }}</small>@endif</td>
                 <td>{{ $transaction->description ?: match($transaction->type?->value) { 'earning' => 'Revenu', 'commission' => 'Commission', 'withdrawal' => 'Retrait', 'refund' => 'Remboursement', 'adjustment' => 'Ajustement', 'reversal' => 'Contre-écriture', default => 'Opération financière' } }}</td>
-                <td><span class="finance-direction finance-direction--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? 'Crédit' : 'Débit' }}</span></td>
+                <td><span class="finance-direction finance-direction--{{ $transaction->direction?->value }}">{{ match($transaction->direction?->value) { 'credit' => 'Crédit', 'debit' => 'Débit', default => 'Sens non déterminé' } }}</span></td>
                 <td><span class="wallet-bucket-label wallet-bucket-label--{{ $transaction->balance_bucket ?? 'unknown' }}">{{ match($transaction->balance_bucket ?? 'unknown') { 'available' => 'Disponible', 'pending' => 'En attente', 'locked' => 'Bloqué / réservé', 'unknown' => 'Non déterminé (historique)', default => 'Non déterminé' } }}</span></td>
-                <td class="finance-amount finance-amount--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? '+' : '−' }}{{ \App\Support\MoneyFormatter::format((string) $transaction->amount) }} {{ $transaction->currency }}</td>
+                <td class="finance-amount finance-amount--{{ $transaction->direction?->value }}">{{ $transaction->direction?->value === 'credit' ? '+' : ($transaction->direction?->value === 'debit' ? '−' : '') }}{{ \App\Support\MoneyFormatter::format((string) $transaction->amount) }} {{ $transaction->currency }}</td>
             </tr>
             @endforeach
             </tbody>

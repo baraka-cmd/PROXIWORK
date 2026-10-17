@@ -8,7 +8,11 @@
 @section('page_title','Détail du retrait')
 @section('page_description','Consultez la demande, les preuves enregistrées et les transitions de statut.')
 @section('page_actions')
-<a class="button button--secondary" href="{{ route('professional.withdrawals') }}">Retour aux retraits</a>
+<div class="finance-page__navigation" aria-label="Navigation financière">
+    <a class="button button--secondary" href="{{ route('professional.withdrawals') }}">Retour aux retraits</a>
+    <a class="button button--secondary" href="{{ route('professional.wallet', ['currency' => $withdrawal->currency]) }}">Portefeuille {{ $withdrawal->currency }}</a>
+    <a class="button button--secondary" href="{{ route('professional.revenues.index', ['currency' => $withdrawal->currency]) }}">Mes revenus {{ $withdrawal->currency }}</a>
+</div>
 @endsection
 @section('content')
 <div class="finance-page finance-page--narrow">
