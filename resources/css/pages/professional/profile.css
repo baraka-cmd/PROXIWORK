@@ -60,3 +60,9 @@
 .profile-form-alert ul { margin:var(--space-2) 0 0; padding-left:var(--space-5); }
 @media(max-width:600px) { .profile-photo-editor { flex-direction:column; } .profile-photo-editor__controls { width:100%; } .profile-price { align-items:flex-start; flex-direction:column; } .profile-skills-grid { grid-template-columns:1fr; } }
 @media(prefers-reduced-motion:reduce) { .profile-edit-section * { transition:none!important; } }
+
+.profile-visibility-reasons { display:grid; gap:var(--space-3); margin:var(--space-3) 0 0; padding-left:1.15rem; }
+.profile-visibility-reasons li { padding-left:var(--space-1); color:var(--color-text-muted); line-height:var(--line-height-relaxed); }
+.profile-visibility-reasons a { display:inline-flex; align-items:center; gap:var(--space-2); margin-left:var(--space-2); color:var(--color-primary); font-weight:var(--font-weight-semibold); }
+.profile-visibility-notice--blocked { align-items:flex-start; }
+@media(max-width:600px) { .profile-visibility-reasons a { display:flex; margin:var(--space-2) 0 0; } }
