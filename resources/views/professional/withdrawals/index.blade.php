@@ -64,7 +64,18 @@
 <section class="data-card" aria-labelledby="withdrawals-title">
     <div class="data-card__header"><div><span class="eyebrow">HISTORIQUE</span><h3 id="withdrawals-title">Demandes de retrait</h3></div><span class="status-badge status-badge--neutral">{{ $withdrawals->total() }} demande(s)</span></div>
     @if($withdrawals->isEmpty())
-        <div class="finance-empty"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i><h4>Aucun retrait correspondant</h4><p>Essayez de modifier les filtres ou soumettez une nouvelle demande si votre portefeuille est éligible.</p></div>
+        <div class="finance-empty" role="status">
+            <i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i>
+            @if(($filters['status'] ?? null) || ($filters['currency'] ?? null) || ($filters['date_from'] ?? null) || ($filters['date_to'] ?? null))
+                <h4>Aucun retrait ne correspond aux filtres</h4>
+                <p>Modifiez les critères de recherche ou effacez-les pour retrouver l’historique complet.</p>
+                <a class="button button--secondary button--small" href="{{ route('professional.withdrawals') }}">Effacer les filtres</a>
+            @else
+                <h4>Aucune demande de retrait pour le moment</h4>
+                <p>Les demandes enregistrées apparaîtront ici avec leur référence, leur montant et leur statut réel.</p>
+                @if($canRequestWithdrawal)<a class="button button--primary button--small" href="{{ route('professional.withdrawals.create') }}">Demander un retrait</a>@endif
+            @endif
+        </div>
     @else
         <div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date de demande</th><th>Référence</th><th>Montant demandé</th><th>Canal demandé</th><th>Statut</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>
         @foreach($withdrawals as $withdrawal)
