@@ -44,7 +44,7 @@
     <div class="dashboard-content-grid professional-request-detail">
         <section class="surface-card content-card professional-request-detail__description">
             <h2>Description du besoin</h2>
-            <p>{{ $serviceRequest->description }}</p>
+            <p class="professional-request-description">{{ $serviceRequest->description }}</p>
             <dl class="details-list">
                 <div><dt>Service</dt><dd>{{ $serviceRequest->service?->title ?? 'Non disponible' }}</dd></div>
                 <div><dt>Budget minimum</dt><dd>{{ $serviceRequest->budget_min !== null ? number_format((float) $serviceRequest->budget_min, 2, ',', ' ') . ' ' . ($serviceRequest->currency ?? '') : 'Non précisé' }}</dd></div>
