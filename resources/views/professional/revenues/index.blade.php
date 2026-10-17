@@ -247,7 +247,7 @@
                         <tbody>
                             @foreach ($commissions as $commission)
                                 <tr>
-                                    <td>{{ $commission->posted_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td>@if($commission->posted_at)<time datetime="{{ $commission->posted_at->toISOString() }}">{{ $commission->posted_at->format('d/m/Y H:i') }}</time>@else — @endif</td>
                                     <td>COM-{{ $commission->id }}</td>
                                     <td>
                                         <a href="{{ route('professional.orders.show', $commission->order_id) }}">{{ $commission->order?->order_number ?? '#'.$commission->order_id }}</a>
