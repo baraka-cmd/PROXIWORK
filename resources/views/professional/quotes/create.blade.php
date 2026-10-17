@@ -82,6 +82,15 @@
         @if ($errors->has('service_request'))
             <div class="alert alert--danger" role="alert">{{ $errors->first('service_request') }}</div>
         @endif
+        <section class="professional-quote-review" aria-labelledby="quote-review-title" aria-live="polite">
+            <div><span class="eyebrow">RÉCAPITULATIF</span><h2 id="quote-review-title">Vérifiez votre proposition</h2></div>
+            <dl>
+                <div><dt>Montant</dt><dd data-quote-summary-amount>À renseigner</dd></div>
+                <div><dt>Délai</dt><dd data-quote-summary-duration>À renseigner</dd></div>
+                <div><dt>Validité</dt><dd data-quote-summary-validity>À renseigner</dd></div>
+            </dl>
+            <p>Ce récapitulatif est une aide visuelle. Le serveur valide et enregistre les conditions définitives du devis.</p>
+        </section>
         <div class="form-actions">
             <a class="button button--ghost" href="{{ route('professional.requests.show', $serviceRequest) }}">Annuler</a>
             <button class="button button--primary" type="submit">Envoyer le devis</button>
