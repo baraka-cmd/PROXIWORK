@@ -98,7 +98,9 @@
         <section
             class="client-panel message-thread"
             aria-label="Historique des messages"
+            role="log"
             aria-live="polite"
+            aria-relevant="additions text"
             data-message-thread
             data-last-message-id="{{ $lastMessageId }}"
             data-user-id="{{ auth()->id() }}"
