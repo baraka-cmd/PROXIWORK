@@ -130,5 +130,7 @@ document.querySelectorAll('input[type="file"]').forEach((input) => {
 });
 
 document.querySelectorAll('.service-form [aria-invalid="true"]').forEach((field) => {
-    field.setAttribute('aria-describedby', [field.getAttribute('aria-describedby'), field.id ? `${field.id}-error` : null].filter(Boolean).join(' '));
+    const describedBy = new Set((field.getAttribute('aria-describedby') || '').split(/\\s+/).filter(Boolean));
+    if (field.id) describedBy.add(`${field.id}-error`);
+    field.setAttribute('aria-describedby', [...describedBy].join(' '));
 });
