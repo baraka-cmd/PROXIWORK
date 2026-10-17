@@ -40,7 +40,8 @@
         <div class="form-grid">
             <div class="form-field">
                 <label class="form-label" for="amount">Montant proposé</label>
-                <input class="form-control" id="amount" name="amount" type="number" min="0.01" max="9999999999.99" step="0.01" value="{{ old('amount') }}" required>
+                <input class="form-control" id="amount" name="amount" type="number" min="0.01" max="9999999999.99" step="0.01" value="{{ old('amount') }}" required aria-describedby="amount-help">
+                <small id="amount-help" class="professional-quote-field-help">Indiquez le montant contractuel proposé dans la devise choisie. Aucun frais ou calcul supplémentaire n’est ajouté par ce formulaire.</small>
                 @error('amount')<p class="form-error">{{ $message }}</p>@enderror
             </div>
             <div class="form-field">
