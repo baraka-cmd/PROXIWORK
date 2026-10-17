@@ -3,7 +3,7 @@
 @section('body_class', 'app-shell auth-layout')
 
 @section('body')
-    <main id="main-content" class="auth-shell">
+    <main id="main-content" class="auth-shell">\n        <div class="auth-theme-control"><x-theme-toggle /></div>
         <section class="auth-panel" aria-labelledby="auth-page-title">
             <div class="auth-brand">
                 <a class="brand" href="{{ url('/') }}" aria-label="PROXIWORK — accueil">
