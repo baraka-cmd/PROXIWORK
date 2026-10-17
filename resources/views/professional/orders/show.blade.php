@@ -172,7 +172,17 @@
                 <p>Le démarrage est désactivé jusqu’à la confirmation du paiement par PROXIWORK.</p>
             </div>
         @elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED)
-            @if ($order->schedule_confirmed_at && $order->scheduled_start_at?->isFuture())
+            @if (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_proposed')
+                <div class="professional-order-workflow__notice" role="status">
+                    <strong>Confirmation du planning attendue</strong>
+                    <p>Le démarrage est indisponible tant que le client n’a pas confirmé les dates proposées ou demandé une modification.</p>
+                </div>
+            @elseif (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested')
+                <div class="professional-order-workflow__notice professional-order-workflow__notice--attention" role="status">
+                    <strong>Planning à réviser</strong>
+                    <p>Le client a demandé une modification. Envoyez une nouvelle proposition et attendez sa résolution avant de démarrer.</p>
+                </div>
+            @elseif ($order->schedule_confirmed_at && $order->scheduled_start_at?->isFuture())
                 <div class="professional-order-workflow__notice" role="status">
                     <strong>Le planning est confirmé</strong>
                     <p>Le démarrage sera possible à partir du {{ $order->scheduled_start_at->format('d/m/Y à H:i') }}. La commande reste confirmée jusque-là.</p>
