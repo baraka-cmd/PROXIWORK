@@ -8,6 +8,19 @@
     <title>@yield('title', config('app.name', 'PROXIWORK'))</title>
     <meta name="description" content="@yield('meta_description', 'PROXIWORK — trouvez des professionnels et développez votre activité.')">
 
+    <script>
+        (function () {
+            var theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            try {
+                var savedTheme = window.localStorage.getItem('proxiwork-theme');
+                if (savedTheme === 'light' || savedTheme === 'dark') theme = savedTheme;
+            } catch (error) {
+                // Le thème système reste disponible si le stockage local est bloqué.
+            }
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+
     <link
         rel="stylesheet"
         href="{{ asset('assets/fontawesome/css/all.min.css') }}"
