@@ -58,7 +58,7 @@
                 <label class="form-label" for="duration_unit">Unité du délai</label>
                 <select class="form-control form-select" id="duration_unit" name="duration_unit" required>
                     @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
-                        <option value="{{ $unit->value }}" @selected(old('duration_unit', 'days') === $unit->value)>{{ ucfirst($unit->value) }}</option>
+                        <option value="{{ $unit->value }}" @selected(old('duration_unit', 'days') === $unit->value)>{{ match($unit->value) { 'hours' => 'Heures', 'days' => 'Jours', 'weeks' => 'Semaines', default => ucfirst($unit->value) } }}</option>
                     @endforeach
                 </select>
                 @error('duration_unit')<p class="form-error">{{ $message }}</p>@enderror
