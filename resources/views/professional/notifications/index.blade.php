@@ -76,7 +76,12 @@
         <section class="notification-empty" aria-live="polite">
             <i class="fa-regular {{ $archived ? 'fa-folder-open' : 'fa-bell-slash' }}" aria-hidden="true"></i>
             <h3>{{ $archived ? 'Aucune notification archivée' : 'Aucune notification à afficher' }}</h3>
-            <p>Les événements pertinents de votre activité apparaîtront ici. Vous pouvez modifier les filtres pour élargir la recherche.</p>
+            @if ($search !== '' || $category !== 'all' || $status !== 'all')
+                <p>Aucune notification ne correspond aux critères sélectionnés. Les notifications n’ont pas été supprimées ; ajustez les filtres ou réinitialisez la recherche.</p>
+                <a class="button button--secondary" href="{{ route('professional.notifications', ['archived' => $archived ? '1' : '0']) }}">Effacer les filtres</a>
+            @else
+                <p>{{ $archived ? 'Les notifications archivées restent conservées dans votre historique et peuvent être restaurées.' : 'Les événements pertinents de votre activité apparaîtront ici.' }}</p>
+            @endif
         </section>
     @else
         <div class="notification-list">
@@ -160,10 +165,10 @@
         </nav>
     @endif
 
-    <details class="notification-toolbar">
-        <summary><strong>Préférences de notification externe</strong></summary>
+    <details class="notification-preferences">
+        <summary><strong>Préférences de notification externe</strong><span> E-mail, SMS et push selon les canaux configurés</span></summary>
         <p>Le centre de notifications PROXIWORK reste conservé dans l'application. Ces choix concernent les canaux externes configurés par la plateforme ; activer SMS ou push ne garantit pas leur envoi si le fournisseur n'est pas intégré.</p>
-        <form method="POST" action="{{ route('professional.notifications.preferences.update') }}" class="notification-filters">
+        <form method="POST" action="{{ route('professional.notifications.preferences.update') }}" class="notification-filters" data-notification-preferences>
             @csrf
             @method('PATCH')
             <label><input type="hidden" name="email_enabled" value="0"><input type="checkbox" name="email_enabled" value="1" @checked(old('email_enabled', $preferences->email_enabled))> E-mail</label>
