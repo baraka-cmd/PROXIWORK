@@ -78,6 +78,8 @@
 .professional-quote-review dl>div{display:grid;gap:.3rem;min-width:0}
 .professional-quote-review dt{font-size:.78rem;color:var(--color-text-muted,#64748b)}
 .professional-quote-review dd{margin:0;font-weight:800;overflow-wrap:anywhere}
+.professional-quote-review__scope{grid-column:1/-1}
+.professional-quote-review__scope dd{font-weight:500;line-height:1.5;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .professional-quote-review>p{margin:0;color:var(--color-text-muted,#64748b);font-size:.8rem;line-height:1.5}
 .professional-quote-create-form [aria-invalid="true"]{border-color:var(--color-danger,#b91c1c)}
 .professional-quote-create-form :focus-visible{outline:3px solid color-mix(in srgb,var(--color-primary,#0f766e) 55%,transparent);outline-offset:2px}
