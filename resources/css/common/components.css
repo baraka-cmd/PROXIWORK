@@ -758,3 +758,17 @@
         white-space: nowrap;
     }
 }
+
+.auth-theme-control {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--z-header);
+}
+
+@media (max-width: 519px) {
+    .auth-theme-control {
+        top: var(--space-2);
+        right: var(--space-2);
+    }
+}
