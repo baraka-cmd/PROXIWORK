@@ -211,7 +211,7 @@
                     <ul class="professional-order-file-preview" data-delivery-file-list aria-live="polite"></ul>
                     @error('attachments')<small class="field-error">{{ $message }}</small>@enderror
                     @error('attachments.*')<small class="field-error">{{ $message }}</small>@enderror
-                    <button class="button button--primary" type="submit" data-confirm-submit="Soumettre le résultat au client pour vérification ?">Soumettre pour réception</button>
+                    <button class="button button--primary" type="submit" data-confirm-submit="Soumettre cette livraison au client pour vérification ? Le client devra ensuite confirmer la réception ou demander une correction." data-loading-label="Envoi de la livraison…">Soumettre pour réception</button>
                 </form>
 
                 <form method="POST" action="{{ route('professional.orders.report-blocker', $order) }}">
