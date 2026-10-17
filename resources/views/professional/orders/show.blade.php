@@ -199,7 +199,8 @@
                     <h3>{{ data_get($latestCorrection?->metadata, 'event') === 'delivery_changes_requested' ? 'Soumettre la version corrigée' : 'Soumettre le résultat au client' }}</h3>
                     <p>Décrivez le travail effectué, les éléments remis et les consignes utiles au client. Le livrable restera en attente de réception jusqu’à sa décision.</p>
                     <label for="delivery-summary">Résumé du livrable</label>
-                    <textarea id="delivery-summary" name="summary" rows="5" minlength="20" maxlength="5000" required>{{ old('summary') }}</textarea>
+                    <textarea id="delivery-summary" name="summary" rows="5" minlength="20" maxlength="5000" required aria-describedby="delivery-summary-count">{{ old('summary') }}</textarea>
+                    <small id="delivery-summary-count" class="professional-order-char-count" data-char-count-for="delivery-summary" aria-live="polite">0 / 5000 caractères</small>
                     @error('summary')<small class="field-error">{{ $message }}</small>@enderror
                     <label for="delivery-attachments">Fichiers livrés (facultatif, 5 fichiers maximum)</label>
                     <input id="delivery-attachments" type="file" name="attachments[]" multiple
