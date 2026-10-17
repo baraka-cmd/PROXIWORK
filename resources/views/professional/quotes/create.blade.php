@@ -20,7 +20,22 @@
         <div class="dashboard-page-header__actions"><a class="button button--ghost" href="{{ route('professional.requests.show', $serviceRequest) }}">Retour à la demande</a></div>
     </div>
 
-    <form method="POST" action="{{ route('professional.quotes.store', $serviceRequest) }}" class="surface-card form-card">
+    <section class="professional-quote-request-context surface-card" aria-label="Rappel de la demande">
+        <div><span>Demande concernée</span><strong>{{ $serviceRequest->title }}</strong><small>Référence PW-REQ-{{ str_pad((string) $serviceRequest->getKey(), 6, '0', STR_PAD_LEFT) }}</small></div>
+        <div><span>Client</span><strong>{{ $serviceRequest->client?->name ?? 'Client' }}</strong></div>
+        <div><span>Budget indiqué</span><strong>
+            @if ($serviceRequest->budget_min !== null || $serviceRequest->budget_max !== null)
+                {{ $serviceRequest->budget_min !== null ? number_format((float) $serviceRequest->budget_min, 2, ',', ' ') : '—' }}
+                @if ($serviceRequest->budget_min !== null && $serviceRequest->budget_max !== null) – @endif
+                {{ $serviceRequest->budget_max !== null ? number_format((float) $serviceRequest->budget_max, 2, ',', ' ') : '' }}
+                {{ $serviceRequest->currency ?? '' }}
+            @else
+                Non précisé
+            @endif
+        </strong></div>
+    </section>
+
+    <form method="POST" action="{{ route('professional.quotes.store', $serviceRequest) }}" class="surface-card form-card professional-quote-create-form" data-quote-form>
         @csrf
         <div class="form-grid">
             <div class="form-field">
