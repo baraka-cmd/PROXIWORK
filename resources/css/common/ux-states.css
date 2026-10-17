@@ -193,6 +193,13 @@
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .state-skeleton__line {
+        animation: none;
+        background-position: 0 0;
+    }
+}
+
 @media (max-width: 767px) {
     .state-error {
         grid-template-columns: 1fr;
