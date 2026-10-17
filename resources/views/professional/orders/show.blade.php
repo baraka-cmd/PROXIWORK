@@ -218,9 +218,10 @@
                     @csrf
                     <h3>Signaler une difficulté</h3>
                     <label for="blocker-description">Décrivez le blocage et la prochaine étape proposée</label>
-                    <textarea id="blocker-description" name="description" rows="3" minlength="10" maxlength="2000" required>{{ old('description') }}</textarea>
+                    <textarea id="blocker-description" name="description" rows="3" minlength="10" maxlength="2000" required aria-describedby="blocker-description-count">{{ old('description') }}</textarea>
+                    <small id="blocker-description-count" class="professional-order-char-count" data-char-count-for="blocker-description" aria-live="polite">0 / 2000 caractères</small>
                     @error('description')<small class="field-error">{{ $message }}</small>@enderror
-                    <button class="button button--secondary" type="submit">Informer le client</button>
+                    <button class="button button--secondary" type="submit" data-confirm-submit="Signaler cette difficulté au client ?">Informer le client</button>
                 </form>
             </div>
         @elseif ($order->status === \App\Enums\OrderStatus::DELIVERY_SUBMITTED)
