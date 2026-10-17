@@ -66,13 +66,13 @@
                     </thead>
                     <tbody>
                         @foreach ($orders as $order)
-                            <tr>
-                                <td><strong>#{{ $order->id }}</strong></td>
-                                <td>{{ $order->client?->name ?? 'Client' }}</td>
-                                <td><span class="status-badge">{{ $statusLabels[$order->status->value] ?? str_replace('_', ' ', $order->status->value) }}</span></td>
-                                <td>{{ number_format((float) $order->total, 2) }} {{ $order->currency ?? '' }}</td>
-                                <td>{{ $order->created_at?->format('d/m/Y') }}@if($order->serviceRequest?->desired_at)<small class="table-secondary">Souhait client : {{ $order->serviceRequest->desired_at->format('d/m/Y') }}</small>@endif</td>
-                                <td><a class="button button--secondary button--small" href="{{ route('professional.orders.show', $order) }}">Voir</a></td>
+                            <tr @class(['professional-order-row--priority' => in_array($order->status->value, ['pending_payment', 'delivery_submitted', 'disputed'], true)])>
+                                <td data-label="Commande"><strong>{{ $order->order_number ?? ('#'.$order->getKey()) }}</strong><small class="table-secondary">Référence interne #{{ $order->getKey() }}</small></td>
+                                <td data-label="Client">{{ $order->client?->name ?? 'Client' }}</td>
+                                <td data-label="Statut"><span class="status-badge status-badge--{{ $order->status->value }}">{{ $statusLabels[$order->status->value] ?? str_replace('_', ' ', $order->status->value) }}</span></td>
+                                <td data-label="Total contractuel"><strong>{{ number_format((float) $order->total, 2, ',', ' ') }} {{ $order->currency ?? '' }}</strong></td>
+                                <td data-label="Dates">{{ $order->created_at?->format('d/m/Y') }}@if($order->serviceRequest?->desired_at)<small class="table-secondary">Souhait client : {{ $order->serviceRequest->desired_at->format('d/m/Y') }}</small>@endif</td>
+                                <td data-label="Action"><a class="button button--secondary button--small" href="{{ route('professional.orders.show', $order) }}">Consulter</a></td>
                             </tr>
                         @endforeach
                     </tbody>
