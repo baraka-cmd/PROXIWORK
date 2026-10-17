@@ -3,6 +3,13 @@
 @section('title', 'Créer un devis — PROXIWORK')
 @section('page_heading', 'Créer un devis')
 
+@push('head')
+    @vite('resources/css/pages/professional/quotes.css')
+@endpush
+@push('scripts')
+    @vite('resources/js/pages/professional/quote-form.js')
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
