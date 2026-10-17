@@ -6,6 +6,7 @@ if (fileInput && fileStatus) {
     fileInput.addEventListener('change', () => {
         const file = fileInput.files?.[0];
         fileStatus.classList.remove('is-error');
+        fileInput.setCustomValidity('');
         if (!file) {
             fileStatus.textContent = 'Aucun fichier sélectionné.';
             return;
@@ -16,6 +17,7 @@ if (fileInput && fileStatus) {
         const tooLarge = file.size > 10 * 1024 * 1024;
         if (!allowed || tooLarge) {
             fileStatus.classList.add('is-error');
+            fileInput.setCustomValidity(tooLarge ? 'Le fichier dépasse la limite de 10 Mo.' : 'Choisissez un fichier PDF, JPG, JPEG, PNG ou WebP.');
             fileStatus.textContent = tooLarge
                 ? `Le fichier fait ${sizeMb} Mo. La limite est de 10 Mo.`
                 : 'Le nom du fichier doit se terminer par PDF, JPG, JPEG, PNG ou WebP. Le serveur vérifiera également le type réel.';
