@@ -172,10 +172,17 @@
                 <p>Le démarrage est désactivé jusqu’à la confirmation du paiement par PROXIWORK.</p>
             </div>
         @elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED)
-            <form method="POST" action="{{ route('professional.orders.start', $order) }}">
-                @csrf
-                <button class="button button--primary" type="submit" data-confirm-submit="Confirmer le démarrage de cette prestation ?">Démarrer la prestation</button>
-            </form>
+            @if ($order->schedule_confirmed_at && $order->scheduled_start_at?->isFuture())
+                <div class="professional-order-workflow__notice" role="status">
+                    <strong>Le planning est confirmé</strong>
+                    <p>Le démarrage sera possible à partir du {{ $order->scheduled_start_at->format('d/m/Y à H:i') }}. La commande reste confirmée jusque-là.</p>
+                </div>
+            @else
+                <form method="POST" action="{{ route('professional.orders.start', $order) }}">
+                    @csrf
+                    <button class="button button--primary" type="submit" data-confirm-submit="Confirmer le démarrage de cette prestation ?">Démarrer la prestation</button>
+                </form>
+            @endif
         @elseif ($order->status === \App\Enums\OrderStatus::IN_PROGRESS)
             <div class="professional-order-workflow__forms">
                 <form method="POST" enctype="multipart/form-data" action="{{ route('professional.orders.submit-delivery', $order) }}">
