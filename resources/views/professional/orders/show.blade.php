@@ -165,14 +165,18 @@
                     <h3>{{ data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested' ? 'Proposer un nouveau planning' : 'Proposer un planning au client' }}</h3>
                     <p>Les dates restent proposées tant que le client ne les a pas confirmées. La date souhaitée par le client n’est pas automatiquement un engagement.</p>
                     <label for="schedule-starts-at">Début proposé</label>
-                    <input id="schedule-starts-at" name="starts_at" type="datetime-local" min="{{ now()->format('Y-m-d\\TH:i') }}" value="{{ old('starts_at') }}" required aria-describedby="schedule-starts-at-error">
-                    @error('starts_at')<small id="schedule-starts-at-error" class="field-error">{{ $message }}</small>@enderror
+                    <label for="schedule-starts-at">Début proposé</label>
+                    <input id="schedule-starts-at" name="starts_at" type="datetime-local" min="{{ now()->format('Y-m-d\\TH:i') }}" value="{{ old('starts_at') }}" required aria-describedby="schedule-starts-at-help">
+                    <small id="schedule-starts-at-help" class="muted">Choisissez une date future selon le fuseau horaire configuré par PROXIWORK.</small>
+                    @error('starts_at')<small class="field-error">{{ $message }}</small>@enderror
                     <label for="schedule-ends-at">Fin prévue</label>
-                    <input id="schedule-ends-at" name="ends_at" type="datetime-local" min="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" value="{{ old('ends_at') }}" required aria-describedby="schedule-ends-at-error">
-                    @error('ends_at')<small id="schedule-ends-at-error" class="field-error">{{ $message }}</small>@enderror
+                    <input id="schedule-ends-at" name="ends_at" type="datetime-local" min="{{ old('starts_at', now()->format('Y-m-d\\TH:i')) }}" value="{{ old('ends_at') }}" required aria-describedby="schedule-ends-at-help">
+                    <small id="schedule-ends-at-help" class="muted">La fin doit être postérieure au début proposé.</small>
+                    @error('ends_at')<small class="field-error">{{ $message }}</small>@enderror
                     <label for="schedule-note">Note (facultative)</label>
-                    <textarea id="schedule-note" name="note" rows="2" maxlength="1000" aria-describedby="schedule-note-error">{{ old('note') }}</textarea>
-                    @error('note')<small id="schedule-note-error" class="field-error">{{ $message }}</small>@enderror
+                    <textarea id="schedule-note" name="note" rows="2" maxlength="1000" aria-describedby="schedule-note-help">{{ old('note') }}</textarea>
+                    <small id="schedule-note-help" class="muted">1 000 caractères maximum.</small>
+                    @error('note')<small class="field-error">{{ $message }}</small>@enderror
                     <button class="button button--secondary" type="submit" data-confirm-submit="Envoyer cette proposition de planning au client ?">Envoyer la proposition</button>
                 </form>
             @endif
