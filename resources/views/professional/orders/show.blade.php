@@ -172,8 +172,17 @@
             <div class="professional-order-workflow__forms">
                 <form method="POST" enctype="multipart/form-data" action="{{ route('professional.orders.submit-delivery', $order) }}">
                     @csrf
-                    <h3>Soumettre le résultat au client</h3>
-                    <p>Décrivez précisément le travail effectué, les éléments remis et les éventuelles consignes de vérification.</p>
+                    @if (data_get($latestCorrection?->metadata, 'event') === 'delivery_changes_requested')
+                        <div class="professional-order-workflow__notice professional-order-workflow__notice--attention" role="status">
+                            <strong>Correction demandée par le client</strong>
+                            @if (filled(data_get($latestCorrection->metadata, 'reason')))
+                                <p><strong>Retour du client :</strong> {{ data_get($latestCorrection->metadata, 'reason') }}</p>
+                            @endif
+                            <p>Présentez les changements apportés et transmettez une nouvelle version. La livraison précédente reste dans l’historique.</p>
+                        </div>
+                    @endif
+                    <h3>{{ data_get($latestCorrection?->metadata, 'event') === 'delivery_changes_requested' ? 'Soumettre la version corrigée' : 'Soumettre le résultat au client' }}</h3>
+                    <p>Décrivez le travail effectué, les éléments remis et les consignes utiles au client. Le livrable restera en attente de réception jusqu’à sa décision.</p>
                     <label for="delivery-summary">Résumé du livrable</label>
                     <textarea id="delivery-summary" name="summary" rows="5" minlength="20" maxlength="5000" required>{{ old('summary') }}</textarea>
                     @error('summary')<small class="field-error">{{ $message }}</small>@enderror
