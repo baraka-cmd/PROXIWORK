@@ -45,6 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
                 : 'À renseigner';
         }
+
+        if (descriptionSummary) {
+            const value = (description?.value ?? '').trim();
+            descriptionSummary.textContent = value || 'À renseigner';
+        }
     };
 
     [amount, currency, durationValue, durationUnit, validUntil].forEach((field) => {
