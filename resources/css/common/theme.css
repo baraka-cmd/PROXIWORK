@@ -140,6 +140,31 @@
         var(--color-page);
 }
 
+/* Page-specific elements that intentionally use the secondary token as text. */
+[data-theme='dark'] .home-hero h1,
+[data-theme='dark'] .home-preview-card--main h2,
+[data-theme='dark'] .home-preview-card--request strong,
+[data-theme='dark'] .home-preview-card--quote strong,
+[data-theme='dark'] .home-section-heading h2,
+[data-theme='dark'] .home-audience-card h3,
+[data-theme='dark'] .home-steps-list h3 {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .home-preview-card {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+}
+
+[data-theme='dark'] .home-preview-mini-icon--amber {
+    background: var(--color-warning-soft);
+    color: var(--color-warning);
+}
+
+[data-theme='dark'] .client-dashboard__welcome-icon {
+    color: var(--color-on-primary);
+}
+
 @media (max-width: 767px) {
     .theme-toggle {
         min-width: 42px;
