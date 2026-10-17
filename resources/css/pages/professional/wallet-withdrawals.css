@@ -78,3 +78,33 @@
 .withdrawal-support-message small{margin-top:.15rem;color:var(--finance-muted);font-size:.8rem}
 .withdrawal-support-message p{margin:.5rem 0 0;white-space:pre-wrap}
 .withdrawal-support-reply{padding-top:.85rem;border-top:1px dashed var(--finance-border)}
+
+/* Phase 5.3 — consistent financial states and usable narrow-screen forms */
+.finance-page{min-width:0}
+.finance-page__navigation{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem}
+.finance-page :is(a,button,input,select,textarea):focus-visible{outline:3px solid var(--color-primary,#0f766e);outline-offset:3px}
+.finance-page :is(input,select,textarea){color:var(--color-text,#0f172a)}
+.finance-page :is(button,a){touch-action:manipulation}
+.finance-balance-card strong,.withdrawal-currency-card dd,.withdrawal-review__details dd,.finance-table td{font-variant-numeric:tabular-nums}
+.finance-balance-card--main{box-shadow:0 5px 20px rgb(15 23 42 / 4%)}
+.finance-table-wrap{max-width:100%;overscroll-behavior-inline:contain}
+.finance-table th{white-space:nowrap}
+.finance-table td{overflow-wrap:anywhere}
+.withdrawal-status{text-transform:none;white-space:nowrap}
+.withdrawal-status--review_required{background:#ffedd5;color:#9a3412;border:1px solid #fed7aa}
+.withdrawal-status--requested{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.withdrawal-status--processing{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.withdrawal-status--succeeded{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.withdrawal-status--failed,.withdrawal-status--rejected{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.withdrawal-status--cancelled{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1}
+.withdrawal-confirmation input{width:1.15rem;height:1.15rem;flex:0 0 auto;margin-top:.15rem;accent-color:var(--color-primary,#0f766e)}
+.field-error{display:block;line-height:1.45}
+.field-help{display:block;font-size:.84rem;line-height:1.55}
+.withdrawal-review{border:1px solid var(--finance-border)}
+.withdrawal-review>span{font-weight:700}
+.wallet-ledger-disclaimer{line-height:1.6}
+.finance-pagination nav{display:flex;flex-wrap:wrap;gap:.25rem}
+.finance-pagination a,.finance-pagination span{min-width:2.25rem;min-height:2.25rem;display:inline-flex;align-items:center;justify-content:center}
+@media(max-width:800px){.wallet-balance-grid{grid-template-columns:1fr}.withdrawal-currency-grid{grid-template-columns:1fr}.finance-filter-form--inline{align-items:stretch}.finance-filter-form--inline>div,.finance-filter-form--inline>label{min-width:min(100%,220px);flex:1 1 220px}}
+@media(max-width:520px){.finance-page{gap:1rem}.finance-page--narrow{max-width:100%}.data-card{padding:.9rem;border-radius:.85rem}.wallet-toolbar .finance-filter-form{display:grid;grid-template-columns:1fr;width:100%}.finance-filter-form--inline{display:grid;grid-template-columns:1fr}.finance-filter-form--inline>div,.finance-filter-form--inline>label{min-width:0}.withdrawal-currency-card dl>div,.withdrawal-review__details>div{grid-template-columns:1fr;gap:.2rem}.withdrawal-currency-card dd,.withdrawal-review__details dd,.withdrawal-review__details>div:last-child dd{text-align:left}.finance-details>div{grid-template-columns:1fr;gap:.2rem}.form-actions .button{width:100%}.withdrawal-timeline li{align-items:start}.withdrawal-support-ticket__header{align-items:flex-start;flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.finance-page *{scroll-behavior:auto!important;transition:none!important}}
