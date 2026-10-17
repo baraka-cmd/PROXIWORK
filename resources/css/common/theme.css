@@ -28,7 +28,6 @@ body {
 
 .public-header,
 .public-mobile-navigation,
-.public-footer,
 .dashboard-topbar,
 .dashboard-sidebar,
 .dashboard-sidebar__header,
@@ -46,7 +45,6 @@ body {
 
 .public-header,
 .public-mobile-navigation,
-.public-footer,
 .dashboard-topbar,
 .dashboard-sidebar,
 .dashboard-sidebar__header,
@@ -116,7 +114,7 @@ hr,
 }
 
 [data-theme='dark'] .button--ghost,
-[data-theme='dark'] .icon-button:not(.icon-button--primary),
+[data-theme='dark'] .icon-button:not(.icon-button--primary):not(.icon-button--danger),
 [data-theme='dark'] .mobile-menu-toggle {
     border-color: var(--color-border);
     background-color: var(--color-surface-muted);
@@ -188,7 +186,6 @@ hr,
 @media (prefers-reduced-motion: no-preference) {
     body,
     .public-header,
-    .public-footer,
     .dashboard-topbar,
     .dashboard-sidebar,
     .surface-card,
