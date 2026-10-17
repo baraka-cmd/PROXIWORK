@@ -98,7 +98,7 @@
 
         <section class="data-card">
             <h2>Lieu d’exécution</h2>
-            @if ($order->serviceRequest?->execution_mode?->requiresClientAddress())
+            @if ($requiresClientAddress)
                 @if ($order->addressSnapshot)
                     <address class="order-address-snapshot">
                         @if($order->addressSnapshot->recipient_name)<strong>{{ $order->addressSnapshot->recipient_name }}</strong>@endif
