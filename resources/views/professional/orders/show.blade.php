@@ -43,8 +43,8 @@
             <dl class="detail-list">
                 <div><dt>État du paiement</dt><dd>{{ match($order->payment?->status?->value) { 'pending' => 'En attente', 'processing' => 'En cours de traitement', 'paid' => 'Payé', 'failed' => 'Échec', 'cancelled' => 'Annulé', 'refunded' => 'Remboursé', 'partially_refunded' => 'Partiellement remboursé', default => 'Non disponible' } }}</dd></div>
                 <div><dt>Revenu brut</dt><dd>{{ $order->commission ? number_format((float) $order->commission->gross_amount, 2, ',', ' ').' '.$order->commission->currency : '—' }}</dd></div>
-                <div><dt>Commission</dt><dd>{{ $order->commission ? number_format((float) $order->commission->commission_amount, 2).' '.$order->commission->currency : '—' }}</dd></div>
-                <div><dt>Net</dt><dd>{{ $order->commission ? number_format((float) $order->commission->net_amount, 2).' '.$order->commission->currency : '—' }}</dd></div>
+                <div><dt>Commission PROXIWORK</dt><dd>{{ $order->commission ? number_format((float) $order->commission->commission_amount, 2, ',', ' ').' '.$order->commission->currency : '—' }}</dd></div>
+                <div><dt>Revenu net professionnel</dt><dd>{{ $order->commission ? number_format((float) $order->commission->net_amount, 2, ',', ' ').' '.$order->commission->currency : '—' }}</dd></div>
             </dl>
         </section>
 
