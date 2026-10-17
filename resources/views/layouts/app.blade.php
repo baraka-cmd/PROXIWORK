@@ -33,6 +33,9 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endunless
     @stack('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/common/theme.css')
+    @endunless
 </head>
 <body class="@yield('body_class', 'app-shell')">
     <a class="skip-link" href="#main-content">Aller au contenu principal</a>
