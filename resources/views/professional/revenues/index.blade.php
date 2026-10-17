@@ -14,7 +14,10 @@
                 <h1>Mes revenus</h1>
                 <p class="revenue-muted">Consultez les revenus issus des commissions comptabilisées, les paiements confirmés admissibles, les prestations terminées et les fonds encore en attente de libération.</p>
             </div>
-            <a class="revenue-button revenue-button--secondary" href="{{ route('professional.wallet') }}">Mon portefeuille</a>
+            <nav class="revenue-page__header-actions" aria-label="Navigation financière">
+                <a class="revenue-button revenue-button--secondary" href="{{ route('professional.wallet') }}">Mon portefeuille</a>
+                <a class="revenue-button revenue-button--secondary" href="{{ route('professional.withdrawals') }}">Mes retraits</a>
+            </nav>
         </header>
 
         <section class="revenue-card" aria-labelledby="revenue-filters-title">
@@ -80,10 +83,10 @@
                 <div class="revenue-filter-form__actions">
                     <button class="revenue-button revenue-button--primary" type="submit">Appliquer</button>
                     <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.index') }}">Réinitialiser</a>
-                    <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.export', request()->except('page')) }}">Exporter CSV</a>
+                    <a class="revenue-button revenue-button--secondary" href="{{ route('professional.revenues.export', request()->except('page')) }}" aria-label="Exporter au format CSV les opérations correspondant aux filtres actuels">Exporter les opérations (CSV)</a>
                 </div>
             </form>
-            <p class="revenue-filter-note">Les indicateurs distinguent les dates de comptabilisation, de confirmation du paiement et de fin de prestation. Les filtres de nature, d’état et de référence agissent sur les historiques et l’export, pas sur les indicateurs synthétiques. L’état s’applique aux commissions; la nature permet d’afficher les commissions ou les remboursements confirmés séparément. Les indicateurs synthétiques restent agrégés selon la période, la devise, le service et la commande.</p>
+            <p class="revenue-filter-note" id="revenue-filter-scope">Les indicateurs distinguent les dates de comptabilisation, de confirmation du paiement et de fin de prestation. Les filtres de nature, d’état et de référence agissent sur les historiques et l’export, pas sur les indicateurs synthétiques. L’état s’applique aux commissions; la nature permet d’afficher les commissions ou les remboursements confirmés séparément. Les indicateurs synthétiques restent agrégés selon la période, la devise, le service et la commande. L’export reprend les critères de recherche actuels, hors pagination.</p>
         </section>
 
         @if ($currencies->isNotEmpty())
