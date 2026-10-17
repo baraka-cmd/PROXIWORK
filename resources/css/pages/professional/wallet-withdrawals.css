@@ -108,3 +108,13 @@
 @media(max-width:800px){.wallet-balance-grid{grid-template-columns:1fr}.withdrawal-currency-grid{grid-template-columns:1fr}.finance-filter-form--inline{align-items:stretch}.finance-filter-form--inline>div,.finance-filter-form--inline>label{min-width:min(100%,220px);flex:1 1 220px}}
 @media(max-width:520px){.finance-page{gap:1rem}.finance-page--narrow{max-width:100%}.data-card{padding:.9rem;border-radius:.85rem}.wallet-toolbar .finance-filter-form{display:grid;grid-template-columns:1fr;width:100%}.finance-filter-form--inline{display:grid;grid-template-columns:1fr}.finance-filter-form--inline>div,.finance-filter-form--inline>label{min-width:0}.withdrawal-currency-card dl>div,.withdrawal-review__details>div{grid-template-columns:1fr;gap:.2rem}.withdrawal-currency-card dd,.withdrawal-review__details dd,.withdrawal-review__details>div:last-child dd{text-align:left}.finance-details>div{grid-template-columns:1fr;gap:.2rem}.form-actions .button{width:100%}.withdrawal-timeline li{align-items:start}.withdrawal-support-ticket__header{align-items:flex-start;flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.finance-page *{scroll-behavior:auto!important;transition:none!important}}
+
+.withdrawal-step-heading{display:flex;align-items:flex-start;gap:.85rem;margin:0 0 1rem}
+.withdrawal-step-heading--compact{margin:.5rem 0 .25rem}
+.withdrawal-step-heading__number{display:grid;place-items:center;flex:0 0 2rem;width:2rem;height:2rem;border-radius:50%;background:var(--color-primary,#0f766e);color:#fff;font-weight:800;font-variant-numeric:tabular-nums}
+.withdrawal-step-heading h2,.withdrawal-step-heading h3{margin:0;font-size:1rem;line-height:1.4;color:var(--color-heading,#0f172a)}
+.withdrawal-step-heading p{margin:.25rem 0 0;font-size:.84rem}
+.withdrawal-step-heading--compact h3{font-size:.95rem}
+.withdrawal-step-heading--compact .finance-note{margin:.2rem 0 0}
+.withdrawal-review[aria-labelledby]{scroll-margin-top:1rem}
+@media(max-width:520px){.withdrawal-step-heading{gap:.65rem}.withdrawal-step-heading__number{width:1.8rem;height:1.8rem;flex-basis:1.8rem}}
