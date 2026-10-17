@@ -1,0 +1,154 @@
+/* PROXIWORK theme controls and shared dark-mode surfaces. */
+.theme-toggle {
+    min-width: 42px;
+    min-height: 42px;
+    padding-inline: var(--space-3);
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.theme-toggle:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+.theme-toggle__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.auth-theme-toggle {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--z-header);
+}
+
+[data-theme='dark'] body,
+[data-theme='dark'] .app-shell,
+[data-theme='dark'] .dashboard-shell,
+[data-theme='dark'] .dashboard-content,
+[data-theme='dark'] .dashboard-main,
+[data-theme='dark'] .public-main,
+[data-theme='dark'] .auth-shell {
+    background-color: var(--color-page);
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .public-header,
+[data-theme='dark'] .dashboard-topbar,
+[data-theme='dark'] .dashboard-sidebar,
+[data-theme='dark'] .dashboard-sidebar__header,
+[data-theme='dark'] .dashboard-sidebar__footer,
+[data-theme='dark'] .public-footer {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .surface-card,
+[data-theme='dark'] .state-skeleton,
+[data-theme='dark'] .state-loading--overlay,
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='submit']):not([type='button']):not([type='hidden']),
+[data-theme='dark'] select,
+[data-theme='dark'] textarea {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+}
+
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder,
+[data-theme='dark'] .form-control::placeholder {
+    color: var(--color-text-subtle);
+    opacity: 1;
+}
+
+[data-theme='dark'] select option {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+[data-theme='dark'] table,
+[data-theme='dark'] th,
+[data-theme='dark'] td {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .surface-card__header,
+[data-theme='dark'] .surface-card__footer,
+[data-theme='dark'] .dashboard-sidebar__header,
+[data-theme='dark'] .dashboard-topbar {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .surface-card__footer,
+[data-theme='dark'] .dashboard-nav-link:hover,
+[data-theme='dark'] .public-nav-link:hover,
+[data-theme='dark'] .icon-button:hover:not(:disabled) {
+    background-color: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .dashboard-nav-link.is-active,
+[data-theme='dark'] .public-mobile-navigation .public-nav-link.is-active {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+[data-theme='dark'] .public-nav-link,
+[data-theme='dark'] .dashboard-nav-link,
+[data-theme='dark'] .dashboard-user__identity small,
+[data-theme='dark'] .dashboard-nav-title {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .public-nav-link:hover,
+[data-theme='dark'] .dashboard-nav-link:hover,
+[data-theme='dark'] .dashboard-user__identity strong {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .alert--success,
+[data-theme='dark'] .alert--info,
+[data-theme='dark'] .alert--warning,
+[data-theme='dark'] .alert--danger,
+[data-theme='dark'] .alert--error,
+[data-theme='dark'] .badge--success,
+[data-theme='dark'] .badge--warning,
+[data-theme='dark'] .badge--danger,
+[data-theme='dark'] .badge--info {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .auth-shell {
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 34%),
+        var(--color-page);
+}
+
+@media (max-width: 767px) {
+    .theme-toggle {
+        min-width: 42px;
+        padding-inline: var(--space-2);
+    }
+
+    .theme-toggle__label {
+        display: none;
+    }
+
+    .auth-theme-toggle {
+        top: var(--space-2);
+        right: var(--space-2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-toggle {
+        transition: none;
+    }
+}
