@@ -104,3 +104,7 @@
 @media(max-width:760px) { .service-filters { grid-template-columns:minmax(0,1fr); } .service-card__footer { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .service-card__footer>* { min-width:0; } .service-card__footer .button { justify-content:center; white-space:normal; text-align:center; } .service-form-actions { position:static; backdrop-filter:none; } .service-preview__media { aspect-ratio:4/3; min-height:0; } }
 @media(max-width:420px) { .service-card__footer { grid-template-columns:minmax(0,1fr); } .image-gallery { grid-template-columns:minmax(0,1fr); } .service-summary-card { align-items:flex-start; } }
 @media(prefers-reduced-motion:reduce) { .service-card__media img { transition:none!important; } }
+
+.service-empty-state__actions { display:flex; justify-content:center; flex-wrap:wrap; gap:var(--space-3); margin-top:var(--space-4); }
+.service-empty-state__actions .button { min-width:0; }
+@media(max-width:480px) { .service-empty-state__actions { flex-direction:column; } .service-empty-state__actions .button { width:100%; } }
