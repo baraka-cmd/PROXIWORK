@@ -66,12 +66,6 @@ textarea:focus-visible {
     outline-offset: 2px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
-}
-
 ::selection {
     background: var(--color-primary);
     color: var(--color-on-primary);
