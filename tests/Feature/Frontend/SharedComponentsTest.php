@@ -132,7 +132,7 @@ final class SharedComponentsTest extends TestCase
         $errors = new ViewErrorBag;
 
         $select = Blade::render(
-            '<x-select name="category" label="Catégorie" help="Choisissez une catégorie." :options="[\'work\' => \'Travaux\']" />',
+            '<x-select name="category" label="Catégorie" help="Choisissez une catégorie." />',
             ['errors' => $errors]
         );
         $textarea = Blade::render(
