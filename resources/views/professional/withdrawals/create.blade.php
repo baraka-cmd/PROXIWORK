@@ -88,7 +88,7 @@
                 <small>Aucun frais ni délai n’est inventé. Si une politique tarifaire est ajoutée, le serveur devra recalculer et enregistrer les valeurs finales au moment de la demande.</small>
             </div>
             <label class="withdrawal-confirmation">
-                <input type="checkbox" name="confirm_request" value="1" @checked(old('confirm_request')) required @disabled(strtolower((string)$wallet->status) !== 'active')>
+                <input type="checkbox" name="confirm_request" value="1" @checked(old('confirm_request')) required @error('confirm_request') aria-invalid="true" aria-describedby="withdrawal-confirm-error" @enderror @disabled(strtolower((string)$wallet->status) !== 'active')>
                 <span>Je confirme le montant, le moyen et la destination. Je comprends que cette action réserve les fonds et ne confirme pas l’exécution du paiement.</span>
             </label>
             @error('confirm_request')<small class="field-error" id="withdrawal-confirm-error" role="alert">{{ $message }}</small>@enderror
