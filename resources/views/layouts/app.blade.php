@@ -8,11 +8,31 @@
     <title>@yield('title', config('app.name', 'PROXIWORK'))</title>
     <meta name="description" content="@yield('meta_description', 'PROXIWORK — trouvez des professionnels et développez votre activité.')">
 
+    <script>
+        (() => {
+            let preference = null;
+
+            try {
+                const stored = window.localStorage.getItem('proxiwork-theme');
+                preference = stored === 'light' || stored === 'dark' ? stored : null;
+            } catch {
+                preference = null;
+            }
+
+            const theme = preference || (
+                window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+            );
+
+            document.documentElement.dataset.theme = theme;
+            document.documentElement.style.colorScheme = theme;
+        })();
+    </script>
+
     <link
         rel="stylesheet"
         href="{{ asset('assets/fontawesome/css/all.min.css') }}"
     >
-    
+
     @fonts
     @unless (app()->environment('testing'))
         @vite(['resources/css/app.css', 'resources/js/app.js'])

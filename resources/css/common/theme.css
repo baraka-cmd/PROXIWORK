@@ -1,0 +1,228 @@
+/* Shared theme-aware surfaces. Keep page-specific branding and photography unchanged. */
+:root {
+    color-scheme: light;
+}
+
+[data-theme='dark'] body {
+    background-color: var(--color-page);
+    color: var(--color-text);
+}
+
+[data-theme='dark'] :where(input, select, textarea, option) {
+    color-scheme: dark;
+}
+
+[data-theme='dark'] :where(
+    .public-header,
+    .public-footer,
+    .dashboard-sidebar,
+    .dashboard-topbar,
+    .dashboard-shell,
+    .auth-shell,
+    .surface-card,
+    .state-skeleton,
+    .state-loading--overlay,
+    .dropdown-menu,
+    .dropdown-panel,
+    .modal-content,
+    .modal__content,
+    .filter-panel,
+    .filter-card,
+    .profile-card,
+    .professional-card,
+    .service-card,
+    .request-card,
+    .quote-card,
+    .order-card,
+    .payment-card,
+    .wallet-card,
+    .stat-card,
+    .metric-card,
+    .chart-card,
+    .table-wrap,
+    .table-container
+) {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] :where(
+    .surface-card__footer,
+    .surface-card__header,
+    .dashboard-sidebar__header,
+    .dashboard-sidebar__footer,
+    .dashboard-nav-link:hover,
+    .public-nav-link:hover,
+    .form-control,
+    .form-select,
+    .form-control-wrapper,
+    .form-select-wrapper,
+    .table-responsive,
+    .pagination,
+    .pagination .page-link,
+    .dropdown-item:hover,
+    .modal-header,
+    .modal-footer
+) {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] :where(
+    p,
+    small,
+    label,
+    .form-label,
+    .form-help,
+    .text-muted,
+    .text-subtle,
+    .dashboard-user__identity small
+) {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] :where(
+    h1, h2, h3, h4, h5, h6,
+    strong, th, td,
+    .dashboard-user__identity strong,
+    .dashboard-topbar__title
+) {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] :where(
+    table,
+    thead,
+    tbody,
+    tr,
+    th,
+    td
+) {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] tbody tr:nth-child(even) {
+    background-color: color-mix(in srgb, var(--color-surface-muted) 58%, transparent);
+}
+
+[data-theme='dark'] :where(
+    .public-nav-link,
+    .dashboard-nav-link,
+    .icon-button,
+    .button--ghost,
+    .pagination a,
+    .pagination button
+) {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] :where(.public-nav-link.is-active, .dashboard-nav-link.is-active) {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+[data-theme='dark'] :where(.button--secondary, .skip-link) {
+    background-color: var(--color-secondary);
+    color: var(--color-on-secondary);
+}
+
+[data-theme='dark'] .form-control::placeholder {
+    color: var(--color-text-subtle);
+    opacity: 1;
+}
+
+[data-theme='dark'] :where(input, select, textarea):disabled {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-subtle);
+}
+
+[data-theme='dark'] :where(button, a, input, select, textarea):focus-visible {
+    outline-color: var(--color-primary);
+}
+
+.theme-toggle {
+    flex: 0 0 auto;
+    gap: var(--space-2);
+    white-space: nowrap;
+}
+
+.theme-toggle__label {
+    display: inline;
+}
+
+@media (max-width: 767px) {
+    .theme-toggle__label {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-theme],
+    [data-theme] * {
+        scroll-behavior: auto;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.auth-shell > .theme-toggle {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--z-header);
+}
+
+[data-theme='dark'] :where(.alert, .alert p, .alert small, .alert strong) {
+    color: inherit;
+}
+
+[data-theme='dark'] :where(
+    .public-main,
+    .dashboard-main,
+    .dashboard-content,
+    .dashboard-page-header,
+    .auth-panel
+) {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] :where(
+    .form-control,
+    .form-select,
+    .form-control option,
+    .form-select option
+) {
+    background-color: var(--color-surface);
+    border-color: var(--color-border-strong);
+}
+
+[data-theme='dark'] :where(
+    .table-wrap table,
+    .table-responsive table
+) {
+    background-color: var(--color-surface);
+}
+
+[data-theme='dark'] :where(.table-wrap th, .table-responsive th) {
+    background-color: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .theme-toggle {
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .button--danger {
+    color: #240b0b;
+}
+
+[data-theme='dark'] .button--danger:hover:not(:disabled) {
+    background: #fca5a5;
+    color: #240b0b;
+}
+
+[data-theme='dark'] .dashboard-nav-badge {
+    color: var(--color-on-primary);
+}

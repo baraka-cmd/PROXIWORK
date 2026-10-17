@@ -145,4 +145,16 @@ final class SharedComponentsTest extends TestCase
         $this->assertStringContainsString('aria-describedby="description-help"', $textarea);
         $this->assertStringContainsString('Décrivez le besoin.', $textarea);
     }
+
+    public function test_theme_toggle_is_accessible_and_uses_the_shared_theme_hook(): void
+    {
+        $html = Blade::render('<x-theme-toggle />');
+
+        $this->assertStringContainsString('data-theme-toggle', $html);
+        $this->assertStringContainsString('aria-label=', $html);
+        $this->assertStringContainsString('aria-pressed="false"', $html);
+        $this->assertStringContainsString('data-theme-toggle-icon', $html);
+        $this->assertStringContainsString('data-theme-toggle-label', $html);
+        $this->assertStringContainsString('Mode sombre', $html);
+    }
 }
