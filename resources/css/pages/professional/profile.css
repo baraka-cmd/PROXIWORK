@@ -69,3 +69,7 @@
 
 .profile-edit-section [aria-invalid="true"] { border-color:var(--color-danger); }
 .profile-edit-section [aria-invalid="true"]:focus-visible { outline-color:var(--color-danger); }
+
+
+/* Keep native hidden states effective when component styles define display. */
+.profile-photo-preview[hidden] { display:none!important; }
