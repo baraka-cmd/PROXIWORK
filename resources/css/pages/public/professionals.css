@@ -152,7 +152,7 @@
     padding: .75rem .9rem;
     border-left: 3px solid var(--color-primary, #0f766e);
     border-radius: 0 .6rem .6rem 0;
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 6%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 6%, var(--color-surface));
 }
 .public-review-card__response strong {
     display: block;
