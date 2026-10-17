@@ -35,6 +35,8 @@ const applyTheme = (theme, { persist = false } = {}) => {
         button.querySelector('[data-theme-icon="light"]')?.toggleAttribute('hidden', !isDark);
     });
 
+    document.dispatchEvent(new CustomEvent('proxiwork:theme-change', { detail: { theme } }));
+
     if (persist) {
         try {
             window.localStorage.setItem(STORAGE_KEY, theme);
