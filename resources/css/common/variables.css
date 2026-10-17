@@ -87,6 +87,14 @@
     --z-overlay: 300;
     --z-modal: 400;
     --z-toast: 500;
+
+    /* Compatibility aliases for page styles using earlier token names. */
+    --color-background: var(--color-page);
+    --color-heading: var(--color-text);
+    --surface: var(--color-surface);
+    --border-color: var(--color-border);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
 }
 
 :root {
