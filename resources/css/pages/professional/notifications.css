@@ -50,7 +50,7 @@
 
 .notification-filters a:hover,
 .notification-filters a.is-active {
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, var(--color-surface));
     color: var(--color-primary, #0f766e);
     font-weight: 700;
 }
@@ -77,7 +77,7 @@
     border-radius: .8rem;
     display: grid;
     place-items: center;
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, var(--color-surface));
     color: var(--color-primary, #0f766e);
 }
 
@@ -126,12 +126,12 @@
 }
 
 .notification-type {
-    background: #f1f5f9;
+    background: var(--color-surface-muted);
     color: var(--notification-muted);
 }
 
 .notification-unread-dot {
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 10%, var(--color-surface));
     color: var(--color-primary, #0f766e);
 }
 
@@ -182,7 +182,7 @@
     background: color-mix(in srgb, var(--color-primary, #0f766e) 3%, var(--notification-surface));
 }
 .notification-card--read .notification-card__icon {
-    background: #f1f5f9;
+    background: var(--color-surface-muted);
     color: var(--notification-muted);
 }
 .notification-card__meta form {
