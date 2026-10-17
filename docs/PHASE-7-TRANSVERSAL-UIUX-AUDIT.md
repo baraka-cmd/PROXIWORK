@@ -30,7 +30,9 @@ Les routes web séparent les espaces avec les middlewares et contrôles de rôle
 6. **Fermeture des alertes incohérente** : le JavaScript cherchait uniquement `[role="alert"]`, ce qui ne fonctionnait pas pour les alertes d'information/succès ni pour le composant de succès. La cible est maintenant la classe commune `.alert`.
 7. **Comportement desktop de la navigation** : lors de la synchronisation après redimensionnement, les menus non-sidebar pouvaient rester `aria-hidden` et `inert` sur desktop. Le code rétablit désormais l'accès aux navigations visibles sur grand écran.
 8. **Débordement horizontal global** : `resources/css/common/layouts.css` applique `overflow-x: hidden` à `body`. Ce choix peut masquer un débordement réel ; sa suppression attend un test navigateur des pages, afin de ne pas introduire une régression.
-9. **Composants déjà disponibles** : `empty-state`, `loading`, `error-state`, `alert`, `success`, les composants de formulaire et `.table-responsive` existent. Aucune nouvelle variante redondante n'a été ajoutée.
+9. **Entrée JavaScript redondante** : `resources/js/app.js` importait `resources/js/pages/professional/services.js`, alors que les vues professionnelles de services chargent déjà ce script via leur propre entrée Vite. L'import global a été retiré pour éviter de réexécuter les gestionnaires sur les pages qui le chargent explicitement.
+10. **Focus visible trop atténué et défilement fluide non réduit** : les règles partagées appliquaient un contour partiellement transparent, et `html` utilisait le défilement fluide sans exception dédiée au mouvement réduit. Le contour utilise maintenant la couleur primaire pleine et `prefers-reduced-motion` désactive le défilement fluide. Le contraste doit toujours être mesuré dans les contextes de fond réels.
+11. **Composants déjà disponibles** : `empty-state`, `loading`, `error-state`, `alert`, `success`, les composants de formulaire et `.table-responsive` existent. Aucune nouvelle variante redondante n'a été ajoutée.
 
 ## Références de conception consultées
 
@@ -45,6 +47,8 @@ Principes retenus : états vides qui expliquent la situation et la suite possibl
 
 - `resources/views/layouts/app.blade.php` — suppression du doublon CDN, maintien de Font Awesome local.
 - `resources/js/common/app.js` — gestion de `inert` pour la navigation responsive et fermeture cohérente des alertes.
+- `resources/js/app.js` — retrait du script de services professionnels de l'entrée globale, car les vues concernées le chargent déjà comme entrée de page.
+- `resources/css/common/reset.css` et `resources/css/common/ux-states.css` — contour de focus partagé plus net ; défilement fluide désactivé si l'utilisateur préfère réduire les animations.
 - `resources/views/components/alert.blade.php` — niveaux d'annonce adaptés au type d'alerte.
 - `resources/views/components/input.blade.php` — association simultanée de l'aide et de l'erreur.
 - `resources/views/components/select.blade.php` — association simultanée de l'aide et de l'erreur.

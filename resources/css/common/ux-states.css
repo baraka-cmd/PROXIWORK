@@ -157,7 +157,7 @@
 }
 
 :where(button, a, input, select, textarea):focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--color-primary) 34%, transparent);
+    outline: 3px solid var(--color-primary);
     outline-offset: 2px;
 }
 
