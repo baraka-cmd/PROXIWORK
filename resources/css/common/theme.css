@@ -1,4 +1,18 @@
 /* PROXIWORK theme controls and shared dark-mode surfaces. */
+/* Compatibility aliases for older page styles that predate the shared tokens. */
+[data-theme='dark'] {
+    --color-background: var(--color-page);
+    --color-heading: var(--color-text);
+    --surface: var(--color-surface);
+    --border-color: var(--color-border);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
+    --finance-border: var(--color-border);
+    --finance-muted: var(--color-text-muted);
+    --finance-surface: var(--color-surface);
+    --finance-soft: var(--color-surface-muted);
+}
+
 .theme-toggle {
     min-width: 42px;
     min-height: 42px;
@@ -356,6 +370,69 @@
 [data-theme='dark'] .address-alert--error > i,
 [data-theme='dark'] .address-field-error {
     color: var(--color-danger);
+}
+
+[data-theme='dark'] .finance-filter-form select,
+[data-theme='dark'] .form-field input,
+[data-theme='dark'] .form-field select,
+[data-theme='dark'] .finance-balance-card,
+[data-theme='dark'] .finance-card,
+[data-theme='dark'] .finance-table,
+[data-theme='dark'] .finance-table-wrap,
+[data-theme='dark'] .withdrawal-card,
+[data-theme='dark'] .finance-form {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .finance-amount--credit,
+[data-theme='dark'] .finance-direction--credit {
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .finance-amount--debit,
+[data-theme='dark'] .finance-direction--debit,
+[data-theme='dark'] .field-error {
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .withdrawal-status {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .withdrawal-status--requested {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+[data-theme='dark'] .withdrawal-status--processing {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .withdrawal-status--succeeded {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .withdrawal-status--failed,
+[data-theme='dark'] .withdrawal-status--rejected,
+[data-theme='dark'] .withdrawal-status--cancelled {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .request-status-filter span {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .request-status-filter.is-active {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-color: var(--color-primary);
 }
 
 @media (max-width: 767px) {
