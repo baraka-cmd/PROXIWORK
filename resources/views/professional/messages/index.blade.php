@@ -62,7 +62,7 @@
             <div class="messages-list-heading">
                 <div>
                     <h2>{{ $archived ? 'Conversations archivées' : 'Vos conversations' }}</h2>
-                    <p>{{ $conversations->total() }} conversation(s) au total{{ $conversations->total() !== $conversations->count() ? ' · page '.$conversations->currentPage().' sur '.$conversations->lastPage() : '' }}</p>
+                    <p>{{ $conversations->count() }} conversation(s) affichée(s) dans cette sélection</p>
                 </div>
             </div>
 
