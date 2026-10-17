@@ -105,6 +105,9 @@
             fn ($history) => ($history->to_status?->value ?? $history->to_status) === 'delivery_submitted'
                 && data_get($history->metadata, 'event') === 'delivery_submitted'
         );
+        $latestCorrection = $order->statusHistories->last(
+            fn ($history) => data_get($history->metadata, 'event') === 'delivery_changes_requested'
+        );
     @endphp
 
     <section class="data-card professional-order-workflow">
