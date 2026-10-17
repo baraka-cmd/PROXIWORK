@@ -41,8 +41,8 @@
         </div>
     @endif
 
-    <div class="dashboard-content-grid">
-        <section class="surface-card content-card">
+    <div class="dashboard-content-grid professional-request-detail">
+        <section class="surface-card content-card professional-request-detail__description">
             <h2>Description du besoin</h2>
             <p>{{ $serviceRequest->description }}</p>
             <dl class="details-list">
