@@ -294,7 +294,7 @@
                             <textarea id="response-{{ $review->id }}" name="response" maxlength="2000" minlength="1" rows="3" required aria-describedby="response-help-{{ $review->id }} response-count-{{ $review->id }}" data-review-response-input placeholder="Remerciez le client ou expliquez avec calme comment vous prenez son retour en compte."></textarea>
                             <div class="review-response-form__guidance">
                                 <small id="response-help-{{ $review->id }}">Votre réponse sera publique. Restez factuel et professionnel, sans partager de coordonnées ni d’informations privées. Pour les détails confidentiels, poursuivez dans la <a href="{{ route('professional.messages') }}">messagerie PROXIWORK</a>.</small>
-                                <small id="response-count-{{ $review->id }}" class="review-response-form__count" data-review-character-count aria-live="polite">0 / 2 000 caractères</small>
+                                <small id="response-count-{{ $review->id }}" class="review-response-form__count" data-review-character-count>0 / 2 000 caractères</small>
                             </div>
                             <button class="button button--secondary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Publier la réponse</button>
                         </form>
