@@ -22,7 +22,7 @@ Identité conservée : Poppins, teal `#0F766E`, navy `#0F172A`, surfaces claires
 - Réponse publiée et avis sans commentaire restent distincts selon les données serveur.
 
 ### P-R32 à P-R33 — Messagerie
-- Compteur de conversations basé sur le total du paginateur, avec indication de page lorsque nécessaire.
+- Compteur de conversations affichées, compatible avec le curseur de pagination utilisé par le service ; aucun total global ou numéro de page n’est inventé.
 - États vides distinguant une boîte réellement vide des filtres sans résultat ; ajout d’un retour vers la liste sans filtres tout en conservant l’état boîte/archives.
 - Indication visuelle discrète des conversations non lues, en plus du compteur textuel.
 - Fil de conversation déclaré comme journal accessible (`role=log`) pour annoncer les nouveaux messages, avec annonces limitées aux ajouts/textes.
