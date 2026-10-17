@@ -91,6 +91,7 @@
     <div
         class="professional-dashboard"
         data-professional-dashboard
+        data-orders-url="{{ route('professional.orders.index') }}"
         data-dashboard-chart-data-id="professional-dashboard-chart-data"
     >
         <script type="application/json" id="professional-dashboard-chart-data">@json($dashboard['charts'])</script>
