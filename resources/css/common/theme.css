@@ -172,3 +172,44 @@
     right: var(--space-4);
     z-index: var(--z-header);
 }
+
+[data-theme='dark'] :where(.alert, .alert p, .alert small, .alert strong) {
+    color: inherit;
+}
+
+[data-theme='dark'] :where(
+    .public-main,
+    .dashboard-main,
+    .dashboard-content,
+    .dashboard-page-header,
+    .auth-panel
+) {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] :where(
+    .form-control,
+    .form-select,
+    .form-control option,
+    .form-select option
+) {
+    background-color: var(--color-surface);
+    border-color: var(--color-border-strong);
+}
+
+[data-theme='dark'] :where(
+    .table-wrap table,
+    .table-responsive table
+) {
+    background-color: var(--color-surface);
+}
+
+[data-theme='dark'] :where(.table-wrap th, .table-responsive th) {
+    background-color: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .theme-toggle {
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
