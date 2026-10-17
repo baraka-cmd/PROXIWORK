@@ -5,12 +5,16 @@
 @endunless
 @endpush
 @section('page_eyebrow','FINANCES')
-@section('page_title','Wallet')
+@section('page_title','Portefeuille')
 @section('page_description','Consultez vos soldes par devise et retrouvez les mouvements enregistrés sur votre portefeuille.')
 @section('page_actions')
-@if($wallet && $wallet->status === 'active')
-<a class="button button--primary" href="{{ route('professional.withdrawals.create', ['currency' => $wallet->currency]) }}"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> Demander un retrait</a>
-@endif
+<div class="finance-page__navigation" aria-label="Navigation financière">
+    <a class="button button--secondary" href="{{ route('professional.revenues.index') }}">Mes revenus</a>
+    <a class="button button--secondary" href="{{ route('professional.withdrawals') }}">Historique des retraits</a>
+    @if($wallet && $wallet->status === 'active')
+    <a class="button button--primary" href="{{ route('professional.withdrawals.create', ['currency' => $wallet->currency]) }}"><i class="fa-solid fa-money-bill-transfer" aria-hidden="true"></i> Demander un retrait</a>
+    @endif
+</div>
 @endsection
 @section('content')
 <div class="finance-page">
