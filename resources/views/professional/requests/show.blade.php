@@ -56,7 +56,8 @@
 
         <aside class="surface-card content-card professional-request-detail__client">
             <h2>Client</h2>
-            <p>{{ $serviceRequest->client?->name ?? 'Client' }}</p>
+            <p class="professional-request-client-name">{{ $serviceRequest->client?->name ?? 'Client' }}</p>
+            <p class="professional-request-client-note">Les coordonnées et informations de localisation affichées ci-dessous sont limitées à ce qui est nécessaire au mode d’exécution de la prestation.</p>
             @if ($serviceRequest->execution_mode->requiresClientAddress())
             @if ($serviceRequest->addressSnapshot || $serviceRequest->address)
                 @php($requestAddress = $serviceRequest->addressSnapshot ?? $serviceRequest->address)
