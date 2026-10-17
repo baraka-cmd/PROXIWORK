@@ -1,1 +1,142 @@
-document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('[data-action-form]').forEach(f=>f.addEventListener('submit',e=>{if(f.hasAttribute('data-confirm-archive')&&!window.confirm('Archiver ce service ? Il sera retiré du catalogue actif et ne pourra plus être modifié depuis cet espace. Son historique sera conservé.')){e.preventDefault();return}const b=f.querySelector('button[type=submit]');if(b){b.disabled=true;b.setAttribute('aria-busy','true')}}));document.querySelectorAll('[data-confirm-delete]').forEach(f=>f.addEventListener('submit',e=>{if(!window.confirm('Supprimer cette image ?'))e.preventDefault()}));const t=document.querySelector('[data-pricing-type]');if(t){const applyPricingVisibility=(clearIncompatible=false)=>{const v=t.value;document.querySelectorAll('[data-price-field]').forEach(e=>e.hidden=!(v==='fixed'||v==='from'));document.querySelectorAll('[data-range-field]').forEach(e=>e.hidden=v!=='range');document.querySelectorAll('[data-currency-field]').forEach(e=>e.hidden=v==='quote');if(clearIncompatible){const price=document.querySelector('#price'),min=document.querySelector('#price_min'),max=document.querySelector('#price_max'),currency=document.querySelector('#currency');if(v==='range'&&price)price.value='';if((v==='fixed'||v==='from')){if(min)min.value='';if(max)max.value=''}if(v==='quote'){if(price)price.value='';if(min)min.value='';if(max)max.value='';if(currency)currency.value=''}}};t.addEventListener('change',()=>applyPricingVisibility(true));applyPricingVisibility()}});
+const pricingType = document.querySelector('[data-pricing-type]');
+const pricingHelp = document.querySelector('[data-pricing-help]');
+const pricingFields = {
+    price: document.querySelector('#price'),
+    minimum: document.querySelector('#price_min'),
+    maximum: document.querySelector('#price_max'),
+    currency: document.querySelector('#currency'),
+};
+
+const pricingMessages = {
+    fixed: 'Le montant indiqué correspond au prix fixe de cette prestation.',
+    from: 'Le montant indiqué est un prix de départ ; le coût final peut dépendre du besoin.',
+    range: 'Indiquez une borne minimale et une borne maximale cohérentes.',
+    quote: 'Aucun montant n’est affiché ici : le prix sera défini dans le processus de devis.',
+};
+
+if (pricingType) {
+    let currentPricingType = pricingType.value;
+
+    const updatePricingVisibility = () => {
+        const type = pricingType.value;
+        document.querySelectorAll('[data-price-field]').forEach((field) => {
+            field.hidden = !(type === 'fixed' || type === 'from') && !field.querySelector('[aria-invalid="true"]');
+        });
+        document.querySelectorAll('[data-range-field]').forEach((field) => {
+            field.hidden = type !== 'range' && !field.querySelector('[aria-invalid="true"]');
+        });
+        document.querySelectorAll('[data-currency-field]').forEach((field) => {
+            field.hidden = type === 'quote' && !field.querySelector('[aria-invalid="true"]');
+        });
+        if (pricingHelp) pricingHelp.textContent = pricingMessages[type] || 'Choisissez le mode de tarification de cette prestation.';
+    };
+
+    pricingType.addEventListener('change', () => {
+        const nextType = pricingType.value;
+        const valuesToClear = [];
+
+        if (nextType === 'range' && pricingFields.price?.value) valuesToClear.push(pricingFields.price);
+        if ((nextType === 'fixed' || nextType === 'from') && (pricingFields.minimum?.value || pricingFields.maximum?.value)) {
+            valuesToClear.push(pricingFields.minimum, pricingFields.maximum);
+        }
+        if (nextType === 'quote') {
+            valuesToClear.push(...Object.values(pricingFields).filter((field) => field?.value));
+        }
+
+        if (valuesToClear.length > 0) {
+            const confirmed = window.confirm('Ce changement de tarification effacera les montants incompatibles avec le nouveau mode. Voulez-vous continuer ?');
+            if (!confirmed) {
+                pricingType.value = currentPricingType;
+                updatePricingVisibility();
+                return;
+            }
+            valuesToClear.forEach((field) => { if (field) field.value = ''; });
+        }
+
+        currentPricingType = nextType;
+        updatePricingVisibility();
+    });
+
+    updatePricingVisibility();
+}
+
+document.querySelectorAll('[data-action-form]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        if (form.hasAttribute('data-confirm-archive') && !window.confirm('Archiver ce service ? Il sera retiré du catalogue actif ; son historique sera conservé.')) {
+            event.preventDefault();
+            return;
+        }
+        const button = form.querySelector('button[type="submit"]');
+        if (button) {
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+        }
+    });
+});
+
+document.querySelectorAll('[data-confirm-delete]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+        if (!window.confirm('Supprimer cet élément ? Cette action ne peut pas être annulée.')) event.preventDefault();
+    });
+});
+
+document.querySelectorAll('.service-form').forEach((form) => {
+    form.addEventListener('submit', () => {
+        const button = form.querySelector('[data-action-button]');
+        if (button) {
+            button.disabled = true;
+            button.setAttribute('aria-busy', 'true');
+        }
+    });
+});
+
+document.querySelectorAll('input[type="file"]').forEach((input) => {
+    const preview = document.createElement('div');
+    preview.className = 'service-file-preview';
+    preview.hidden = true;
+    preview.setAttribute('aria-live', 'polite');
+
+    const image = document.createElement('img');
+    image.alt = 'Aperçu local du fichier sélectionné';
+    image.hidden = true;
+
+    const details = document.createElement('p');
+    preview.append(image, details);
+    input.insertAdjacentElement('afterend', preview);
+
+    let objectUrl = null;
+    input.addEventListener('change', () => {
+        const file = input.files?.[0];
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        objectUrl = null;
+
+        if (!file) {
+            preview.hidden = true;
+            image.removeAttribute('src');
+            return;
+        }
+
+        preview.hidden = false;
+        const size = (file.size / (1024 * 1024)).toLocaleString(document.documentElement.lang || 'fr-FR', { maximumFractionDigits: 2 });
+        details.textContent = `${file.name} · ${size} Mo. L’aperçu est local ; le fichier ne sera envoyé qu’à la soumission du formulaire.`;
+
+        if (file.type.startsWith('image/')) {
+            objectUrl = URL.createObjectURL(file);
+            image.src = objectUrl;
+            image.hidden = false;
+        } else {
+            image.hidden = true;
+            image.removeAttribute('src');
+        }
+    });
+
+    window.addEventListener('pagehide', () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+    });
+});
+
+document.querySelectorAll('.service-form [aria-invalid="true"]').forEach((field) => {
+    const describedBy = new Set((field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    if (field.id) describedBy.add(`${field.id}-error`);
+    field.setAttribute('aria-describedby', [...describedBy].join(' '));
+});

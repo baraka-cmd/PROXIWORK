@@ -5,7 +5,7 @@
 
 @push('head')
     @unless (app()->environment('testing'))
-        @vite('resources/css/pages/professional/profile.css')
+        @vite(['resources/css/pages/professional/profile.css', 'resources/js/pages/professional/profile-edit.js'])
     @endunless
 @endpush
 
@@ -20,6 +20,10 @@
             <a class="button button--ghost" href="{{ route('professional.profile') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour au profil</a>
         </div>
     </div>
+
+    @if (session('success'))
+        <div class="alert alert--success professional-alert" role="status" aria-live="polite">{{ session('success') }}</div>
+    @endif
 
     @if ($errors->any())
         <div class="profile-form-alert" role="alert" aria-live="assertive">
