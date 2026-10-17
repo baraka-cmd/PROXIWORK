@@ -31,11 +31,23 @@
         <section class="data-card">
             <h2>Commande</h2>
             <dl class="detail-list">
+                <div><dt>Référence</dt><dd>{{ $order->order_number ?? ('#'.$order->getKey()) }}</dd></div>
                 <div><dt>Client</dt><dd>{{ $order->client?->name ?? '—' }}</dd></div>
-                <div><dt>Créée le</dt><dd>{{ $order->created_at?->format('d/m/Y H:i') ?? '—' }}</dd></div>
-                <div><dt>Total</dt><dd>{{ number_format((float) $order->total, 2) }} {{ $order->currency ?? '' }}</dd></div>
+                <div><dt>Créée le</dt><dd>{{ $order->created_at?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
+                <div><dt>Date souhaitée par le client</dt><dd>{{ $order->serviceRequest?->desired_at?->format('d/m/Y à H:i') ?? 'À convenir' }}</dd></div>
+                <div><dt>Total contractuel</dt><dd>{{ number_format((float) $order->total, 2, ',', ' ') }} {{ $order->currency ?? '' }}</dd></div>
                 <div><dt>Service</dt><dd>{{ $order->serviceRequest?->service?->title ?? '—' }}</dd></div>
             </dl>
+            @if (filled($order->acceptedOffer?->description))
+                <div class="professional-order-contract-scope">
+                    <h3>Périmètre accepté</h3>
+                    <p>{{ $order->acceptedOffer->description }}</p>
+                    @if (filled($order->acceptedOffer->conditions))
+                        <h4>Conditions convenues</h4>
+                        <p>{{ $order->acceptedOffer->conditions }}</p>
+                    @endif
+                </div>
+            @endif
         </section>
 
         <section class="data-card">
