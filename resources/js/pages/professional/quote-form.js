@@ -40,9 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (validitySummary) {
-            const date = validUntil?.value ? new Date(validUntil.value) : null;
-            validitySummary.textContent = date && !Number.isNaN(date.getTime())
-                ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+            const dateParts = (validUntil?.value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+            validitySummary.textContent = dateParts
+                ? `${dateParts[3]}/${dateParts[2]}/${dateParts[1]} à ${dateParts[4]}:${dateParts[5]} (fuseau PROXIWORK)`
                 : 'À renseigner';
         }
 
