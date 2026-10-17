@@ -10,7 +10,7 @@
 
 ## Inventaire initial confirmé
 
-Le dépôt contient notamment 124 vues Blade hors composants et courriels, avec des espaces distincts pour :
+Le dépôt contient 123 templates Blade hors vues de courriels : 96 vues de fonctionnalités et 27 fichiers partagés (17 composants Blade, 7 layouts, 2 pages d'erreur et `welcome.blade.php`). Les 96 vues fonctionnelles se répartissent ainsi : 9 publiques, 5 d'authentification, 23 client, 24 professionnelles et 35 administratives.
 - public : accueil, recherche, catalogue de professionnels, profils et services ;
 - authentification : connexion, inscription, vérification et réinitialisation du mot de passe ;
 - client : tableau de bord, favoris, demandes, devis, commandes, paiements, profil, adresses, messages et notifications ;
@@ -20,12 +20,20 @@ Le dépôt contient notamment 124 vues Blade hors composants et courriels, avec 
 
 Les routes web séparent les espaces avec les middlewares et contrôles de rôle existants, dont `auth`, `active.account`, `role:client` et les contrôles d'autorisation Blade. Ces mécanismes sont hors périmètre des modifications UI.
 
+## Couverture de l'audit source-level
+
+Les 96 vues fonctionnelles ont été parcourues avec un contrôle statique de structure (formulaires, boucles/branches d'absence de données, tableaux, wrappers responsive, images, messages et validations). Les composants partagés et layouts ont été examinés séparément. L'absence de `<x-empty-state>` n'est pas considérée automatiquement comme un défaut : plusieurs pages client et professionnel possèdent des états vides métier personnalisés via `isEmpty()` ou des conditions Blade. De même, les tables utilisent tantôt `.table-responsive`, tantôt `.table-wrap` ; il faut vérifier la règle CSS réellement appliquée avant de conclure à un défaut mobile.
+
+Les listes financières examinées (commandes professionnelles, revenus, portefeuille, retraits, paiements client et listes d'administration) possèdent des wrappers de table dédiés. La présence d'un wrapper ne remplace toutefois pas un test sur appareil réel.
+
+Cette inspection est un audit statique des templates, pas une validation visuelle complète : les états conditionnels ne peuvent pas tous être reproduits sans jeux de données et session navigateur.
+
 ## Constats vérifiés dans le code
 
 1. **Double chargement de Font Awesome** : `resources/views/layouts/app.blade.php` chargeait la feuille CSS distante Font Awesome 6.7.2 et la feuille locale `public/assets/fontawesome/css/all.min.css`. Le dépôt contient les assets locaux et les vues utilisent les classes Font Awesome. Le chargement distant et son `preconnect` ont été retirés ; le chemin local est conservé.
 2. **Navigation masquée mais potentiellement tabulable** : `resources/js/common/app.js` utilisait `aria-hidden` pour signaler la fermeture des menus. Cet attribut seul ne retire pas les descendants de l'ordre de tabulation. Le code utilise désormais la propriété native `inert` en complément d'`aria-hidden`, et la rétablit à l'ouverture. Le comportement du menu desktop de l'espace de travail est préservé.
 3. **Débordement horizontal global** : `resources/css/common/layouts.css` applique `overflow-x: hidden` à `body`. Ce choix peut masquer un débordement réel ; cependant, supprimer cette règle sans test navigateur sur l'ensemble des pages risquerait de révéler des régressions. La règle est donc documentée comme point de contrôle, pas modifiée dans cette tranche.
-4. **Annonces des alertes trop agressives** : le composant `alert` appliquait `role="alert"` à tous les types, y compris information et succès. Il utilise maintenant une annonce assertive pour avertissement/erreur et une annonce polie pour information/succès.
+4. **Annonces des alertes trop agressives** : le composant `alert` appliquait `role="alert"` à tous les types, y compris information et succès. Il utilise maintenant une annonce assertive pour avertissement/erreur/danger et une annonce polie pour information/succès.
 5. **Aide de formulaire masquée en cas d'erreur** : les composants `input`, `select` et `textarea` n'associaient que l'erreur OU l'aide au contrôle, et masquaient l'aide lorsque l'erreur était présente. Ils référencent désormais les deux éléments lorsqu'ils existent, afin de conserver les consignes utiles.
 6. **Fermeture des alertes incohérente** : le JavaScript cherchait uniquement `[role="alert"]`, ce qui ne fonctionnait pas pour les alertes d'information/succès ni pour le composant de succès. La cible est maintenant la classe commune `.alert`.
 7. **Comportement desktop de la navigation** : lors de la synchronisation après redimensionnement, les menus non-sidebar pouvaient rester `aria-hidden` et `inert` sur desktop. Le code rétablit désormais l'accès aux navigations visibles sur grand écran.
@@ -49,7 +57,7 @@ Principes retenus : états vides qui expliquent la situation et la suite possibl
 - `resources/js/common/app.js` — gestion de `inert` pour la navigation responsive et fermeture cohérente des alertes.
 - `resources/js/app.js` — retrait du script de services professionnels de l'entrée globale, car les vues concernées le chargent déjà comme entrée de page.
 - `resources/css/common/reset.css` et `resources/css/common/ux-states.css` — contour de focus partagé plus net ; défilement fluide désactivé si l'utilisateur préfère réduire les animations.
-- `resources/views/components/alert.blade.php` — niveaux d'annonce adaptés au type d'alerte.
+- `resources/views/components/alert.blade.php` — niveaux d'annonce adaptés au type d'alerte, y compris les types `error` et `danger`.
 - `resources/views/components/input.blade.php` — association simultanée de l'aide et de l'erreur.
 - `resources/views/components/select.blade.php` — association simultanée de l'aide et de l'erreur.
 - `resources/views/components/textarea.blade.php` — association simultanée de l'aide et de l'erreur.

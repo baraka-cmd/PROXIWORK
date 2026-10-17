@@ -10,11 +10,12 @@
         'info' => 'fa-solid fa-circle-info',
         'warning' => 'fa-solid fa-triangle-exclamation',
         'danger' => 'fa-solid fa-circle-exclamation',
+        'error' => 'fa-solid fa-circle-exclamation',
     ];
 @endphp
 
 <div
-    role="{{ in_array($type, ['danger', 'warning'], true) ? 'alert' : 'status' }}"
+    role="{{ in_array($type, ['danger', 'error', 'warning'], true) ? 'alert' : 'status' }}"
     aria-live="{{ in_array($type, ['danger', 'warning'], true) ? 'assertive' : 'polite' }}"
     {{ $attributes->merge(['class' => "alert alert--{$type}"]) }}
 >
