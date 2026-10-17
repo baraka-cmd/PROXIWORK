@@ -6,6 +6,9 @@
     @push('head')
         @vite(['resources/css/pages/professional/orders-revenues.css', 'resources/js/pages/professional/orders-revenues.js'])
     @endpush
+    @push('scripts')
+        @vite('resources/js/pages/client/favorites-requests-quotes.js')
+    @endpush
     @php
         $orderStatusLabel = match ($order->status->value) {
             'pending_payment' => 'En attente de paiement',
