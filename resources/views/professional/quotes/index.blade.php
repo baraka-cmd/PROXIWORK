@@ -72,7 +72,7 @@
                 <thead><tr><th>Demande</th><th>Client</th><th>Montant proposé</th><th>Statut</th><th>Validité</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($quotations as $quotation)
-                        <tr @class(['professional-quote-row--priority' => $actionRequired && $quotation->currentOffer?->actor_type === \App\Enums\QuotationOfferActor::CLIENT])>
+                        <tr @class(['professional-quote-row--priority' => $quotation->status === \App\Enums\QuotationStatus::NEGOTIATING && $quotation->currentOffer?->actor_type === \App\Enums\QuotationOfferActor::CLIENT && ($quotation->currentOffer?->valid_until?->isFuture() ?? false)])>
                             <td data-label="Demande"><strong>{{ $quotation->serviceRequest?->title ?? 'Demande' }}</strong><p class="table-secondary">Devis #{{ $quotation->getKey() }}</p></td>
                             <td data-label="Client">{{ $quotation->serviceRequest?->client?->name ?? 'Client' }}</td>
                             <td data-label="Montant proposé">
