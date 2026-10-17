@@ -117,6 +117,7 @@
                             </option>
                         @endforeach
                     </select>
+                    <p class="service-pricing-help" data-pricing-help aria-live="polite">Le prix dépend du mode de tarification sélectionné.</p>
                 </div>
                 <div class="form-field" data-price-field>
                     <label class="form-label" for="price">Prix</label>
