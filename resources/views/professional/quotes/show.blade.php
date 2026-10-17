@@ -64,7 +64,7 @@
                 </div>
                 <dl class="details-list">
                     <div><dt>Émise par</dt><dd>{{ $offer->actor_type === \App\Enums\QuotationOfferActor::CLIENT ? 'Le client' : 'Vous' }}</dd></div>
-                    <div><dt>Délai proposé</dt><dd>{{ $offer->duration_value }} {{ $offer->duration_unit->value }}</dd></div>
+                    <div><dt>Délai proposé</dt><dd>{{ $offer->duration_value }} {{ match($offer->duration_unit->value) { 'hours' => 'heure(s)', 'days' => 'jour(s)', 'weeks' => 'semaine(s)', default => $offer->duration_unit->value } }}</dd></div>
                     <div><dt>Valable jusqu'au</dt><dd>{{ $offer->valid_until?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
                     <div><dt>Créée le</dt><dd>{{ $offer->created_at?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
                     <div><dt>Description et périmètre</dt><dd class="professional-quote-preline">{{ $offer->description }}</dd></div>
