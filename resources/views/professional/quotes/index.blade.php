@@ -16,6 +16,12 @@
         </div>
     </div>
 
+    @if ($errors->any())
+        <div class="professional-quote-alert" role="alert">
+            <strong>Les filtres n’ont pas pu être appliqués.</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
     <form class="professional-quote-search surface-card" method="GET" action="{{ route('professional.quotes.index') }}" aria-label="Rechercher et filtrer les devis">
         @if ($actionRequired)
             <input type="hidden" name="action_required" value="1">
