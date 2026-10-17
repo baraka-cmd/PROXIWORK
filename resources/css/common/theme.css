@@ -241,6 +241,7 @@ hr,
 
 [data-theme='dark'] .request-active-filters > a,
 [data-theme='dark'] .request-card__icon,
+[data-theme='dark'] .request-status-badge--quoted,
 [data-theme='dark'] .wallet-bucket-label--locked,
 [data-theme='dark'] .status-badge--in_progress,
 [data-theme='dark'] .withdrawal-status--processing {
@@ -249,7 +250,7 @@ hr,
     color: var(--color-info);
 }
 
-[data-theme='dark'] .request-status-badge--quoted,
+[data-theme='dark'] .request-status-badge--accepted,
 [data-theme='dark'] .status-badge--confirmed,
 [data-theme='dark'] .status-badge--completed,
 [data-theme='dark'] .withdrawal-status--succeeded,
