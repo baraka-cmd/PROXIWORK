@@ -16,6 +16,12 @@
         </div>
     </div>
 
+    @if ($errors->any())
+        <div class="professional-quote-alert" role="alert">
+            <strong>Les filtres n’ont pas pu être appliqués.</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
     <form class="professional-quote-search surface-card" method="GET" action="{{ route('professional.quotes.index') }}" aria-label="Rechercher et filtrer les devis">
         @if ($actionRequired)
             <input type="hidden" name="action_required" value="1">
@@ -50,35 +56,45 @@
     </form>
 
     <nav class="professional-quote-filters" aria-label="Filtrer les devis">
-        <a href="{{ route('professional.quotes.index') }}" class="professional-quote-filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
-        <a href="{{ route('professional.quotes.index', ['action_required' => 1]) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
+        <a href="{{ route('professional.quotes.index', collect($filters)->except('action_required')->all()) }}" class="professional-quote-filter-chip {{ ! $actionRequired ? 'is-active' : '' }}">Tous les devis</a>
+        <a href="{{ route('professional.quotes.index', array_merge(collect($filters)->except('action_required')->all(), ['action_required' => 1])) }}" class="professional-quote-filter-chip {{ $actionRequired ? 'is-active' : '' }}">Action requise</a>
     </nav>
 
+    @php($hasQuoteFilters = filled($filters['status'] ?? null) || filled($filters['q'] ?? null) || filled($filters['from'] ?? null) || filled($filters['to'] ?? null))
     @if ($quotations->isEmpty())
         <x-empty-state
-            :title="$actionRequired ? 'Aucun devis à traiter' : 'Aucun devis envoyé'"
-            :description="$actionRequired ? 'Aucune contre-proposition client ne nécessite actuellement votre réponse.' : 'Lorsqu’une demande reçoit votre proposition, le devis apparaîtra ici.'"
+            :title="$hasQuoteFilters ? 'Aucun devis ne correspond à ces critères' : ($actionRequired ? 'Aucun devis à traiter' : 'Aucun devis envoyé')"
+            :description="$hasQuoteFilters ? 'Modifiez votre recherche ou vos filtres. Les propositions déjà envoyées restent consultables dans le catalogue des devis.' : ($actionRequired ? 'Aucune contre-proposition client ne nécessite actuellement votre réponse.' : 'Lorsqu’une demande reçoit votre proposition, le devis apparaîtra ici.')"
             icon="fa-solid fa-file-invoice-dollar"
         />
     @else
-        <div class="table-responsive surface-card">
-            <table class="data-table">
+        @if ($actionRequired)
+            <div class="professional-quote-alert professional-quote-alert--action" role="status">
+                <strong>Votre réponse est attendue</strong>
+                <p>Ces devis ont une contre-proposition du client en cours. Vérifiez les conditions et répondez depuis le détail du devis.</p>
+            </div>
+        @endif
+        <div class="table-responsive surface-card professional-quote-table-wrap">
+            <table class="data-table professional-quote-table">
                 <thead><tr><th>Demande</th><th>Client</th><th>Montant proposé</th><th>Statut</th><th>Validité</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($quotations as $quotation)
-                        <tr>
-                            <td><strong>{{ $quotation->serviceRequest?->title ?? 'Demande' }}</strong><p class="table-secondary">Devis #{{ $quotation->getKey() }}</p></td>
-                            <td>{{ $quotation->serviceRequest?->client?->name ?? 'Client' }}</td>
-                            <td>
+                        <tr @class(['professional-quote-row--priority' => $quotation->status === \App\Enums\QuotationStatus::NEGOTIATING && $quotation->currentOffer?->actor_type === \App\Enums\QuotationOfferActor::CLIENT && ($quotation->currentOffer?->valid_until?->isFuture() ?? false)])>
+                            <td data-label="Demande"><strong>{{ $quotation->serviceRequest?->title ?? 'Demande' }}</strong><p class="table-secondary">Devis #{{ $quotation->getKey() }}</p></td>
+                            <td data-label="Client">{{ $quotation->serviceRequest?->client?->name ?? 'Client' }}</td>
+                            <td data-label="Montant proposé">
                                 @if ($quotation->currentOffer)
-                                    {{ number_format((float) $quotation->currentOffer->amount, 2) }} {{ $quotation->currentOffer->currency }}
+                                    <strong>{{ number_format((float) $quotation->currentOffer->amount, 2, ',', ' ') }} {{ $quotation->currentOffer->currency }}</strong>
+                                    @if ($quotation->currentOffer->actor_type === \App\Enums\QuotationOfferActor::CLIENT)
+                                        <small class="professional-quote-current-actor">Contre-proposition du client</small>
+                                    @endif
                                 @else
                                     En attente d'offre
                                 @endif
                             </td>
-                            <td><span class="badge badge--neutral">{{ match($quotation->status->value) { 'draft' => 'Brouillon', 'sent' => 'Envoyé au client', 'negotiating' => 'En négociation', 'accepted' => 'Accepté', 'rejected' => 'Refusé', 'expired' => 'Expiré', 'withdrawn' => 'Retiré', default => ucfirst(str_replace('_', ' ', $quotation->status->value)) } }}</span></td>
-                            <td>{{ $quotation->currentOffer?->valid_until?->format('d/m/Y') ?? '—' }}</td>
-                            <td><a class="button button--ghost button--sm" href="{{ route('professional.quotes.show', $quotation) }}">Consulter</a></td>
+                            <td data-label="Statut"><span class="badge badge--neutral">{{ $quotation->status->label() }}</span></td>
+                            <td data-label="Validité">{{ $quotation->currentOffer?->valid_until?->format('d/m/Y') ?? '—' }}</td>
+                            <td data-label="Action"><a class="button button--ghost button--sm" href="{{ route('professional.quotes.show', $quotation) }}">Consulter</a></td>
                         </tr>
                     @endforeach
                 </tbody>

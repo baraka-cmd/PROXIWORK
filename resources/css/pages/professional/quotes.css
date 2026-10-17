@@ -58,3 +58,40 @@
 .professional-quote-search__actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1rem}
 @media(max-width:900px){.professional-quote-search__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.professional-quote-search__grid{grid-template-columns:1fr}.professional-quote-search__actions{display:grid;grid-template-columns:1fr}.professional-quote-search__actions>*{width:100%;text-align:center}}
+
+/* Phase 5.2 — quote workflow */
+.professional-quote-alert--action{border-color:color-mix(in srgb,var(--color-primary,#0f766e) 35%,var(--color-border,#e2e8f0));background:var(--color-primary-soft,#f0fdfa)}
+.professional-quote-alert--action p{margin:.35rem 0 0;color:var(--color-text-muted,#64748b);line-height:1.55}
+.professional-quote-row--priority{background:color-mix(in srgb,var(--color-primary,#0f766e) 4%,var(--color-surface,#fff))}
+.professional-quote-row--priority td:first-child{box-shadow:inset 3px 0 0 var(--color-primary,#0f766e)}
+.professional-quote-current-actor{display:block;margin-top:.25rem;color:var(--color-primary,#0f766e);font-size:.76rem;font-weight:700}
+.professional-quote-table-wrap{min-width:0;overflow:hidden}
+.professional-quote-request-context{display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem;padding:1rem;margin-bottom:1rem}
+.professional-quote-request-context>div{display:grid;align-content:start;gap:.35rem;min-width:0}
+.professional-quote-request-context span,.professional-quote-request-context small{color:var(--color-text-muted,#64748b);font-size:.8rem}
+.professional-quote-request-context strong{overflow-wrap:anywhere}
+.professional-quote-create-form{display:grid;gap:1.25rem}
+.professional-quote-field-help{display:block;margin-top:.4rem;color:var(--color-text-muted,#64748b);font-size:.82rem;line-height:1.5}
+.professional-quote-review{display:grid;gap:.85rem;padding:1rem;border:1px solid var(--color-border,#e2e8f0);border-radius:var(--radius-lg,1rem);background:var(--color-background,#f8fafc)}
+.professional-quote-review h2{margin:.2rem 0 0;font-size:1.1rem}
+.professional-quote-review dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin:0}
+.professional-quote-review dl>div{display:grid;gap:.3rem;min-width:0}
+.professional-quote-review dt{font-size:.78rem;color:var(--color-text-muted,#64748b)}
+.professional-quote-review dd{margin:0;font-weight:800;overflow-wrap:anywhere}
+.professional-quote-review__scope{grid-column:1/-1}
+.professional-quote-review__scope dd{font-weight:500;line-height:1.5;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.professional-quote-review>p{margin:0;color:var(--color-text-muted,#64748b);font-size:.8rem;line-height:1.5}
+.professional-quote-create-form [aria-invalid="true"]{border-color:var(--color-danger,#b91c1c)}
+.professional-quote-create-form :focus-visible{outline:3px solid color-mix(in srgb,var(--color-primary,#0f766e) 55%,transparent);outline-offset:2px}
+@media(max-width:760px){
+ .professional-quote-table thead{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ .professional-quote-table,.professional-quote-table tbody{display:block;width:100%}
+ .professional-quote-table tbody tr{display:grid;gap:0;padding:.35rem .9rem;border-bottom:1px solid var(--color-border,#e2e8f0)}
+ .professional-quote-table tbody tr:last-child{border-bottom:0}
+ .professional-quote-table tbody td{display:grid;grid-template-columns:minmax(6.5rem,.7fr) minmax(0,1.3fr);gap:.75rem;align-items:start;padding:.7rem .15rem;border:0;overflow-wrap:anywhere}
+ .professional-quote-table tbody td::before{content:attr(data-label);font-size:.76rem;font-weight:700;color:var(--color-text-muted,#64748b)}
+ .professional-quote-table tbody td[data-label="Action"] .button{justify-self:start}
+ .professional-quote-request-context{grid-template-columns:1fr}
+ .professional-quote-review dl{grid-template-columns:1fr}
+}
+@media(max-width:420px){.professional-quote-table tbody td{grid-template-columns:1fr;gap:.25rem}}

@@ -26,6 +26,12 @@
     @if (session('success'))
         <div class="alert alert--success" role="status">{{ session('success') }}</div>
     @endif
+    @if ($errors->any())
+        <div class="alert alert--error" role="alert">
+            <strong>Les filtres n’ont pas pu être appliqués.</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
 
     @if($selectedService)
         <p class="page-lead">Demandes associées au service : <strong>{{ $selectedService->title }}</strong></p>
@@ -90,8 +96,8 @@
                 <p>{{ $requests->total() }} résultat{{ $requests->total() > 1 ? 's' : '' }} dans votre espace professionnel.</p>
             </div>
         </div>
-        <div class="table-responsive surface-card">
-            <table class="data-table">
+        <div class="table-responsive surface-card professional-request-table-wrap">
+            <table class="data-table professional-request-table">
                 <thead>
                     <tr>
                         <th>Demande</th>
@@ -104,16 +110,19 @@
                 </thead>
                 <tbody>
                     @foreach ($requests as $serviceRequest)
-                        <tr>
-                            <td>
+                        <tr @class(['professional-request-row--priority' => $serviceRequest->status->value === 'requested'])>
+                            <td data-label="Demande">
                                 <strong>{{ $serviceRequest->title }}</strong>
                                 <p class="table-secondary">PW-REQ-{{ str_pad((string) $serviceRequest->id, 6, '0', STR_PAD_LEFT) }}</p>
+                                @if ($serviceRequest->status->value === 'requested')
+                                    <span class="professional-workflow-priority">À examiner</span>
+                                @endif
                             </td>
-                            <td>{{ $serviceRequest->service?->title ?? 'Service indisponible' }}</td>
-                            <td>{{ $serviceRequest->client?->name ?? 'Client' }}</td>
-                            <td><span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">{{ $statusLabels[$serviceRequest->status->value] ?? $serviceRequest->status->label() }}</span></td>
-                            <td>{{ $serviceRequest->requested_at?->format('d/m/Y H:i') ?? $serviceRequest->created_at?->format('d/m/Y H:i') }}</td>
-                            <td><a class="button button--ghost button--sm" href="{{ route('professional.requests.show', $serviceRequest) }}">Consulter</a></td>
+                            <td data-label="Service">{{ $serviceRequest->service?->title ?? 'Service indisponible' }}</td>
+                            <td data-label="Client">{{ $serviceRequest->client?->name ?? 'Client' }}</td>
+                            <td data-label="Statut"><span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">{{ $statusLabels[$serviceRequest->status->value] ?? $serviceRequest->status->label() }}</span></td>
+                            <td data-label="Reçue le">{{ $serviceRequest->requested_at?->format('d/m/Y H:i') ?? $serviceRequest->created_at?->format('d/m/Y H:i') }}</td>
+                            <td data-label="Action"><a class="button button--ghost button--sm" href="{{ route('professional.requests.show', $serviceRequest) }}">Consulter</a></td>
                         </tr>
                     @endforeach
                 </tbody>

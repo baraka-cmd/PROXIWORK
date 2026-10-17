@@ -6,11 +6,11 @@
     @push('head')
         @vite(['resources/css/pages/professional/orders-revenues.css', 'resources/js/pages/professional/orders-revenues.js'])
     @endpush
-    <div class="page-header">
+    <div class="page-header professional-orders-page-header">
         <div>
-            <p class="page-kicker">ACTIVITÉ</p>
+            <p class="page-kicker">ESPACE PROFESSIONNEL · ACTIVITÉ</p>
             <h1>Mes commandes</h1>
-            <p class="page-description">Suivez les commandes qui vous sont attribuées.</p>
+            <p class="page-description">Retrouvez les prochaines actions, les échéances et l’état réel de chaque commande.</p>
         </div>
     </div>
 
@@ -42,7 +42,7 @@
             <input id="orders-from" type="date" name="from" value="{{ $from }}">
         </label>
         <label for="orders-to">Au
-            <input id="orders-to" type="date" name="to" value="{{ $to }}">
+            <input id="orders-to" type="date" name="to" min="{{ $from }}" value="{{ $to }}">
         </label>
         <button class="button button--secondary button--sm" type="submit">Appliquer les dates</button>
         @if ($from !== '' || $to !== '')
@@ -50,29 +50,39 @@
         @endif
     </form>
     <p class="page-description">Pour les commandes terminées, les dates filtrent la date de fin de prestation. Pour les autres états, elles filtrent la date de création.</p>
+    @if ($errors->any())
+        <div class="alert alert--error" role="alert">
+            <strong>Les filtres n’ont pas pu être appliqués.</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
+    @php($hasOrderFilters = $selectedStatus !== '' || $from !== '' || $to !== '')
 
     @if ($orders->isEmpty())
-        <div class="empty-state">
+        <div class="empty-state professional-order-empty-state">
             <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-            <h2>Aucune commande</h2>
-            <p>Les commandes liées à vos services apparaîtront ici.</p>
+            <h2>{{ $hasOrderFilters ? 'Aucune commande ne correspond à ces critères' : 'Aucune commande pour le moment' }}</h2>
+            <p>{{ $hasOrderFilters ? 'Modifiez les filtres ou affichez toutes vos commandes pour retrouver une prestation.' : 'Les commandes liées à vos services apparaîtront ici.' }}</p>
+            @if ($hasOrderFilters)
+                <a class="button button--ghost" href="{{ route('professional.orders.index') }}">Effacer les filtres</a>
+            @endif
         </div>
     @else
-        <div class="data-card">
-            <div class="table-wrap">
-                <table class="professional-table">
+        <div class="data-card professional-order-list-card">
+            <div class="table-wrap professional-order-table-wrap">
+                <table class="professional-table professional-order-table">
                     <thead>
                         <tr><th>Commande</th><th>Client</th><th>Statut</th><th>Montant</th><th>Date</th><th></th></tr>
                     </thead>
                     <tbody>
                         @foreach ($orders as $order)
-                            <tr>
-                                <td><strong>#{{ $order->id }}</strong></td>
-                                <td>{{ $order->client?->name ?? 'Client' }}</td>
-                                <td><span class="status-badge">{{ $statusLabels[$order->status->value] ?? str_replace('_', ' ', $order->status->value) }}</span></td>
-                                <td>{{ number_format((float) $order->total, 2) }} {{ $order->currency ?? '' }}</td>
-                                <td>{{ $order->created_at?->format('d/m/Y') }}@if($order->serviceRequest?->desired_at)<small class="table-secondary">Souhait client : {{ $order->serviceRequest->desired_at->format('d/m/Y') }}</small>@endif</td>
-                                <td><a class="button button--secondary button--small" href="{{ route('professional.orders.show', $order) }}">Voir</a></td>
+                            <tr @class(['professional-order-row--priority' => in_array($order->status->value, ['pending_payment', 'delivery_submitted', 'disputed'], true)])>
+                                <td data-label="Commande"><strong>{{ $order->order_number ?? ('#'.$order->getKey()) }}</strong><small class="table-secondary">Référence interne #{{ $order->getKey() }}</small></td>
+                                <td data-label="Client">{{ $order->client?->name ?? 'Client' }}</td>
+                                <td data-label="Statut"><span class="status-badge status-badge--{{ $order->status->value }}">{{ $statusLabels[$order->status->value] ?? str_replace('_', ' ', $order->status->value) }}</span></td>
+                                <td data-label="Total contractuel"><strong>{{ number_format((float) $order->total, 2, ',', ' ') }} {{ $order->currency ?? '' }}</strong></td>
+                                <td data-label="Dates">{{ $order->created_at?->format('d/m/Y') }}@if($order->serviceRequest?->desired_at)<small class="table-secondary">Souhait client : {{ $order->serviceRequest->desired_at->format('d/m/Y') }}</small>@endif</td>
+                                <td data-label="Action"><a class="button button--secondary button--small" href="{{ route('professional.orders.show', $order) }}">Consulter</a></td>
                             </tr>
                         @endforeach
                     </tbody>

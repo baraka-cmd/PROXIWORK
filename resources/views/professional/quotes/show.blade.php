@@ -32,6 +32,9 @@
             <div class="dashboard-page-header__actions">
                 <a class="button button--ghost" href="{{ route('professional.quotes.index') }}">Retour aux devis</a>
                 <a class="button button--ghost" href="{{ route('professional.requests.show', $quotation->serviceRequest) }}">Voir la demande</a>
+                @if ($quotation->order)
+                    <a class="button button--primary" href="{{ route('professional.orders.show', $quotation->order) }}">Suivre la commande</a>
+                @endif
             </div>
         </div>
 
@@ -64,7 +67,7 @@
                 </div>
                 <dl class="details-list">
                     <div><dt>Émise par</dt><dd>{{ $offer->actor_type === \App\Enums\QuotationOfferActor::CLIENT ? 'Le client' : 'Vous' }}</dd></div>
-                    <div><dt>Délai proposé</dt><dd>{{ $offer->duration_value }} {{ $offer->duration_unit->value }}</dd></div>
+                    <div><dt>Délai proposé</dt><dd>{{ $offer->duration_value }} {{ match($offer->duration_unit->value) { 'hours' => $offer->duration_value > 1 ? 'heures' : 'heure', 'days' => $offer->duration_value > 1 ? 'jours' : 'jour', 'weeks' => $offer->duration_value > 1 ? 'semaines' : 'semaine', default => $offer->duration_unit->value } }}</dd></div>
                     <div><dt>Valable jusqu'au</dt><dd>{{ $offer->valid_until?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
                     <div><dt>Créée le</dt><dd>{{ $offer->created_at?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
                     <div><dt>Description et périmètre</dt><dd class="professional-quote-preline">{{ $offer->description }}</dd></div>
@@ -127,7 +130,7 @@
                             <label for="professional-counter-unit">Unité</label>
                             <select id="professional-counter-unit" name="duration_unit" required>
                                 @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
-                                    <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($unit->value) }}</option>
+                                    <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ match($unit->value) { 'hours' => 'Heures', 'days' => 'Jours', 'weeks' => 'Semaines', default => ucfirst($unit->value) } }}</option>
                                 @endforeach
                             </select>
                             @error('duration_unit')<small class="field-error">{{ $message }}</small>@enderror
@@ -179,7 +182,7 @@
                         <label for="renew-duration-unit">Unité</label>
                         <select id="renew-duration-unit" name="duration_unit" required>
                             @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
-                                <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($unit->value) }}</option>
+                                <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ match($unit->value) { 'hours' => 'Heures', 'days' => 'Jours', 'weeks' => 'Semaines', default => ucfirst($unit->value) } }}</option>
                             @endforeach
                         </select>
                         @error('duration_unit')<small class="field-error">{{ $message }}</small>@enderror
@@ -214,9 +217,12 @@
                 <h2>Commande issue du devis</h2>
                 <dl class="details-list">
                     <div><dt>Référence</dt><dd>{{ $quotation->order->order_number }}</dd></div>
-                    <div><dt>Statut</dt><dd>{{ $quotation->order->status->value }}</dd></div>
+                    <div><dt>Statut</dt><dd>{{ match($quotation->order->status->value) { 'pending_payment' => 'En attente de paiement', 'confirmed' => 'Confirmée / à planifier', 'in_progress' => 'En cours', 'delivery_submitted' => 'Livrable à vérifier', 'completed' => 'Terminée', 'cancelled' => 'Annulée', 'disputed' => 'Contestée', default => ucfirst(str_replace('_', ' ', $quotation->order->status->value)) } }}</dd></div>
                     <div><dt>Total contractuel</dt><dd>{{ number_format((float) $quotation->order->total, 2, ',', ' ') }} {{ $quotation->order->currency }}</dd></div>
                 </dl>
+                @if ($quotation->order->status === \App\Enums\OrderStatus::PENDING_PAYMENT)
+                    <div class="professional-quote-note" role="status"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>Étape de paiement distincte</strong><p>Le devis accepté a créé la commande, mais la prestation ne peut pas démarrer tant que PROXIWORK n’a pas confirmé le paiement.</p></div></div>
+                @endif
                 <a class="button button--primary" href="{{ route('professional.orders.show', $quotation->order) }}">Ouvrir la commande</a>
             </section>
         @endif

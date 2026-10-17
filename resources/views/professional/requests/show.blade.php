@@ -7,6 +7,10 @@
     @vite('resources/css/pages/professional/requests.css')
 @endpush
 
+@push('scripts')
+    @vite('resources/js/pages/client/favorites-requests-quotes.js')
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
@@ -41,10 +45,10 @@
         </div>
     @endif
 
-    <div class="dashboard-content-grid">
-        <section class="surface-card content-card">
+    <div class="dashboard-content-grid professional-request-detail">
+        <section class="surface-card content-card professional-request-detail__description">
             <h2>Description du besoin</h2>
-            <p>{{ $serviceRequest->description }}</p>
+            <p class="professional-request-description">{{ $serviceRequest->description }}</p>
             <dl class="details-list">
                 <div><dt>Service</dt><dd>{{ $serviceRequest->service?->title ?? 'Non disponible' }}</dd></div>
                 <div><dt>Budget minimum</dt><dd>{{ $serviceRequest->budget_min !== null ? number_format((float) $serviceRequest->budget_min, 2, ',', ' ') . ' ' . ($serviceRequest->currency ?? '') : 'Non précisé' }}</dd></div>
@@ -54,9 +58,10 @@
             </dl>
         </section>
 
-        <aside class="surface-card content-card">
+        <aside class="surface-card content-card professional-request-detail__client">
             <h2>Client</h2>
-            <p>{{ $serviceRequest->client?->name ?? 'Client' }}</p>
+            <p class="professional-request-client-name">{{ $serviceRequest->client?->name ?? 'Client' }}</p>
+            <p class="professional-request-client-note">Les coordonnées et informations de localisation affichées ci-dessous sont limitées à ce qui est nécessaire au mode d’exécution de la prestation.</p>
             @if ($serviceRequest->execution_mode->requiresClientAddress())
             @if ($serviceRequest->addressSnapshot || $serviceRequest->address)
                 @php($requestAddress = $serviceRequest->addressSnapshot ?? $serviceRequest->address)
