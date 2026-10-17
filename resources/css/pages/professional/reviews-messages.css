@@ -621,3 +621,58 @@
         text-align: left;
     }
 }
+
+/* Phase 5.4 — review response guidance, inbox hierarchy and keyboard clarity */
+.review-response-form__guidance {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem 1.25rem;
+    flex-wrap: wrap;
+    color: var(--review-message-muted);
+    line-height: 1.55;
+}
+.review-response-form__guidance small {
+    min-width: 0;
+}
+.review-response-form__guidance a {
+    color: var(--color-primary, #0f766e);
+    font-weight: 700;
+}
+.review-response-form__count {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.review-response-form textarea:focus-visible,
+.review-report__form textarea:focus-visible,
+.review-report__form select:focus-visible,
+.review-filters input:focus-visible,
+.review-filters select:focus-visible,
+.review-response-form button:focus-visible,
+.review-report summary:focus-visible,
+.review-report__form button:focus-visible {
+    outline: 2px solid var(--color-primary, #0f766e);
+    outline-offset: 2px;
+}
+.conversation-row--unread {
+    border-color: color-mix(in srgb, var(--color-primary, #0f766e) 22%, var(--review-message-border));
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 4%, var(--review-message-surface));
+}
+.conversation-row--unread .conversation-top > strong {
+    font-weight: 800;
+}
+.conversation-row__actions button:disabled,
+.review-response-form button:disabled,
+.review-report__form button:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+@media (max-width: 700px) {
+    .review-response-form__guidance {
+        flex-direction: column;
+    }
+    .review-response-form__count {
+        white-space: normal;
+    }
+}
