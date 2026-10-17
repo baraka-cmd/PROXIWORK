@@ -137,7 +137,11 @@ if (root && payload) {
                     if (!element) return;
                     const status = distribution[element.index]?.status;
                     if (!status) return;
-                    window.location.assign(`/professional/orders?status=${encodeURIComponent(status)}`);
+                    const ordersUrl = root.dataset.ordersUrl;
+                    if (!ordersUrl) return;
+                    const destination = new URL(ordersUrl, window.location.origin);
+                    destination.searchParams.set('status', status);
+                    window.location.assign(destination.toString());
                 },
             },
         });
