@@ -179,7 +179,7 @@
                         <label for="renew-duration-unit">Unité</label>
                         <select id="renew-duration-unit" name="duration_unit" required>
                             @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
-                                <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($unit->value) }}</option>
+                                <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ match($unit->value) { 'hours' => 'Heures', 'days' => 'Jours', 'weeks' => 'Semaines', default => ucfirst($unit->value) } }}</option>
                             @endforeach
                         </select>
                         @error('duration_unit')<small class="field-error">{{ $message }}</small>@enderror
