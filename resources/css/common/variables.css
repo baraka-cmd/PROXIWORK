@@ -25,6 +25,7 @@
     --color-success-soft: #dcfce7;
     --color-warning: #b45309;
     --color-warning-soft: #fef3c7;
+    --color-warning-text: #805b00;
     --color-danger: #b91c1c;
     --color-danger-soft: #fee2e2;
     --color-info: #0369a1;
@@ -118,6 +119,7 @@
     --color-success-soft: #123323;
     --color-warning: #fbbf24;
     --color-warning-soft: #3a2a12;
+    --color-warning-text: #fbbf24;
     --color-danger: #f87171;
     --color-danger-soft: #3b1d24;
     --color-info: #7dd3fc;
