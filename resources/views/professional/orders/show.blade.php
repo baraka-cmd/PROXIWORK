@@ -124,6 +124,23 @@
                 <p class="muted">Confirmation enregistrée le {{ $order->schedule_confirmed_at->format('d/m/Y à H:i') }}</p>
             </div>
         @elseif ($order->status === \App\Enums\OrderStatus::CONFIRMED && data_get($latestScheduleEvent?->metadata, 'event') !== 'schedule_proposed')
+            @if (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_change_requested')
+                <div class="professional-order-workflow__notice professional-order-workflow__notice--attention" role="status">
+                    <strong>Le client a demandé une modification du planning</strong>
+                    @if (filled(data_get($latestScheduleEvent->metadata, 'reason')))
+                        <p><strong>Motif :</strong> {{ data_get($latestScheduleEvent->metadata, 'reason') }}</p>
+                    @endif
+                    @if (filled(data_get($latestScheduleEvent->metadata, 'previous_start_at')))
+                        <p>Début précédent : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'previous_start_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    @endif
+                    @if (filled(data_get($latestScheduleEvent->metadata, 'previous_end_at')))
+                        <p>Fin précédente : {{ \Carbon\CarbonImmutable::parse(data_get($latestScheduleEvent->metadata, 'previous_end_at'))->timezone(config('app.timezone'))->format('d/m/Y à H:i') }}</p>
+                    @endif
+                    <p>Envoyez une nouvelle proposition uniquement après avoir tenu compte de cette demande.</p>
+                </div>
+            @elseif (data_get($latestScheduleEvent?->metadata, 'event') === 'schedule_proposed')
+                <div class="professional-order-workflow__notice" role="status"><strong>Proposition de planning envoyée</strong><p>Le client doit confirmer les dates ou demander une modification avant qu’une nouvelle proposition soit possible.</p></div>
+            @endif
             <form method="POST" action="{{ route('professional.orders.schedule', $order) }}" class="professional-order-schedule-form">
                 @csrf
                 <h3>Proposer un planning au client</h3>
