@@ -30,7 +30,7 @@ export default defineConfig({
                 'resources/css/pages/client/profile.css','resources/js/pages/client/profile.js','resources/css/pages/client/addresses.css','resources/js/pages/client/addresses.js',
                 'resources/css/pages/client/notifications.css','resources/css/pages/client/messages.css','resources/js/pages/client/messages.js',
                 'resources/css/pages/professional/dashboard.css','resources/js/pages/professional/dashboard.js',
-                'resources/css/pages/professional/orders-revenues.css','resources/js/pages/professional/orders-revenues.js',
+                'resources/css/pages/professional/orders-revenues.css','resources/js/pages/professional/orders-revenues.js','resources/js/pages/professional/quote-form.js',
                 'resources/css/pages/professional/revenues.css','resources/js/pages/professional/revenues.js',
                 'resources/css/pages/professional/wallet-withdrawals.css','resources/js/pages/professional/wallet-withdrawals.js',
                 'resources/css/pages/professional/reviews-messages.css','resources/js/pages/professional/reviews-messages.js',
