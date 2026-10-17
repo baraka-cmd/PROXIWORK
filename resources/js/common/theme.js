@@ -20,17 +20,17 @@ const applyTheme = (theme) => {
         const label = toggle.querySelector('[data-theme-label]');
         const actionLabel = isDark ? 'Activer le mode clair' : 'Activer le mode sombre';
 
-        toggle.setAttribute('aria-label', actionLabel);
+        toggle.setAttribute('aria-label', 'Mode sombre');
         toggle.setAttribute('aria-pressed', String(isDark));
         toggle.setAttribute('title', actionLabel);
 
         if (icon) {
-            icon.classList.toggle('fa-sun', isDark);
-            icon.classList.toggle('fa-moon', !isDark);
+            icon.classList.toggle('fa-moon', isDark);
+            icon.classList.toggle('fa-sun', !isDark);
         }
 
         if (label) {
-            label.textContent = isDark ? 'Mode clair' : 'Mode sombre';
+            label.textContent = 'Mode sombre';
         }
     });
 };
