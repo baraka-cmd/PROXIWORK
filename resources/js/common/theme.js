@@ -74,4 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (typeof systemTheme.addListener === 'function') {
         systemTheme.addListener(syncSystemTheme);
     }
+    window.addEventListener('storage', (event) => {
+        if (event.key === THEME_STORAGE_KEY) {
+            applyTheme(getStoredTheme() || getSystemTheme());
+        }
+    });
+
 });
