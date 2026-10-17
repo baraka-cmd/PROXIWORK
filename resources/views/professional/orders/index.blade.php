@@ -50,12 +50,22 @@
         @endif
     </form>
     <p class="page-description">Pour les commandes terminées, les dates filtrent la date de fin de prestation. Pour les autres états, elles filtrent la date de création.</p>
+    @if ($errors->any())
+        <div class="alert alert--error" role="alert">
+            <strong>Les filtres n’ont pas pu être appliqués.</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
+    @php($hasOrderFilters = $selectedStatus !== '' || $from !== '' || $to !== '')
 
     @if ($orders->isEmpty())
-        <div class="empty-state">
+        <div class="empty-state professional-order-empty-state">
             <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
-            <h2>Aucune commande</h2>
-            <p>Les commandes liées à vos services apparaîtront ici.</p>
+            <h2>{{ $hasOrderFilters ? 'Aucune commande ne correspond à ces critères' : 'Aucune commande pour le moment' }}</h2>
+            <p>{{ $hasOrderFilters ? 'Modifiez les filtres ou affichez toutes vos commandes pour retrouver une prestation.' : 'Les commandes liées à vos services apparaîtront ici.' }}</p>
+            @if ($hasOrderFilters)
+                <a class="button button--ghost" href="{{ route('professional.orders.index') }}">Effacer les filtres</a>
+            @endif
         </div>
     @else
         <div class="data-card professional-order-list-card">
