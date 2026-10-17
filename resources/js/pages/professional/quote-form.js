@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    [amount, currency, durationValue, durationUnit, validUntil].forEach((field) => {
+    [amount, currency, durationValue, durationUnit, validUntil, description].forEach((field) => {
         field?.addEventListener('input', updateSummary);
         field?.addEventListener('change', updateSummary);
     });
