@@ -7,6 +7,10 @@
     @vite('resources/css/pages/professional/requests.css')
 @endpush
 
+@push('scripts')
+    @vite('resources/js/pages/client/favorites-requests-quotes.js')
+@endpush
+
 @section('content')
     <div class="dashboard-page-header">
         <div>
