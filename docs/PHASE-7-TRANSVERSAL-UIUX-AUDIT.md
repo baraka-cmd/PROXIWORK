@@ -70,6 +70,6 @@ Principes retenus : états vides qui expliquent la situation et la suite possibl
 - Inspection en lecture seule du commit de base, des routes web, layouts communs, composants d'interface, CSS/JS partagés, configuration Vite et inventaire des vues.
 - La CI de la Phase 5 sur le commit de base est terminée avec succès : https://github.com/baraka-cmd/PROXIWORK/actions/runs/39042668817
 - Cette CI concerne le commit de base, pas les changements de cette branche.
-- La CI de la branche a réussi sur un commit précédent (tests Laravel et migrations MySQL) : https://github.com/baraka-cmd/PROXIWORK/actions/runs/39044686969. Les derniers correctifs ajoutés après ce run nécessitent une exécution CI à jour avant de conclure.
+- La CI du commit `88703d41b9aeef5896dbc9881063d48377106cb0` a réussi : https://github.com/baraka-cmd/PROXIWORK/actions/runs/39046073047. Résultats observés : suite Laravel réussie (634 tests, 2661 assertions), vérification Pint réussie, migrations MySQL sur base fraîche réussies et tests de régression financière MySQL réussis. Toute modification ultérieure devra être validée par sa propre CI.
 - Non vérifié ici : rendu visuel dans un navigateur réel, mesures de contraste, tests clavier/lecteur d'écran sur chaque vue, dimensions 320/360/390/768/1024/1440 px, zoom 200 %, Core Web Vitals et tests manuels de tous les parcours.
 - Aucun contrôleur, service, modèle, route, policy, FormRequest, migration, calcul financier ou mécanisme métier n'est modifié dans cette tranche.
