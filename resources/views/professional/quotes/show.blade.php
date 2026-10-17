@@ -217,9 +217,12 @@
                 <h2>Commande issue du devis</h2>
                 <dl class="details-list">
                     <div><dt>Référence</dt><dd>{{ $quotation->order->order_number }}</dd></div>
-                    <div><dt>Statut</dt><dd>{{ $quotation->order->status->value }}</dd></div>
+                    <div><dt>Statut</dt><dd>{{ match($quotation->order->status->value) { 'pending_payment' => 'En attente de paiement', 'confirmed' => 'Confirmée / à planifier', 'in_progress' => 'En cours', 'delivery_submitted' => 'Livrable à vérifier', 'completed' => 'Terminée', 'cancelled' => 'Annulée', 'disputed' => 'Contestée', default => ucfirst(str_replace('_', ' ', $quotation->order->status->value)) } }}</dd></div>
                     <div><dt>Total contractuel</dt><dd>{{ number_format((float) $quotation->order->total, 2, ',', ' ') }} {{ $quotation->order->currency }}</dd></div>
                 </dl>
+                @if ($quotation->order->status === \App\Enums\OrderStatus::PENDING_PAYMENT)
+                    <div class="professional-quote-note" role="status"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>Étape de paiement distincte</strong><p>Le devis accepté a créé la commande, mais la prestation ne peut pas démarrer tant que PROXIWORK n’a pas confirmé le paiement.</p></div></div>
+                @endif
                 <a class="button button--primary" href="{{ route('professional.orders.show', $quotation->order) }}">Ouvrir la commande</a>
             </section>
         @endif
