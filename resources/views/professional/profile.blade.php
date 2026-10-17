@@ -37,7 +37,7 @@
         if ($accountStatus !== 'active') {
             $visibilityReasons[] = ['message' => 'Votre compte n’est pas actif. Cet état ne peut pas être modifié depuis le profil professionnel.', 'url' => null, 'action' => null];
         }
-        if ($professional->status !== \\App\\Models\\ProfessionalProfile::STATUS_ACTIVE) {
+        if ($professional->status !== \App\Models\ProfessionalProfile::STATUS_ACTIVE) {
             $visibilityReasons[] = ['message' => 'Votre profil professionnel n’est pas dans l’état actif requis pour l’annuaire.', 'url' => null, 'action' => null];
         }
         if ($verification !== 'verified') {
@@ -49,7 +49,7 @@
                 'action' => 'Consulter mes documents',
             ];
         }
-        if ($professional->visibility !== \\App\\Models\\ProfessionalProfile::VISIBILITY_PUBLIC) {
+        if ($professional->visibility !== \App\Models\ProfessionalProfile::VISIBILITY_PUBLIC) {
             $visibilityReasons[] = ['message' => 'Votre préférence de visibilité est réglée sur privé.', 'url' => route('professional.profile.edit'), 'action' => 'Modifier la visibilité'];
         }
         if ($professional->published_services_count === 0) {
