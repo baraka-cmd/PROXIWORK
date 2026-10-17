@@ -6,13 +6,25 @@
     @push('head')
         @vite(['resources/css/pages/professional/orders-revenues.css', 'resources/js/pages/professional/orders-revenues.js'])
     @endpush
-    <div class="page-header">
+    @php
+        $orderStatusLabel = match ($order->status->value) {
+            'pending_payment' => 'En attente de paiement',
+            'confirmed' => 'Confirmée / à planifier',
+            'in_progress' => 'En cours',
+            'delivery_submitted' => 'Livrable à vérifier',
+            'completed' => 'Terminée',
+            'cancelled' => 'Annulée',
+            'disputed' => 'Contestée',
+            default => ucfirst(str_replace('_', ' ', $order->status->value)),
+        };
+    @endphp
+    <div class="page-header professional-order-detail-header">
         <div>
-            <p class="page-kicker">COMMANDE #{{ $order->id }}</p>
+            <p class="page-kicker">SUIVI DE PRESTATION · {{ $order->order_number ?? ('COMMANDE #'.$order->getKey()) }}</p>
             <h1>Détail de la commande</h1>
-            <p class="page-description">Informations historiques et financières de la commande.</p>
+            <p class="page-description">{{ $order->serviceRequest?->title ?? 'Prestation' }} · Client : {{ $order->client?->name ?? 'Client' }}</p>
         </div>
-        <span class="status-badge">{{ str_replace('_', ' ', $order->status->value) }}</span>
+        <span class="status-badge status-badge--{{ $order->status->value }}" role="status">{{ $orderStatusLabel }}</span>
     </div>
 
     <div class="detail-grid">
