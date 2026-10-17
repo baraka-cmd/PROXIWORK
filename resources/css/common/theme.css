@@ -204,3 +204,109 @@ hr,
         min-height: 42px;
     }
 }
+
+
+/* Page-level status chips that predate the shared semantic color tokens. */
+[data-theme='dark'] .home-preview-card {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+}
+
+[data-theme='dark'] .home-preview-mini-icon--amber,
+[data-theme='dark'] .request-status-badge--requested,
+[data-theme='dark'] .status-badge--pending_payment,
+[data-theme='dark'] .status-badge--delivery_submitted,
+[data-theme='dark'] .withdrawal-status--requested,
+[data-theme='dark'] .withdrawal-status--review_required,
+[data-theme='dark'] .withdrawal-status--processing,
+[data-theme='dark'] .wallet-bucket-label--pending,
+[data-theme='dark'] .revenue-status--reversed {
+    border-color: color-mix(in srgb, var(--color-warning) 40%, var(--color-border));
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning);
+}
+
+[data-theme='dark'] .request-status-filter span,
+[data-theme='dark'] .request-status-badge--draft,
+[data-theme='dark'] .request-status-badge--cancelled,
+[data-theme='dark'] .status-badge--cancelled,
+[data-theme='dark'] .withdrawal-status,
+[data-theme='dark'] .withdrawal-status--cancelled,
+[data-theme='dark'] .wallet-bucket-label,
+[data-theme='dark'] .wallet-bucket-label--unknown {
+    border-color: var(--color-border);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .request-active-filters > a,
+[data-theme='dark'] .request-card__icon,
+[data-theme='dark'] .wallet-bucket-label--locked,
+[data-theme='dark'] .status-badge--in_progress,
+[data-theme='dark'] .withdrawal-status--processing {
+    border-color: color-mix(in srgb, var(--color-info) 40%, var(--color-border));
+    background-color: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .request-status-badge--quoted,
+[data-theme='dark'] .status-badge--confirmed,
+[data-theme='dark'] .status-badge--completed,
+[data-theme='dark'] .withdrawal-status--succeeded,
+[data-theme='dark'] .wallet-bucket-label--available {
+    border-color: color-mix(in srgb, var(--color-success) 40%, var(--color-border));
+    background-color: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .request-status-badge--accepted,
+[data-theme='dark'] .status-badge--confirmed,
+[data-theme='dark'] .status-badge--completed,
+[data-theme='dark'] .wallet-bucket-label--available {
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .request-status-badge--rejected,
+[data-theme='dark'] .status-badge--disputed,
+[data-theme='dark'] .withdrawal-status--failed,
+[data-theme='dark'] .withdrawal-status--rejected {
+    border-color: color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .request-empty-state__icon {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .finance-amount--credit,
+[data-theme='dark'] .finance-direction--credit,
+[data-theme='dark'] .address-alert--success > i {
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .finance-amount--debit,
+[data-theme='dark'] .finance-direction--debit,
+[data-theme='dark'] .address-alert--error > i,
+[data-theme='dark'] .address-field .address-field-error {
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .wallet-ledger-disclaimer,
+[data-theme='dark'] .professional-order-workflow__notice--attention {
+    border-color: color-mix(in srgb, var(--color-warning) 40%, var(--color-border));
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning);
+}
+
+[data-theme='dark'] .wallet-ledger-disclaimer *,
+[data-theme='dark'] .professional-order-workflow__notice--attention strong {
+    color: var(--color-warning);
+}
+
+[data-theme='dark'] .dashboard-page-header,
+[data-theme='dark'] .dashboard-main,
+[data-theme='dark'] .public-main {
+    color: var(--color-text);
+}
