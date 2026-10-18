@@ -1,5 +1,72 @@
 document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
+    const themeRoot = document.documentElement;
+    const themeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+    const validTheme = (value) => value === 'light' || value === 'dark';
+
+    const syncThemeControls = () => {
+        const isDark = themeRoot.dataset.theme === 'dark';
+
+        document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+            const label = isDark ? 'Activer le mode clair' : 'Activer le mode sombre';
+            const visibleLabel = toggle.querySelector('[data-theme-label]');
+            const icon = toggle.querySelector('[data-theme-icon]');
+
+            toggle.setAttribute('aria-label', label);
+            toggle.setAttribute('title', label);
+            toggle.setAttribute('aria-pressed', String(isDark));
+
+            if (visibleLabel) {
+                visibleLabel.textContent = isDark ? 'Mode clair' : 'Mode sombre';
+            }
+
+            if (icon) {
+                icon.classList.toggle('fa-sun', isDark);
+                icon.classList.toggle('fa-moon', !isDark);
+            }
+        });
+    };
+
+    const applyTheme = (theme, { persist = false } = {}) => {
+        if (!validTheme(theme)) {
+            return;
+        }
+
+        themeRoot.dataset.theme = theme;
+
+        if (persist) {
+            themeRoot.dataset.themePreference = 'user';
+
+            try {
+                window.localStorage.setItem('proxiwork-theme', theme);
+            } catch (error) {
+                // The selected theme still applies for this page when storage is unavailable.
+            }
+        }
+
+        syncThemeControls();
+    };
+
+    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+            applyTheme(themeRoot.dataset.theme === 'dark' ? 'light' : 'dark', { persist: true });
+        });
+    });
+
+    themeMedia.addEventListener('change', (event) => {
+        if (themeRoot.dataset.themePreference !== 'user') {
+            applyTheme(event.matches ? 'dark' : 'light');
+        }
+    });
+
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'proxiwork-theme' && validTheme(event.newValue)) {
+            themeRoot.dataset.themePreference = 'user';
+            applyTheme(event.newValue);
+        }
+    });
+
+    syncThemeControls();
     const compactViewport = window.matchMedia('(max-width: 1023px)');
     const focusableSelector = [
         'a[href]',
