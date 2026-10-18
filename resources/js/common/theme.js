@@ -20,7 +20,7 @@ const updateThemeControls = (theme) => {
 
     document.querySelectorAll('[data-theme-toggle]').forEach((button) => {
         const label = isDark ? 'Mode clair' : 'Mode sombre';
-        const accessibleLabel = isDark ? 'Activer le mode clair' : 'Activer le mode sombre';
+        const accessibleLabel = 'Basculer entre le mode clair et le mode sombre';
         const icon = button.querySelector('[data-theme-toggle-icon]');
         const text = button.querySelector('[data-theme-toggle-label]');
 
