@@ -152,7 +152,7 @@ final class SharedComponentsTest extends TestCase
 
         $this->assertStringContainsString('type="button"', $html);
         $this->assertStringContainsString('data-theme-toggle', $html);
-        $this->assertStringContainsString('aria-label="Activer le mode sombre"', $html);
+        $this->assertStringContainsString('aria-label="Basculer entre le mode clair et le mode sombre"', $html);
         $this->assertStringContainsString('aria-pressed="false"', $html);
         $this->assertStringContainsString('data-theme-toggle-icon', $html);
         $this->assertStringContainsString('data-theme-toggle-label', $html);
