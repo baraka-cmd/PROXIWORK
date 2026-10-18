@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             button.setAttribute('aria-label', label);
             button.setAttribute('title', label);
-            button.setAttribute('aria-pressed', String(isDark));
 
             if (icon) {
                 icon.classList.toggle('fa-sun', isDark);
