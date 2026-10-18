@@ -2,7 +2,7 @@
     class="icon-button theme-toggle"
     type="button"
     data-theme-toggle
-    aria-label="Activer le mode sombre"
+    aria-label="Basculer entre le mode clair et le mode sombre"
     aria-pressed="false"
     title="Activer le mode sombre"
 >
