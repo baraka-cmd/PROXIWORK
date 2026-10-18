@@ -29,7 +29,7 @@
     place-items: center;
     border-radius: 0.9rem;
     background: var(--color-primary);
-    color: #fff;
+    color: var(--color-on-primary);
 }
 
 .client-dashboard__kicker,

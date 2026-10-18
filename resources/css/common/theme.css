@@ -1,0 +1,498 @@
+/* PROXIWORK theme controls and shared dark-mode surfaces. */
+/* Compatibility aliases for older page styles that predate the shared tokens. */
+[data-theme='dark'] {
+    --color-background: var(--color-page);
+    --color-heading: var(--color-text);
+    --surface: var(--color-surface);
+    --border-color: var(--color-border);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
+    --finance-border: var(--color-border);
+    --finance-muted: var(--color-text-muted);
+    --finance-surface: var(--color-surface);
+    --finance-soft: var(--color-surface-muted);
+}
+
+.theme-toggle {
+    min-width: 42px;
+    min-height: 42px;
+    padding-inline: var(--space-3);
+    border-color: var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.theme-toggle:hover {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+.theme-toggle__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.auth-theme-toggle {
+    position: fixed;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--z-header);
+}
+
+[data-theme='dark'] body,
+[data-theme='dark'] .app-shell,
+[data-theme='dark'] .dashboard-shell,
+[data-theme='dark'] .dashboard-content,
+[data-theme='dark'] .dashboard-main,
+[data-theme='dark'] .public-main,
+[data-theme='dark'] .auth-shell {
+    background-color: var(--color-page);
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .button--danger {
+    color: #1f0a0d;
+}
+
+[data-theme='dark'] .button--danger:hover:not(:disabled) {
+    background: #fca5a5;
+    color: #1f0a0d;
+}
+
+[data-theme='dark'] .public-header,
+[data-theme='dark'] .dashboard-topbar,
+[data-theme='dark'] .dashboard-sidebar,
+[data-theme='dark'] .dashboard-sidebar__header,
+[data-theme='dark'] .dashboard-sidebar__footer,
+[data-theme='dark'] .public-footer {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .surface-card,
+[data-theme='dark'] .state-skeleton,
+[data-theme='dark'] .state-loading--overlay,
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='submit']):not([type='button']):not([type='hidden']),
+[data-theme='dark'] select,
+[data-theme='dark'] textarea {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+}
+
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder,
+[data-theme='dark'] .form-control::placeholder {
+    color: var(--color-text-subtle);
+    opacity: 1;
+}
+
+[data-theme='dark'] select option {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+[data-theme='dark'] table,
+[data-theme='dark'] th,
+[data-theme='dark'] td {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .surface-card__header,
+[data-theme='dark'] .surface-card__footer,
+[data-theme='dark'] .dashboard-sidebar__header,
+[data-theme='dark'] .dashboard-topbar {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .surface-card__footer,
+[data-theme='dark'] .dashboard-nav-link:hover,
+[data-theme='dark'] .public-nav-link:hover,
+[data-theme='dark'] .icon-button:hover:not(:disabled) {
+    background-color: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .dashboard-nav-link.is-active,
+[data-theme='dark'] .public-mobile-navigation .public-nav-link.is-active {
+    background-color: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+[data-theme='dark'] .public-nav-link,
+[data-theme='dark'] .dashboard-nav-link,
+[data-theme='dark'] .dashboard-user__identity small,
+[data-theme='dark'] .dashboard-nav-title {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .public-nav-link:hover,
+[data-theme='dark'] .dashboard-nav-link:hover,
+[data-theme='dark'] .dashboard-user__identity strong {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .alert--success,
+[data-theme='dark'] .alert--info,
+[data-theme='dark'] .alert--warning,
+[data-theme='dark'] .alert--danger,
+[data-theme='dark'] .alert--error,
+[data-theme='dark'] .badge--success,
+[data-theme='dark'] .badge--warning,
+[data-theme='dark'] .badge--danger,
+[data-theme='dark'] .badge--info {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .auth-shell {
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--color-primary) 12%, transparent), transparent 34%),
+        var(--color-page);
+}
+
+/* Page-specific elements that intentionally use the secondary token as text. */
+[data-theme='dark'] .home-hero h1,
+[data-theme='dark'] .home-preview-card--main h2,
+[data-theme='dark'] .home-preview-card--request strong,
+[data-theme='dark'] .home-preview-card--quote strong,
+[data-theme='dark'] .home-section-heading h2,
+[data-theme='dark'] .home-audience-card h3,
+[data-theme='dark'] .home-steps-list h3 {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .home-preview-card {
+    border-color: var(--color-border);
+    background: var(--color-surface);
+}
+
+[data-theme='dark'] .home-preview-mini-icon--amber {
+    background: var(--color-warning-soft);
+    color: var(--color-warning);
+}
+
+[data-theme='dark'] .client-dashboard__welcome-icon,
+[data-theme='dark'] .client-filter.is-active,
+[data-theme='dark'] .profile-avatar {
+    color: var(--color-on-primary);
+}
+
+/* The administration screens contain legacy page-specific colors; normalize them
+   here so their tables, filters, forms and status chips remain legible in dark mode. */
+[data-theme='dark'] .admin-card,
+[data-theme='dark'] .admin-payment-metric,
+[data-theme='dark'] .admin-analytics__kpi,
+[data-theme='dark'] .admin-analytics__card,
+[data-theme='dark'] .admin-dashboard__kpi,
+[data-theme='dark'] .admin-dashboard__card,
+[data-theme='dark'] .admin-modal__panel,
+[data-theme='dark'] .permission-group,
+[data-theme='dark'] .permission-item,
+[data-theme='dark'] .permission-list__item,
+[data-theme='dark'] .admin-icon-button {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .admin-field > span,
+[data-theme='dark'] .admin-empty strong,
+[data-theme='dark'] .admin-empty,
+[data-theme='dark'] .admin-definition-list dd,
+[data-theme='dark'] .admin-detail-list dd,
+[data-theme='dark'] .permission-group legend,
+[data-theme='dark'] .admin-profile-hero h3,
+[data-theme='dark'] .admin-user-cell,
+[data-theme='dark'] .admin-role-form,
+[data-theme='dark'] .permission-item strong {
+    color: var(--color-text);
+}
+
+[data-theme='dark'] .admin-muted,
+[data-theme='dark'] .admin-field small,
+[data-theme='dark'] .admin-card__header p,
+[data-theme='dark'] .admin-profile-hero p,
+[data-theme='dark'] .admin-definition-list dt,
+[data-theme='dark'] .admin-detail-list dt,
+[data-theme='dark'] .admin-table th,
+[data-theme='dark'] .admin-user-cell small,
+[data-theme='dark'] .permission-item small,
+[data-theme='dark'] .permission-list__item small,
+[data-theme='dark'] .admin-danger-zone p,
+[data-theme='dark'] .admin-dashboard__kpi span,
+[data-theme='dark'] .admin-dashboard__status span,
+[data-theme='dark'] .admin-dashboard__finance span,
+[data-theme='dark'] .admin-analytics__kpi span,
+[data-theme='dark'] .admin-analytics__eyebrow {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .admin-page-badge,
+[data-theme='dark'] .admin-chip--accent,
+[data-theme='dark'] .permission-list__icon {
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
+}
+
+[data-theme='dark'] .admin-chip,
+[data-theme='dark'] .admin-status,
+[data-theme='dark'] .admin-dashboard__status {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .admin-status--active,
+[data-theme='dark'] .admin-alert--success {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .admin-status--suspended,
+[data-theme='dark'] .admin-alert--error,
+[data-theme='dark'] .admin-danger-zone {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .admin-status--system,
+[data-theme='dark'] .admin-avatar--role {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .admin-verified,
+[data-theme='dark'] .admin-link,
+[data-theme='dark'] .permission-item code,
+[data-theme='dark'] .permission-list__item code {
+    color: var(--color-primary);
+}
+
+[data-theme='dark'] .admin-avatar,
+[data-theme='dark'] .admin-profile-hero__avatar {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+    color: var(--color-on-primary);
+}
+
+[data-theme='dark'] .admin-table th,
+[data-theme='dark'] .admin-table td,
+[data-theme='dark'] .admin-definition-list > div {
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .admin-table tbody tr:hover,
+[data-theme='dark'] .permission-item:has(input:checked) {
+    background: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .permission-item:has(input:checked) {
+    border-color: var(--color-primary);
+}
+
+[data-theme='dark'] .admin-icon-button:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-primary);
+    border-color: var(--color-border-strong);
+}
+
+/* Additional page-specific controls use the same semantic palette. */
+[data-theme='dark'] .filter-chip,
+[data-theme='dark'] .filter-form,
+[data-theme='dark'] .data-card,
+[data-theme='dark'] .metric-card,
+[data-theme='dark'] .revenue-card,
+[data-theme='dark'] .revenue-metric {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .filter-chip.is-active,
+[data-theme='dark'] .revenue-button--primary,
+[data-theme='dark'] .favorites-type-tab.is-active {
+    color: var(--color-on-primary);
+}
+
+[data-theme='dark'] .professional-table th,
+[data-theme='dark'] .detail-list dt,
+[data-theme='dark'] .timeline-item span,
+[data-theme='dark'] .muted,
+[data-theme='dark'] .metric-card span,
+[data-theme='dark'] .metric-card small {
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .status-badge {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .revenue-status {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .status-badge--pending_payment,
+[data-theme='dark'] .revenue-status--reversed,
+[data-theme='dark'] .notification-priority {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+[data-theme='dark'] .status-badge--confirmed,
+[data-theme='dark'] .revenue-status:not(.revenue-status--reversed):not(.revenue-status--pending) {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .status-badge--in_progress,
+[data-theme='dark'] .revenue-status--pending {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .client-review-rating-options label:has(input:checked),
+[data-theme='dark'] .client-review-existing blockquote,
+[data-theme='dark'] .client-review-response,
+[data-theme='dark'] .public-review-card__response {
+    background: var(--color-surface-muted);
+}
+
+[data-theme='dark'] .address-alert--success > i {
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .address-alert--error > i,
+[data-theme='dark'] .address-field-error {
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .finance-filter-form select,
+[data-theme='dark'] .form-field input,
+[data-theme='dark'] .form-field select,
+[data-theme='dark'] .finance-balance-card,
+[data-theme='dark'] .finance-card,
+[data-theme='dark'] .finance-table,
+[data-theme='dark'] .finance-table-wrap,
+[data-theme='dark'] .withdrawal-card,
+[data-theme='dark'] .finance-form {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .finance-amount--credit,
+[data-theme='dark'] .finance-direction--credit {
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .finance-amount--debit,
+[data-theme='dark'] .finance-direction--debit,
+[data-theme='dark'] .field-error {
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .withdrawal-status {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .withdrawal-status--requested {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+[data-theme='dark'] .withdrawal-status--processing {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .withdrawal-status--succeeded {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+}
+
+[data-theme='dark'] .withdrawal-status--failed,
+[data-theme='dark'] .withdrawal-status--rejected {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+}
+
+[data-theme='dark'] .withdrawal-status--cancelled,
+[data-theme='dark'] .withdrawal-status--unknown,
+[data-theme='dark'] .wallet-bucket-label,
+[data-theme='dark'] .wallet-bucket-label--unknown {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .withdrawal-status--review_required,
+[data-theme='dark'] .wallet-bucket-label--pending,
+[data-theme='dark'] .wallet-ledger-disclaimer,
+[data-theme='dark'] .alert--warning {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .wallet-bucket-label--available,
+[data-theme='dark'] .alert--success {
+    background: var(--color-success-soft);
+    color: var(--color-success);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .wallet-bucket-label--locked,
+[data-theme='dark'] .withdrawal-status--processing {
+    background: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+[data-theme='dark'] .alert--error {
+    background: var(--color-danger-soft);
+    color: var(--color-danger);
+    border-color: var(--color-border);
+}
+
+[data-theme='dark'] .withdrawal-timeline li.is-complete > span,
+[data-theme='dark'] .withdrawal-step-heading__number {
+    color: var(--color-on-primary);
+}
+
+[data-theme='dark'] .request-status-filter span {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+}
+
+[data-theme='dark'] .request-status-filter.is-active {
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    border-color: var(--color-primary);
+}
+
+@media (max-width: 767px) {
+    .theme-toggle {
+        min-width: 42px;
+        padding-inline: var(--space-2);
+    }
+
+    .theme-toggle__label {
+        display: none;
+    }
+
+    .auth-theme-toggle {
+        top: var(--space-2);
+        right: var(--space-2);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-toggle {
+        transition: none;
+    }
+}

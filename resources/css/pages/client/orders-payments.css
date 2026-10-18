@@ -273,7 +273,7 @@
 }
 .client-review-rating-options label:has(input:checked) {
     border-color: var(--color-primary, #0f766e);
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 8%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 8%, var(--color-surface));
 }
 .client-review-rating-options label > span:first-of-type,
 .client-review-star {
@@ -296,7 +296,7 @@
     margin: .75rem 0;
     padding: .75rem 1rem;
     border-left: 3px solid var(--color-primary, #0f766e);
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 5%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 5%, var(--color-surface));
     overflow-wrap: anywhere;
 }
 .client-review-response {
@@ -304,7 +304,7 @@
     padding: .9rem 1rem;
     border-left: 3px solid var(--color-primary, #0f766e);
     border-radius: 0 .7rem .7rem 0;
-    background: color-mix(in srgb, var(--color-primary, #0f766e) 6%, white);
+    background: color-mix(in srgb, var(--color-primary, #0f766e) 6%, var(--color-surface));
 }
 .client-review-response p {
     margin: .4rem 0 0;

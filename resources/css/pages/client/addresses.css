@@ -6,9 +6,9 @@
 .address-alert{display:flex;align-items:flex-start;gap:.7rem;padding:1rem 1.15rem;border:1px solid var(--color-border);line-height:1.55}
 .address-alert>i{margin-top:.2rem}
 .address-alert--success{border-color:rgba(22,163,74,.35)}
-.address-alert--success>i{color:#15803d}
+.address-alert--success>i{color:var(--color-success)}
 .address-alert--error{border-color:rgba(220,38,38,.35)}
-.address-alert--error>i{color:#b91c1c}
+.address-alert--error>i{color:var(--color-danger)}
 .address-alert ul{margin:.5rem 0 0;padding-left:1.25rem}
 .address-summary{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;color:var(--color-text-muted);font-size:.9rem}
 .address-summary span:first-child{display:inline-flex;align-items:center;gap:.5rem;font-weight:700;color:var(--color-text)}
@@ -52,9 +52,9 @@
 .address-field textarea{resize:vertical;min-height:7rem}
 .address-field input::placeholder,.address-field textarea::placeholder{color:var(--color-text-muted);opacity:.8}
 .address-field input:focus-visible,.address-field textarea:focus-visible{outline:2px solid transparent;border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-primary) 18%,transparent)}
-.address-field input[aria-invalid=true],.address-field textarea[aria-invalid=true]{border-color:#dc2626}
+.address-field input[aria-invalid=true],.address-field textarea[aria-invalid=true]{border-color:var(--color-danger)}
 .address-field>small{font-size:.8rem;line-height:1.45;color:var(--color-text-muted)}
-.address-field .address-field-error{color:#b91c1c;font-weight:600}
+.address-field .address-field-error{color:var(--color-danger);font-weight:600}
 .address-form-subheading{padding-top:.3rem}
 .address-form-subheading h3{margin:0;font-size:1rem}
 .address-form-subheading h3 span{margin-left:.4rem;color:var(--color-text-muted);font-size:.8rem;font-weight:500}
