@@ -24,6 +24,6 @@ Fournir un choix de thème cohérent sur les pages publiques, l'authentification
 
 ## Vérifications nécessaires
 
-- Build Vite et tests Laravel/CI, y compris le job de migration MySQL, à confirmer pour le commit exact de cette branche.
+- Avant la fusion, vérifier que la CI est verte sur le dernier commit de la branche, notamment le build Vite, les tests Laravel et le job de migration MySQL sur base fraîche.
 - Vérification visuelle manuelle sur desktop/mobile, zoom, contraste et parcours avec JavaScript désactivé non exécutée dans un navigateur durant cet audit.
 - Les pages utilisant des couleurs codées en dur ou des styles en ligne peuvent nécessiter des ajustements spécifiques après revue visuelle. La couche globale ne remplace pas une validation de chaque page.
