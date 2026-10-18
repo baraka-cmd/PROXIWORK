@@ -4,6 +4,9 @@
 
 @section('body')
     <main id="main-content" class="auth-shell">
+        <div class="auth-theme-toggle">
+            <x-theme-toggle />
+        </div>
         <section class="auth-panel" aria-labelledby="auth-page-title">
             <div class="auth-brand">
                 <a class="brand" href="{{ url('/') }}" aria-label="PROXIWORK — accueil">

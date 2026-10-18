@@ -1,0 +1,261 @@
+/* =========================================================
+   PROXIWORK — Theme system
+   Shared across public, authentication and dashboard layouts.
+   ========================================================= */
+
+:root {
+    color-scheme: light;
+}
+
+html[data-theme='dark'] {
+    color-scheme: dark;
+
+    --color-primary: #2dd4bf;
+    --color-primary-hover: #5eead4;
+    --color-primary-soft: #123d3a;
+    --color-secondary: #26364d;
+    --color-secondary-soft: #1e293b;
+
+    --color-white: #ffffff;
+    --color-page: #0b1120;
+    --color-surface: #111c2f;
+    --color-surface-muted: #172337;
+    --color-border: #2c3c53;
+    --color-border-strong: #40516a;
+
+    --color-text: #e5edf8;
+    --color-text-muted: #b6c3d5;
+    --color-text-subtle: #8da0ba;
+    --color-on-primary: #062e2b;
+    --color-on-secondary: #f8fafc;
+    --color-on-accent: #172033;
+
+    --color-success: #4ade80;
+    --color-success-soft: #123d2a;
+    --color-warning: #fbbf24;
+    --color-warning-soft: #3b2f12;
+    --color-danger: #f87171;
+    --color-danger-soft: #3b1c25;
+    --color-info: #38bdf8;
+    --color-info-soft: #122f46;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+    --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.36);
+}
+
+html[data-theme='dark'] body {
+    background-color: var(--color-page);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(
+    .surface-card,
+    .card,
+    .panel,
+    .stat-card,
+    .metric-card,
+    .dashboard-card,
+    .dashboard-panel,
+    .dashboard-widget,
+    .content-card,
+    .form-card,
+    .profile-card,
+    .service-card,
+    .professional-card,
+    .request-card,
+    .quote-card,
+    .order-card,
+    .payment-card,
+    .message-card,
+    .notification-card,
+    .favorite-card,
+    .review-card,
+    .wallet-card,
+    .revenue-card,
+    .settings-card
+) {
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(
+    .public-header,
+    .public-footer,
+    .dashboard-sidebar,
+    .dashboard-topbar,
+    .dashboard-sidebar__header,
+    .dashboard-sidebar__footer,
+    .login-card,
+    .register-card,
+    .auth-card,
+    .dropdown-menu,
+    .popover,
+    .modal-content
+) {
+    border-color: var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(
+    .dashboard-nav-link:hover,
+    .public-nav-link:hover,
+    .mobile-menu-toggle:hover,
+    .icon-button:hover:not(:disabled),
+    .button--ghost:hover:not(:disabled),
+    .google-login:hover
+) {
+    background-color: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='hidden']):not([type='submit']):not([type='button']),
+    select,
+    textarea,
+    .form-control,
+    .form-input,
+    .form-select,
+    .form-textarea
+):not(.login-input input) {
+    border-color: var(--color-border-strong);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(
+    input,
+    textarea,
+    select,
+    .form-control,
+    .form-input,
+    .form-select,
+    .form-textarea
+)::placeholder {
+    color: var(--color-text-subtle);
+    opacity: 1;
+}
+
+html[data-theme='dark'] :is(table, .table, .data-table) {
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(th, .table thead th, .data-table thead th) {
+    border-color: var(--color-border);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(td, th, .table td, .table th, .data-table td, .data-table th) {
+    border-color: var(--color-border);
+}
+
+html[data-theme='dark'] :is(
+    .text-muted,
+    .text-secondary,
+    .text-gray-500,
+    .text-gray-600,
+    .text-slate-500,
+    .text-slate-600
+) {
+    color: var(--color-text-muted);
+}
+
+html[data-theme='dark'] :is(
+    .text-black,
+    .text-dark,
+    .text-gray-700,
+    .text-gray-800,
+    .text-gray-900,
+    .text-slate-700,
+    .text-slate-800,
+    .text-slate-900
+) {
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(.bg-white, .bg-body, .bg-light) {
+    background-color: var(--color-surface);
+}
+
+html[data-theme='dark'] :is(
+    .bg-gray-50,
+    .bg-gray-100,
+    .bg-slate-50,
+    .bg-slate-100,
+    .bg-light-subtle
+) {
+    background-color: var(--color-surface-muted);
+}
+
+html[data-theme='dark'] :is(.table-light, .table-striped > tbody > tr:nth-of-type(odd) > *) {
+    --bs-table-bg: var(--color-surface-muted);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(
+    .border-gray-100,
+    .border-gray-200,
+    .border-slate-100,
+    .border-slate-200
+) {
+    border-color: var(--color-border);
+}
+
+.auth-theme-toggle {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--z-header);
+}
+
+.auth-theme-toggle .theme-toggle__label {
+    display: inline;
+}
+
+.theme-toggle {
+    flex: 0 0 auto;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    white-space: nowrap;
+}
+
+.theme-toggle:hover:not(:disabled) {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-muted);
+    color: var(--color-text);
+}
+
+.theme-toggle__label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 767px) {
+    .auth-theme-toggle {
+        top: var(--space-2);
+        right: var(--space-2);
+    }
+
+    .auth-theme-toggle .theme-toggle__label {
+        display: none;
+    }
+    .theme-toggle {
+        min-width: 42px;
+        padding-inline: var(--space-2);
+    }
+
+    .theme-toggle__label {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .theme-toggle {
+        transition: none;
+    }
+}
