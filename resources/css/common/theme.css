@@ -184,6 +184,17 @@ html[data-theme='dark'] :is(
     border-color: var(--color-border);
 }
 
+.auth-theme-toggle {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    z-index: var(--z-header);
+}
+
+.auth-theme-toggle .theme-toggle__label {
+    display: inline;
+}
+
 .theme-toggle {
     flex: 0 0 auto;
     border: 1px solid var(--color-border);
@@ -204,6 +215,14 @@ html[data-theme='dark'] :is(
 }
 
 @media (max-width: 767px) {
+    .auth-theme-toggle {
+        top: var(--space-2);
+        right: var(--space-2);
+    }
+
+    .auth-theme-toggle .theme-toggle__label {
+        display: none;
+    }
     .theme-toggle {
         min-width: 42px;
         padding-inline: var(--space-2);
