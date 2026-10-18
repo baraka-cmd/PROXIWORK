@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             button.setAttribute('aria-label', label);
             button.setAttribute('title', label);
+            button.setAttribute('aria-pressed', String(isDark));
 
             if (icon) {
                 icon.classList.toggle('fa-sun', isDark);
@@ -50,5 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', () => {
             applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark', true);
         });
+    });
+
+    window.addEventListener('storage', (event) => {
+        if (event.key !== storageKey && event.key !== null) {
+            return;
+        }
+
+        applyTheme(event.newValue === 'dark' ? 'dark' : 'light');
     });
 });
