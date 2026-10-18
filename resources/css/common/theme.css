@@ -157,22 +157,43 @@ html[data-theme='dark'] :is(
     .text-secondary,
     .text-gray-500,
     .text-gray-600,
-    .text-gray-700,
     .text-slate-500,
-    .text-slate-600,
-    .text-slate-700
+    .text-slate-600
 ) {
     color: var(--color-text-muted);
 }
 
 html[data-theme='dark'] :is(
-    .bg-white,
+    .text-black,
+    .text-dark,
+    .text-gray-700,
+    .text-gray-800,
+    .text-gray-900,
+    .text-slate-700,
+    .text-slate-800,
+    .text-slate-900
+) {
+    color: var(--color-text);
+}
+
+html[data-theme='dark'] :is(.bg-white, .bg-body, .bg-light) {
+    background-color: var(--color-surface);
+}
+
+html[data-theme='dark'] :is(
     .bg-gray-50,
     .bg-gray-100,
     .bg-slate-50,
-    .bg-slate-100
+    .bg-slate-100,
+    .bg-light-subtle
 ) {
-    background-color: var(--color-surface);
+    background-color: var(--color-surface-muted);
+}
+
+html[data-theme='dark'] :is(.table-light, .table-striped > tbody > tr:nth-of-type(odd) > *) {
+    --bs-table-bg: var(--color-surface-muted);
+    background-color: var(--color-surface-muted);
+    color: var(--color-text);
 }
 
 html[data-theme='dark'] :is(
