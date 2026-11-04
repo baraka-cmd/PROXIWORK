@@ -10,6 +10,7 @@
 @section('page_description', 'Comprenez les retours de vos clients, répondez avec professionnalisme et suivez votre réputation.')
 
 @section('content')
+    <div class="professional-reviews-page">
     @if (session('success'))
         <div class="feedback feedback--success" role="status" aria-live="polite">{{ session('success') }}</div>
     @endif
@@ -149,7 +150,7 @@
                 <h2>Vos avis clients</h2>
                 <p>Les filtres sont appliqués côté serveur et peuvent être combinés.</p>
             </div>
-            <span class="review-total">{{ $reviews->total() }} résultat(s)</span>
+            <span class="review-total">{{ $reviews->total() }} avis correspondent à ces filtres</span>
         </div>
         <form method="GET" class="review-filters">
             <input type="hidden" name="period" value="{{ $filters['period'] ?? '30' }}">
@@ -217,7 +218,7 @@
                 </select>
             </label>
             <div class="review-filter-actions">
-                <button class="button button--primary" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Appliquer</button>
+                <button class="button button--primary" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Appliquer les filtres</button>
                 <a class="button button--ghost" href="{{ route('professional.reviews') }}">Réinitialiser</a>
             </div>
         </form>
@@ -332,4 +333,5 @@
             {{ $reviews->withQueryString()->links() }}
         </nav>
     @endif
+    </div>
 @endsection

@@ -9,9 +9,11 @@ use App\Http\Requests\PublicServiceSearchRequest;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
+use App\Models\ServiceRealization;
 use App\Models\Skill;
 use App\Services\ProfessionalSearch\ProfessionalSearchService;
 use App\Services\PublicServiceSearch\PublicServiceSearchService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -28,16 +30,20 @@ class PublicSearchController
         $filters = $request->validated();
 
         return view('public.search-services', [
-            'services' => $this->serviceSearchService->search($filters),
+            'services' => $this->serviceSearchService->search($filters, $request->user()),
             'filters' => $filters,
             ...$this->filterOptions(),
         ]);
     }
 
-    public function service(Service $service): View
+    public function service(Request $request, Service $service): View
     {
-        $service = $this->serviceSearchService->findVisible($service->getKey());
-        $service->loadMissing(['realizations' => fn ($query) => $query->where('status', 'approved')]);
+        $service = $this->serviceSearchService->findVisible($service->getKey(), $request->user());
+        $service->loadMissing([
+            'realizations' => fn ($query) => $query
+                ->where('status', 'approved')
+                ->where('participation_confirmed', true),
+        ]);
 
         return view('public.services.show', compact('service'));
     }
@@ -67,17 +73,28 @@ class PublicSearchController
         return $response;
     }
 
-    public function professional(ProfessionalProfile $professional): View
+    public function professional(Request $request, ProfessionalProfile $professional): View
     {
-        $professional = $this->searchService->findVisible($professional);
+        $professional = $this->searchService->findVisible($professional, $request->user());
+        $favorite = $professional->relationLoaded('favorites')
+            ? $professional->favorites->first()
+            : null;
         $executionModes = $professional->services
             ->map(fn ($service) => $service->execution_mode)
             ->filter()
             ->unique()
             ->map(fn ($mode) => $mode->label())
             ->values();
+        $realizations = $professional->services->flatMap(
+            fn (Service $service) => $service->realizations->map(
+                fn (ServiceRealization $realization): array => [
+                    'service' => $service,
+                    'realization' => $realization,
+                ]
+            )
+        );
 
-        return view('public.professionals.show', compact('professional', 'executionModes'));
+        return view('public.professionals.show', compact('professional', 'executionModes', 'favorite', 'realizations'));
     }
 
     public function professionals(ProfessionalSearchRequest $request): View
@@ -85,7 +102,7 @@ class PublicSearchController
         $filters = $request->validated();
 
         return view('public.professionals.index', [
-            'professionals' => $this->searchService->search($filters),
+            'professionals' => $this->searchService->search($filters, $request->user()),
             'filters' => $filters,
             ...$this->filterOptions(),
         ]);
@@ -96,12 +113,14 @@ class PublicSearchController
         return [
             'categories' => Category::query()
                 ->active()
+                ->whereHas('services', fn ($services) => $services->requestable())
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']),
             'skills' => Skill::query()
                 ->active()
+                ->whereHas('services', fn ($services) => $services->requestable())
                 ->orderBy('name')
-                ->get(['id', 'name', 'slug']),
+                ->get(['id', 'category_id', 'name', 'slug']),
         ];
     }
 }

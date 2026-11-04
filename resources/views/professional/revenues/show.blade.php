@@ -50,34 +50,34 @@
                     <thead><tr><th>Événement</th><th>Date</th><th>Référence</th><th>État / détail</th></tr></thead>
                     <tbody>
                         <tr>
-                            <td>Commission enregistrée</td>
-                            <td>{{ $commission->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                            <td>COM-{{ $commission->id }}</td>
-                            <td>{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</td>
+                            <td data-label="Événement">Commission enregistrée</td>
+                            <td data-label="Date">{{ $commission->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                            <td data-label="Référence">COM-{{ $commission->id }}</td>
+                            <td data-label="État / détail">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée / corrigée' }}</td>
                         </tr>
                         @if ($commission->reversed_at)
                             <tr>
-                                <td>Correction de commission</td>
-                                <td>{{ $commission->reversed_at->format('d/m/Y H:i') }}</td>
-                                <td>{{ $commission->reversal_of_id ? 'COM-'.$commission->reversal_of_id : '—' }}</td>
-                                <td>La commission est marquée comme annulée.</td>
+                                <td data-label="Événement">Correction de commission</td>
+                                <td data-label="Date">{{ $commission->reversed_at->format('d/m/Y H:i') }}</td>
+                                <td data-label="Référence">{{ $commission->reversal_of_id ? 'COM-'.$commission->reversal_of_id : '—' }}</td>
+                                <td data-label="État / détail">La commission est marquée comme annulée.</td>
                             </tr>
                         @endif
                         @foreach ($walletTransactions as $transaction)
                             <tr>
-                                <td>Mouvement du portefeuille</td>
-                                <td>{{ $transaction->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                <td>WAL-{{ $transaction->id }}</td>
-                                <td>{{ $transaction->description ?: $transaction->type->value }} · {{ number_format((float) $transaction->amount, 2, ',', ' ') }} {{ $transaction->currency }}</td>
+                                <td data-label="Événement">Mouvement du portefeuille</td>
+                                <td data-label="Date">{{ $transaction->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                <td data-label="Référence">WAL-{{ $transaction->id }}</td>
+                                <td data-label="État / détail">{{ $transaction->description ?: $transaction->type->value }} · {{ number_format((float) $transaction->amount, 2, ',', ' ') }} {{ $transaction->currency }}</td>
                             </tr>
                         @endforeach
                         @if ($commission->payment)
                             @foreach ($commission->payment->events as $event)
                                 <tr>
-                                    <td>Événement de paiement</td>
-                                    <td>{{ $event->occurred_at?->format('d/m/Y H:i') ?? $event->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                    <td>PAY-{{ $commission->payment->id }}</td>
-                                    <td>{{ $event->event_type }} · {{ $event->to_status ?? '—' }}</td>
+                                    <td data-label="Événement">Événement de paiement</td>
+                                    <td data-label="Date">{{ $event->occurred_at?->format('d/m/Y H:i') ?? $event->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td data-label="Référence">PAY-{{ $commission->payment->id }}</td>
+                                    <td data-label="État / détail">{{ $event->event_type }} · {{ $event->to_status ?? '—' }}</td>
                                 </tr>
                             @endforeach
                         @endif
@@ -96,11 +96,11 @@
                         <tbody>
                             @foreach ($commission->payment->refunds as $refund)
                                 <tr>
-                                    <td>{{ $refund->reference }}</td>
-                                    <td>{{ $refund->requested_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                    <td>{{ $refund->processed_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                    <td>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</td>
-                                    <td><span class="revenue-status {{ in_array($refund->status->value, ['requested', 'processing'], true) ? 'revenue-status--pending' : (in_array($refund->status->value, ['failed', 'rejected', 'cancelled'], true) ? 'revenue-status--reversed' : '') }}">{{ match ($refund->status->value) { 'requested' => 'Demandé', 'processing' => 'En traitement', 'succeeded' => 'Confirmé', 'failed' => 'Échoué', 'rejected' => 'Refusé', 'cancelled' => 'Annulé', default => $refund->status->value } }}</span></td>
+                                    <td data-label="Référence">{{ $refund->reference }}</td>
+                                    <td data-label="Demandé le">{{ $refund->requested_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td data-label="Traité le">{{ $refund->processed_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td data-label="Montant">{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</td>
+                                    <td data-label="État"><span class="revenue-status {{ in_array($refund->status->value, ['requested', 'processing'], true) ? 'revenue-status--pending' : (in_array($refund->status->value, ['failed', 'rejected', 'cancelled'], true) ? 'revenue-status--reversed' : '') }}">{{ match ($refund->status->value) { 'requested' => 'Demandé', 'processing' => 'En traitement', 'succeeded' => 'Confirmé', 'failed' => 'Échoué', 'rejected' => 'Refusé', 'cancelled' => 'Annulé', default => $refund->status->value } }}</span></td>
                                 </tr>
                             @endforeach
                         </tbody>

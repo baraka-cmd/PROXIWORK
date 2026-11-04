@@ -8,6 +8,7 @@
 @endpush
 
 @section('content')
+    <div class="professional-quotes-page">
     <div class="dashboard-page-header">
         <div>
             <p class="eyebrow">Espace professionnel</p>
@@ -50,7 +51,7 @@
             </div>
         </div>
         <div class="professional-quote-search__actions">
-            <button class="button button--primary" type="submit">Appliquer</button>
+            <button class="button button--primary" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Appliquer les filtres</button>
             <a class="button button--ghost" href="{{ route('professional.quotes.index', $actionRequired ? ['action_required' => 1] : []) }}">Réinitialiser</a>
         </div>
     </form>
@@ -74,6 +75,12 @@
                 <p>Ces devis ont une contre-proposition du client en cours. Vérifiez les conditions et répondez depuis le détail du devis.</p>
             </div>
         @endif
+        <div class="professional-quote-list-heading">
+            <div>
+                <h2>{{ $actionRequired ? 'Devis à traiter' : 'Tous vos devis' }}</h2>
+                <p>{{ $quotations->total() }} résultat{{ $quotations->total() > 1 ? 's' : '' }} dans votre espace professionnel.</p>
+            </div>
+        </div>
         <div class="table-responsive surface-card professional-quote-table-wrap">
             <table class="data-table professional-quote-table">
                 <thead><tr><th>Demande</th><th>Client</th><th>Montant proposé</th><th>Statut</th><th>Validité</th><th></th></tr></thead>
@@ -94,7 +101,7 @@
                             </td>
                             <td data-label="Statut"><span class="badge badge--neutral">{{ $quotation->status->label() }}</span></td>
                             <td data-label="Validité">{{ $quotation->currentOffer?->valid_until?->format('d/m/Y') ?? '—' }}</td>
-                            <td data-label="Action"><a class="button button--ghost button--sm" href="{{ route('professional.quotes.show', $quotation) }}">Consulter</a></td>
+                            <td data-label="Action"><a class="button button--ghost button--sm" href="{{ route('professional.quotes.show', $quotation) }}">Consulter le devis</a></td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -102,4 +109,5 @@
         </div>
         <div class="professional-pagination">{{ $quotations->links() }}</div>
     @endif
+    </div>
 @endsection

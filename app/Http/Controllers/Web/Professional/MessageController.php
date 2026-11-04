@@ -14,6 +14,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\MessageAttachment;
 use App\Models\Report;
+use App\Models\User;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MessageController extends Controller
 {
@@ -122,6 +124,35 @@ class MessageController extends Controller
                 'recipient_last_read_message_id' => $conversationData->recipient_last_read_message_id,
             ],
         ]);
+    }
+
+    public function participantPhoto(
+        Request $request,
+        Conversation $conversation,
+        User $participant,
+    ): BinaryFileResponse {
+        $this->authorize('view', $conversation);
+        $conversation->loadMissing('professional');
+
+        $participantIds = [
+            (string) $conversation->client_id,
+            (string) $conversation->professional?->user_id,
+        ];
+
+        abort_unless(in_array((string) $participant->getKey(), $participantIds, true), 404);
+
+        $path = $participant->profile()->value('avatar_path');
+        abort_unless(is_string($path) && $path !== '' && Storage::disk('local')->exists($path), 404);
+
+        $mimeType = Storage::disk('local')->mimeType($path);
+        abort_unless(is_string($mimeType) && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true), 404);
+
+        $response = response()->file(Storage::disk('local')->path($path));
+        $response->headers->set('Content-Type', $mimeType);
+        $response->headers->set('Cache-Control', 'private, max-age=300');
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+
+        return $response;
     }
 
     public function read(

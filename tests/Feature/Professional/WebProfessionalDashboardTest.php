@@ -10,6 +10,7 @@ use App\Enums\ServiceRequestStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\ServiceRequest;
+use App\Models\Skill;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -140,6 +141,39 @@ class WebProfessionalDashboardTest extends TestCase
             ->assertSee('Aucun revenu confirmé')
             ->assertSee('Aucun avis pour le moment')
             ->assertSee('Aucun portefeuille existant à afficher');
+    }
+
+    public function test_profile_completion_excludes_verification_and_service_publication(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $professional->profile()->create([
+            'first_name' => 'Aline',
+            'last_name' => 'Kabeya',
+        ]);
+        $profile = ProfessionalProfile::factory()->create([
+            'user_id' => $professional->getKey(),
+            'professional_title' => 'Électricienne',
+            'description' => 'Installation et entretien électrique résidentiel.',
+            'city' => 'Goma',
+            'province' => 'Nord-Kivu',
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ]);
+        $profile->skills()->attach(Skill::factory()->create()->getKey());
+
+        $this->actingAs($professional)
+            ->get('/professional')
+            ->assertOk()
+            ->assertViewHas('dashboard', function (array $dashboard): bool {
+                return $dashboard['profile']['profile_completion'] === 100
+                    && $dashboard['profile']['missing_fields'] === []
+                    && collect($dashboard['pending_actions'])->doesntContain(
+                        fn (array $action): bool => $action['type'] === 'profile',
+                    );
+            })
+            ->assertSee('100%')
+            ->assertSee('Aucun document de vérification n’est enregistré.');
     }
 
     public function test_unsupported_dashboard_period_falls_back_to_thirty_days(): void

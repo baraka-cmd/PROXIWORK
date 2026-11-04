@@ -19,6 +19,7 @@ use App\Models\ProfessionalProfile;
 use App\Services\Audit\AuditLogService;
 use App\Services\Notification\TransactionalNotificationService;
 use App\Services\Order\OrderWorkflowService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -33,15 +34,21 @@ class OrderController extends Controller
 
         // All statistics and options are derived from this client's own orders.
         $ownedOrders = Order::query()->where('client_id', $clientId);
+        $retryablePaymentStatuses = [
+            PaymentStatus::FAILED->value,
+            PaymentStatus::CANCELLED->value,
+            PaymentStatus::EXPIRED->value,
+        ];
 
         $statistics = [
             'total' => (clone $ownedOrders)->count(),
             'active' => (clone $ownedOrders)
                 ->whereIn('status', [OrderStatus::CONFIRMED->value, OrderStatus::IN_PROGRESS->value, OrderStatus::DELIVERY_SUBMITTED->value])
                 ->count(),
-            'pending_payment' => (clone $ownedOrders)
-                ->where('status', OrderStatus::PENDING_PAYMENT->value)
-                ->count(),
+            'pending_payment' => $this->applyPaymentActionFilter(
+                (clone $ownedOrders)->where('status', OrderStatus::PENDING_PAYMENT->value),
+                $retryablePaymentStatuses,
+            )->count(),
             'completed' => (clone $ownedOrders)
                 ->where('status', OrderStatus::COMPLETED->value)
                 ->count(),
@@ -60,7 +67,10 @@ class OrderController extends Controller
                     OrderStatus::IN_PROGRESS->value,
                     OrderStatus::DELIVERY_SUBMITTED->value,
                 ]),
-                'pending_payment' => $query->where('status', OrderStatus::PENDING_PAYMENT->value),
+                'pending_payment' => $this->applyPaymentActionFilter(
+                    $query->where('status', OrderStatus::PENDING_PAYMENT->value),
+                    $retryablePaymentStatuses,
+                ),
                 'completed' => $query->where('status', OrderStatus::COMPLETED->value),
                 default => null,
             };
@@ -156,6 +166,7 @@ class OrderController extends Controller
             'services',
             'statusLabels',
             'paymentStatusLabels',
+            'retryablePaymentStatuses',
         ));
     }
 
@@ -169,7 +180,7 @@ class OrderController extends Controller
             'serviceRequest.service',
             'quotation',
             'acceptedOffer',
-            'statusHistories',
+            'statusHistories.changedBy:id,name',
             'deliveryAttachments',
             'addressSnapshot',
             'payment.transactions',
@@ -303,5 +314,14 @@ class OrderController extends Controller
 
         return redirect()->route('client.orders.show', $updated)
             ->with('success', 'Votre demande de correction a été envoyée au professionnel.');
+    }
+
+    private function applyPaymentActionFilter(Builder $orders, array $retryablePaymentStatuses): Builder
+    {
+        return $orders->where(function (Builder $query) use ($retryablePaymentStatuses): void {
+            $query->whereDoesntHave('payment')
+                ->orWhereHas('payment', fn (Builder $paymentQuery) => $paymentQuery
+                    ->whereIn('status', $retryablePaymentStatuses));
+        });
     }
 }

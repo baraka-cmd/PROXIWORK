@@ -82,6 +82,8 @@ class WithdrawalStatusNotificationTest extends TestCase
 
         $this->assertTrue($payloads->every(
             static fn (array $payload): bool => $payload['kind'] === 'withdrawal_status_changed'
+                && $payload['action'] === 'payment'
+                && $payload['priority'] === 'important'
                 && $payload['withdrawal_id'] === $withdrawal->getKey()
                 && $payload['url'] === route('professional.withdrawals.show', $withdrawal),
         ));

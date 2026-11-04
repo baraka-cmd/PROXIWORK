@@ -162,6 +162,7 @@
                     <li>
                         <strong>{{ $history->to_status ? ($orderStatusLabels[$history->to_status->value] ?? $history->to_status->value) : 'Événement enregistré' }}</strong>
                         <span>{{ optional($history->created_at)->format('d/m/Y à H:i') ?? 'Date non disponible' }}</span>
+                        <span>Par {{ $history->changedBy?->name ?? 'Acteur non disponible' }}</span>
                         @if($history->reason)
                             <p>{{ $history->reason }}</p>
                         @endif
@@ -460,6 +461,7 @@
                     @endswitch
                 </strong>
                 <span>{{ $event->created_at?->format('d/m/Y à H:i') ?? '—' }}</span>
+                <span>Par {{ $event->changedBy?->name ?? 'Acteur non disponible' }}</span>
                 @if (filled(data_get($event->metadata, 'delivery_summary')))
                     <p>{{ data_get($event->metadata, 'delivery_summary') }}</p>
                 @endif

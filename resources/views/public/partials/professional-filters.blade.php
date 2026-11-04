@@ -48,7 +48,7 @@
         <div class="form-field">
             <span class="form-label">Compétences</span>
             <div class="directory-skill-list">
-                @foreach ($skills->take(12) as $skill)
+                @foreach ($skills as $skill)
                     <label class="directory-check">
                         <input type="checkbox" name="skills[]" value="{{ $skill->slug }}" @checked(in_array($skill->slug, $filters['skills'] ?? [], true))>
                         <span>{{ $skill->name }}</span>
@@ -83,6 +83,7 @@
                     @endforeach
                 </select>
             </div>
+            <small>Le budget et le tri par prix nécessitent la même devise pour comparer les tarifs correctement.</small>
         </div>
 
         <div class="directory-filter-grid">
@@ -100,7 +101,7 @@
             </div>
 
             <div class="form-field">
-                <label class="form-label" for="{{ $idPrefix }}-availability">Disponibilité</label>
+                <label class="form-label" for="{{ $idPrefix }}-availability">Disponibilité déclarée</label>
                 <div class="form-select-wrapper">
                     <select id="{{ $idPrefix }}-availability" class="form-control form-select" name="availability">
                         <option value="">Toutes</option>
@@ -113,18 +114,10 @@
             </div>
         </div>
 
-        <div class="form-field">
-            <label class="form-label" for="{{ $idPrefix }}-verification">Vérification</label>
-            <div class="form-select-wrapper">
-                <select id="{{ $idPrefix }}-verification" class="form-control form-select" name="verification">
-                    <option value="">Tous les profils</option>
-                    <option value="verified" @selected(($filters['verification'] ?? '') === 'verified')>Vérifiés</option>
-                    <option value="pending" @selected(($filters['verification'] ?? '') === 'pending')>En attente</option>
-                    <option value="under_review" @selected(($filters['verification'] ?? '') === 'under_review')>En vérification</option>
-                </select>
-                <i class="fa-solid fa-chevron-down form-select-icon" aria-hidden="true"></i>
-            </div>
-        </div>
+        <p class="directory-filter-note">
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            Le badge « Vérifié » apparaît uniquement lorsque le statut de vérification est confirmé.
+        </p>
 
         <div class="form-field">
             <label class="form-label" for="{{ $idPrefix }}-sort">Trier par</label>

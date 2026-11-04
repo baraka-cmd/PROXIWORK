@@ -13,12 +13,12 @@
                 <span>Tableau de bord</span>
             </a>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/search') }}">
+            <a class="dashboard-nav-link" data-nav-link href="{{ route('client.search') }}">
                 <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                 <span>Rechercher</span>
             </a>
 
-            <a class="dashboard-nav-link" data-nav-link href="{{ url('/professionals') }}">
+            <a class="dashboard-nav-link" data-nav-link href="{{ route('client.professionals.index') }}">
                 <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
                 <span>Professionnels</span>
             </a>
@@ -94,6 +94,16 @@
 @endsection
 
 @section('dashboard_sidebar_footer')
+    @if (auth()->user()?->hasRole('professional'))
+        <form method="POST" action="{{ route('workspace.switch', ['workspace' => 'professional']) }}" class="dashboard-workspace-form">
+            @csrf
+            <button type="submit" class="dashboard-nav-link dashboard-workspace-switch">
+                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                <span>Passer à l’espace professionnel</span>
+            </button>
+        </form>
+    @endif
+
     <div class="dashboard-security-note">
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         <span>Espace sécurisé</span>

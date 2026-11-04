@@ -6,6 +6,7 @@
 @push('head')
     @unless (app()->environment('testing'))
         @vite('resources/css/pages/auth/login.css')
+        @vite('resources/js/pages/auth/login.js')
     @endunless
 @endpush
 
@@ -15,7 +16,7 @@
             <div class="login-card__header">
                 <span class="login-eyebrow"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> SÉCURITÉ DU COMPTE</span>
                 <h1 id="password-reset-title">Créer un nouveau mot de passe</h1>
-                <p>Choisissez un mot de passe d’au moins 8 caractères avec majuscules, minuscules, chiffres et symbole.</p>
+                <p>Choisissez au moins 12 caractères. Une phrase de passe longue est acceptée.</p>
             </div>
 
             @if ($errors->any())
@@ -40,7 +41,8 @@
                     <label for="password">Nouveau mot de passe</label>
                     <div class="login-input">
                         <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+                        <input id="password" name="password" type="password" autocomplete="new-password" minlength="12" required>
+                        <button class="login-password-toggle" type="button" data-reset-password-toggle aria-controls="password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>
                     </div>
                     @error('password') <p class="login-field-error">{{ $message }}</p> @enderror
                 </div>
@@ -48,7 +50,8 @@
                     <label for="password_confirmation">Confirmer le mot de passe</label>
                     <div class="login-input">
                         <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required>
+                        <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" minlength="12" aria-describedby="password-help" required>
+                        <button class="login-password-toggle" type="button" data-reset-password-toggle aria-controls="password_confirmation" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fa-regular fa-eye" aria-hidden="true"></i></button>
                     </div>
                 </div>
                 <button type="submit" class="login-submit">Réinitialiser le mot de passe</button>

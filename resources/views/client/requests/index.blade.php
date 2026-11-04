@@ -45,21 +45,25 @@
 
     <section class="request-stat-grid" aria-label="Résumé de mes demandes">
         <a class="request-stat-card {{ $selectedStatus === '' ? 'is-selected' : '' }}" href="{{ route('client.requests.index', $queryWithoutStatus) }}">
+            <span class="request-stat-card__icon" aria-hidden="true"><i class="fa-solid fa-layer-group"></i></span>
             <span class="request-stat-card__label">Toutes les demandes</span>
             <strong>{{ $stats['total'] }}</strong>
             <span class="request-stat-card__hint">Historique complet</span>
         </a>
         <a class="request-stat-card {{ $selectedStatus === 'requested' ? 'is-selected' : '' }}" href="{{ route('client.requests.index', array_merge($queryWithoutStatus, ['status' => 'requested'])) }}">
+            <span class="request-stat-card__icon request-stat-card__icon--waiting" aria-hidden="true"><i class="fa-regular fa-clock"></i></span>
             <span class="request-stat-card__label">En attente du professionnel</span>
             <strong>{{ $stats['awaiting_professional'] }}</strong>
             <span class="request-stat-card__hint">Une réponse est attendue</span>
         </a>
         <a class="request-stat-card {{ $selectedStatus === 'quoted' ? 'is-selected' : '' }}" href="{{ route('client.requests.index', array_merge($queryWithoutStatus, ['status' => 'quoted'])) }}">
+            <span class="request-stat-card__icon request-stat-card__icon--quoted" aria-hidden="true"><i class="fa-solid fa-file-invoice-dollar"></i></span>
             <span class="request-stat-card__label">Réponses à consulter</span>
             <strong>{{ $stats['awaiting_client'] }}</strong>
             <span class="request-stat-card__hint">Vérifiez le devis reçu</span>
         </a>
         <a class="request-stat-card {{ $selectedStatus === 'closed' ? 'is-selected' : '' }}" href="{{ route('client.requests.index', array_merge($queryWithoutStatus, ['status' => 'closed'])) }}">
+            <span class="request-stat-card__icon request-stat-card__icon--closed" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
             <span class="request-stat-card__label">Demandes clôturées</span>
             <strong>{{ $stats['closed'] }}</strong>
             <span class="request-stat-card__hint">Refusées, annulées ou acceptées</span>
@@ -209,7 +213,7 @@
                         </span>
                     </div>
 
-                    <p class="request-card__description">{{ \Illuminate\Support\Str::limit($item->description, 190) }}</p>
+                    <p class="request-card__description">{{ \Illuminate\Support\Str::limit($item->description, 220) }}</p>
 
                     <div class="request-card__metadata">
                         <span><i class="fa-regular fa-user" aria-hidden="true"></i> {{ $item->professional?->user?->name ?? 'Professionnel indisponible' }}</span>

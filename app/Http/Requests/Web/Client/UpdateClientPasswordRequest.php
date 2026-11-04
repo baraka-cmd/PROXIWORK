@@ -18,7 +18,7 @@ class UpdateClientPasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'current_password:web'],
-            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
+            'password' => ['required', 'confirmed', Password::min(12)],
         ];
     }
 }

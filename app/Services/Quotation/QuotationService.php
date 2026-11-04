@@ -123,7 +123,7 @@ class QuotationService
                 ]);
             }
 
-            if ($request->address_id === null) {
+            if ($request->execution_mode->requiresClientAddress() && $request->address_id === null) {
                 throw ValidationException::withMessages([
                     'address' => 'Une adresse d’exécution appartenant au client est requise avant l’acceptation.',
                 ]);
@@ -197,7 +197,7 @@ class QuotationService
                 ]);
             }
 
-            if ($request->address_id === null) {
+            if ($request->execution_mode->requiresClientAddress() && $request->address_id === null) {
                 throw ValidationException::withMessages([
                     'address' => 'Le client doit définir une adresse d’exécution avant la création de la commande.',
                 ]);

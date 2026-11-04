@@ -39,6 +39,13 @@
                 <span>Catégories</span>
             </a>
 
+            @can('categories.manage')
+                <a class="dashboard-nav-link" data-nav-link href="{{ route('admin.skills.index') }}">
+                    <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                    <span>Compétences</span>
+                </a>
+            @endcan
+
             <a class="dashboard-nav-link" data-nav-link href="{{ url('/admin/services') }}">
                 <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
                 <span>Services</span>

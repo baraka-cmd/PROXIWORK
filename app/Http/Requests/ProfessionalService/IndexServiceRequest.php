@@ -18,10 +18,11 @@ class IndexServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search' => ['sometimes', 'string', 'max:120'],
-            'status' => ['sometimes', Rule::enum(ServiceStatus::class)],
-            'category_id' => ['sometimes', 'integer', 'exists:categories,id'],
-            'skill_id' => ['sometimes', 'integer', 'exists:skills,id'],
+            'search' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', Rule::enum(ServiceStatus::class)],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'skill_id' => ['nullable', 'integer', 'exists:skills,id'],
+            'sort' => ['nullable', Rule::in(['recent', 'title', 'requests'])],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
         ];
     }

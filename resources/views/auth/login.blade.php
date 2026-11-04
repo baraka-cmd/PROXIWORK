@@ -128,24 +128,15 @@
                 </button>
             </form>
 
-            <div class="login-divider">
-                <span>ou continuer avec</span>
-            </div>
-
             @if (Route::has('auth.google.redirect'))
+                <div class="login-divider">
+                    <span>ou continuer avec</span>
+                </div>
+
                 <a class="google-login" href="{{ route('auth.google.redirect') }}">
                     <span class="google-login__icon" aria-hidden="true">G</span>
                     <span>Continuer avec Google</span>
                 </a>
-            @else
-                <button class="google-login google-login--prepared" type="button" data-google-login aria-describedby="google-login-note">
-                    <span class="google-login__icon" aria-hidden="true">G</span>
-                    <span>Continuer avec Google</span>
-                </button>
-                <p id="google-login-note" class="google-login-note">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    La connexion Google sera activée avec la configuration OAuth de PROXIWORK.
-                </p>
             @endif
 
             <p class="login-register">

@@ -170,6 +170,7 @@ class ServiceRequestLifecycleService
                     $locked->professional->user,
                     $locked->service?->title ?? 'un service',
                     'service-request-submitted:'.$locked->getKey(),
+                    route('professional.requests.show', $locked, true),
                 );
             } elseif (
                 $to === ServiceRequestStatus::CANCELLED

@@ -14,14 +14,18 @@ use Illuminate\Support\Str;
 
 class TransactionalNotificationService
 {
-    public function serviceRequestCreated(User $recipient, string $serviceTitle, ?string $idempotencyKey = null): void
-    {
+    public function serviceRequestCreated(
+        User $recipient,
+        string $serviceTitle,
+        ?string $idempotencyKey = null,
+        ?string $url = null,
+    ): void {
         $this->send(
             $recipient,
             'Nouvelle demande de service',
             'Un client vous a envoyé une nouvelle demande pour le service « '.$serviceTitle.' ». ',
             'service_request',
-            null,
+            $url,
             'normal',
             $idempotencyKey,
         );
@@ -77,9 +81,9 @@ class TransactionalNotificationService
         $this->send($recipient, 'Paiement confirmé', 'Votre paiement a été confirmé avec succès.', 'payment', null, 'important', $idempotencyKey);
     }
 
-    public function orderConfirmed(User $recipient, ?string $idempotencyKey = null): void
+    public function orderConfirmed(User $recipient, ?string $idempotencyKey = null, ?string $url = null): void
     {
-        $this->send($recipient, 'Commande confirmée', 'Une commande vient d’être confirmée après paiement.', 'order', null, 'important', $idempotencyKey);
+        $this->send($recipient, 'Commande confirmée', 'Une commande vient d’être confirmée après paiement.', 'order', $url, 'important', $idempotencyKey);
     }
 
     public function messageReceived(

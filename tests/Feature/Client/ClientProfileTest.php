@@ -61,6 +61,7 @@ class ClientProfileTest extends TestCase
             ->assertSee('Aline')
             ->assertSee('Mukendi')
             ->assertSee('+243800000001')
+            ->assertSee('client/notifications#notification-preferences-title')
             ->assertDontSee('Texte qui ne doit pas apparaître.');
     }
 
@@ -106,10 +107,25 @@ class ClientProfileTest extends TestCase
             ->patch('/client/profile', [
                 'first_name' => '',
                 'last_name' => str_repeat('N', 101),
-                'phone' => '+243800000003',
+                'phone' => 'numéro invalide',
             ])
-            ->assertSessionHasErrors(['first_name', 'last_name'])
+            ->assertSessionHasErrors([
+                'first_name',
+                'last_name',
+                'phone' => 'Saisissez un numéro de téléphone valide.',
+            ])
             ->assertSessionMissing('success');
+    }
+
+    public function test_profile_password_form_matches_the_server_minimum_length(): void
+    {
+        $client = $this->client();
+
+        $this->actingAs($client)
+            ->get('/client/profile/edit')
+            ->assertOk()
+            ->assertSee('minlength="12"', false)
+            ->assertSee('Au moins 12 caractères.');
     }
 
     public function test_client_can_upload_and_read_only_their_own_private_avatar(): void
@@ -129,11 +145,14 @@ class ClientProfileTest extends TestCase
         $this->assertNotNull($profile?->avatar_path);
         Storage::disk('local')->assertExists($profile->avatar_path);
 
-        $this->actingAs($client)
+        $photoResponse = $this->actingAs($client)
             ->get('/client/profile/photo')
             ->assertOk()
-            ->assertHeader('Cache-Control', 'no-store, private')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+        $cacheControl = (string) $photoResponse->headers->get('Cache-Control');
+        $this->assertStringContainsString('private', $cacheControl);
+        $this->assertStringContainsString('no-store', $cacheControl);
 
         $this->actingAs($otherClient)->get('/client/profile/photo')->assertNotFound();
     }

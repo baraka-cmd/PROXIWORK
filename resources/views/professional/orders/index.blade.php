@@ -6,6 +6,7 @@
     @push('head')
         @vite(['resources/css/pages/professional/orders-revenues.css', 'resources/js/pages/professional/orders-revenues.js'])
     @endpush
+    <div class="professional-orders-page">
     <div class="page-header professional-orders-page-header">
         <div>
             <p class="page-kicker">ESPACE PROFESSIONNEL · ACTIVITÉ</p>
@@ -15,12 +16,12 @@
     </div>
 
     <section class="summary-grid professional-order-priorities" aria-label="Résumé de l’activité des commandes">
-        <article class="data-card metric-card"><span>Commandes confirmées</span><strong>{{ number_format($statistics['confirmed']) }}</strong><small>À planifier ou rendez-vous convenu</small></article>
-        <article class="data-card metric-card"><span>En réalisation</span><strong>{{ number_format($statistics['in_progress']) }}</strong><small>Travaux en cours</small></article>
-        <article class="data-card metric-card"><span>À faire réceptionner</span><strong>{{ number_format($statistics['delivery_submitted']) }}</strong><small>Décision du client attendue</small></article>
-        <article class="data-card metric-card"><span>En attente de paiement</span><strong>{{ number_format($statistics['pending_payment']) }}</strong><small>Le démarrage reste bloqué</small></article>
+        <article class="data-card metric-card professional-order-metric professional-order-metric--confirmed"><span class="professional-order-metric__icon" aria-hidden="true"><i class="fa-solid fa-calendar-check"></i></span><span>Commandes confirmées</span><strong>{{ number_format($statistics['confirmed']) }}</strong><small>À planifier ou rendez-vous convenu</small></article>
+        <article class="data-card metric-card professional-order-metric professional-order-metric--progress"><span class="professional-order-metric__icon" aria-hidden="true"><i class="fa-solid fa-screwdriver-wrench"></i></span><span>En réalisation</span><strong>{{ number_format($statistics['in_progress']) }}</strong><small>Travaux en cours</small></article>
+        <article class="data-card metric-card professional-order-metric professional-order-metric--delivery"><span class="professional-order-metric__icon" aria-hidden="true"><i class="fa-solid fa-box-open"></i></span><span>À faire réceptionner</span><strong>{{ number_format($statistics['delivery_submitted']) }}</strong><small>Décision du client attendue</small></article>
+        <article class="data-card metric-card professional-order-metric professional-order-metric--payment"><span class="professional-order-metric__icon" aria-hidden="true"><i class="fa-solid fa-credit-card"></i></span><span>En attente de paiement</span><strong>{{ number_format($statistics['pending_payment']) }}</strong><small>Le démarrage reste bloqué</small></article>
         @if ($statistics['disputed'] > 0)
-            <article class="data-card metric-card professional-order-priorities__alert"><span>Contestées</span><strong>{{ number_format($statistics['disputed']) }}</strong><small>Suivi nécessaire</small></article>
+            <article class="data-card metric-card professional-order-metric professional-order-metric--disputed professional-order-priorities__alert"><span class="professional-order-metric__icon" aria-hidden="true"><i class="fa-solid fa-triangle-exclamation"></i></span><span>Contestées</span><strong>{{ number_format($statistics['disputed']) }}</strong><small>Suivi nécessaire</small></article>
         @endif
     </section>
 
@@ -49,7 +50,7 @@
             <a class="button button--ghost button--sm" href="{{ route('professional.orders.index', $selectedStatus !== '' ? ['status' => $selectedStatus] : []) }}">Effacer les dates</a>
         @endif
     </form>
-    <p class="page-description">Pour les commandes terminées, les dates filtrent la date de fin de prestation. Pour les autres états, elles filtrent la date de création.</p>
+    <p class="page-description professional-order-date-help">Pour les commandes terminées, les dates filtrent la date de fin de prestation. Pour les autres états, elles filtrent la date de création.</p>
     @if ($errors->any())
         <div class="alert alert--error" role="alert">
             <strong>Les filtres n’ont pas pu être appliqués.</strong>
@@ -68,6 +69,7 @@
             @endif
         </div>
     @else
+        <div class="professional-order-list-heading"><div><h2>Commandes reçues</h2><p>{{ $orders->total() }} résultat{{ $orders->total() > 1 ? 's' : '' }} dans votre espace professionnel.</p></div></div>
         <div class="data-card professional-order-list-card">
             <div class="table-wrap professional-order-table-wrap">
                 <table class="professional-table professional-order-table">
@@ -91,4 +93,5 @@
             <div class="pagination-wrap">{{ $orders->links() }}</div>
         </div>
     @endif
+    </div>
 @endsection

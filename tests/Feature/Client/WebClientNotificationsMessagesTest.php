@@ -73,6 +73,23 @@ class WebClientNotificationsMessagesTest extends TestCase
             ->assertViewHas('unreadCount', 2);
     }
 
+    public function test_malformed_notification_url_does_not_break_the_inbox_or_create_a_link(): void
+    {
+        $client = User::factory()->create();
+        $client->assignRole('client');
+        $client->notify(new AccountActivityNotification(
+            'Mise à jour du compte',
+            'Consultez les informations de votre compte.',
+            'account',
+            'http://[',
+        ));
+        $this->actingAs($client)
+            ->get(route('client.notifications.index'))
+            ->assertOk()
+            ->assertSee('Mise à jour du compte')
+            ->assertDontSee('href=\"http://[', false);
+    }
+
     public function test_client_can_archive_and_restore_only_their_own_notifications(): void
     {
         $client = User::factory()->create();

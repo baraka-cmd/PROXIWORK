@@ -56,7 +56,7 @@
 @endphp
 
 <div class="client-module client-payment-detail">
-    <header class="client-module__header">
+    <header class="client-module__header payment-detail-header">
         <div>
             <p class="client-module__eyebrow">DÉTAIL FINANCIER</p>
             <h1>PAY-{{ str_pad((string) $payment->id, 8, '0', STR_PAD_LEFT) }}</h1>
@@ -73,9 +73,9 @@
     @if(session('success'))<div class="payment-feedback payment-feedback--success" role="status">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="payment-feedback payment-feedback--error" role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 
-    <section class="client-panel payment-detail-summary">
+    <section class="client-panel payment-detail-summary" aria-labelledby="payment-summary-title">
         <div class="payment-detail-summary__heading">
-            <div><span class="client-module__eyebrow">MONTANT ENREGISTRÉ</span><p class="payment-amount">{{ number_format((float) $payment->amount, 2, ',', ' ') }} <span>{{ $payment->currency }}</span></p></div>
+            <div><span class="client-module__eyebrow">MONTANT ENREGISTRÉ</span><h2 id="payment-summary-title" class="payment-detail-summary__amount">{{ number_format((float) $payment->amount, 2, ',', ' ') }} <span>{{ $payment->currency }}</span></h2></div>
             <a class="btn btn-secondary" href="{{ route('client.payments.show', $payment) }}"><i class="fa-solid fa-rotate" aria-hidden="true"></i> Vérifier le statut</a>
         </div>
         <dl class="client-definition-list">
@@ -105,7 +105,7 @@
         </section>
     @endif
 
-    <section class="client-panel">
+    <section class="client-panel payment-history-panel">
         <div class="payment-section-heading"><div><h2>Historique des tentatives</h2><p>Chaque tentative reste visible même si une autre tentative est lancée plus tard.</p></div></div>
         @forelse($payment->transactions as $transaction)
             <article class="payment-attempt">
@@ -128,7 +128,7 @@
         @endforelse
     </section>
 
-    <section class="client-panel">
+    <section class="client-panel payment-history-panel">
         <div class="payment-section-heading"><div><h2>Journal des événements</h2><p>Historique enregistré côté serveur. Une actualisation de la page ne crée pas une nouvelle opération financière.</p></div></div>
         @forelse($payment->events as $event)
             <article class="payment-event-item">
@@ -144,7 +144,7 @@
         @endforelse
     </section>
 
-    <section class="client-panel">
+    <section class="client-panel payment-history-panel payment-refunds-panel">
         <div class="payment-section-heading"><div><h2>Demandes de remboursement</h2><p>Une demande n’est pas un remboursement effectué. Seule une confirmation par un processus autorisé pourra changer cet état.</p></div></div>
         @forelse($payment->refunds as $refund)
             <article class="payment-refund-item">

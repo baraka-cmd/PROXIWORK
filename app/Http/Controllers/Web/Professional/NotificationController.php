@@ -29,6 +29,7 @@ class NotificationController extends Controller
         $filters = $request->validate([
             'status' => ['nullable', 'string', Rule::in(['all', 'unread', 'read'])],
             'category' => ['nullable', 'string', Rule::in(array_merge(['all'], self::CATEGORIES))],
+            'priority' => ['nullable', 'string', Rule::in(['all', 'important'])],
             'q' => ['nullable', 'string', 'max:100'],
             'archived' => ['nullable', 'string', Rule::in(['0', '1'])],
         ]);
@@ -36,6 +37,7 @@ class NotificationController extends Controller
         $user = $request->user();
         $status = $filters['status'] ?? 'all';
         $category = $filters['category'] ?? 'all';
+        $priority = $filters['priority'] ?? 'all';
         $search = trim((string) ($filters['q'] ?? ''));
         $archived = ($filters['archived'] ?? '0') === '1';
 
@@ -50,8 +52,17 @@ class NotificationController extends Controller
 
         if ($category === 'account') {
             $query->whereIn('data->action', ['account', 'profile_updated', 'password_changed', 'password_reset', 'email_changed']);
+        } elseif ($category === 'payment') {
+            $query->where(function ($builder): void {
+                $builder->where('data->action', 'payment')
+                    ->orWhere('data->kind', 'withdrawal_status_changed');
+            });
         } elseif ($category !== 'all') {
             $query->where('data->action', $category);
+        }
+
+        if ($priority === 'important') {
+            $query->whereIn('data->priority', ['important', 'critical']);
         }
 
         if ($search !== '') {
@@ -78,7 +89,7 @@ class NotificationController extends Controller
             ]);
 
         return view('professional.notifications.index', compact(
-            'notifications', 'unreadCount', 'status', 'category', 'search', 'archived', 'preferences',
+            'notifications', 'unreadCount', 'status', 'category', 'priority', 'search', 'archived', 'preferences',
         ));
     }
 

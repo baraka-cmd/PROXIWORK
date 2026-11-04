@@ -22,12 +22,12 @@
     @endphp
 
     <div class="professional-quote-page">
-        <div class="dashboard-page-header">
+        <div class="dashboard-page-header professional-quote-detail-header">
             <div>
                 <p class="eyebrow">DEVIS-{{ str_pad((string) $quotation->getKey(), 6, '0', STR_PAD_LEFT) }}</p>
                 <h1>{{ $quotation->serviceRequest?->title ?? $quotation->serviceRequest?->service?->title ?? 'Demande de service' }}</h1>
                 <p class="page-lead">Client : {{ $quotation->serviceRequest?->client?->name ?? 'Client PROXIWORK' }}</p>
-                <p class="page-lead">Statut : {{ $quotation->status->label() }}</p>
+                <p class="page-lead professional-quote-detail-status">Statut : {{ $quotation->status->label() }}</p>
             </div>
             <div class="dashboard-page-header__actions">
                 <a class="button button--ghost" href="{{ route('professional.quotes.index') }}">Retour aux devis</a>
@@ -51,7 +51,7 @@
             </div>
         @endif
 
-        <section class="surface-card content-card professional-quote-panel">
+        <section class="surface-card content-card professional-quote-panel professional-quote-current-panel">
             <div class="professional-quote-panel__header">
                 <div>
                     <p class="eyebrow">{{ $quotation->status === \App\Enums\QuotationStatus::ACCEPTED ? 'OFFRE ACCEPTÉE' : 'PROPOSITION ACTIVE' }}</p>
@@ -89,7 +89,7 @@
                 <div><strong>En attente de la décision du client</strong><p>Votre proposition est active. Le client peut l'accepter, la refuser ou envoyer une contre-proposition.</p></div>
             </div>
         @elseif ($professionalMustDecide)
-            <section class="surface-card content-card professional-quote-panel">
+            <section class="surface-card content-card professional-quote-panel professional-quote-response-panel">
                 <h2>Répondre à la contre-proposition du client</h2>
                 <p>Vous pouvez accepter les conditions exactes proposées, refuser cette contre-proposition ou envoyer une nouvelle version. Toute décision sera historisée.</p>
 
@@ -162,7 +162,7 @@
         @endif
 
         @if ($quotation->status === \App\Enums\QuotationStatus::EXPIRED && $offer)
-            <section class="surface-card content-card professional-quote-panel">
+            <section class="surface-card content-card professional-quote-panel professional-quote-renew-panel">
                 <h2>Renouveler le devis expiré</h2>
                 <p>Le devis précédent reste dans l’historique. Cette action crée une nouvelle version, avec une nouvelle date de validité, que le client devra examiner avant toute acceptation.</p>
                 <form method="POST" action="{{ route('professional.quotes.renew', $quotation) }}" class="professional-quote-form">
@@ -213,7 +213,7 @@
         @endif
 
         @if ($quotation->status === \App\Enums\QuotationStatus::ACCEPTED && $quotation->order)
-            <section class="surface-card content-card professional-quote-panel">
+            <section class="surface-card content-card professional-quote-panel professional-quote-order-panel">
                 <h2>Commande issue du devis</h2>
                 <dl class="details-list">
                     <div><dt>Référence</dt><dd>{{ $quotation->order->order_number }}</dd></div>
@@ -227,7 +227,7 @@
             </section>
         @endif
 
-        <section class="surface-card content-card professional-quote-panel">
+        <section class="surface-card content-card professional-quote-panel professional-quote-history-panel">
             <h2>Historique des versions</h2>
             @forelse ($quotation->offers as $version)
                 <article class="professional-quote-version {{ $offer && $version->getKey() === $offer->getKey() ? 'is-current' : '' }}">
@@ -252,7 +252,7 @@
             @endforelse
         </section>
 
-        <section class="surface-card content-card professional-quote-panel">
+        <section class="surface-card content-card professional-quote-panel professional-quote-decisions-panel">
             <h2>Historique des décisions</h2>
             @forelse ($quotation->events as $event)
                 <article class="timeline-item">

@@ -11,7 +11,6 @@ use App\Http\Requests\ServiceRequest\RejectServiceRequestRequest;
 use App\Models\Conversation;
 use App\Models\ServiceRequest;
 use App\Services\Audit\AuditLogService;
-use App\Services\Notification\TransactionalNotificationService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Services\ServiceRequest\ServiceRequestService;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +23,6 @@ class ServiceRequestController extends Controller
         private readonly ServiceRequestService $serviceRequestService,
         private readonly ServiceRequestLifecycleService $lifecycleService,
         private readonly AuditLogService $auditLogService,
-        private readonly TransactionalNotificationService $notificationService,
     ) {}
 
     public function index(IndexServiceRequestRequest $request): View
@@ -73,15 +71,9 @@ class ServiceRequestController extends Controller
 
         $conversation = Conversation::query()
             ->where('service_request_id', $serviceRequest->getKey())
+            ->where('client_id', $serviceRequest->client_id)
+            ->where('professional_id', $serviceRequest->professional_id)
             ->first();
-
-        if ($conversation === null) {
-            $conversation = Conversation::query()
-                ->where('client_id', $serviceRequest->client_id)
-                ->where('professional_id', $serviceRequest->professional_id)
-                ->whereNull('service_request_id')
-                ->first();
-        }
 
         if ($conversation !== null && Gate::allows('view', $conversation) === false) {
             $conversation = null;
@@ -109,8 +101,6 @@ class ServiceRequestController extends Controller
             ['reason' => $request->validated('reason')],
             $request,
         );
-
-        $this->notificationService->serviceRequestRejected($serviceRequest->client);
 
         return redirect()
             ->route('professional.requests.show', $serviceRequest)

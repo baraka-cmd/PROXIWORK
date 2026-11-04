@@ -220,12 +220,12 @@
             @endif
         </section>
 
-        <section class="client-panel notification-preferences" aria-labelledby="notification-preferences-title">
+        <section id="notification-preferences-title" class="client-panel notification-preferences" aria-labelledby="notification-preferences-heading">
             <div class="notification-preferences__heading">
                 <span class="notification-overview__icon" aria-hidden="true"><i class="fa-solid fa-sliders"></i></span>
                 <div>
                     <p class="client-module__eyebrow">VOS CHOIX</p>
-                    <h2 id="notification-preferences-title">Préférences de notification</h2>
+                    <h2 id="notification-preferences-heading">Préférences de notification</h2>
                     <p>Les notifications internes restent activées pour conserver votre historique PROXIWORK.</p>
                 </div>
             </div>

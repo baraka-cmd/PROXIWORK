@@ -37,7 +37,10 @@ class WithdrawalService
             throw ValidationException::withMessages(['currency' => 'La devise est invalide.']);
         }
 
-        if ($provider === '' || strlen($provider) > 32 || preg_match('/^[a-z0-9_-]+$/', $provider) !== 1) {
+        // Keep the service boundary aligned with the web/API request rules.
+        // A syntactically valid but unsupported channel must never become a
+        // withdrawal merely because a caller bypassed the FormRequest.
+        if (! in_array($provider, ['mobile_money', 'bank_transfer'], true)) {
             throw ValidationException::withMessages(['provider' => 'Le canal de retrait est invalide.']);
         }
 
@@ -45,7 +48,7 @@ class WithdrawalService
             throw ValidationException::withMessages(['destination' => 'La destination de paiement est invalide.']);
         }
 
-        if ($idempotencyKey === '' || strlen($idempotencyKey) > 128) {
+        if (strlen($idempotencyKey) < 16 || strlen($idempotencyKey) > 128 || preg_match('/^[A-Za-z0-9._:-]+$/', $idempotencyKey) !== 1) {
             throw ValidationException::withMessages(['idempotency_key' => 'La clé de demande est invalide.']);
         }
 

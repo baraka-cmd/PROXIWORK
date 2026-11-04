@@ -1,7 +1,22 @@
-@extends('layouts.public')
+@extends(request()->routeIs('client.professionals.*') ? 'layouts.client' : 'layouts.public')
+@php
+    $professionalIndexRoute = request()->routeIs('client.professionals.*') ? route('client.professionals.index') : route('public.professionals.index');
+    $searchRoute = request()->routeIs('client.professionals.*') ? route('client.search') : route('public.search');
+@endphp
+@section('page_title', 'Professionnels')
 
 @section('title', 'Professionnels — PROXIWORK')
 @section('meta_description', 'Découvrez les professionnels présents sur PROXIWORK et filtrez les profils selon vos besoins.')
+
+@push('head')
+    @php
+        $hasProfessionalFilters = collect($filters)->contains(fn ($value) => is_array($value) ? $value !== [] : filled($value));
+    @endphp
+    <link rel="canonical" href="{{ request()->routeIs('client.professionals.*') ? route('client.professionals.index') : route('public.professionals.index') }}">
+    @if ($hasProfessionalFilters)
+        <meta name="robots" content="noindex,follow">
+    @endif
+@endpush
 
 @push('head')
     @unless (app()->environment('testing'))
@@ -16,7 +31,7 @@
 @endpush
 
 @section('content')
-    <section class="directory-page" data-directory-page>
+    <section class="directory-page {{ request()->routeIs('client.professionals.*') ? 'directory-page--client' : '' }}" data-directory-page>
         <div class="page-container">
             <header class="directory-section-header">
                 <div>
@@ -25,11 +40,18 @@
                     <p>Explorez des professionnels proposant des services publiés et visibles sur la plateforme.</p>
                 </div>
 
-                <a class="button button--primary" href="{{ route('public.search') }}">
+                <a class="button button--primary" href="{{ $searchRoute }}">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                     Recherche avancée
                 </a>
             </header>
+
+            @if ($errors->any())
+                <div class="directory-search-alert" role="alert">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <span>{{ $errors->first() }}</span>
+                </div>
+            @endif
 
             <div class="directory-layout">
                 <aside class="directory-sidebar" aria-label="Filtres professionnels">
@@ -38,7 +60,7 @@
                         Filtres
                     </button>
                     <div id="professionals-filters" class="directory-filter-panel">
-                        @include('public.partials.professional-filters', ['action' => route('public.professionals.index'), 'idPrefix' => 'professionals-filter'])
+                        @include('public.partials.professional-filters', ['action' => $professionalIndexRoute, 'idPrefix' => 'professionals-filter'])
                     </div>
                 </aside>
 

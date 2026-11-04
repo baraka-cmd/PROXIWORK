@@ -16,7 +16,7 @@
 @endsection
 
 @section('content')
-    <div class="client-messages-page client-message-thread-page">
+    <div class="client-messages-page client-message-thread-page professional-message-thread-page">
         @if (session('success'))
             <div class="feedback feedback--success" role="status">{{ session('success') }}</div>
         @endif
@@ -33,7 +33,12 @@
                 <i class="fa-solid fa-arrow-left" aria-hidden="true"></i><span>Messages</span>
             </a>
             <div class="message-contact">
-                <span class="conversation-avatar" aria-hidden="true">{{ strtoupper(mb_substr(($conversation->client?->name ?? 'C'), 0, 1)) }}</span>
+                <span class="conversation-avatar" aria-hidden="true">
+                    @if ($conversation->client?->profile?->avatar_path)
+                        <img src="{{ route('professional.messages.participants.photo', [$conversation, $conversation->client]) }}" alt="" loading="lazy">
+                    @endif
+                    <span>{{ strtoupper(mb_substr(($conversation->client?->name ?? 'C'), 0, 1)) }}</span>
+                </span>
                 <div>
                     <p class="client-module__eyebrow">CLIENT</p>
                     <h1>{{ $conversation->client?->name ?? 'Client' }}</h1>
@@ -128,7 +133,15 @@
                 @php($previousMessageDate = $currentMessageDate)
                 <article class="message-bubble {{ (string) $message->sender_id === (string) auth()->id() ? 'is-mine' : '' }}" data-message-id="{{ $message->id }}">
                     <div class="message-bubble__meta">
-                        <strong>{{ (string) $message->sender_id === (string) auth()->id() ? 'Vous' : ($message->sender?->name ?? 'Client') }}</strong>
+                        <span class="message-sender">
+                            <span class="message-sender__avatar" aria-hidden="true">
+                                @if ($message->sender?->profile?->avatar_path)
+                                    <img src="{{ route('professional.messages.participants.photo', [$conversation, $message->sender]) }}" alt="" loading="lazy">
+                                @endif
+                                <span>{{ strtoupper(mb_substr(($message->sender?->name ?? 'P'), 0, 1)) }}</span>
+                            </span>
+                            <strong>{{ (string) $message->sender_id === (string) auth()->id() ? 'Vous' : ($message->sender?->name ?? 'Client') }}</strong>
+                        </span>
                         <time datetime="{{ $message->created_at?->toIso8601String() }}">{{ $message->created_at?->format('H:i') }}</time>
                     </div>
                     @if ($message->replyTo)

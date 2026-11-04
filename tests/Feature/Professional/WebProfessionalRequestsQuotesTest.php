@@ -90,6 +90,7 @@ class WebProfessionalRequestsQuotesTest extends TestCase
             'changed_by' => $professional->getKey(),
             'reason' => 'Le périmètre demandé ne correspond pas à mes compétences actuelles.',
         ]);
+        $this->assertDatabaseCount('notifications', 1);
 
         $this->actingAs($professional)
             ->post(route('professional.requests.reject', $otherRequest), [

@@ -58,6 +58,11 @@ class Category extends Model
         return $this->hasMany(Service::class);
     }
 
+    public function skills(): HasMany
+    {
+        return $this->hasMany(Skill::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', CategoryStatus::ACTIVE->value);

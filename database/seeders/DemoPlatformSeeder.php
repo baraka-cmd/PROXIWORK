@@ -163,17 +163,18 @@ class DemoPlatformSeeder extends Seeder
     private function seedSkillsAndProfessionals(): void
     {
         $skills = [
-            'laravel' => ['Laravel / PHP', 'Développement backend et API REST.'],
-            'flutter' => ['Flutter / Dart', 'Applications mobiles multiplateformes.'],
-            'networking' => ['Réseaux informatiques', 'Configuration et dépannage réseau.'],
-            'electricity' => ['Installation électrique', 'Installation et maintenance électrique résidentielle.'],
-            'plumbing' => ['Plomberie sanitaire', 'Dépannage et installation sanitaire.'],
-            'uiux' => ['UI/UX Design', 'Conception d’interfaces web et mobiles.'],
-            'database' => ['MySQL', 'Modélisation, optimisation et maintenance de bases de données.'],
+            'laravel' => ['Laravel / PHP', 'Développement backend et API REST.', 'developpement-web'],
+            'flutter' => ['Flutter / Dart', 'Applications mobiles multiplateformes.', 'developpement-mobile'],
+            'networking' => ['Réseaux informatiques', 'Configuration et dépannage réseau.', 'reseaux-infrastructure'],
+            'electricity' => ['Installation électrique', 'Installation et maintenance électrique résidentielle.', 'electricite'],
+            'plumbing' => ['Plomberie sanitaire', 'Dépannage et installation sanitaire.', 'plomberie'],
+            'uiux' => ['UI/UX Design', 'Conception d’interfaces web et mobiles.', 'ui-ux-design'],
+            'database' => ['MySQL', 'Modélisation, optimisation et maintenance de bases de données.', 'bases-de-donnees'],
         ];
 
-        foreach ($skills as $slug => [$name, $description]) {
+        foreach ($skills as $slug => [$name, $description, $categorySlug]) {
             $this->put('skills', ['slug' => $slug], [
+                'category_id' => $this->id('categories', ['slug' => $categorySlug]) ?: null,
                 'name' => $name,
                 'description' => $description,
                 'icon' => null,

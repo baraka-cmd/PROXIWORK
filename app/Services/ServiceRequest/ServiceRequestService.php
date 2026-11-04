@@ -360,7 +360,12 @@ class ServiceRequestService
     ): void {
         $selectedStatus = $status?->value ?? ($filters['status'] ?? null);
 
-        if ($selectedStatus === 'closed') {
+        if (($filters['bucket'] ?? null) === 'active') {
+            $query->whereIn('status', [
+                ServiceRequestStatus::REQUESTED->value,
+                ServiceRequestStatus::QUOTED->value,
+            ]);
+        } elseif ($selectedStatus === 'closed') {
             $query->whereIn('status', [
                 ServiceRequestStatus::ACCEPTED->value,
                 ServiceRequestStatus::REJECTED->value,

@@ -42,7 +42,7 @@ class DispatchPendingNotificationDeliveries extends Command
 
         $limit = min(max((int) $this->option('limit'), 1), 500);
         $candidateIds = NotificationDelivery::query()
-            ->where('channel', 'mail')
+            ->whereIn('channel', ['mail', 'sms', 'push'])
             ->whereIn('status', ['PENDING', 'RETRYING'])
             ->where(function ($query) use ($now): void {
                 $query->whereNull('available_at')->orWhere('available_at', '<=', $now);

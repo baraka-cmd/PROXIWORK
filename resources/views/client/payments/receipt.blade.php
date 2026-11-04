@@ -1,6 +1,7 @@
 @extends('layouts.client')
 
 @section('title', 'Reçu de simulation')
+@section('body_class', 'app-shell dashboard-layout client-payment-receipt-shell')
 
 @section('content')
 @push('head')

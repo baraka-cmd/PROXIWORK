@@ -92,7 +92,7 @@ Route::prefix('v1')->group(function (): void {
             Route::get('{serviceRequest}', [ServiceRequestController::class, 'show']);
             Route::patch('{serviceRequest}', [ServiceRequestController::class, 'update'])->middleware('role:client');
             Route::post('{serviceRequest}/address', [ServiceRequestController::class, 'setAddress'])->middleware('role:client');
-            Route::post('{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->middleware('role:client');
+            Route::post('{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->middleware(['role:client', 'verified']);
             Route::post('{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->middleware('role:client');
             Route::post('{serviceRequest}/reject', [ServiceRequestController::class, 'reject'])->middleware('role:professional');
             Route::post('{serviceRequest}/quotation', [QuotationController::class, 'store'])->middleware('role:professional');
@@ -126,7 +126,7 @@ Route::prefix('v1')->group(function (): void {
         Route::post('admin/review-responses/{reviewResponse}/moderate', [ReviewController::class, 'moderateResponse'])->middleware('permission:reviews.moderate');
         Route::get('orders/{order}/payment', [PaymentController::class, 'show'])->middleware('role:client');
         Route::post('orders/{order}/payments', [PaymentController::class, 'store'])
-            ->middleware(['role:client', 'throttle:payment']);
+            ->middleware(['role:client', 'verified', 'throttle:payment']);
 
         Route::prefix('professional/wallet')->middleware('role:professional')->group(function (): void {
             Route::get('/', [WalletController::class, 'show']);
@@ -217,7 +217,7 @@ Route::prefix('v1')->group(function (): void {
                 Route::get('{service}', [ProfessionalServiceController::class, 'show']);
                 Route::patch('{service}', [ProfessionalServiceController::class, 'update']);
                 Route::delete('{service}', [ProfessionalServiceController::class, 'destroy']);
-                Route::post('{service}/publish', [ProfessionalServiceController::class, 'publish']);
+                Route::post('{service}/publish', [ProfessionalServiceController::class, 'publish'])->middleware('verified');
                 Route::post('{service}/unpublish', [ProfessionalServiceController::class, 'unpublish']);
                 Route::post('{service}/images', [ProfessionalServiceImageController::class, 'store']);
                 Route::get('{service}/realizations', [ProfessionalServiceRealizationController::class, 'index']);

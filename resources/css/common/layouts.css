@@ -169,6 +169,19 @@ body.navigation-is-open {
     transition: background var(--transition-base), color var(--transition-base), transform var(--transition-base);
 }
 
+.dashboard-workspace-form {
+    margin-bottom: var(--space-2);
+}
+
+.dashboard-workspace-switch {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+}
+
 .dashboard-nav-link i {
     width: 20px;
     text-align: center;

@@ -8,7 +8,7 @@
 @section('page_title','Mes retraits')
 @section('page_description','Consultez vos demandes, les montants réservés et l’état de leur traitement.')
 @section('page_actions')
-<div class="finance-page__navigation" aria-label="Navigation financière">
+<div class="finance-page__navigation withdrawal-page__navigation" aria-label="Navigation financière">
     <a class="button button--secondary" href="{{ route('professional.wallet') }}">Mon portefeuille</a>
     <a class="button button--secondary" href="{{ route('professional.revenues.index') }}">Mes revenus</a>
     @if($canRequestWithdrawal)
@@ -17,13 +17,13 @@
 </div>
 @endsection
 @section('content')
-<div class="finance-page">
+<div class="finance-page withdrawal-index-page">
 @if(session('status'))<div class="alert alert--success" role="status">{{ session('status') }}</div>@endif
 @if(!$canRequestWithdrawal)
 <div class="alert alert--warning" role="status">Aucun portefeuille actif ne permet actuellement de soumettre un retrait. Contactez le support si vous pensez qu’il s’agit d’une erreur.</div>
 @endif
 
-<section class="data-card" aria-labelledby="withdrawal-summary-title">
+<section class="data-card withdrawal-index-summary" aria-labelledby="withdrawal-summary-title">
     <div class="data-card__header"><div><span class="eyebrow">SITUATION ACTUELLE</span><h3 id="withdrawal-summary-title">Résumé par devise</h3></div></div>
     @if($walletsByCurrency->isEmpty())
         <div class="finance-empty"><i class="fa-solid fa-wallet" aria-hidden="true"></i><h4>Aucun portefeuille disponible</h4><p>Les montants apparaîtront ici lorsqu’un portefeuille sera créé par un flux financier autorisé.</p></div>
@@ -47,12 +47,12 @@
     <p class="finance-note">Les indicateurs de retraits réussis sont cumulatifs depuis le début de l’historique. Les montants restent séparés par devise. Une demande en attente ou en vérification n’est pas un paiement exécuté.</p>
 </section>
 
-<div class="alert alert--warning" role="note">
+<div class="alert alert--warning withdrawal-processing-note" role="note">
     <strong>Traitement des paiements</strong>
     <p>Les demandes réservent les fonds, mais aucun fournisseur réel de versement n’est actuellement déclaré intégré. Mobile Money et virement sont enregistrés comme canaux demandés pour traitement manuel; un statut « Réussi » exige une référence de preuve vérifiée.</p>
 </div>
 
-<form method="GET" action="{{ route('professional.withdrawals') }}" class="finance-filter-form finance-filter-form--inline">
+<form method="GET" action="{{ route('professional.withdrawals') }}" class="finance-filter-form finance-filter-form--inline withdrawal-index-filters">
     <div><label for="withdrawal-status">Statut</label><select id="withdrawal-status" name="status"><option value="">Tous les statuts</option>@foreach(\App\Enums\WithdrawalStatus::cases() as $status)<option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $status->label() }}</option>@endforeach</select></div>
     <div><label for="withdrawal-currency">Devise</label><select id="withdrawal-currency" name="currency"><option value="">Toutes les devises</option>@foreach($currencies as $currency)<option value="{{ $currency }}" @selected(($filters['currency'] ?? '') === $currency)>{{ $currency }}</option>@endforeach</select></div>
     <div><label for="withdrawal-date-from">Du</label><input id="withdrawal-date-from" type="date" name="date_from" value="{{ $filters['date_from'] ?? '' }}"></div>
@@ -61,7 +61,7 @@
 </form>
 @if($errors->any())<div class="alert alert--error" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 
-<section class="data-card" aria-labelledby="withdrawals-title">
+<section class="data-card withdrawal-index-history" aria-labelledby="withdrawals-title">
     <div class="data-card__header"><div><span class="eyebrow">HISTORIQUE</span><h3 id="withdrawals-title">Demandes de retrait</h3></div><span class="status-badge status-badge--neutral">{{ $withdrawals->total() }} demande(s)</span></div>
     @if($withdrawals->isEmpty())
         <div class="finance-empty" role="status">
@@ -80,12 +80,12 @@
         <div class="finance-table-wrap"><table class="finance-table"><thead><tr><th>Date de demande</th><th>Référence</th><th>Montant demandé</th><th>Canal demandé</th><th>Statut</th><th><span class="sr-only">Action</span></th></tr></thead><tbody>
         @foreach($withdrawals as $withdrawal)
             <tr>
-                <td>@if($withdrawal->requested_at)<time datetime="{{ $withdrawal->requested_at->toISOString() }}">{{ $withdrawal->requested_at->format('d/m/Y H:i') }}</time>@else — @endif</td>
-                <td><strong class="wallet-transaction-reference">WD-{{ str_pad((string)$withdrawal->getKey(), 8, '0', STR_PAD_LEFT) }}</strong></td>
-                <td><strong>{{ \App\Support\MoneyFormatter::format((string)$withdrawal->amount) }} {{ $withdrawal->currency }}</strong></td>
-                <td>{{ $withdrawal->provider === 'mobile_money' ? 'Mobile Money — manuel' : ($withdrawal->provider === 'bank_transfer' ? 'Virement bancaire — manuel' : 'Autre canal') }}</td>
-                <td><span class="withdrawal-status withdrawal-status--{{ $withdrawal->status->value }}">{{ $withdrawal->status->label() }}</span></td>
-                <td><a class="button button--secondary button--small" href="{{ route('professional.withdrawals.show',$withdrawal) }}">Détails</a></td>
+                <td data-label="Date de demande">@if($withdrawal->requested_at)<time datetime="{{ $withdrawal->requested_at->toISOString() }}">{{ $withdrawal->requested_at->format('d/m/Y H:i') }}</time>@else — @endif</td>
+                <td data-label="Référence"><strong class="wallet-transaction-reference">WD-{{ str_pad((string)$withdrawal->getKey(), 8, '0', STR_PAD_LEFT) }}</strong></td>
+                <td data-label="Montant demandé"><strong>{{ \App\Support\MoneyFormatter::format((string)$withdrawal->amount) }} {{ $withdrawal->currency }}</strong></td>
+                <td data-label="Moyen de paiement">{{ $withdrawal->provider === 'mobile_money' ? 'Mobile Money — manuel' : ($withdrawal->provider === 'bank_transfer' ? 'Virement bancaire — manuel' : 'Autre canal') }}</td>
+                <td data-label="Statut"><span class="withdrawal-status withdrawal-status--{{ $withdrawal->status->value }}">{{ $withdrawal->status->label() }}</span></td>
+                <td data-label="Consulter"><a class="button button--secondary button--small" href="{{ route('professional.withdrawals.show',$withdrawal) }}">Voir la demande</a></td>
             </tr>
         @endforeach
         </tbody></table></div>

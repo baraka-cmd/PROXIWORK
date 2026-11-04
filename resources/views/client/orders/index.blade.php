@@ -14,6 +14,10 @@
             <h1>Mes commandes</h1>
             <p>Suivez vos prestations, les conditions convenues et l’état de leur paiement.</p>
         </div>
+        <a class="btn btn-primary" href="{{ route('client.quotes.index') }}">
+            <i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i>
+            Consulter mes devis
+        </a>
     </header>
 
     <nav class="client-order-statistics" aria-label="Filtres rapides des commandes">
@@ -120,12 +124,15 @@
     <div class="client-order-results-heading">
         <div>
             <h2>Résultats</h2>
-            <p>{{ $orders->total() }} commande(s) correspondant à votre recherche</p>
+            <p>{{ $orders->total() }} {{ $orders->total() === 1 ? 'commande correspond' : 'commandes correspondent' }} à votre recherche</p>
         </div>
     </div>
 
     @if($orders->isEmpty())
-        <x-empty-state icon="fa-bag-shopping" title="Aucune commande trouvée" message="Vos commandes apparaîtront ici après l’acceptation d’un devis. Vous pouvez modifier ou effacer les filtres pour élargir la recherche." />
+        <x-empty-state icon="fa-bag-shopping" title="Aucune commande trouvée" description="Vos commandes apparaîtront ici après l’acceptation d’un devis. Modifiez vos critères de recherche ou effacez les filtres pour afficher toutes vos commandes.">
+            <a class="btn btn-secondary" href="{{ route('client.orders.index') }}">Effacer les filtres</a>
+            <a class="btn btn-primary" href="{{ route('client.quotes.index') }}">Consulter mes devis</a>
+        </x-empty-state>
     @else
         <div class="client-list client-order-list">
             @foreach($orders as $order)
@@ -141,6 +148,9 @@
                             <p>Professionnel : <strong>{{ $order->professional?->user?->name ?? $order->professional?->professional_title ?? 'Non disponible' }}</strong></p>
                             <div class="client-order-card__meta">
                                 <span><i class="fa-regular fa-calendar" aria-hidden="true"></i> Créée le {{ optional($order->created_at)->format('d/m/Y') }}</span>
+                                @if($order->schedule_confirmed_at && $order->scheduled_start_at)
+                                    <span><i class="fa-regular fa-clock" aria-hidden="true"></i> Prestation prévue le {{ $order->scheduled_start_at->format('d/m/Y à H:i') }}</span>
+                                @endif
                                 <span><i class="fa-solid fa-coins" aria-hidden="true"></i> {{ number_format((float) $order->total, 2, ',', ' ') }} {{ $order->currency }}</span>
                             </div>
                             <p class="client-order-payment-state">
@@ -154,7 +164,7 @@
                         </div>
                     </div>
                     <div class="client-list-item__side client-order-card__actions">
-                        @if($order->status->value === 'pending_payment' && (!$order->payment || in_array($order->payment->status->value, ['failed', 'cancelled', 'expired'], true)))
+                        @if($order->status->value === 'pending_payment' && (!$order->payment || in_array($order->payment->status->value, $retryablePaymentStatuses, true)))
                             <a class="btn btn-primary btn-sm" href="{{ route('client.orders.payment', $order) }}">Accéder au paiement</a>
                         @elseif($order->payment)
                             <a class="btn btn-secondary btn-sm" href="{{ route('client.payments.show', $order->payment) }}">Consulter le paiement</a>

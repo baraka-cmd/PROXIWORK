@@ -15,14 +15,21 @@
         $offer = $quotation->currentOffer;
         $activeStatus = in_array($quotation->status, [\App\Enums\QuotationStatus::SENT, \App\Enums\QuotationStatus::NEGOTIATING], true);
         $offerIsValid = $offer?->valid_until?->isFuture() ?? false;
+        $addressRequired = $quotation->serviceRequest?->execution_mode?->requiresClientAddress() ?? false;
+        $addressMissing = $addressRequired && ! $quotation->serviceRequest?->address;
         $clientMustDecide = $activeStatus
             && $offerIsValid
             && $offer?->actor_type === \App\Enums\QuotationOfferActor::PROFESSIONAL;
         $acceptedOffer = $quotation->acceptedOffer;
+        $durationUnitLabels = [
+            'hours' => 'heure',
+            'days' => 'jour',
+            'weeks' => 'semaine',
+        ];
     @endphp
 
-    <div class="client-module client-quote-detail">
-        <header class="client-module__header">
+    <div class="client-module client-quote-detail client-quote-detail-page">
+        <header class="client-module__header client-quote-detail__header">
             <div>
                 <a class="client-back-link" href="{{ route('client.quotes.index') }}">
                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à mes devis
@@ -82,7 +89,7 @@
                             </div>
                             <div>
                                 <span><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Délai de réalisation</span>
-                                <strong>{{ $offer->duration_value }} {{ $offer->duration_unit->value }}</strong>
+                            <strong>{{ $offer->duration_value }} {{ $durationUnitLabels[$offer->duration_unit->value] }}{{ $offer->duration_value > 1 ? 's' : '' }}</strong>
                             </div>
                             <div>
                                 <span><i class="fa-solid fa-user" aria-hidden="true"></i> Proposition faite par</span>
@@ -110,7 +117,7 @@
                             <h2>Historique des propositions</h2>
                             <p>Chaque version est conservée pour que vous puissiez vérifier les conditions réellement proposées.</p>
                         </div>
-                        <span class="client-quote-history-count">{{ $quotation->offers->count() }} version(s)</span>
+                        <span class="client-quote-history-count">{{ $quotation->offers->count() }} {{ $quotation->offers->count() > 1 ? 'versions' : 'version' }}</span>
                     </div>
 
                     @if ($quotation->offers->isEmpty())
@@ -144,7 +151,7 @@
                                         <p class="client-quote-version-list__conditions"><strong>Conditions :</strong> {{ $version->conditions }}</p>
                                     @endif
                                     <dl>
-                                        <div><dt>Délai</dt><dd>{{ $version->duration_value }} {{ $version->duration_unit->value }}</dd></div>
+                                        <div><dt>Délai</dt><dd>{{ $version->duration_value }} {{ $durationUnitLabels[$version->duration_unit->value] }}{{ $version->duration_value > 1 ? 's' : '' }}</dd></div>
                                         <div><dt>Valable jusqu'au</dt><dd>{{ optional($version->valid_until)->format('d/m/Y à H:i') }}</dd></div>
                                         <div><dt>Émise par</dt><dd>{{ $version->creator?->name ?? 'Utilisateur indisponible' }}</dd></div>
                                         <div><dt>Créée le</dt><dd>{{ optional($version->created_at)->format('d/m/Y à H:i') }}</dd></div>
@@ -209,7 +216,7 @@
                         @if ($quotation->order)
                             <dl class="client-definition-list">
                                 <div><dt>Commande</dt><dd>{{ $quotation->order->order_number }}</dd></div>
-                                <div><dt>État</dt><dd>{{ $quotation->order->status->value }}</dd></div>
+                                <div><dt>État</dt><dd>{{ match ($quotation->order->status) { \App\Enums\OrderStatus::PENDING_PAYMENT => 'En attente de paiement', \App\Enums\OrderStatus::CONFIRMED => 'Confirmée', \App\Enums\OrderStatus::IN_PROGRESS => 'En cours', \App\Enums\OrderStatus::DELIVERY_SUBMITTED => 'Livraison soumise', \App\Enums\OrderStatus::COMPLETED => 'Terminée', \App\Enums\OrderStatus::CANCELLED => 'Annulée', \App\Enums\OrderStatus::DISPUTED => 'En litige' } }}</dd></div>
                                 <div><dt>Total contractuel</dt><dd>{{ number_format((float) $quotation->order->total, 2, ',', ' ') }} {{ $quotation->order->currency }}</dd></div>
                             </dl>
                             <a class="btn btn-primary client-quote-full-width" href="{{ route('client.orders.show', $quotation->order) }}">Ouvrir la commande</a>
@@ -236,17 +243,17 @@
                     <section class="client-panel client-quote-decision-panel">
                         <h2>Votre décision</h2>
                         <p>Vérifiez le montant, la devise, le délai et les conditions avant de répondre.</p>
-                        @if (! $quotation->serviceRequest?->address)
+                        @if ($addressMissing)
                             <div class="client-form-alert">
                                 <strong>Adresse d’exécution requise</strong>
-                                <p>Une adresse appartenant à votre compte est nécessaire pour créer la commande après acceptation.</p>
+                                <p>Une adresse appartenant à votre compte est nécessaire pour cette prestation avant la création de la commande.</p>
                                 <a class="btn btn-secondary client-quote-full-width" href="{{ route('client.requests.show', $quotation->serviceRequest) }}">Choisir l’adresse de cette demande</a>
                             </div>
                         @endif
                         <form method="POST" action="{{ route('client.quotes.accept', $quotation) }}">
                             @csrf
                             <button class="btn btn-primary client-quote-full-width" type="submit"
-                                @disabled(! $quotation->serviceRequest?->address)
+                                @disabled($addressMissing)
                                 data-confirm-submit="Accepter {{ number_format((float) $offer->amount, 2, ',', ' ') }} {{ $offer->currency }} et ses conditions ? Cette décision créera une commande à l'étape prévue par PROXIWORK ; le paiement n'est pas encore confirmé.">
                                 <i class="fa-solid fa-check" aria-hidden="true"></i> Accepter le devis
                             </button>
@@ -286,7 +293,7 @@
                                 <label for="counter-duration-unit">Unité</label>
                                 <select id="counter-duration-unit" name="duration_unit" required>
                                     @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
-                                        <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($unit->value) }}</option>
+                                        <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($durationUnitLabels[$unit->value]) }}s</option>
                                     @endforeach
                                 </select>
                                 @error('duration_unit')<small class="client-field-error">{{ $message }}</small>@enderror

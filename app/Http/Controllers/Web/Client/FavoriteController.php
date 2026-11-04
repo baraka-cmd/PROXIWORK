@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Client;
 
-use App\Enums\CategoryStatus;
-use App\Enums\ProfessionalVerificationStatus;
-use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Favorite;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Services\FavoriteService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -48,7 +46,9 @@ class FavoriteController extends Controller
         $favorites = (clone $baseQuery)
             ->with([
                 'professionalProfile.user.profile',
-                'professionalProfile.services' => fn ($query) => $query->published(),
+                'professionalProfile' => fn (BelongsTo $query) => $query->withCount([
+                    'services as requestable_services_count' => fn (Builder $services) => $services->requestable(),
+                ]),
                 'service.category',
                 'service.skills',
                 'service.images',
@@ -62,9 +62,16 @@ class FavoriteController extends Controller
                     $query
                         ->whereHas('professionalProfile.user', fn (Builder $userQuery) => $userQuery->where('name', 'like', $like))
                         ->orWhereHas('professionalProfile', function (Builder $profileQuery) use ($like): void {
-                            $profileQuery->where('professional_title', 'like', $like)
+                            $profileQuery->where('business_name', 'like', $like)
+                                ->orWhere('professional_title', 'like', $like)
                                 ->orWhere('city', 'like', $like)
-                                ->orWhere('province', 'like', $like);
+                                ->orWhere('province', 'like', $like)
+                                ->orWhereHas('user.profile', fn (Builder $userProfile) => $userProfile
+                                    ->where('first_name', 'like', $like)
+                                    ->orWhere('last_name', 'like', $like))
+                                ->orWhereHas('skills', fn (Builder $skills) => $skills
+                                    ->where('status', 'active')
+                                    ->where('name', 'like', $like));
                         })
                         ->orWhereHas('service', function (Builder $serviceQuery) use ($like): void {
                             $serviceQuery->where('title', 'like', $like)
@@ -76,7 +83,7 @@ class FavoriteController extends Controller
             ->when(($filters['sort'] ?? 'recent') === 'oldest', fn (Builder $query) => $query->orderBy('created_at')->orderBy('id'))
             ->when(($filters['sort'] ?? 'recent') === 'name', function (Builder $query): void {
                 $query->orderByRaw('COALESCE(
-                    (SELECT users.name FROM professional_profiles
+                    (SELECT COALESCE(NULLIF(professional_profiles.business_name, \'\'), users.name) FROM professional_profiles
                      INNER JOIN users ON users.id = professional_profiles.user_id
                      WHERE professional_profiles.id = favorites.professional_profile_id LIMIT 1),
                     (SELECT services.title FROM services WHERE services.id = favorites.service_id LIMIT 1)
@@ -130,23 +137,11 @@ class FavoriteController extends Controller
         if ($favorite->professionalProfile !== null) {
             $professional = $favorite->professionalProfile;
 
-            return $professional->status === ProfessionalProfile::STATUS_ACTIVE
-                && $professional->visibility === ProfessionalProfile::VISIBILITY_PUBLIC
-                && $professional->verification_status === ProfessionalVerificationStatus::VERIFIED
-                && $professional->user?->isActive() === true;
+            return $professional->isPubliclyVisible();
         }
 
         $service = $favorite->service;
-        $professional = $service?->professionalProfile;
 
-        return $service !== null
-            && $service->status === ServiceStatus::PUBLISHED
-            && $service->published_at !== null
-            && $service->category?->status === CategoryStatus::ACTIVE
-            && $professional !== null
-            && $professional->status === ProfessionalProfile::STATUS_ACTIVE
-            && $professional->visibility === ProfessionalProfile::VISIBILITY_PUBLIC
-            && $professional->verification_status === ProfessionalVerificationStatus::VERIFIED
-            && $professional->user?->isActive() === true;
+        return $service?->isRequestableForClient() === true;
     }
 }

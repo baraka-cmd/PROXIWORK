@@ -14,10 +14,18 @@
             <h1>Mon profil</h1>
             <p>Gérez les informations de votre compte et protégez votre accès à PROXIWORK.</p>
         </div>
-        <a class="btn btn-primary" href="{{ route('client.profile.edit') }}">
-            <i class="fa-solid fa-pen" aria-hidden="true"></i>
-            Modifier mon profil
-        </a>
+        <div class="profile-page-header__actions">
+            @unless ($user->professionalProfile()->exists())
+                <a class="btn btn-secondary" href="{{ route('client.professional-profile.create') }}">
+                    <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+                    Ajouter un espace professionnel
+                </a>
+            @endunless
+            <a class="btn btn-primary" href="{{ route('client.profile.edit') }}">
+                <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                Modifier mon profil
+            </a>
+        </div>
     </header>
 
     @if (session('success'))
@@ -121,6 +129,11 @@
         <a class="client-panel profile-shortcut" href="{{ route('client.profile.edit') }}#profile-password">
             <span class="profile-shortcut-icon"><i class="fa-solid fa-lock" aria-hidden="true"></i></span>
             <span><strong>Sécurité du compte</strong><small>Modifier votre mot de passe et protéger vos connexions</small></span>
+            <i class="fa-solid fa-chevron-right profile-shortcut-arrow" aria-hidden="true"></i>
+        </a>
+        <a class="client-panel profile-shortcut" href="{{ route('client.notifications.index') }}#notification-preferences-title">
+            <span class="profile-shortcut-icon"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+            <span><strong>Préférences de notification</strong><small>Choisir vos canaux de communication disponibles</small></span>
             <i class="fa-solid fa-chevron-right profile-shortcut-arrow" aria-hidden="true"></i>
         </a>
     </section>

@@ -8,6 +8,7 @@ use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
+use App\Http\Requests\ProfessionalService\IndexServiceRequest;
 use App\Http\Requests\ProfessionalService\ReplaceServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceImageRequest;
 use App\Http\Requests\ProfessionalService\StoreServiceRequest;
@@ -86,11 +87,12 @@ class ProfileController extends Controller
         );
 
         $completionItems = [
-            'personal' => filled($professional->user->profile?->first_name)
-                && filled($professional->user->profile?->last_name),
-            'profession' => filled($professional->professional_title),
-            'presentation' => filled($professional->description),
-            'service_area' => filled($professional->city) && filled($professional->province),
+            'personal' => trim((string) $professional->user->profile?->first_name) !== ''
+                && trim((string) $professional->user->profile?->last_name) !== '',
+            'profession' => trim((string) $professional->professional_title) !== '',
+            'presentation' => mb_strlen(trim((string) $professional->description)) >= 40,
+            'service_area' => trim((string) $professional->city) !== ''
+                && trim((string) $professional->province) !== '',
             'skills' => $professional->skills_count > 0,
         ];
 
@@ -358,16 +360,12 @@ class ProfileController extends Controller
             ->with('success', 'Vos compétences ont été mises à jour.');
     }
 
-    public function services(Request $request): View
+    public function services(IndexServiceRequest $request): View
     {
         $this->authorize('viewAny', Service::class);
 
         $profile = $request->user()->professionalProfile()->firstOrFail();
-        $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max:120'],
-            'status' => ['nullable', Rule::enum(ServiceStatus::class)],
-            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
-        ]);
+        $validated = $request->validated();
 
         $pendingRealizationsCount = ServiceRealization::query()
             ->whereHas('service', fn ($query) => $query->where('professional_profile_id', $profile->getKey()))
@@ -392,8 +390,10 @@ class ProfileController extends Controller
             })
             ->when($validated['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
             ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
-            ->orderBy('sort_order')
-            ->orderByDesc('id')
+            ->when($validated['skill_id'] ?? null, fn ($query, int $skillId) => $query->whereHas('skills', fn ($skills) => $skills->whereKey($skillId)))
+            ->when(($validated['sort'] ?? 'recent') === 'title', fn ($query) => $query->orderBy('title')->orderByDesc('id'))
+            ->when(($validated['sort'] ?? 'recent') === 'requests', fn ($query) => $query->orderByDesc('service_requests_count')->orderByDesc('id'))
+            ->when(($validated['sort'] ?? 'recent') === 'recent', fn ($query) => $query->orderByDesc('updated_at')->orderByDesc('id'))
             ->paginate(12)
             ->withQueryString();
 
@@ -402,6 +402,11 @@ class ProfileController extends Controller
             'filters' => $validated,
             'statuses' => ServiceStatus::cases(),
             'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'skills' => Skill::query()
+                ->where('status', 'active')
+                ->whereHas('services', fn ($query) => $query->where('professional_profile_id', $profile->getKey()))
+                ->orderBy('name')
+                ->get(['id', 'name']),
             'serviceCounts' => [
                 'all' => (int) $serviceCounts->sum(),
                 'published' => (int) ($serviceCounts[ServiceStatus::PUBLISHED->value] ?? 0),

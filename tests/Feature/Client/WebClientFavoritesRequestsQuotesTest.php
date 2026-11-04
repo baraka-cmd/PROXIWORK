@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Client;
 
+use App\Enums\ServiceExecutionMode;
 use App\Models\Address;
+use App\Models\Conversation;
 use App\Models\Favorite;
 use App\Models\Order;
 use App\Models\ProfessionalProfile;
@@ -108,6 +110,88 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
 
         $this->actingAs($owner)->get('/client/requests/'.$serviceRequest->id)->assertOk();
         $this->actingAs($other)->get('/client/requests/'.$serviceRequest->id)->assertForbidden();
+    }
+
+    public function test_client_request_detail_shows_request_and_quotation_events_in_chronological_order(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create(['professional_profile_id' => $professional->id]);
+        $serviceRequest = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+            'status' => 'quoted',
+        ]);
+        $quotation = Quotation::factory()->create([
+            'service_request_id' => $serviceRequest->id,
+            'status' => 'negotiating',
+        ]);
+
+        $serviceRequest->statusHistories()->create([
+            'from_status' => 'draft',
+            'to_status' => 'requested',
+            'changed_by' => $client->id,
+            'created_at' => now()->subHours(4),
+        ]);
+        QuotationEvent::query()->forceCreate([
+            'quotation_id' => $quotation->id,
+            'actor_id' => $professionalUser->id,
+            'type' => 'quote_created',
+            'created_at' => now()->subHours(3),
+        ]);
+        $serviceRequest->statusHistories()->create([
+            'from_status' => 'requested',
+            'to_status' => 'quoted',
+            'changed_by' => $professionalUser->id,
+            'created_at' => now()->subHours(2),
+        ]);
+        QuotationEvent::query()->forceCreate([
+            'quotation_id' => $quotation->id,
+            'actor_id' => $client->id,
+            'type' => 'counter_offer_created',
+            'created_at' => now()->subHour(),
+        ]);
+
+        $this->actingAs($client)
+            ->get(route('client.requests.show', $serviceRequest))
+            ->assertOk()
+            ->assertSeeInOrder([
+                'En attente du professionnel',
+                'Le professionnel a envoyé un devis',
+                'Devis à consulter',
+                'Une contre-proposition a été envoyée',
+            ]);
+    }
+
+    public function test_client_request_detail_links_only_to_its_own_conversation(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create(['professional_profile_id' => $professional->id]);
+        $serviceRequest = ServiceRequest::factory()->create([
+            'client_id' => $client->id,
+            'professional_id' => $professional->id,
+            'service_id' => $service->id,
+        ]);
+
+        $generalConversation = $this->createConversation($client, $professional, 'general');
+        $requestConversation = $this->createConversation(
+            $client,
+            $professional,
+            'request:'.$serviceRequest->id,
+            $serviceRequest->id,
+        );
+
+        $this->actingAs($client)
+            ->get(route('client.requests.show', $serviceRequest))
+            ->assertOk()
+            ->assertSee(route('client.messages.show', $requestConversation), false)
+            ->assertDontSee(route('client.messages.show', $generalConversation), false);
     }
 
     public function test_quote_detail_is_scoped_by_policy(): void
@@ -557,6 +641,58 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $this->assertDatabaseHas('notifications', ['notifiable_id' => $client->getKey(), 'type' => AccountActivityNotification::class]);
     }
 
+    public function test_client_can_accept_a_remote_service_quote_without_an_address(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $quotation = $this->makeQuoteForClient($client, $professionalUser);
+        $serviceRequest = $quotation->serviceRequest;
+        $serviceRequest->forceFill([
+            'execution_mode' => ServiceExecutionMode::REMOTE,
+            'address_id' => null,
+        ])->save();
+
+        $detail = $this->actingAs($client)->get('/client/quotes/'.$quotation->id)->assertOk();
+        $detail->assertDontSee('Adresse d’exécution requise');
+        $detail->assertSee('<button class="btn btn-primary client-quote-full-width" type="submit"', false);
+
+        $this->actingAs($client)
+            ->post('/client/quotes/'.$quotation->id.'/accept')
+            ->assertRedirect();
+
+        $order = Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+        $this->assertSame('accepted', $quotation->fresh()->status->value);
+        $this->assertSame('pending_payment', $order->status->value);
+        $this->assertDatabaseMissing('order_address_snapshots', ['order_id' => $order->id]);
+    }
+
+    public function test_professional_can_accept_a_remote_client_counter_offer_without_an_address(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $quotation = $this->makeQuoteForClient($client, $professionalUser, [
+            'execution_mode' => ServiceExecutionMode::REMOTE,
+            'address_id' => null,
+        ], [
+            'status' => 'negotiating',
+        ], [
+            'actor_type' => 'client',
+            'version' => 2,
+            'created_by' => $client->id,
+        ]);
+
+        $this->actingAs($professionalUser)
+            ->post('/professional/quotes/'.$quotation->id.'/accept-client-offer')
+            ->assertRedirect();
+
+        $order = Order::query()->where('quotation_id', $quotation->id)->firstOrFail();
+        $this->assertSame('accepted', $quotation->fresh()->status->value);
+        $this->assertSame('pending_payment', $order->status->value);
+        $this->assertDatabaseMissing('order_address_snapshots', ['order_id' => $order->id]);
+    }
+
     public function test_client_cannot_change_currency_during_counter_offer(): void
     {
         $client = $this->client();
@@ -792,5 +928,27 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         $user->assignRole('client');
 
         return $user;
+    }
+
+    private function createConversation(
+        User $client,
+        ProfessionalProfile $professional,
+        string $contextKey,
+        ?int $serviceRequestId = null,
+    ): Conversation {
+        $conversation = Conversation::query()->create([
+            'type' => 'client_professional',
+            'status' => 'open',
+            'client_id' => $client->getKey(),
+            'professional_id' => $professional->getKey(),
+            'context_key' => $contextKey,
+            'service_request_id' => $serviceRequestId,
+        ]);
+        $conversation->participants()->attach([
+            $client->getKey(),
+            $professional->user_id,
+        ]);
+
+        return $conversation;
     }
 }

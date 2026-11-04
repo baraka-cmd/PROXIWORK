@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace App\Services\ProfessionalSearch;
 
-use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\ServicePricingType;
 use App\Enums\ServiceStatus;
-use App\Enums\UserAccountStatus;
 use App\Models\ProfessionalProfile;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
 class ProfessionalSearchService
 {
-    public function search(array $filters): LengthAwarePaginator
+    public function search(array $filters, ?User $viewer = null): LengthAwarePaginator
     {
         $query = ProfessionalProfile::query()
             ->select([
                 'id',
                 'user_id',
                 'professional_title',
+                'business_name',
                 'description',
                 'years_experience',
                 'starting_price',
@@ -35,10 +35,7 @@ class ProfessionalSearchService
                 'rating_count',
                 'created_at',
             ])
-            ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-            ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-            ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
+            ->publiclyVisible()
             ->whereHas('services', function (Builder $services): void {
                 $services
                     ->published()
@@ -46,7 +43,7 @@ class ProfessionalSearchService
             })
             ->with([
                 'user:id,name',
-                'user.profile:id,user_id,first_name,last_name,bio',
+                'user.profile:id,user_id,first_name,last_name,bio,avatar_path',
                 'skills' => fn ($skills) => $skills
                     ->where('status', 'active')
                     ->select(['skills.id', 'skills.name', 'skills.slug']),
@@ -56,6 +53,14 @@ class ProfessionalSearchService
                     ->published()
                     ->whereHas('category', fn (Builder $category) => $category->where('status', 'active')),
             ]);
+
+        if ($viewer?->hasRole('client') === true) {
+            $query->with([
+                'favorites' => fn (Builder $favorites) => $favorites
+                    ->where('user_id', $viewer->getKey())
+                    ->select(['id', 'user_id', 'professional_profile_id']),
+            ]);
+        }
 
         $this->applyProfession($query, $filters);
         $this->applyTextSearch($query, $filters);
@@ -74,34 +79,85 @@ class ProfessionalSearchService
             ->withQueryString();
     }
 
-    public function findVisible(ProfessionalProfile $professional): ProfessionalProfile
+    public function findVisible(ProfessionalProfile $professional, ?User $viewer = null): ProfessionalProfile
     {
-        return ProfessionalProfile::query()
+        $query = ProfessionalProfile::query()
             ->whereKey($professional->getKey())
-            ->where('status', ProfessionalProfile::STATUS_ACTIVE)
-            ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
-            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-            ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value))
+            ->publiclyVisible()
+            ->select([
+                'id',
+                'user_id',
+                'professional_title',
+                'business_name',
+                'description',
+                'languages',
+                'years_experience',
+                'starting_price',
+                'currency',
+                'province',
+                'city',
+                'commune',
+                'service_radius_km',
+                'verification_status',
+                'verified_at',
+                'availability_status',
+                'rating_average',
+                'rating_count',
+            ])
             ->with([
                 'user:id,name',
-                'user.profile',
+                'user.profile:id,user_id,first_name,last_name,bio,avatar_path',
                 'skills' => fn ($skills) => $skills->where('status', 'active'),
                 'services' => fn ($services) => $services
                     ->published()
                     ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
-                    ->with(['category', 'skills', 'images'])
+                    ->select([
+                        'id',
+                        'professional_profile_id',
+                        'category_id',
+                        'slug',
+                        'title',
+                        'short_description',
+                        'description',
+                        'pricing_type',
+                        'price',
+                        'price_min',
+                        'price_max',
+                        'currency',
+                        'execution_mode',
+                        'published_at',
+                    ])
+                    ->with([
+                        'category:id,name,slug',
+                        'skills:id,name,slug',
+                        'images:id,service_id,path,alt_text,is_cover',
+                        'realizations' => fn ($realizations) => $realizations
+                            ->where('status', 'approved')
+                            ->where('participation_confirmed', true)
+                            ->select(['id', 'service_id', 'caption', 'completed_at']),
+                    ])
                     ->latest('published_at'),
                 'reviews' => fn ($reviews) => $reviews
                     ->where('status', 'published')
+                    ->select(['id', 'order_id', 'professional_id', 'rating', 'comment', 'status', 'published_at'])
                     ->with([
-                        'response',
+                        'response:id,review_id,professional_id,response,status',
                         'order:id,service_request_id',
                         'order.serviceRequest:id,service_id',
                         'order.serviceRequest.service:id,title',
                     ])
                     ->latest('published_at'),
-            ])
-            ->firstOrFail();
+            ]);
+
+        if ($viewer?->hasRole('client') === true) {
+            $query->with([
+                'favorites' => fn (Builder $favorites) => $favorites
+                    ->where('user_id', $viewer->getKey())
+                    ->select(['id', 'user_id', 'professional_profile_id']),
+            ]);
+        }
+
+        return $query->firstOrFail();
     }
 
     private function applyProfession(Builder $query, array $filters): void
@@ -128,6 +184,7 @@ class ProfessionalSearchService
         $query->where(function (Builder $query) use ($like): void {
             $query
                 ->where('professional_title', 'like', $like)
+                ->orWhere('business_name', 'like', $like)
                 ->orWhere('description', 'like', $like)
                 ->orWhereHas('user.profile', function (Builder $profile) use ($like): void {
                     $profile
@@ -212,17 +269,13 @@ class ProfessionalSearchService
 
     private function applyPrice(Builder $query, array $filters): void
     {
-        if (
-            ! array_key_exists('min_price', $filters)
-            && ! array_key_exists('max_price', $filters)
-            && empty($filters['currency'])
-        ) {
-            return;
-        }
-
         $min = $filters['min_price'] ?? null;
         $max = $filters['max_price'] ?? null;
         $currency = $filters['currency'] ?? null;
+
+        if ($min === null && $max === null && empty($currency)) {
+            return;
+        }
 
         $query->whereHas('services', function (Builder $services) use ($min, $max, $currency): void {
             $services
@@ -252,7 +305,7 @@ class ProfessionalSearchService
 
     private function applyRating(Builder $query, array $filters): void
     {
-        if (array_key_exists('rating', $filters)) {
+        if (($filters['rating'] ?? null) !== null) {
             $query->where('rating_average', '>=', $filters['rating']);
         }
     }
@@ -280,6 +333,7 @@ class ProfessionalSearchService
     private function applySort(Builder $query, array $filters): void
     {
         $sort = $filters['sort'] ?? 'relevance';
+        $currency = $filters['currency'] ?? null;
 
         match ($sort) {
             'rating' => $query
@@ -288,25 +342,99 @@ class ProfessionalSearchService
                 ->orderByDesc('id'),
             'price_low' => $query
                 ->orderByRaw(
-                    '(SELECT MIN(COALESCE(price, price_min)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND EXISTS (SELECT 1 FROM categories WHERE categories.id = services.category_id AND categories.status = ?))',
-                    [ServiceStatus::PUBLISHED->value, 'active']
+                    'COALESCE((SELECT MIN(COALESCE(price, price_min)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND services.pricing_type IN (?, ?, ?) AND EXISTS (SELECT 1 FROM categories WHERE categories.id = services.category_id AND categories.status = ?)), 9999999999.99)',
+                    [
+                        ServiceStatus::PUBLISHED->value,
+                        $currency,
+                        ServicePricingType::FIXED->value,
+                        ServicePricingType::FROM->value,
+                        ServicePricingType::RANGE->value,
+                        'active',
+                    ]
                 )
                 ->orderByDesc('id'),
             'price_high' => $query
                 ->orderByRaw(
-                    '(SELECT MAX(COALESCE(price, price_max)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND EXISTS (SELECT 1 FROM categories WHERE categories.id = services.category_id AND categories.status = ?))',
-                    [ServiceStatus::PUBLISHED->value, 'active']
+                    'COALESCE((SELECT MAX(COALESCE(price_max, price)) FROM services WHERE services.professional_profile_id = professional_profiles.id AND services.status = ? AND services.published_at IS NOT NULL AND services.currency = ? AND services.pricing_type IN (?, ?, ?) AND EXISTS (SELECT 1 FROM categories WHERE categories.id = services.category_id AND categories.status = ?)), 0)',
+                    [
+                        ServiceStatus::PUBLISHED->value,
+                        $currency,
+                        ServicePricingType::FIXED->value,
+                        ServicePricingType::FROM->value,
+                        ServicePricingType::RANGE->value,
+                        'active',
+                    ]
                 )
                 ->orderByDesc('id'),
             'newest' => $query->orderByDesc('created_at')->orderByDesc('id'),
-            default => $query
-                ->orderByRaw(
-                    'CASE WHEN verification_status = ? THEN 1 ELSE 0 END DESC',
-                    [ProfessionalVerificationStatus::VERIFIED->value]
-                )
-                ->orderByDesc('rating_average')
-                ->orderByDesc('published_services_count')
-                ->orderByDesc('id'),
+            default => $this->applyRelevanceSort($query, $filters),
         };
+    }
+
+    private function applyRelevanceSort(Builder $query, array $filters): void
+    {
+        $term = trim((string) ($filters['search'] ?? ''));
+        if ($term === '') {
+            $term = trim((string) ($filters['profession'] ?? ''));
+        }
+        $term = mb_strtolower($term);
+
+        if ($term !== '') {
+            $like = '%'.$term.'%';
+
+            $query->orderByRaw(
+                'CASE
+                    WHEN LOWER(professional_title) = ? THEN 6
+                    WHEN LOWER(professional_title) LIKE ? THEN 5
+                    WHEN LOWER(business_name) = ? THEN 4
+                    WHEN LOWER(business_name) LIKE ? THEN 3
+                    WHEN EXISTS (
+                        SELECT 1 FROM profiles
+                        WHERE profiles.user_id = professional_profiles.user_id
+                            AND (LOWER(profiles.first_name) LIKE ? OR LOWER(profiles.last_name) LIKE ?)
+                    ) THEN 3
+                    WHEN EXISTS (
+                        SELECT 1 FROM professional_skills
+                        INNER JOIN skills ON skills.id = professional_skills.skill_id
+                        WHERE professional_skills.professional_profile_id = professional_profiles.id
+                            AND skills.status = ?
+                            AND (LOWER(skills.name) LIKE ? OR LOWER(skills.slug) LIKE ?)
+                    ) THEN 2
+                    WHEN EXISTS (
+                        SELECT 1 FROM services
+                        WHERE services.professional_profile_id = professional_profiles.id
+                            AND services.status = ?
+                            AND services.published_at IS NOT NULL
+                            AND (LOWER(services.title) LIKE ? OR LOWER(services.short_description) LIKE ?)
+                            AND EXISTS (
+                                SELECT 1 FROM categories
+                                WHERE categories.id = services.category_id AND categories.status = ?
+                            )
+                    ) THEN 2
+                    ELSE 1
+                END DESC',
+                [
+                    $term,
+                    $like,
+                    $term,
+                    $like,
+                    $like,
+                    $like,
+                    'active',
+                    $like,
+                    $like,
+                    ServiceStatus::PUBLISHED->value,
+                    $like,
+                    $like,
+                    'active',
+                ]
+            );
+        }
+
+        $query
+            ->orderByDesc('rating_average')
+            ->orderByDesc('rating_count')
+            ->orderByDesc('published_services_count')
+            ->orderByDesc('id');
     }
 }

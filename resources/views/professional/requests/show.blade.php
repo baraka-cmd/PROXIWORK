@@ -12,6 +12,7 @@
 @endpush
 
 @section('content')
+    <div class="professional-request-detail-page">
     <div class="dashboard-page-header">
         <div>
             <p class="eyebrow">Demande PW-REQ-{{ str_pad((string) $serviceRequest->getKey(), 6, '0', STR_PAD_LEFT) }}</p>
@@ -119,7 +120,7 @@
         @endif
     </section>
 
-    <section class="surface-card content-card">
+    <section class="surface-card content-card professional-request-history">
         <h2>Historique de la demande</h2>
         <ol class="client-timeline">
             @forelse($serviceRequest->statusHistories as $history)
@@ -137,4 +138,5 @@
             @endforelse
         </ol>
     </section>
+    </div>
 @endsection

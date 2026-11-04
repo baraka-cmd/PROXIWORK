@@ -8,17 +8,17 @@
 @section('page_title','Détail du retrait')
 @section('page_description','Consultez la demande, les preuves enregistrées et les transitions de statut.')
 @section('page_actions')
-<div class="finance-page__navigation" aria-label="Navigation financière">
+<div class="finance-page__navigation withdrawal-page__navigation" aria-label="Navigation financière">
     <a class="button button--secondary" href="{{ route('professional.withdrawals') }}">Retour aux retraits</a>
     <a class="button button--secondary" href="{{ route('professional.wallet', ['currency' => $withdrawal->currency]) }}">Portefeuille {{ $withdrawal->currency }}</a>
     <a class="button button--secondary" href="{{ route('professional.revenues.index', ['currency' => $withdrawal->currency]) }}">Mes revenus {{ $withdrawal->currency }}</a>
 </div>
 @endsection
 @section('content')
-<div class="finance-page finance-page--narrow">
+<div class="finance-page finance-page--narrow withdrawal-detail-page">
     @if(session('status'))<div class="alert alert--success" role="status">{{ session('status') }}</div>@endif
-    <section class="data-card">
-        <div class="data-card__header">
+    <section class="data-card withdrawal-detail-summary">
+        <div class="data-card__header withdrawal-detail-summary__header">
             <div><span class="eyebrow">RÉFÉRENCE WD-{{ str_pad((string)$withdrawal->getKey(), 8, '0', STR_PAD_LEFT) }}</span><h3>{{ \App\Support\MoneyFormatter::format((string)$withdrawal->amount) }} {{ $withdrawal->currency }}</h3></div>
             <span class="withdrawal-status withdrawal-status--{{ $withdrawal->status->value }}">{{ $withdrawal->status->label() }}</span>
         </div>
@@ -55,7 +55,7 @@
         @endif
     </section>
 
-    <section class="data-card" aria-labelledby="withdrawal-history-title">
+    <section class="data-card withdrawal-detail-history" aria-labelledby="withdrawal-history-title">
         <div class="data-card__header"><div><span class="eyebrow">TRAÇABILITÉ</span><h3 id="withdrawal-history-title">Historique des statuts</h3></div></div>
         @if($withdrawal->statusHistories->isEmpty())
             <p class="finance-note">Aucun événement d’historique n’est disponible pour cette ancienne demande.</p>
@@ -76,7 +76,7 @@
     </section>
 
     @if($supportTickets->isNotEmpty())
-        <section class="data-card" aria-labelledby="withdrawal-support-history-title">
+        <section class="data-card withdrawal-detail-support" aria-labelledby="withdrawal-support-history-title">
             <div class="data-card__header"><div><span class="eyebrow">ASSISTANCE</span><h3 id="withdrawal-support-history-title">Conversation avec le support</h3></div></div>
             @foreach($supportTickets as $ticket)
                 <article class="withdrawal-support-ticket">
@@ -104,7 +104,7 @@
         </section>
     @endif
 
-    <section class="data-card" aria-labelledby="withdrawal-support-title">
+    <section class="data-card withdrawal-detail-report" aria-labelledby="withdrawal-support-title">
         <div class="data-card__header"><div><span class="eyebrow">ASSISTANCE</span><h3 id="withdrawal-support-title">Signaler un problème</h3></div></div>
         <p class="finance-note">Le ticket sera lié à cette demande de retrait pour permettre au support de retrouver son statut et son historique. N’inscrivez pas de mot de passe, code PIN ou autre secret de paiement dans votre message.</p>
         @if($errors->has('body'))<div class="alert alert--error" role="alert">{{ $errors->first('body') }}</div>@endif

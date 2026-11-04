@@ -8,6 +8,7 @@
 @endpush
 
 @section('content')
+    <div class="professional-requests-page">
     <div class="dashboard-page-header">
         <div>
             <p class="eyebrow">Espace professionnel</p>
@@ -17,10 +18,10 @@
     </div>
 
     <section class="professional-request-stats" aria-label="Résumé des demandes reçues">
-        <article class="professional-request-stat"><span>Total reçu</span><strong>{{ number_format($statistics['total']) }}</strong><small>Toutes les demandes</small></article>
-        <article class="professional-request-stat"><span>À examiner</span><strong>{{ number_format($statistics['awaiting_review']) }}</strong><small>Demandes en attente du professionnel</small></article>
-        <article class="professional-request-stat"><span>En attente du client</span><strong>{{ number_format($statistics['awaiting_client']) }}</strong><small>Devis transmis ou négociation</small></article>
-        <article class="professional-request-stat"><span>Demandes clôturées</span><strong>{{ number_format($statistics['closed']) }}</strong><small>Refusées ou annulées</small></article>
+        <article class="professional-request-stat professional-request-stat--total"><span class="professional-request-stat__icon" aria-hidden="true"><i class="fa-solid fa-inbox"></i></span><span>Total reçu</span><strong>{{ number_format($statistics['total']) }}</strong><small>Toutes les demandes reçues</small></article>
+        <article class="professional-request-stat professional-request-stat--review"><span class="professional-request-stat__icon" aria-hidden="true"><i class="fa-solid fa-hourglass-half"></i></span><span>À examiner</span><strong>{{ number_format($statistics['awaiting_review']) }}</strong><small>En attente de votre réponse</small></article>
+        <article class="professional-request-stat professional-request-stat--client"><span class="professional-request-stat__icon" aria-hidden="true"><i class="fa-solid fa-user-clock"></i></span><span>En attente du client</span><strong>{{ number_format($statistics['awaiting_client']) }}</strong><small>Devis transmis ou négociation</small></article>
+        <article class="professional-request-stat professional-request-stat--closed"><span class="professional-request-stat__icon" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span><span>Demandes clôturées</span><strong>{{ number_format($statistics['closed']) }}</strong><small>Demandes refusées ou annulées</small></article>
     </section>
 
     @if (session('success'))
@@ -34,7 +35,7 @@
     @endif
 
     @if($selectedService)
-        <p class="page-lead">Demandes associées au service : <strong>{{ $selectedService->title }}</strong></p>
+        <p class="page-lead professional-request-service-context"><i class="fa-solid fa-filter" aria-hidden="true"></i><span>Demandes associées au service : <strong>{{ $selectedService->title }}</strong></span></p>
     @endif
 
     <section class="professional-request-filter surface-card" aria-label="Filtrer les demandes reçues">
@@ -131,4 +132,5 @@
 
         <div class="professional-pagination">{{ $requests->links() }}</div>
     @endif
+    </div>
 @endsection

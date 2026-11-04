@@ -17,7 +17,7 @@ class ProfessionalSearchController
 
     public function index(ProfessionalSearchRequest $request): AnonymousResourceCollection
     {
-        $results = $this->searchService->search($request->validated());
+        $results = $this->searchService->search($request->validated(), $request->user());
 
         return ProfessionalSearchResource::collection($results)->additional([
             'message' => 'Professionnels récupérés avec succès.',

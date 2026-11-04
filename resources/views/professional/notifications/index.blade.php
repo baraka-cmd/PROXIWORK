@@ -56,7 +56,7 @@
                 <option value="service_request" @selected($category === 'service_request')>Demandes</option>
                 <option value="quotation" @selected($category === 'quotation')>Devis</option>
                 <option value="order" @selected($category === 'order')>Commandes</option>
-                <option value="payment" @selected($category === 'payment')>Paiements</option>
+                <option value="payment" @selected($category === 'payment')>Finances</option>
                 <option value="message" @selected($category === 'message')>Messages</option>
                 <option value="review" @selected($category === 'review')>Avis</option>
                 <option value="account" @selected($category === 'account')>Compte et sécurité</option>
@@ -65,6 +65,10 @@
                 <option value="all" @selected($status === 'all')>Toutes</option>
                 <option value="unread" @selected($status === 'unread')>Non lues</option>
                 <option value="read" @selected($status === 'read')>Lues</option>
+            </select>
+            <select name="priority" aria-label="Importance">
+                <option value="all" @selected($priority === 'all')>Toutes les priorités</option>
+                <option value="important" @selected($priority === 'important')>Importantes</option>
             </select>
             <input type="hidden" name="archived" value="{{ $archived ? '1' : '0' }}">
             <button class="button button--primary" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrer</button>
@@ -76,7 +80,7 @@
         <section class="notification-empty" aria-live="polite">
             <i class="fa-regular {{ $archived ? 'fa-folder-open' : 'fa-bell-slash' }}" aria-hidden="true"></i>
             <h3>{{ $archived ? 'Aucune notification archivée' : 'Aucune notification à afficher' }}</h3>
-            @if ($search !== '' || $category !== 'all' || $status !== 'all')
+            @if ($search !== '' || $category !== 'all' || $status !== 'all' || $priority !== 'all')
                 <p>Aucune notification ne correspond aux critères sélectionnés. Les notifications n’ont pas été supprimées ; ajustez les filtres ou réinitialisez la recherche.</p>
                 <a class="button button--secondary" href="{{ route('professional.notifications', ['archived' => $archived ? '1' : '0']) }}">Effacer les filtres</a>
             @else
@@ -123,7 +127,7 @@
                                 'service_request' => 'Demande',
                                 'quotation' => 'Devis',
                                 'order' => 'Commande',
-                                'payment' => 'Paiement',
+                                'payment' => 'Finances',
                                 'message' => 'Message',
                                 'review' => 'Avis',
                                 'account' => 'Compte et sécurité',

@@ -40,6 +40,8 @@ class WithdrawalStatusChanged extends Notification
 
         return [
             'kind' => 'withdrawal_status_changed',
+            'action' => 'payment',
+            'priority' => 'important',
             'title' => 'Mise à jour de votre retrait',
             'message' => $message,
             'withdrawal_id' => $this->withdrawalId,

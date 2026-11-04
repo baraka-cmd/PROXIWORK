@@ -41,7 +41,7 @@ use App\Http\Controllers\Web\PublicServiceRealizationController;
 use App\Http\Controllers\Web\RbacDashboardController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\ServiceRequestAttachmentController;
-use Illuminate\Http\RedirectResponse;
+use App\Http\Controllers\Web\WorkspaceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -55,36 +55,37 @@ Route::get('/professionals/{professional}', [PublicSearchController::class, 'pro
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:5,1')->name('register.store');
+    Route::get('/register/client', [RegisterController::class, 'createClient'])->name('register.client');
+    Route::post('/register/client', [RegisterController::class, 'store'])->middleware('throttle:5,1')->name('register.client.store');
+    Route::get('/register/professional', [RegisterController::class, 'createProfessional'])->name('register.professional');
+    Route::post('/register/professional', [RegisterController::class, 'store'])->middleware('throttle:5,1')->name('register.professional.store');
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:6,1')->name('login.store');
 });
 
 Route::middleware('auth')->group(function (): void {
-    Route::get('/dashboard', function (Request $request): RedirectResponse {
-        $user = $request->user();
-
-        abort_unless($user !== null, 403);
-
-        if ($user->hasRole('admin')) {
-            return redirect()->route('admin.dashboard');
-        }
-
-        if ($user->hasRole('professional')) {
-            return redirect()->route('professional.dashboard');
-        }
-
-        if ($user->hasRole('client')) {
-            return redirect()->route('client.dashboard');
-        }
-
-        abort(403, 'Aucun espace de travail n’est associé à ce compte.');
-    })->name('dashboard');
+    Route::get('/dashboard', [WorkspaceController::class, 'dashboard'])->middleware('active.account')->name('dashboard');
+    Route::post('/workspace/{workspace}', [WorkspaceController::class, 'switch'])
+        ->middleware('active.account')
+        ->name('workspace.switch');
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
+    Route::get('/client/professional-profile/create', [RegisterController::class, 'createProfessionalApplication'])
+        ->middleware(['active.account', 'role:client'])
+        ->name('client.professional-profile.create');
+    Route::post('/client/professional-profile', [RegisterController::class, 'store'])
+        ->middleware(['active.account', 'role:client', 'throttle:5,1'])
+        ->name('client.professional-profile.store');
+
     Route::prefix('client')->name('client.')->middleware(['active.account', 'role:client'])->group(function (): void {
         Route::get('/', ClientDashboardController::class)->name('dashboard');
+        Route::get('recherche', [PublicSearchController::class, 'search'])->name('search');
+        Route::get('search', static fn (Request $request) => redirect()
+            ->route('client.search', $request->query(), 301));
+        Route::get('professionals', [PublicSearchController::class, 'professionals'])->name('professionals.index');
+        Route::get('professionals/{professional}', [PublicSearchController::class, 'professional'])->name('professionals.show');
+        Route::get('professionals/{professional}/photo', [PublicSearchController::class, 'professionalPhoto'])->name('professionals.photo');
         Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
         Route::put('favorites/{professionalProfile}', [FavoriteController::class, 'store'])->name('favorites.store');
         Route::post('favorites/services/{service}', [FavoriteController::class, 'storeService'])->name('favorites.services.store');
@@ -98,15 +99,15 @@ Route::middleware('auth')->group(function (): void {
         Route::post('requests/{serviceRequest}/address', [ServiceRequestController::class, 'setAddress'])->name('requests.address');
         Route::post('requests/{serviceRequest}/attachments', [ServiceRequestAttachmentController::class, 'store'])->middleware('throttle:10,1')->name('requests.attachments.store');
         Route::get('requests/{serviceRequest}/attachments/{attachment}', [ServiceRequestAttachmentController::class, 'download'])->name('requests.attachments.download');
-        Route::post('requests/{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->name('requests.submit');
+        Route::post('requests/{serviceRequest}/submit', [ServiceRequestController::class, 'submit'])->middleware('verified')->name('requests.submit');
         Route::post('requests/{serviceRequest}/cancel', [ServiceRequestController::class, 'cancel'])->name('requests.cancel');
         Route::get('quotes', [QuotationController::class, 'index'])->name('quotes.index');
         Route::get('quotes/{quotation}', [QuotationController::class, 'show'])->name('quotes.show');
-        Route::post('quotes/{quotation}/accept', [QuotationController::class, 'accept'])->name('quotes.accept');
+        Route::post('quotes/{quotation}/accept', [QuotationController::class, 'accept'])->middleware('verified')->name('quotes.accept');
         Route::post('quotes/{quotation}/reject', [QuotationController::class, 'reject'])->name('quotes.reject');
         Route::post('quotes/{quotation}/counter-offer', [QuotationController::class, 'counterOffer'])->name('quotes.counter-offer');
         Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
-        Route::get('orders/{order}/payment', [OrderController::class, 'pay'])->name('orders.payment');
+        Route::get('orders/{order}/payment', [OrderController::class, 'pay'])->middleware('verified')->name('orders.payment');
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('orders/{order}/review', [ClientReviewController::class, 'store'])->middleware('throttle:5,1')->name('orders.review.store');
         Route::post('orders/{order}/review-response/report', [ClientReviewController::class, 'reportResponse'])->middleware('throttle:5,1')->name('orders.review-response.report');
@@ -115,10 +116,10 @@ Route::middleware('auth')->group(function (): void {
         Route::post('orders/{order}/request-schedule-change', [OrderController::class, 'requestScheduleChange'])->middleware('throttle:10,1')->name('orders.request-schedule-change');
         Route::post('orders/{order}/accept-delivery', [OrderController::class, 'acceptDelivery'])->middleware('throttle:10,1')->name('orders.accept-delivery');
         Route::post('orders/{order}/request-delivery-changes', [OrderController::class, 'requestDeliveryChanges'])->middleware('throttle:10,1')->name('orders.request-delivery-changes');
-        Route::post('orders/{order}/payment', [PaymentController::class, 'store'])->middleware('throttle:payment')->name('payments.store');
+        Route::post('orders/{order}/payment', [PaymentController::class, 'store'])->middleware(['verified', 'throttle:payment'])->name('payments.store');
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
-        Route::post('payments/{payment}/refund-requests', [PaymentController::class, 'requestRefund'])->middleware('throttle:payment')->name('payments.refunds.store');
+        Route::post('payments/{payment}/refund-requests', [PaymentController::class, 'requestRefund'])->middleware(['verified', 'throttle:payment'])->name('payments.refunds.store');
         Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
         Route::get('profile', [ClientProfileController::class, 'show'])->name('profile');
         Route::get('profile/edit', [ClientProfileController::class, 'edit'])->name('profile.edit');
@@ -196,7 +197,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('requests/{serviceRequest}/reject', [ProfessionalServiceRequestController::class, 'reject'])->middleware('throttle:10,1')->name('requests.reject');
     Route::get('quotes', [ProfessionalQuotationController::class, 'index'])->name('quotes.index');
     Route::get('quotes/create/{serviceRequest}', [ProfessionalQuotationController::class, 'create'])->name('quotes.create');
-    Route::post('quotes/create/{serviceRequest}', [ProfessionalQuotationController::class, 'store'])->middleware('throttle:10,1')->name('quotes.store');
+    Route::post('quotes/create/{serviceRequest}', [ProfessionalQuotationController::class, 'store'])->middleware(['verified', 'throttle:10,1'])->name('quotes.store');
     Route::get('quotes/{quotation}', [ProfessionalQuotationController::class, 'show'])->name('quotes.show');
     Route::post('quotes/{quotation}/accept-client-offer', [ProfessionalQuotationController::class, 'acceptClientOffer'])->middleware('throttle:10,1')->name('quotes.accept-client-offer');
     Route::post('quotes/{quotation}/reject-client-offer', [ProfessionalQuotationController::class, 'rejectClientOffer'])->middleware('throttle:10,1')->name('quotes.reject-client-offer');
@@ -207,7 +208,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('profile/photo', [ProfileController::class, 'storePhoto'])->middleware('throttle:6,1')->name('profile.photo.store');
     Route::delete('profile/photo', [ProfileController::class, 'destroyPhoto'])->middleware('throttle:10,1')->name('profile.photo.destroy');
     Route::patch('profile/skills', [ProfileController::class, 'updateSkills'])->middleware('throttle:10,1')->name('profile.skills.update');
-    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('profile', [ProfileController::class, 'update'])->middleware('verified')->name('profile.update');
     Route::get('profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('documents', [ProfessionalDocumentController::class, 'index'])->name('documents.index');
     Route::post('documents', [ProfessionalDocumentController::class, 'store'])->name('documents.store');
@@ -218,7 +219,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('services/{service}/edit', [ProfileController::class, 'editService'])->name('services.edit');
     Route::get('services/{service}/preview', [ProfileController::class, 'previewService'])->name('services.preview');
     Route::patch('services/{service}', [ProfileController::class, 'updateService'])->name('services.update');
-    Route::post('services/{service}/publish', [ProfileController::class, 'publishService'])->name('services.publish');
+    Route::post('services/{service}/publish', [ProfileController::class, 'publishService'])->middleware('verified')->name('services.publish');
     Route::post('services/{service}/unpublish', [ProfileController::class, 'unpublishService'])->name('services.unpublish');
     Route::delete('services/{service}', [ProfileController::class, 'archiveService'])->name('services.archive');
     Route::post('services/{service}/images', [ProfileController::class, 'addImage'])->name('services.images.store');
@@ -241,7 +242,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('wallet', [ProfessionalWalletController::class, 'index'])->name('wallet');
     Route::get('withdrawals', [ProfessionalWithdrawalController::class, 'index'])->name('withdrawals');
     Route::get('withdrawals/create', [ProfessionalWithdrawalController::class, 'create'])->name('withdrawals.create');
-    Route::post('withdrawals', [ProfessionalWithdrawalController::class, 'store'])->middleware('throttle:payment')->name('withdrawals.store');
+    Route::post('withdrawals', [ProfessionalWithdrawalController::class, 'store'])->middleware(['verified', 'throttle:payment'])->name('withdrawals.store');
     Route::post('withdrawals/{withdrawal}/cancel', [ProfessionalWithdrawalController::class, 'cancel'])->middleware('throttle:10,1')->name('withdrawals.cancel');
     Route::post('withdrawals/{withdrawal}/report', [ProfessionalWithdrawalController::class, 'reportProblem'])->middleware('throttle:5,1')->name('withdrawals.report');
     Route::post('withdrawals/{withdrawal}/support/{ticket}/message', [ProfessionalWithdrawalController::class, 'supportMessage'])->middleware('throttle:5,1')->name('withdrawals.support.message');
@@ -251,6 +252,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::post('reviews/{review}/report', [ReviewController::class, 'report'])->middleware('throttle:5,1')->name('reviews.report');
     Route::get('messages', [MessageController::class, 'index'])->name('messages');
     Route::get('messages/attachments/{attachment}', [MessageController::class, 'downloadAttachment'])->name('messages.attachments.download');
+    Route::get('messages/{conversation}/participants/{participant}/photo', [MessageController::class, 'participantPhoto'])->name('messages.participants.photo');
     Route::get('messages/{conversation}/updates', [MessageController::class, 'updates'])->middleware('throttle:60,1')->name('messages.updates');
     Route::get('messages/{conversation}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('messages/{conversation}', [MessageController::class, 'store'])->middleware('throttle:message-send')->name('messages.store');

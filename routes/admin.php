@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
 use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
+use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
@@ -68,6 +69,13 @@ Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->g
     Route::get('categories/{category}/edit', [CategoryController::class, 'edit'])->name('categories.edit');
     Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
+});
+Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->group(function (): void {
+    Route::get('skills', [SkillController::class, 'index'])->name('skills.index');
+    Route::get('skills/create', [SkillController::class, 'create'])->name('skills.create');
+    Route::post('skills', [SkillController::class, 'store'])->name('skills.store');
+    Route::get('skills/{skill}/edit', [SkillController::class, 'edit'])->name('skills.edit');
+    Route::put('skills/{skill}', [SkillController::class, 'update'])->name('skills.update');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {

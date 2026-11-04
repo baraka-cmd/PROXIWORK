@@ -11,8 +11,8 @@
 @endpush
 
 @section('content')
-<div class="client-module client-requests-page">
-    <div class="client-module__header client-requests-header">
+<div class="client-module client-requests-page client-request-detail-page">
+    <header class="client-module__header client-requests-header client-request-detail-page__header">
         <div>
             <p class="client-module__eyebrow">SUIVI DE LA DEMANDE · PW-REQ-{{ str_pad((string) $serviceRequest->id, 6, '0', STR_PAD_LEFT) }}</p>
             <h1>{{ $serviceRequest->title }}</h1>
@@ -21,7 +21,7 @@
         <span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">
             {{ $serviceRequest->status->label() }}
         </span>
-    </div>
+    </header>
 
     @if(session('success'))
         <x-alert type="success" :message="session('success')" />
@@ -33,8 +33,8 @@
         </div>
     @endif
 
-    <div class="client-detail-grid">
-        <section class="client-panel">
+    <div class="client-detail-grid client-request-detail-layout">
+        <section class="client-panel request-detail-card request-detail-card--description">
             <div class="client-panel__header">
                 <div><p class="client-module__eyebrow">VOTRE BESOIN</p><h2>Détails de la demande</h2></div>
                 <span class="request-card__reference">#{{ $serviceRequest->id }}</span>
@@ -50,7 +50,7 @@
             </dl>
         </section>
 
-        <aside class="client-panel">
+        <aside class="client-panel request-detail-card request-detail-card--contact">
             <p class="client-module__eyebrow">VOTRE INTERLOCUTEUR</p>
             <h2>Professionnel</h2>
             <div class="client-request-professional">
@@ -80,7 +80,7 @@
     </div>
 
 
-    <section class="client-panel request-attachments-panel">
+    <section class="client-panel request-attachments-panel request-detail-card">
         <div class="client-panel__header">
             <div>
                 <p class="client-module__eyebrow">DOCUMENTS DU BESOIN</p>
@@ -95,9 +95,9 @@
                     <li>
                         <div>
                             <strong>{{ $attachment->original_name }}</strong>
-                            <small>{{ number_format($attachment->size / 1024, 0, ',', ' ') }} Ko · Ajouté le {{ $attachment->created_at?->format('d/m/Y à H:i') }}</small>
+                            <small>{{ number_format($attachment->size / 1024, 0, ',', ' ') }} kilooctets · Ajouté le {{ $attachment->created_at?->format('d/m/Y à H:i') }}</small>
                         </div>
-                        <a class="btn btn-secondary" href="{{ route('client.requests.attachments.download', [$serviceRequest, $attachment]) }}">Télécharger</a>
+                        <a class="btn btn-secondary" href="{{ route('client.requests.attachments.download', [$serviceRequest, $attachment]) }}">Télécharger le document</a>
                     </li>
                 @endforeach
             </ul>
@@ -109,7 +109,7 @@
                 @csrf
                 <label for="request-attachment">Ajouter un document (PDF, JPG, PNG, WEBP, DOC ou DOCX)</label>
                 <input id="request-attachment" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx" required>
-                <small>Maximum 10 Mo par fichier, cinq fichiers par demande.</small>
+                <small>Maximum 10 mégaoctets par fichier et cinq fichiers par demande.</small>
                 @error('attachment')<span class="client-field-error" role="alert">{{ $message }}</span>@enderror
                 <button class="btn btn-secondary" type="submit">Ajouter la pièce jointe</button>
             </form>
@@ -119,7 +119,7 @@
     </section>
 
     @if(in_array($serviceRequest->status->value, ['requested', 'quoted'], true))
-        <section class="client-panel">
+        <section class="client-panel request-detail-card request-detail-card--location">
             <p class="client-module__eyebrow">LIEU D’EXÉCUTION</p>
             <h2>Adresse de la prestation</h2>
             @if($serviceRequest->execution_mode->requiresClientAddress())
@@ -163,20 +163,19 @@
         </section>
     @endif
 
-    <section class="client-panel">
+    <section class="client-panel request-detail-card request-detail-card--history">
         <div class="client-panel__header">
             <div><p class="client-module__eyebrow">TRAÇABILITÉ</p><h2>Historique de la demande</h2></div>
-            <span class="request-card__reference">{{ $serviceRequest->statusHistories->count() }} événement(s)</span>
+            <span class="request-card__reference">{{ $requestTimeline->count() }} {{ $requestTimeline->count() > 1 ? 'événements' : 'événement' }}</span>
         </div>
         <ol class="client-timeline">
-            @forelse($serviceRequest->statusHistories as $history)
-                @php($historyStatus = \App\Enums\ServiceRequestStatus::tryFrom($history->to_status))
+            @forelse($requestTimeline as $event)
                 <li>
-                    <strong>{{ $historyStatus?->label() ?? ucfirst(str_replace('_', ' ', $history->to_status)) }}</strong>
-                    <span>{{ $history->created_at?->format('d/m/Y à H:i') ?? 'Date indisponible' }}</span>
-                    <p class="request-history-actor">{{ $history->actor?->name ?? 'Système PROXIWORK' }}</p>
-                    @if($history->reason && ! str_starts_with($history->reason, 'Quotation rejected by client'))
-                        <p>{{ $history->reason }}</p>
+                    <strong>{{ $event['label'] }}</strong>
+                    <span>{{ $event['occurred_at']?->format('d/m/Y à H:i') ?? 'Date indisponible' }}</span>
+                    <p class="request-history-actor">{{ $event['actor'] }}</p>
+                    @if($event['reason'] && ! str_starts_with($event['reason'], 'Quotation rejected by client'))
+                        <p>{{ $event['reason'] }}</p>
                     @endif
                 </li>
             @empty
@@ -190,7 +189,7 @@
     </section>
 
     @if($serviceRequest->quotation)
-        <section class="client-panel client-panel--accent">
+        <section class="client-panel client-panel--accent request-detail-card request-detail-card--related">
             <div class="client-panel__header">
                 <div><p class="client-module__eyebrow">ÉTAPE COMMERCIALE</p><h2>Devis associé</h2></div>
                 <span class="request-card__reference">{{ $serviceRequest->quotation->status->label() }}</span>
@@ -206,7 +205,7 @@
     @endif
 
     @if($serviceRequest->order)
-        <section class="client-panel">
+        <section class="client-panel request-detail-card request-detail-card--related">
             <div class="client-panel__header">
                 <div><p class="client-module__eyebrow">SUITE DU PROCESSUS</p><h2>Commande associée</h2></div>
                 <span class="request-card__reference">{{ $serviceRequest->order->order_number }}</span>
@@ -223,7 +222,7 @@
             </a>
             <form method="POST" action="{{ route('client.requests.submit', $serviceRequest) }}">
                 @csrf
-                <button class="btn btn-primary" type="submit" data-confirm-submit="Envoyer cette demande au professionnel ?" data-loading-label="Envoi…">
+                    <button class="btn btn-primary" type="submit" data-confirm-submit="Envoyer cette demande au professionnel ?" data-loading-label="Envoi en cours…">
                     <i class="fa-regular fa-paper-plane" aria-hidden="true"></i> Envoyer la demande
                 </button>
             </form>
@@ -231,7 +230,7 @@
         @if(in_array($serviceRequest->status, [\App\Enums\ServiceRequestStatus::DRAFT, \App\Enums\ServiceRequestStatus::REQUESTED], true))
             <form method="POST" action="{{ route('client.requests.cancel', $serviceRequest) }}">
                 @csrf
-                <button class="btn btn-danger" type="submit" data-confirm-submit="Voulez-vous vraiment annuler cette demande ?" data-loading-label="Annulation…">Annuler la demande</button>
+                <button class="btn btn-danger" type="submit" data-confirm-submit="Voulez-vous vraiment annuler cette demande ?" data-loading-label="Annulation en cours…">Annuler la demande</button>
             </form>
         @endif
         <a class="btn btn-secondary" href="{{ route('client.requests.index') }}">Retour à mes demandes</a>

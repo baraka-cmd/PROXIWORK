@@ -48,6 +48,7 @@
             <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $addresses->total() }} adresse(s) enregistrée(s)</span>
             <span>Les adresses restent privées à votre compte.</span>
         </div>
+        <p class="address-book-guidance">Si vous supprimez l’adresse par défaut, l’adresse restante la plus récente devient automatiquement l’adresse par défaut. Une adresse liée à une demande ou à une commande en préparation ne peut pas être supprimée ; les instantanés des prestations passées restent conservés.</p>
 
         <div class="address-grid">
             @foreach($addresses as $address)

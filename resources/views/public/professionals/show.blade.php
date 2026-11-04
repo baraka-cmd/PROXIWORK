@@ -1,7 +1,12 @@
-@extends('layouts.public')
+@extends(request()->routeIs('client.professionals.*') ? 'layouts.client' : 'layouts.public')
+@section('page_title', 'Profil professionnel')
 
-@section('title', $professional->professional_title ?: $professional->user->name.' — PROXIWORK')
+@section('title', ($professional->business_name ?: ($professional->professional_title ?: $professional->user->name)).' — PROXIWORK')
 @section('meta_description', Str::limit($professional->description ?: 'Profil professionnel PROXIWORK.', 155))
+
+@push('head')
+    <link rel="canonical" href="{{ request()->routeIs('client.professionals.*') ? route('client.professionals.show', $professional) : route('public.professionals.show', $professional) }}">
+@endpush
 
 @push('head')
     @unless (app()->environment('testing'))
@@ -13,18 +18,19 @@
     @php
         $profile = $professional->user->profile;
         $displayName = trim(($profile?->first_name ?? '').' '.($profile?->last_name ?? '')) ?: $professional->user->name;
+        $displayName = $professional->business_name ?: $displayName;
         $hasAvatar = $profile?->avatar_path
             && \Illuminate\Support\Facades\Storage::disk('local')->exists($profile->avatar_path);
     @endphp
 
-    <main class="page-container public-professional-detail">
-        <a class="button button--ghost" href="{{ route('public.professionals.index') }}">
+    <main class="page-container public-professional-detail {{ request()->routeIs('client.professionals.*') ? 'public-professional-detail--client' : '' }}">
+        <a class="button button--ghost" href="{{ request()->routeIs('client.professionals.*') ? route('client.professionals.index') : route('public.professionals.index') }}">
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à l’annuaire
         </a>
 
         <header class="surface-card public-professional-detail__hero">
             @if ($hasAvatar)
-                <img class="avatar avatar--xl professional-profile-avatar" src="{{ route('public.professionals.photo', $professional) }}" alt="Photo de {{ $displayName }}" loading="lazy">
+                <img class="avatar avatar--xl professional-profile-avatar" src="{{ request()->routeIs('client.professionals.*') ? route('client.professionals.photo', $professional) : route('public.professionals.photo', $professional) }}" alt="Photo de {{ $displayName }}" loading="lazy">
             @else
                 <div class="avatar avatar--xl" aria-hidden="true">{{ mb_strtoupper(mb_substr($displayName, 0, 1)) }}</div>
             @endif
@@ -35,7 +41,7 @@
                         <span class="badge badge--success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Vérifié</span>
                     @endif
                     @if ($professional->availability_status?->value === 'available')
-                        <span class="badge badge--primary">Disponible</span>
+                        <span class="badge badge--primary">Disponible, déclaré</span>
                     @endif
                 </div>
                 <h1>{{ $displayName }}</h1>
@@ -93,13 +99,60 @@
                 <div class="public-profile-services">
                     @forelse ($professional->services as $service)
                         <article>
+                            @php($cover = $service->images->firstWhere('is_cover', true) ?? $service->images->first())
+                            @if ($cover)
+                                <img src="{{ asset('storage/'.$cover->path) }}" alt="{{ $cover->alt_text ?: $service->title }}" loading="lazy">
+                            @endif
+                            @if ($service->category)
+                                <span class="eyebrow">{{ $service->category->name }}</span>
+                            @endif
                             <h3><a href="{{ route('public.services.show', $service) }}">{{ $service->title }}</a></h3>
                             <p>{{ Str::limit($service->short_description ?: $service->description, 120) }}</p>
+                            @switch($service->pricing_type?->value)
+                                @case('fixed')
+                                    <strong>Prix fixe : {{ number_format((float) $service->price, 2, ',', ' ') }} {{ $service->currency }}</strong>
+                                    @break
+                                @case('from')
+                                    <strong>À partir de {{ number_format((float) $service->price, 2, ',', ' ') }} {{ $service->currency }}</strong>
+                                    @break
+                                @case('range')
+                                    <strong>Fourchette de {{ number_format((float) $service->price_min, 2, ',', ' ') }} à {{ number_format((float) $service->price_max, 2, ',', ' ') }} {{ $service->currency }}</strong>
+                                    @break
+                                @case('quote')
+                                    <strong>Sur devis</strong>
+                                    @break
+                            @endswitch
                         </article>
                     @empty
                         <p>Aucun service publié.</p>
                     @endforelse
                 </div>
+
+                <h2>Réalisations confirmées</h2>
+                @if ($realizations->isNotEmpty())
+                    <div class="public-profile-realizations">
+                        @foreach ($realizations as $item)
+                            <figure>
+                                <img
+                                    src="{{ route('public.service-realizations.image', $item['realization']) }}"
+                                    alt="{{ $item['realization']->caption ?: 'Réalisation confirmée pour '.$item['service']->title }}"
+                                    loading="lazy"
+                                >
+                                <figcaption>
+                                    <strong>{{ $item['service']->title }}</strong>
+                                    @if (filled($item['realization']->caption))
+                                        <span>{{ $item['realization']->caption }}</span>
+                                    @endif
+                                    @if ($item['realization']->completed_at)
+                                        <small>Terminée en {{ $item['realization']->completed_at->format('Y') }}</small>
+                                    @endif
+                                </figcaption>
+                            </figure>
+                        @endforeach
+                    </div>
+                @else
+                    <p>Aucune réalisation confirmée n’est publiée pour le moment.</p>
+                @endif
 
                 <h2>Avis publiés</h2>
                 <p>Les avis affichés ici sont associés à une commande et ont été publiés après modération éventuelle.</p>
@@ -148,15 +201,23 @@
                             @csrf
                             <button class="button button--primary" type="submit"><i class="fa-regular fa-comments" aria-hidden="true"></i> Contacter ce professionnel</button>
                         </form>
-                        <form method="POST" action="{{ route('client.favorites.store', $professional) }}">
-                            @csrf
-                            @method('PUT')
-                            <button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button>
-                        </form>
+                        @if ($favorite)
+                            <form method="POST" action="{{ route('client.favorites.destroy', $favorite) }}">
+                                @csrf
+                                @method('DELETE')
+                                <button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Retirer des favoris</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('client.favorites.store', $professional) }}">
+                                @csrf
+                                @method('PUT')
+                                <button class="button button--secondary" type="submit"><i class="fa-regular fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button>
+                            </form>
+                        @endif
                     @endif
                 @else
-                    <a class="button button--primary" href="{{ route('login') }}">Se connecter pour contacter ce professionnel</a>
-                    <a class="button button--secondary" href="{{ route('login') }}">Se connecter pour ajouter aux favoris</a>
+                    <a class="button button--primary" href="{{ route('login', ['continue' => route('public.professionals.show', $professional)]) }}">Se connecter pour contacter ce professionnel</a>
+                    <a class="button button--secondary" href="{{ route('login', ['continue' => route('public.professionals.show', $professional)]) }}">Se connecter pour ajouter aux favoris</a>
                 @endauth
             </aside>
         </div>

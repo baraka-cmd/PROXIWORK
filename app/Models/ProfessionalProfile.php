@@ -6,7 +6,9 @@ namespace App\Models;
 
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
+use App\Enums\UserAccountStatus;
 use Database\Factories\ProfessionalProfileFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -37,6 +39,7 @@ class ProfessionalProfile extends Model
 
     protected $fillable = [
         'professional_title',
+        'business_name',
         'description',
         'languages',
         'years_experience',
@@ -70,6 +73,28 @@ class ProfessionalProfile extends Model
     protected static function newFactory(): ProfessionalProfileFactory
     {
         return ProfessionalProfileFactory::new();
+    }
+
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query
+            ->where('status', self::STATUS_ACTIVE)
+            ->where('visibility', self::VISIBILITY_PUBLIC)
+            ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
+            ->whereNotNull('verified_at')
+            ->whereHas('user', fn (Builder $user) => $user
+                ->where('account_status', UserAccountStatus::ACTIVE->value)
+                ->whereNotNull('email_verified_at'));
+    }
+
+    public function isPubliclyVisible(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE
+            && $this->visibility === self::VISIBILITY_PUBLIC
+            && $this->verification_status === ProfessionalVerificationStatus::VERIFIED
+            && $this->verified_at !== null
+            && $this->user?->account_status === UserAccountStatus::ACTIVE
+            && $this->user?->hasVerifiedEmail() === true;
     }
 
     public function user(): BelongsTo

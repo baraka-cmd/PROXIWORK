@@ -95,3 +95,126 @@
  .professional-quote-review dl{grid-template-columns:1fr}
 }
 @media(max-width:420px){.professional-quote-table tbody td{grid-template-columns:1fr;gap:.25rem}}
+
+/* Centre des devis professionnels : navigation claire entre les propositions et leurs priorités. */
+.professional-quotes-page{display:grid;gap:clamp(1rem,2vw,1.4rem);width:100%;min-width:0;max-width:1320px;margin-inline:auto;padding-bottom:2.5rem}
+.professional-quotes-page>.dashboard-page-header{align-items:center;gap:1.5rem;margin:0;padding:clamp(1.2rem,3vw,1.75rem);border:1px solid color-mix(in srgb,var(--color-primary) 18%,var(--color-border));border-radius:1.15rem;background:linear-gradient(125deg,color-mix(in srgb,var(--color-primary-soft) 75%,var(--color-surface)),var(--color-surface) 76%);box-shadow:var(--shadow-sm)}
+.professional-quotes-page>.dashboard-page-header>div:first-child{min-width:0;max-width:760px}
+.professional-quotes-page>.dashboard-page-header .eyebrow{margin-bottom:.5rem;letter-spacing:.12em}
+.professional-quotes-page>.dashboard-page-header h1{margin:0;font-size:clamp(1.75rem,3.4vw,2.4rem);letter-spacing:-.045em;line-height:1.12}
+.professional-quotes-page>.dashboard-page-header .page-lead{margin:.65rem 0 0;font-size:.95rem;line-height:1.65}
+.professional-quotes-page>.professional-quote-alert{margin:0;padding:1rem 1.1rem;border-radius:.85rem;line-height:1.55}
+.professional-quotes-page>.professional-quote-alert ul{margin:.4rem 0 0;padding-left:1.2rem}
+.professional-quotes-page .professional-quote-search{display:grid;gap:1rem;margin:0;padding:clamp(1rem,2.3vw,1.4rem);border-radius:1rem;box-shadow:var(--shadow-sm)}
+.professional-quotes-page .professional-quote-search__grid{grid-template-columns:minmax(1.6fr,2fr) repeat(3,minmax(145px,1fr));gap:.9rem}
+.professional-quotes-page .professional-quote-search__grid>div{display:grid;align-content:start;gap:.45rem;min-width:0}
+.professional-quotes-page .professional-quote-search__grid label{color:var(--color-text);font-size:.82rem;font-weight:750;line-height:1.4}
+.professional-quotes-page .professional-quote-search__grid input,.professional-quotes-page .professional-quote-search__grid select{min-height:46px;padding:.65rem .75rem;border-color:color-mix(in srgb,var(--color-border) 88%,var(--color-text-muted));border-radius:.7rem;font-size:.86rem}
+.professional-quotes-page .professional-quote-search__grid input:focus-visible,.professional-quotes-page .professional-quote-search__grid select:focus-visible{outline:0;border-color:var(--color-primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--color-primary) 15%,transparent)}
+.professional-quotes-page .professional-quote-search__actions{align-items:center;gap:.65rem;margin:0;padding-top:.2rem}
+.professional-quotes-page .professional-quote-search__actions .button{display:inline-flex;min-height:44px;align-items:center;justify-content:center;gap:.5rem;padding-inline:1rem;border-radius:.7rem;font-weight:750}
+.professional-quotes-page .professional-quote-search__actions .button--ghost{border:1px solid var(--color-border);background:var(--color-surface);color:var(--color-text)}
+.professional-quotes-page .professional-quote-filters{gap:.6rem;margin:0;padding:.15rem}
+.professional-quotes-page .professional-quote-filter-chip{min-height:42px;padding:.55rem .9rem;border-radius:.75rem;font-size:.84rem}
+.professional-quotes-page .professional-quote-filter-chip.is-active{box-shadow:0 5px 14px color-mix(in srgb,var(--color-primary) 20%,transparent)}
+.professional-quotes-page>.professional-quote-alert--action{margin:0;padding:1rem 1.15rem;border-radius:.9rem;box-shadow:var(--shadow-sm)}
+.professional-quotes-page>.professional-quote-alert--action strong{display:block;font-size:.94rem}
+.professional-quotes-page>.professional-quote-alert--action p{margin:.35rem 0 0;font-size:.86rem;line-height:1.6}
+.professional-quotes-page .professional-quote-list-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin:0;padding:.2rem .15rem}
+.professional-quotes-page .professional-quote-list-heading h2{margin:0;font-size:1.2rem;letter-spacing:-.025em}
+.professional-quotes-page .professional-quote-list-heading p{margin:.3rem 0 0;color:var(--color-text-muted);font-size:.85rem;line-height:1.5}
+.professional-quotes-page .professional-quote-table-wrap{min-width:0;overflow-x:auto;border-radius:1rem;box-shadow:var(--shadow-sm)}
+.professional-quotes-page .professional-quote-table{width:100%;min-width:860px;border-collapse:separate;border-spacing:0}
+.professional-quotes-page .professional-quote-table thead th{padding:.95rem .9rem;border-bottom:1px solid var(--color-border);background:var(--color-surface-muted);color:var(--color-text-muted);font-size:.73rem;font-weight:800;letter-spacing:.065em;text-align:left;text-transform:uppercase;white-space:nowrap}
+.professional-quotes-page .professional-quote-table tbody td{padding:1rem .9rem;border-bottom:1px solid var(--color-border);font-size:.85rem;line-height:1.5;vertical-align:middle}
+.professional-quotes-page .professional-quote-table tbody tr:last-child td{border-bottom:0}
+.professional-quotes-page .professional-quote-table tbody tr:hover{background:color-mix(in srgb,var(--color-primary-soft) 26%,var(--color-surface))}
+.professional-quotes-page .professional-quote-table tbody td:first-child{min-width:230px}
+.professional-quotes-page .professional-quote-table tbody td:first-child strong{display:block;color:var(--color-text);font-size:.89rem;line-height:1.45;overflow-wrap:anywhere}
+.professional-quotes-page .professional-quote-table .table-secondary{margin:.3rem 0 0;color:var(--color-text-muted);font-size:.76rem;font-variant-numeric:tabular-nums}
+.professional-quotes-page .professional-quote-table tbody td[data-label="Montant proposé"]>strong{display:block;color:var(--color-text);font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.professional-quotes-page .professional-quote-table .professional-quote-current-actor{width:fit-content;margin-top:.4rem;padding:.25rem .5rem;border-radius:999px;background:var(--color-primary-soft);font-size:.7rem;line-height:1.4}
+.professional-quotes-page .professional-quote-row--priority td:first-child{box-shadow:inset 4px 0 0 var(--color-primary)}
+.professional-quotes-page .professional-quote-row--priority{background:color-mix(in srgb,var(--color-primary-soft) 22%,var(--color-surface))}
+.professional-quotes-page .professional-quote-table .badge{max-width:180px;padding:.42rem .65rem;line-height:1.35;white-space:normal}
+.professional-quotes-page .professional-quote-table td[data-label="Action"] .button{min-height:38px;justify-content:center;padding:.45rem .7rem;border-radius:.6rem;white-space:nowrap}
+.professional-quotes-page>.professional-pagination{display:flex;justify-content:center;margin:0;padding-top:.25rem}
+.professional-quotes-page>.empty-state,.professional-quotes-page>.state-empty{min-height:260px;border:1px solid var(--color-border);border-radius:1rem;background:var(--color-surface);box-shadow:var(--shadow-sm)}
+@media(max-width:1120px){.professional-quotes-page .professional-quote-search__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.professional-quotes-page .professional-quote-search__grid>div:first-child{grid-column:1/-1}}
+@media(max-width:760px){.professional-quotes-page>.dashboard-page-header{align-items:stretch;flex-direction:column;padding:1.15rem}.professional-quotes-page .professional-quote-search__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.professional-quotes-page .professional-quote-table-wrap{overflow:visible;border:0;background:transparent;box-shadow:none}.professional-quotes-page .professional-quote-table{min-width:0}.professional-quotes-page .professional-quote-table tbody tr{margin-bottom:.8rem;padding:.45rem .9rem;border:1px solid var(--color-border);border-radius:.9rem;background:var(--color-surface);box-shadow:var(--shadow-sm)}.professional-quotes-page .professional-quote-table tbody tr:last-child{border-bottom:1px solid var(--color-border)}.professional-quotes-page .professional-quote-table tbody tr:hover{background:var(--color-surface)}.professional-quotes-page .professional-quote-table tbody td{grid-template-columns:minmax(7.2rem,.72fr) minmax(0,1.28fr);gap:.7rem;padding:.72rem .1rem;font-size:.84rem}.professional-quotes-page .professional-quote-table tbody td::before{color:var(--color-text-muted);font-size:.73rem;font-weight:750;line-height:1.4}.professional-quotes-page .professional-quote-table tbody td[data-label="Montant proposé"]>strong{white-space:normal}.professional-quotes-page .professional-quote-table tbody td[data-label="Action"] .button{justify-self:start}}
+@media(max-width:520px){.professional-quotes-page{gap:1rem;padding-bottom:1.5rem}.professional-quotes-page>.dashboard-page-header{padding:1rem;border-radius:.9rem}.professional-quotes-page>.dashboard-page-header h1{font-size:1.7rem}.professional-quotes-page .professional-quote-search{padding:.9rem;border-radius:.9rem}.professional-quotes-page .professional-quote-search__grid{grid-template-columns:minmax(0,1fr)}.professional-quotes-page .professional-quote-search__grid>div:first-child{grid-column:auto}.professional-quotes-page .professional-quote-search__actions{display:grid;grid-template-columns:1fr}.professional-quotes-page .professional-quote-search__actions>*{width:100%;text-align:center}.professional-quotes-page .professional-quote-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.professional-quotes-page .professional-quote-filter-chip{width:100%;padding-inline:.55rem;font-size:.78rem}.professional-quotes-page .professional-quote-list-heading h2{font-size:1.08rem}.professional-quotes-page .professional-quote-table tbody tr{padding:.35rem .75rem}.professional-quotes-page .professional-quote-table tbody td{grid-template-columns:minmax(0,1fr);gap:.25rem;padding:.62rem 0}.professional-quotes-page .professional-quote-table tbody td[data-label="Action"] .button{width:100%;justify-self:stretch}.professional-quotes-page>.professional-pagination{overflow-x:auto;justify-content:flex-start}}
+@media(prefers-reduced-motion:reduce){.professional-quotes-page .professional-quote-filter-chip{transition:none}}
+
+/* Détail du devis : mettre en évidence la version active, les décisions et l’historique. */
+.professional-quote-page{gap:clamp(1rem,2vw,1.4rem);width:100%;min-width:0;max-width:1240px;margin-inline:auto;padding-bottom:2.5rem}
+.professional-quote-page>.professional-quote-detail-header{align-items:center;gap:1.5rem;margin:0;padding:clamp(1.2rem,3vw,1.75rem);border:1px solid color-mix(in srgb,var(--color-primary) 18%,var(--color-border));border-radius:1.15rem;background:linear-gradient(125deg,color-mix(in srgb,var(--color-primary-soft) 75%,var(--color-surface)),var(--color-surface) 76%);box-shadow:var(--shadow-sm)}
+.professional-quote-detail-header>div:first-child{display:grid;justify-items:start;min-width:0;max-width:780px;gap:.4rem}
+.professional-quote-detail-header .eyebrow{margin:0 0 .1rem;letter-spacing:.11em}
+.professional-quote-detail-header h1{margin:0;font-size:clamp(1.65rem,3.2vw,2.3rem);letter-spacing:-.04em;line-height:1.18;overflow-wrap:anywhere}
+.professional-quote-detail-header .page-lead{margin:.1rem 0;color:var(--color-text-muted);font-size:.87rem;line-height:1.5;overflow-wrap:anywhere}
+.professional-quote-detail-header .professional-quote-detail-status{width:fit-content;margin-top:.2rem;padding:.35rem .65rem;border:1px solid var(--color-border);border-radius:999px;background:var(--color-surface);color:var(--color-text);font-size:.78rem;font-weight:700}
+.professional-quote-detail-header__status{display:inline-flex;max-width:100%;align-items:center;padding:.4rem .7rem;border:1px solid var(--color-border);border-radius:999px;background:var(--color-surface);font-size:.78rem;font-weight:750;line-height:1.4;white-space:normal}
+.professional-quote-page .dashboard-page-header__actions{justify-content:flex-end;gap:.6rem;flex-wrap:wrap}
+.professional-quote-page .dashboard-page-header__actions .button{min-height:42px;justify-content:center;padding-inline:.9rem;text-align:center}
+.professional-quote-page>.professional-quote-alert,.professional-quote-page>.professional-quote-note{margin:0;padding:1rem 1.1rem;border-radius:.9rem;line-height:1.6;box-shadow:var(--shadow-sm)}
+.professional-quote-page>.professional-quote-alert strong,.professional-quote-page>.professional-quote-note strong{font-size:.93rem;line-height:1.45}
+.professional-quote-page>.professional-quote-alert p,.professional-quote-page>.professional-quote-note p{margin:.35rem 0 0;font-size:.85rem;line-height:1.6}
+.professional-quote-page>.professional-quote-alert ul{display:grid;gap:.3rem;margin:.5rem 0 0;padding-left:1.2rem}
+.professional-quote-page>.professional-quote-note{border-color:color-mix(in srgb,var(--color-info) 30%,var(--color-border));background:color-mix(in srgb,var(--color-info) 6%,var(--color-surface))}
+.professional-quote-page>.professional-quote-note>i{flex:0 0 auto;color:var(--color-info)}
+.professional-quote-page>.professional-quote-panel{min-width:0;gap:1.1rem;margin:0;padding:clamp(1.1rem,2.5vw,1.6rem);border-radius:1rem;box-shadow:var(--shadow-sm)}
+.professional-quote-page .professional-quote-panel>h2{margin:0;padding-bottom:.85rem;border-bottom:1px solid var(--color-border);font-size:1.15rem;letter-spacing:-.025em;line-height:1.35}
+.professional-quote-page .professional-quote-panel>p{margin:0;color:var(--color-text-muted);font-size:.88rem;line-height:1.65}
+.professional-quote-page .professional-quote-current-panel{border-top:3px solid var(--color-primary)}
+.professional-quote-page .professional-quote-panel__header{align-items:center;gap:1rem;padding-bottom:.95rem;border-bottom:1px solid var(--color-border)}
+.professional-quote-page .professional-quote-panel__header>div{min-width:0}
+.professional-quote-page .professional-quote-panel__header .eyebrow{margin:0 0 .4rem;font-size:.7rem;letter-spacing:.12em}
+.professional-quote-page .professional-quote-panel__header h2{margin:0;font-size:1.18rem;letter-spacing:-.025em}
+.professional-quote-page .professional-quote-panel__header .professional-quote-version{padding:.42rem .7rem;background:var(--color-surface);font-size:.75rem}
+.professional-quote-page .professional-quote-total{gap:.4rem;padding:clamp(1rem,2.5vw,1.4rem);border-radius:.9rem;background:linear-gradient(120deg,color-mix(in srgb,var(--color-primary-soft) 85%,var(--color-surface)),var(--color-surface))}
+.professional-quote-page .professional-quote-total span{font-size:.82rem;font-weight:700}
+.professional-quote-page .professional-quote-total strong{color:var(--color-primary);font-size:clamp(1.8rem,4vw,2.5rem);font-weight:850;letter-spacing:-.05em;line-height:1.15;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.professional-quote-page .professional-quote-current-panel .details-list{gap:0;margin:0;padding:.2rem 1rem;border:1px solid var(--color-border);border-radius:.85rem;background:var(--color-background)}
+.professional-quote-page .professional-quote-current-panel .details-list>div{grid-template-columns:minmax(145px,.65fr) minmax(0,1.35fr);align-items:start;gap:1rem;padding:.8rem 0;border-bottom:1px solid var(--color-border)}
+.professional-quote-page .professional-quote-current-panel .details-list>div:last-child{border-bottom:0}
+.professional-quote-page .professional-quote-current-panel .details-list dt{font-size:.81rem;line-height:1.5}
+.professional-quote-page .professional-quote-current-panel .details-list dd{font-size:.86rem;font-weight:650;line-height:1.6;overflow-wrap:anywhere}
+.professional-quote-page .professional-quote-preline{margin:0;white-space:pre-line;overflow-wrap:anywhere;line-height:1.7}
+.professional-quote-page .professional-quote-response-panel{border-color:color-mix(in srgb,var(--color-warning) 35%,var(--color-border));background:linear-gradient(145deg,color-mix(in srgb,var(--color-warning) 5%,var(--color-surface)),var(--color-surface) 45%)}
+.professional-quote-page .professional-quote-response-panel>h2{color:var(--color-text)}
+.professional-quote-page .professional-quote-actions{gap:.7rem}
+.professional-quote-page .professional-quote-actions form{min-width:0}
+.professional-quote-page .professional-quote-actions .button{min-height:44px;justify-content:center;padding-inline:1rem;text-align:center}
+.professional-quote-page .professional-quote-counter{gap:.8rem;padding-top:1.2rem;border-top:1px solid var(--color-border)}
+.professional-quote-page .professional-quote-counter h3{margin:0;font-size:1.05rem;letter-spacing:-.015em}
+.professional-quote-page .professional-quote-counter>p{font-size:.85rem;line-height:1.6}
+.professional-quote-page .professional-quote-form{gap:1rem 1.1rem}
+.professional-quote-page .professional-quote-form .field{gap:.45rem}
+.professional-quote-page .professional-quote-form label{font-size:.83rem;line-height:1.45}
+.professional-quote-page .professional-quote-form input,.professional-quote-page .professional-quote-form select,.professional-quote-page .professional-quote-form textarea{box-sizing:border-box;min-height:46px;padding:.7rem .8rem;border-color:color-mix(in srgb,var(--color-border) 88%,var(--color-text-muted));border-radius:.7rem;background:var(--color-surface);font-size:.88rem;line-height:1.5}
+.professional-quote-page .professional-quote-form textarea{min-height:120px;resize:vertical}
+.professional-quote-page .professional-quote-form input:focus-visible,.professional-quote-page .professional-quote-form select:focus-visible,.professional-quote-page .professional-quote-form textarea:focus-visible{outline:0;border-color:var(--color-primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--color-primary) 15%,transparent)}
+.professional-quote-page .professional-quote-form .field-error{font-size:.8rem;line-height:1.5}
+.professional-quote-page .professional-quote-form__full>.button{min-height:46px;padding-inline:1rem}
+.professional-quote-page .professional-quote-renew-panel{border-top:3px solid var(--color-warning)}
+.professional-quote-page .professional-quote-order-panel{border-top:3px solid var(--color-success)}
+.professional-quote-page .professional-quote-order-panel .details-list{gap:0;margin:0;padding:.2rem 1rem;border:1px solid var(--color-border);border-radius:.85rem;background:var(--color-background)}
+.professional-quote-page .professional-quote-order-panel .details-list>div{grid-template-columns:minmax(130px,.7fr) minmax(0,1.3fr);align-items:start;gap:1rem;padding:.75rem 0;border-bottom:1px solid var(--color-border)}
+.professional-quote-page .professional-quote-order-panel .details-list>div:last-child{border-bottom:0}
+.professional-quote-page .professional-quote-order-panel .details-list dd{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.professional-quote-page .professional-quote-order-panel>.button{min-height:44px;justify-content:center;align-self:flex-start;padding-inline:1rem}
+.professional-quote-page .professional-quote-history-panel,.professional-quote-page .professional-quote-decisions-panel{gap:.9rem}
+.professional-quote-page .professional-quote-version{gap:.7rem;padding:1rem;border-radius:.85rem;background:var(--color-background)}
+.professional-quote-page .professional-quote-version.is-current{border-color:color-mix(in srgb,var(--color-primary) 48%,var(--color-border));background:color-mix(in srgb,var(--color-primary-soft) 24%,var(--color-surface));box-shadow:inset 4px 0 0 var(--color-primary)}
+.professional-quote-page .professional-quote-version__header{align-items:flex-start;gap:1rem}
+.professional-quote-page .professional-quote-version__header>div{min-width:0}
+.professional-quote-page .professional-quote-version h3{font-size:.95rem;line-height:1.45;overflow-wrap:anywhere}
+.professional-quote-page .professional-quote-version__header p{font-size:.77rem;line-height:1.5}
+.professional-quote-page .professional-quote-version__header>strong{color:var(--color-text);font-size:.92rem;font-variant-numeric:tabular-nums}
+.professional-quote-page .professional-quote-version__badge{padding:.35rem .65rem;font-size:.72rem}
+.professional-quote-page .professional-quote-decisions-panel .timeline-item{margin:0;padding:1rem 1rem 1rem 1.2rem;border-left:2px solid var(--color-border);border-radius:0 .75rem .75rem 0;background:var(--color-background)}
+.professional-quote-page .professional-quote-decisions-panel .timeline-item h3{margin:0;font-size:.9rem;line-height:1.45}
+.professional-quote-page .professional-quote-decisions-panel .timeline-item p{margin:.35rem 0 0;font-size:.78rem;line-height:1.5}
+@media(max-width:760px){.professional-quote-page{gap:1rem;padding-bottom:1.5rem}.professional-quote-page>.professional-quote-detail-header{align-items:stretch;flex-direction:column;padding:1.1rem}.professional-quote-page .dashboard-page-header__actions{display:grid;grid-template-columns:1fr;width:100%}.professional-quote-page .dashboard-page-header__actions .button{width:100%}.professional-quote-page>.professional-quote-panel{gap:.9rem;padding:1rem;border-radius:.9rem}.professional-quote-page .professional-quote-panel__header{align-items:flex-start;flex-direction:column}.professional-quote-page .professional-quote-current-panel .details-list,.professional-quote-page .professional-quote-order-panel .details-list{padding-inline:.8rem}.professional-quote-page .professional-quote-current-panel .details-list>div,.professional-quote-page .professional-quote-order-panel .details-list>div{grid-template-columns:minmax(0,1fr);gap:.2rem;padding:.68rem 0}.professional-quote-page .professional-quote-current-panel .details-list dd,.professional-quote-page .professional-quote-order-panel .details-list dd{text-align:left}.professional-quote-page .professional-quote-actions{display:grid;grid-template-columns:1fr}.professional-quote-page .professional-quote-actions form,.professional-quote-page .professional-quote-actions .button{width:100%}.professional-quote-page .professional-quote-version__header{flex-direction:column;align-items:stretch}.professional-quote-page .professional-quote-version__header>strong{white-space:normal}.professional-quote-page .professional-quote-order-panel>.button{width:100%;align-self:stretch}}
+@media(max-width:520px){.professional-quote-page>.professional-quote-detail-header{padding:1rem;border-radius:.9rem}.professional-quote-page>.professional-quote-detail-header h1{font-size:1.65rem}.professional-quote-page .professional-quote-total{padding:1rem}.professional-quote-page .professional-quote-form{grid-template-columns:minmax(0,1fr);gap:.9rem}.professional-quote-page .professional-quote-form__full{grid-column:auto}.professional-quote-page .professional-quote-form__full>.button{width:100%;justify-content:center}.professional-quote-page .professional-quote-version{padding:.85rem}.professional-quote-page .professional-quote-decisions-panel .timeline-item{padding:.85rem}}
+@media(prefers-reduced-motion:reduce){.professional-quote-page .professional-quote-form input,.professional-quote-page .professional-quote-form select,.professional-quote-page .professional-quote-form textarea{transition:none}}

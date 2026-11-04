@@ -95,14 +95,36 @@ if (thread) {
         const meta = document.createElement('div');
         meta.className = 'message-bubble__meta';
 
+        const senderIdentity = document.createElement('span');
+        senderIdentity.className = 'message-sender';
+        const senderAvatar = document.createElement('span');
+        senderAvatar.className = 'message-sender__avatar';
+        senderAvatar.setAttribute('aria-hidden', 'true');
+        const senderInitial = document.createElement('span');
+        senderInitial.textContent = (message.sender?.name || 'Participant').trim().charAt(0).toLocaleUpperCase('fr-FR');
+
+        if (typeof message.sender?.avatar_url === 'string') {
+            const avatarUrl = new URL(message.sender.avatar_url, window.location.origin);
+
+            if (avatarUrl.origin === window.location.origin) {
+                const avatarImage = document.createElement('img');
+                avatarImage.src = avatarUrl.href;
+                avatarImage.alt = '';
+                avatarImage.loading = 'lazy';
+                senderAvatar.append(avatarImage);
+            }
+        }
+
+        senderAvatar.append(senderInitial);
         const sender = document.createElement('strong');
         sender.textContent = mine ? 'Vous' : (message.sender?.name || 'Participant');
+        senderIdentity.append(senderAvatar, sender);
 
         const time = document.createElement('time');
         time.dateTime = message.created_at || '';
         time.textContent = formatDate(message.created_at);
 
-        meta.append(sender, time);
+        meta.append(senderIdentity, time);
         article.append(meta);
 
         if (message.reply_to) {

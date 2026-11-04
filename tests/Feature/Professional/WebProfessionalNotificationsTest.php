@@ -191,6 +191,56 @@ class WebProfessionalNotificationsTest extends TestCase
         $this->assertNull($own->fresh()->archived_at);
     }
 
+    public function test_professional_can_filter_important_notifications_including_critical_ones(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+
+        foreach ([
+            ['title' => 'À traiter rapidement', 'priority' => 'important'],
+            ['title' => 'Alerte de sécurité', 'priority' => 'critical'],
+            ['title' => 'Information courante', 'priority' => 'normal'],
+        ] as $notification) {
+            $professional->notifications()->create([
+                'id' => (string) Str::uuid(),
+                'type' => 'account_activity',
+                'data' => [
+                    'title' => $notification['title'],
+                    'message' => 'Notification de test',
+                    'action' => 'order',
+                    'priority' => $notification['priority'],
+                ],
+            ]);
+        }
+
+        $professional->notifications()->create([
+            'id' => (string) Str::uuid(),
+            'type' => 'App\\Notifications\\WithdrawalStatusChanged',
+            'data' => [
+                'title' => 'Mise à jour de votre retrait',
+                'message' => 'Le traitement de votre retrait a commencé.',
+                'kind' => 'withdrawal_status_changed',
+                'action' => 'payment',
+                'priority' => 'important',
+                'status' => 'processing',
+            ],
+        ]);
+
+        $this->actingAs($professional)
+            ->get(route('professional.notifications', ['priority' => 'important']))
+            ->assertOk()
+            ->assertSee('À traiter rapidement')
+            ->assertSee('Alerte de sécurité')
+            ->assertDontSee('Information courante');
+
+        $this->actingAs($professional)
+            ->get(route('professional.notifications', ['priority' => 'important', 'category' => 'payment']))
+            ->assertOk()
+            ->assertSee('Mise à jour de votre retrait')
+            ->assertDontSee('À traiter rapidement');
+    }
+
     public function test_professional_notification_links_reject_external_hosts(): void
     {
         config(['app.url' => 'https://proxiwork.example']);

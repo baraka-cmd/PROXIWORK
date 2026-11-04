@@ -217,6 +217,7 @@ class PaymentService
                         $this->notificationService->orderConfirmed(
                             $order->professional->user,
                             'order-confirmed:'.$order->getKey(),
+                            route('professional.orders.show', $order, true),
                         );
                     }
                 }

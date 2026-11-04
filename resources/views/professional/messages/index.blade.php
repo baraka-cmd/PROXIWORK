@@ -10,7 +10,7 @@
 @section('page_description', 'Échangez avec les clients au sujet de leurs demandes et commandes, dans un espace privé.')
 
 @section('content')
-    <div class="client-messages-page">
+    <div class="client-messages-page professional-messages-page">
         @if (session('success'))
             <div class="feedback feedback--success" role="status">{{ session('success') }}</div>
         @endif
@@ -93,7 +93,12 @@
                         @endphp
                         <article class="conversation-row {{ $conversation->unread_count > 0 ? 'conversation-row--unread' : '' }}">
                             <a class="conversation-row__main" href="{{ route('professional.messages.show', $conversation) }}">
-                                <span class="conversation-avatar" aria-hidden="true">{{ strtoupper(mb_substr($clientName, 0, 1)) }}</span>
+                                <span class="conversation-avatar" aria-hidden="true">
+                                    @if ($conversation->client?->profile?->avatar_path)
+                                        <img src="{{ route('professional.messages.participants.photo', [$conversation, $conversation->client]) }}" alt="" loading="lazy">
+                                    @endif
+                                    <span>{{ strtoupper(mb_substr($clientName, 0, 1)) }}</span>
+                                </span>
                                 <span class="conversation-content">
                                     <span class="conversation-top">
                                         <strong>{{ $clientName }}</strong>

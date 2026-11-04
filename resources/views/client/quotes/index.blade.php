@@ -164,7 +164,10 @@
                         @default Tous mes devis
                     @endswitch
                 </h2>
-                <p>{{ $quotes->total() }} résultat(s) · page {{ $quotes->currentPage() }} sur {{ max(1, $quotes->lastPage()) }}</p>
+                <p>
+                    {{ $quotes->total() }} {{ $quotes->total() > 1 ? 'devis trouvés' : 'devis trouvé' }}
+                    · Page {{ $quotes->currentPage() }} sur {{ max(1, $quotes->lastPage()) }}
+                </p>
             </div>
         </div>
 
@@ -218,7 +221,7 @@
                                 <span>Montant proposé</span>
                                 @if ($offer)
                                     <strong>{{ number_format((float) $offer->amount, 2, ',', ' ') }} <span>{{ $offer->currency }}</span></strong>
-                                    <small>Proposition v{{ $offer->version }}</small>
+                                    <small>Proposition, version {{ $offer->version }}</small>
                                 @else
                                     <strong>Montant indisponible</strong>
                                 @endif
@@ -234,7 +237,19 @@
                                 </div>
                                 <div>
                                     <dt>Délai proposé</dt>
-                                    <dd>{{ $offer ? $offer->duration_value.' '.$offer->duration_unit->value : 'Non défini' }}</dd>
+                                    <dd>
+                                        @if ($offer)
+                                            {{ $offer->duration_value }}
+                                            @switch($offer->duration_unit->value)
+                                                @case('hours') heure{{ $offer->duration_value > 1 ? 's' : '' }} @break
+                                                @case('days') jour{{ $offer->duration_value > 1 ? 's' : '' }} @break
+                                                @case('weeks') semaine{{ $offer->duration_value > 1 ? 's' : '' }} @break
+                                                @default {{ $offer->duration_unit->value }}
+                                            @endswitch
+                                        @else
+                                            Non défini
+                                        @endif
+                                    </dd>
                                 </div>
                             </dl>
                         </div>

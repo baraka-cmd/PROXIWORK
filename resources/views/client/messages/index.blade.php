@@ -68,7 +68,7 @@
             <div class="messages-list-heading">
                 <div>
                     <h2>{{ $archived ? 'Conversations archivées' : 'Vos conversations' }}</h2>
-                    <p>{{ $conversations->count() }} conversation(s) sur cette page</p>
+                    <p>{{ $conversations->count() }} {{ $conversations->count() > 1 ? 'conversations affichées sur cette page' : 'conversation affichée sur cette page' }}</p>
                 </div>
             </div>
 
@@ -105,6 +105,9 @@
                                             <span class="unread-count" aria-label="{{ $conversation->unread_count }} message(s) non lu(s)">{{ $conversation->unread_count }}</span>
                                         @endif
                                     </span>
+                                    @if ($conversation->professional?->professional_title)
+                                        <span class="conversation-specialty">{{ $conversation->professional->professional_title }}</span>
+                                    @endif
                                     <span class="conversation-preview">{{ \Illuminate\Support\Str::limit($preview, 100) }}</span>
                                     <span class="conversation-tags">
                                         @if ($conversation->order_id)
@@ -119,7 +122,7 @@
                                         @endif
                                     </span>
                                 </span>
-                                <time datetime="{{ $conversation->updated_at?->toIso8601String() }}">{{ $conversation->updated_at?->diffForHumans() }}</time>
+                                <time datetime="{{ $conversation->updated_at?->toIso8601String() }}" title="{{ $conversation->updated_at?->format('d/m/Y à H:i') }}">{{ $conversation->updated_at?->diffForHumans() }}</time>
                             </a>
                             <div class="conversation-row__actions">
                                 <form method="POST" action="{{ route('client.messages.pin', $conversation) }}">

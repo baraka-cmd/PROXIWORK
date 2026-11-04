@@ -36,8 +36,7 @@ class ServiceController extends Controller
                 'sort_order',
                 'published_at',
             ])
-            ->published()
-            ->whereHas('category', fn ($category) => $category->where('status', 'active'))
+            ->requestable()
             ->with([
                 'category:id,name,slug',
                 'skills:id,name,slug',
@@ -45,7 +44,9 @@ class ServiceController extends Controller
                 'professionalProfile:id,user_id',
                 'professionalProfile.user:id,name',
             ])
-            ->when($validated['search'] ?? null, function ($query, string $search): void {
+            ->when(isset($validated['search']) && $validated['search'] !== '', function ($query) use ($validated): void {
+                $search = (string) $validated['search'];
+
                 $query->where(function ($query) use ($search): void {
                     $query->where('title', 'like', "%{$search}%")
                         ->orWhere('short_description', 'like', "%{$search}%")
@@ -67,15 +68,14 @@ class ServiceController extends Controller
 
     public function show(Service $service): ServiceResource
     {
-        abort_unless(
-            $service->status->value === 'published'
-            && $service->published_at !== null
-            && $service->category->status->value === 'active',
-            404
-        );
+        $service = Service::query()
+            ->requestable()
+            ->with(['category', 'skills', 'images', 'professionalProfile.user'])
+            ->whereKey($service->getKey())
+            ->firstOrFail();
 
         return (new ServiceResource(
-            $service->load(['category', 'skills', 'images', 'professionalProfile.user'])
+            $service
         ))->additional([
             'message' => 'Service publié récupéré avec succès.',
             'meta' => ['scope' => 'public'],

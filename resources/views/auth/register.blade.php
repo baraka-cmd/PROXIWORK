@@ -1,7 +1,7 @@
 @extends('layouts.auth')
 
-@section('title', 'Créer un compte — PROXIWORK')
-@section('meta_description', 'Créez votre compte PROXIWORK pour rejoindre votre réseau professionnel.')
+@section('title', 'Choisir un compte — PROXIWORK')
+@section('meta_description', 'Choisissez votre parcours PROXIWORK : trouver un professionnel ou proposer vos services.')
 
 @push('head')
     @unless (app()->environment('testing'))
@@ -10,317 +10,34 @@
 @endpush
 
 @section('auth_content')
-    <div class="register-page">
+    <div class="register-page register-choice-page">
         <section class="register-card" aria-labelledby="register-title">
             <div class="register-card__header">
-                <span class="register-eyebrow">
-                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
-                    NOUVEAU COMPTE
-                </span>
-
-                <h1 id="register-title">Créez votre compte</h1>
-                <p>Choisissez votre parcours pour accéder à l’espace adapté à vos besoins.</p>
+                <span class="register-eyebrow"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> CRÉER UN COMPTE</span>
+                <h1 id="register-title">Quel est votre besoin ?</h1>
+                <p>Choisissez votre espace. Vous pourrez ensuite compléter les informations utiles à votre activité.</p>
             </div>
 
-            @if ($errors->any())
-                <div class="register-alert" role="alert" tabindex="-1">
-                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                    <div>
-                        <strong>Vérifiez les informations saisies</strong>
-                        <p>{{ $errors->first() }}</p>
-                    </div>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('register.store') }}" class="register-form" data-register-form novalidate>
-                @csrf
-
-                <div class="register-field">
-                    <label for="first_name">Prénom</label>
-                    <div class="register-input">
-                        <i class="fa-regular fa-user" aria-hidden="true"></i>
-                        <input
-                            id="first_name"
-                            name="first_name"
-                            type="text"
-                            value="{{ old('first_name') }}"
-                            autocomplete="given-name"
-                            placeholder="Votre prénom"
-                            minlength="2"
-                            maxlength="100"
-                            aria-describedby="first-name-hint @error('first_name') first-name-error @enderror"
-                            required
-                            autofocus
-                        >
-                    </div>
-                    @error('first_name')
-                        <p id="first-name-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="last_name">Nom</label>
-                    <div class="register-input">
-                        <i class="fa-regular fa-user" aria-hidden="true"></i>
-                        <input
-                            id="last_name"
-                            name="last_name"
-                            type="text"
-                            value="{{ old('last_name') }}"
-                            autocomplete="family-name"
-                            placeholder="Votre nom"
-                            minlength="2"
-                            maxlength="100"
-                            aria-describedby="last-name-error"
-                            required
-                        >
-                    </div>
-                    @error('last_name')
-                        <p id="last-name-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="phone">Numéro de téléphone</label>
-                    <div class="register-input">
-                        <i class="fa-solid fa-phone" aria-hidden="true"></i>
-                        <input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            value="{{ old('phone') }}"
-                            autocomplete="tel"
-                            inputmode="tel"
-                            placeholder="+243 000 000 000"
-                            maxlength="30"
-                            aria-describedby="phone-error"
-                            required
-                        >
-                    </div>
-                    @error('phone')
-                        <p id="phone-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="account_type">Type de compte</label>
-                    <div class="register-input register-select">
-                        <i class="fa-solid fa-user-tag" aria-hidden="true"></i>
-                        <select
-                            id="account_type"
-                            name="account_type"
-                            autocomplete="off"
-                            aria-describedby="account-type-hint @error('account_type') account-type-error @enderror"
-                            required
-                        >
-                            <option value="" disabled @selected(old('account_type') === null)>Choisissez votre parcours</option>
-                            <option value="client" @selected(old('account_type') === 'client')>Client — je recherche des services</option>
-                            <option value="professional" @selected(old('account_type') === 'professional')>Professionnel — je propose mes services</option>
-                        </select>
-                    </div>
-                    <small id="account-type-hint" class="register-hint">Le choix détermine votre espace. Un compte professionnel démarre avec un profil à compléter et une vérification en attente.</small>
-                    @error('account_type')
-                        <p id="account-type-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="email">Adresse e-mail</label>
-                    <div class="register-input">
-                        <i class="fa-regular fa-envelope" aria-hidden="true"></i>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value="{{ old('email') }}"
-                            autocomplete="email"
-                            inputmode="email"
-                            placeholder="vous@exemple.com"
-                            maxlength="255"
-                            aria-describedby="email-hint @error('email') email-error @enderror"
-                            required
-                        >
-                    </div>
-                    <small id="email-hint" class="register-hint">Cette adresse servira à vous connecter à PROXIWORK.</small>
-                    @error('email')
-                        <p id="email-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="password">Mot de passe</label>
-                    <div class="register-input">
-                        <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            autocomplete="new-password"
-                            placeholder="Créez un mot de passe sécurisé"
-                            minlength="8"
-                            aria-describedby="password-strength @error('password') password-error @enderror"
-                            required
-                            data-register-password
-                        >
-                        <button
-                            class="register-password-toggle"
-                            type="button"
-                            data-register-password-toggle
-                            aria-label="Afficher le mot de passe"
-                            aria-pressed="false"
-                        >
-                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                        </button>
-                    </div>
-
-                    <div class="register-strength" id="password-strength" aria-live="polite">
-                        <div class="register-strength__top">
-                            <span>Sécurité du mot de passe</span>
-                            <strong data-register-strength-label>À saisir</strong>
-                        </div>
-                        <div class="register-strength__bar" aria-hidden="true">
-                            <span data-register-strength-bar></span>
-                        </div>
-                        <ul class="register-checks" aria-label="Critères du mot de passe">
-                            <li data-register-check="length"><i class="fa-solid fa-circle" aria-hidden="true"></i> 8 caractères minimum</li>
-                            <li data-register-check="lower"><i class="fa-solid fa-circle" aria-hidden="true"></i> Une minuscule</li>
-                            <li data-register-check="upper"><i class="fa-solid fa-circle" aria-hidden="true"></i> Une majuscule</li>
-                            <li data-register-check="number"><i class="fa-solid fa-circle" aria-hidden="true"></i> Un chiffre</li>
-                        </ul>
-                    </div>
-
-                    @error('password')
-                        <p id="password-error" class="register-field-error">
-                            <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
-                            {{ $message }}
-                        </p>
-                    @enderror
-                </div>
-
-                <div class="register-field">
-                    <label for="password_confirmation">Confirmer le mot de passe</label>
-                    <div class="register-input" data-confirmation-container>
-                        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
-                        <input
-                            id="password_confirmation"
-                            name="password_confirmation"
-                            type="password"
-                            autocomplete="new-password"
-                            placeholder="Saisissez à nouveau votre mot de passe"
-                            aria-describedby="password-confirmation-status"
-                            required
-                            data-register-confirm-password
-                        >
-                        <button
-                            class="register-password-toggle"
-                            type="button"
-                            data-register-confirm-toggle
-                            aria-label="Afficher la confirmation du mot de passe"
-                            aria-pressed="false"
-                        >
-                            <i class="fa-regular fa-eye" aria-hidden="true"></i>
-                        </button>
-                    </div>
-                    <p id="password-confirmation-status" class="register-match" data-register-match aria-live="polite"></p>
-                </div>
-
-                <label class="register-consent">
-                    <input type="checkbox" name="terms" value="1" required data-register-terms>
-                    <span>J’accepte les conditions d’utilisation de PROXIWORK et je confirme que les informations fournies sont exactes.</span>
-                </label>
-
-                <button class="register-submit" type="submit" data-register-submit>
-                    <span>Créer mon compte</span>
-                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-                </button>
-            </form>
-
-            <div class="register-divider">
-                <span>ou continuer avec</span>
-            </div>
-
-            @if (Route::has('auth.google.redirect'))
-                <a class="google-register" href="{{ route('auth.google.redirect') }}">
-                    <span class="google-register__icon" aria-hidden="true">G</span>
-                    <span>Continuer avec Google</span>
+            <div class="register-choice-grid">
+                <a class="register-choice-card" href="{{ route('register.client') }}">
+                    <span class="register-choice-card__icon"><i class="fa-solid fa-compass" aria-hidden="true"></i></span>
+                    <span class="register-choice-card__eyebrow">CÔTÉ CLIENT</span>
+                    <strong>Je recherche un professionnel</strong>
+                    <span>Explorez les services, envoyez une demande et suivez vos projets.</span>
+                    <span class="register-choice-card__action">Créer un compte client <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
                 </a>
-            @else
-                <button class="google-register google-register--prepared" type="button" data-google-register aria-describedby="google-register-note">
-                    <span class="google-register__icon" aria-hidden="true">G</span>
-                    <span>Continuer avec Google</span>
-                </button>
-                <p id="google-register-note" class="google-register-note">
-                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
-                    La connexion Google sera activée avec la configuration OAuth de PROXIWORK.
-                </p>
-            @endif
 
-            <p class="register-login">
-                Vous avez déjà un compte ?
-                <a href="{{ route('login') }}">Se connecter</a>
-            </p>
+                <a class="register-choice-card register-choice-card--professional" href="{{ route('register.professional') }}">
+                    <span class="register-choice-card__icon"><i class="fa-solid fa-briefcase" aria-hidden="true"></i></span>
+                    <span class="register-choice-card__eyebrow">CÔTÉ PROFESSIONNEL</span>
+                    <strong>Je souhaite proposer mes services</strong>
+                    <span>Présentez vos compétences, vos prestations et vos justificatifs.</span>
+                    <span class="register-choice-card__action">Démarrer mon dossier <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+                </a>
+            </div>
+
+            <p class="register-login">Vous avez déjà un compte ? <a href="{{ route('login') }}">Se connecter</a></p>
         </section>
 
-        <aside class="register-aside" aria-labelledby="register-aside-title">
-            <div class="register-aside__glow" aria-hidden="true"></div>
-
-            <div class="register-aside__icon" aria-hidden="true">
-                <i class="fa-solid fa-handshake"></i>
-            </div>
-
-            <span class="register-aside__eyebrow">BIENVENUE SUR PROXIWORK</span>
-            <h2 id="register-aside-title">Un compte pour construire de vraies opportunités.</h2>
-            <p>Créez votre identité PROXIWORK une seule fois, puis développez vos échanges et collaborations.</p>
-
-            <ul class="register-benefits">
-                <li>
-                    <span><i class="fa-solid fa-user-check" aria-hidden="true"></i></span>
-                    <div>
-                        <strong>Profil professionnel</strong>
-                        <small>Construisez progressivement une présence claire et crédible.</small>
-                    </div>
-                </li>
-                <li>
-                    <span><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span>
-                    <div>
-                        <strong>Opportunités ciblées</strong>
-                        <small>Retrouvez des services et des professionnels adaptés à vos besoins.</small>
-                    </div>
-                </li>
-                <li>
-                    <span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
-                    <div>
-                        <strong>Compte protégé</strong>
-                        <small>Vos identifiants sont traités par l’authentification Laravel.</small>
-                    </div>
-                </li>
-            </ul>
-
-            <div class="register-trust">
-                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                <span>Inscription sécurisée, responsive et pensée pour un usage professionnel.</span>
-            </div>
-        </aside>
     </div>
 @endsection
-
-@push('scripts')
-    @unless (app()->environment('testing'))
-        @vite('resources/js/pages/auth/register.js')
-    @endunless
-@endpush

@@ -61,9 +61,25 @@
                     <x-theme-toggle />
 
                     @auth
+                        @php
+                            $dashboardProfile = auth()->user()->profile;
+                            $dashboardAvatarPath = $dashboardProfile?->avatar_path;
+                            $dashboardAvatarExists = is_string($dashboardAvatarPath)
+                                && $dashboardAvatarPath !== ''
+                                && \Illuminate\Support\Facades\Storage::disk('local')->exists($dashboardAvatarPath);
+                            $dashboardAvatarUrl = match (true) {
+                                $dashboardAvatarExists && request()->routeIs('client.*') => route('client.profile.photo'),
+                                $dashboardAvatarExists && request()->routeIs('professional.*') => route('professional.profile.photo'),
+                                default => null,
+                            };
+                        @endphp
                         <div class="dashboard-user">
-                            <span class="avatar" aria-hidden="true">
-                                <i class="fa-solid fa-user"></i>
+                            <span class="avatar dashboard-user__avatar" aria-hidden="true">
+                                @if ($dashboardAvatarUrl)
+                                    <img src="{{ $dashboardAvatarUrl }}" alt="">
+                                @else
+                                    <i class="fa-solid fa-user"></i>
+                                @endif
                             </span>
                             <div class="dashboard-user__identity">
                                 <strong>{{ auth()->user()->name }}</strong>

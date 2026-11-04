@@ -28,6 +28,9 @@ class MessageResource extends JsonResource
             'sender' => [
                 'id' => $this->sender?->getKey(),
                 'name' => $this->sender?->name,
+                'avatar_url' => ($user?->hasRole('professional') ?? false) && ! $request->is('api/v1/*') && $this->sender !== null
+                    ? route('professional.messages.participants.photo', [$this->conversation_id, $this->sender->getKey()], true)
+                    : null,
             ],
             'body' => $this->body,
             'reply_to' => $this->whenLoaded('replyTo', fn () => $this->replyTo === null ? null : [

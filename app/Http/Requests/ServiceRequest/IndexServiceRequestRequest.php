@@ -19,6 +19,7 @@ class IndexServiceRequestRequest extends FormRequest
     {
         return [
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+            'bucket' => ['sometimes', 'nullable', Rule::in(['active'])],
             'status' => ['sometimes', 'nullable', 'string', Rule::in([
                 ...array_map(
                     static fn (ServiceRequestStatus $status): string => $status->value,
@@ -39,7 +40,7 @@ class IndexServiceRequestRequest extends FormRequest
     public function filters(): array
     {
         return collect($this->validated())
-            ->only(['status', 'search', 'professional_id', 'category_id', 'service_id', 'from', 'to', 'sort'])
+            ->only(['bucket', 'status', 'search', 'professional_id', 'category_id', 'service_id', 'from', 'to', 'sort'])
             ->all();
     }
 }

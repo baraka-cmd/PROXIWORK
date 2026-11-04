@@ -3,6 +3,9 @@
     $displayName = $profile !== null
         ? trim($profile->first_name.' '.$profile->last_name)
         : $professional->user->name;
+    $displayName = $professional->business_name ?: $displayName;
+    $hasAvatar = $profile?->avatar_path
+        && \Illuminate\Support\Facades\Storage::disk('local')->exists($profile->avatar_path);
     $initials = collect(preg_split('/\\s+/', trim($displayName)) ?: [])
         ->filter()
         ->take(2)
@@ -12,9 +15,13 @@
 
 <article class="professional-card surface-card surface-card--interactive">
     <div class="professional-card__header">
-        <div class="avatar avatar--xl professional-card__avatar" aria-hidden="true">
-            {{ $initials ?: 'P' }}
-        </div>
+        @if ($hasAvatar)
+            <img class="avatar avatar--xl professional-card__avatar" src="{{ request()->routeIs('client.professionals.*') ? route('client.professionals.photo', $professional) : route('public.professionals.photo', $professional) }}" alt="Photo de {{ $displayName }}" loading="lazy">
+        @else
+            <div class="avatar avatar--xl professional-card__avatar" aria-hidden="true">
+                {{ $initials ?: 'P' }}
+            </div>
+        @endif
 
         <div class="professional-card__identity">
             <div class="professional-card__badges">
@@ -28,7 +35,7 @@
                 @if ($professional->availability_status->value === 'available')
                     <span class="badge badge--primary">
                         <span class="badge__dot" aria-hidden="true"></span>
-                        Disponible
+                        Disponible, déclaré
                     </span>
                 @endif
             </div>
@@ -66,7 +73,7 @@
             @if ($professional->years_experience !== null)
                 <div>
                     <dt><i class="fa-solid fa-clock" aria-hidden="true"></i><span class="sr-only">Expérience</span></dt>
-                    <dd>{{ $professional->years_experience }} an(s) d’expérience</dd>
+                    <dd>{{ $professional->years_experience }} an(s) d’expérience déclarée</dd>
                 </div>
             @endif
 
@@ -95,21 +102,30 @@
             </div>
         @endif
 
-        <div class="professional-card__actions" style="display:flex;gap:.5rem;flex-wrap:wrap">
-            <a class="button button--ghost" href="{{ route('public.professionals.show', $professional) }}">
+        <div class="professional-card__actions">
+            <a class="button button--ghost" href="{{ (request()->routeIs('client.professionals.*') ? route('client.professionals.show', $professional) : route('public.professionals.show', $professional)) }}">
                 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
                 Voir le profil
             </a>
             @auth
                 @if (auth()->user()->hasRole('client'))
-                    <form method="POST" action="{{ route('client.favorites.store', $professional) }}">
-                        @csrf
-                        @method('PUT')
-                        <button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button>
-                    </form>
+                    @php($favorite = $professional->relationLoaded('favorites') ? $professional->favorites->first() : null)
+                    @if ($favorite)
+                        <form method="POST" action="{{ route('client.favorites.destroy', $favorite) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button class="button button--secondary" type="submit"><i class="fa-solid fa-heart" aria-hidden="true"></i> Retirer des favoris</button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('client.favorites.store', $professional) }}">
+                            @csrf
+                            @method('PUT')
+                            <button class="button button--secondary" type="submit"><i class="fa-regular fa-heart" aria-hidden="true"></i> Ajouter aux favoris</button>
+                        </form>
+                    @endif
                 @endif
             @else
-                <a class="button button--secondary" href="{{ route('login') }}">Se connecter pour enregistrer</a>
+                <a class="button button--secondary" href="{{ route('login', ['continue' => route('public.professionals.show', $professional)]) }}">Se connecter pour enregistrer</a>
             @endauth
         </div>
     </div>

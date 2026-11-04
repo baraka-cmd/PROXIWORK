@@ -169,7 +169,7 @@
                                     <thead><tr><th>Service</th><th>Commandes</th><th>Revenus nets</th></tr></thead>
                                     <tbody>
                                         @foreach ($servicesForCurrency as $serviceRevenue)
-                                            <tr><td>@if ($serviceRevenue->service_id)<a href="{{ request()->fullUrlWithQuery(['service_id' => $serviceRevenue->service_id, 'reference' => null, 'status' => 'posted', 'nature' => 'commission']) }}">{{ $serviceRevenue->service_title }}</a>@else{{ $serviceRevenue->service_title }}@endif</td><td>{{ $serviceRevenue->orders_count }}</td><td><strong>{{ number_format((float) $serviceRevenue->net_amount, 2, ',', ' ') }} {{ $currency }}</strong></td></tr>
+                                            <tr><td data-label="Service">@if ($serviceRevenue->service_id)<a href="{{ request()->fullUrlWithQuery(['service_id' => $serviceRevenue->service_id, 'reference' => null, 'status' => 'posted', 'nature' => 'commission']) }}">{{ $serviceRevenue->service_title }}</a>@else{{ $serviceRevenue->service_title }}@endif</td><td data-label="Commandes">{{ $serviceRevenue->orders_count }}</td><td data-label="Revenus nets"><strong>{{ number_format((float) $serviceRevenue->net_amount, 2, ',', ' ') }} {{ $currency }}</strong></td></tr>
                                         @endforeach
                                     </tbody>
                                 </table>
@@ -211,12 +211,12 @@
                         <tbody>
                             @foreach ($refundHistory as $refund)
                                 <tr>
-                                    <td>{{ \Illuminate\Support\Carbon::parse($refund->processed_at)->format('d/m/Y H:i') }}</td>
-                                    <td>{{ $refund->reference }}</td>
-                                    <td><a href="{{ route('professional.orders.show', $refund->order_id) }}">{{ $refund->order_number ?: '#'.$refund->order_id }}</a></td>
-                                    <td>PAY-{{ $refund->payment_id }}</td>
-                                    <td><strong>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</strong></td>
-                                    <td><span class="revenue-status">Confirmé</span></td>
+                                    <td data-label="Date de confirmation">{{ \Illuminate\Support\Carbon::parse($refund->processed_at)->format('d/m/Y H:i') }}</td>
+                                    <td data-label="Référence remboursement">{{ $refund->reference }}</td>
+                                    <td data-label="Commande"><a href="{{ route('professional.orders.show', $refund->order_id) }}">{{ $refund->order_number ?: '#'.$refund->order_id }}</a></td>
+                                    <td data-label="Paiement">PAY-{{ $refund->payment_id }}</td>
+                                    <td data-label="Montant remboursé"><strong>{{ number_format((float) $refund->amount, 2, ',', ' ') }} {{ $refund->currency }}</strong></td>
+                                    <td data-label="État"><span class="revenue-status">Confirmé</span></td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -247,17 +247,17 @@
                         <tbody>
                             @foreach ($commissions as $commission)
                                 <tr>
-                                    <td>@if($commission->posted_at)<time datetime="{{ $commission->posted_at->toISOString() }}">{{ $commission->posted_at->format('d/m/Y H:i') }}</time>@else — @endif</td>
-                                    <td>COM-{{ $commission->id }}</td>
-                                    <td>
+                                    <td data-label="Date comptabilisée">@if($commission->posted_at)<time datetime="{{ $commission->posted_at->toISOString() }}">{{ $commission->posted_at->format('d/m/Y H:i') }}</time>@else — @endif</td>
+                                    <td data-label="Référence">COM-{{ $commission->id }}</td>
+                                    <td data-label="Commande / service">
                                         <a href="{{ route('professional.orders.show', $commission->order_id) }}">{{ $commission->order?->order_number ?? '#'.$commission->order_id }}</a>
                                         <small>{{ $commission->service_display_title ?? 'Service indisponible' }}</small>
                                     </td>
-                                    <td>{{ number_format((float) $commission->gross_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
-                                    <td>{{ number_format((float) $commission->commission_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
-                                    <td><strong>{{ number_format((float) $commission->net_amount, 2, ',', ' ') }} {{ $commission->currency }}</strong></td>
-                                    <td><span class="revenue-status {{ $commission->status->value === 'reversed' ? 'revenue-status--reversed' : '' }}">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée' }}</span></td>
-                                    <td><a class="revenue-link" href="{{ route('professional.revenues.show', ['commission' => $commission->id] + request()->query()) }}">Justificatif</a></td>
+                                    <td data-label="Montant brut">{{ number_format((float) $commission->gross_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
+                                    <td data-label="Frais">{{ number_format((float) $commission->commission_amount, 2, ',', ' ') }} {{ $commission->currency }}</td>
+                                    <td data-label="Montant net"><strong>{{ number_format((float) $commission->net_amount, 2, ',', ' ') }} {{ $commission->currency }}</strong></td>
+                                    <td data-label="État"><span class="revenue-status {{ $commission->status->value === 'reversed' ? 'revenue-status--reversed' : '' }}">{{ $commission->status->value === 'posted' ? 'Comptabilisée' : 'Annulée' }}</span></td>
+                                    <td data-label="Détail"><a class="revenue-link" href="{{ route('professional.revenues.show', ['commission' => $commission->id] + request()->query()) }}">Consulter le justificatif</a></td>
                                 </tr>
                             @endforeach
                         </tbody>

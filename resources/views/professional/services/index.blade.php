@@ -69,6 +69,23 @@
                 @endforeach
             </select>
         </div>
+        <div class="service-filter-field">
+            <label class="form-label" for="service-skill">Compétence</label>
+            <select class="form-control form-select" id="service-skill" name="skill_id">
+                <option value="">Toutes les compétences</option>
+                @foreach($skills as $skill)
+                    <option value="{{ $skill->id }}" @selected((string) ($filters['skill_id'] ?? '') === (string) $skill->id)>{{ $skill->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="service-filter-field">
+            <label class="form-label" for="service-sort">Trier par</label>
+            <select class="form-control form-select" id="service-sort" name="sort">
+                <option value="recent" @selected(($filters['sort'] ?? 'recent') === 'recent')>Modification récente</option>
+                <option value="title" @selected(($filters['sort'] ?? '') === 'title')>Titre</option>
+                <option value="requests" @selected(($filters['sort'] ?? '') === 'requests')>Demandes reçues</option>
+            </select>
+        </div>
         <div class="service-filter-actions">
             <button class="button button--primary" type="submit"><i class="fa-solid fa-filter" aria-hidden="true"></i> Filtrer</button>
             <a class="button button--ghost" href="{{ route('professional.services.index') }}">Réinitialiser</a>

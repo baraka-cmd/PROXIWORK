@@ -22,6 +22,10 @@ class AddSecurityHeaders
             'camera=(), microphone=(), geolocation=(self)',
         );
 
+        if ($request->user() !== null && ! $request->expectsJson()) {
+            $response->headers->set('Cache-Control', 'private, no-store, no-cache, must-revalidate');
+        }
+
         if ($request->isSecure()) {
             $response->headers->set(
                 'Strict-Transport-Security',

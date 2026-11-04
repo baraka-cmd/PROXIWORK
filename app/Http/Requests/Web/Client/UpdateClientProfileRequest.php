@@ -18,7 +18,7 @@ class UpdateClientProfileRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:30'],
+            'phone' => ['nullable', 'string', 'max:30', 'regex:/^\+?[0-9][0-9\s().-]{6,28}$/'],
             'bio' => ['nullable', 'string', 'max:2000'],
             'locale' => ['nullable', 'string', 'max:10'],
             'timezone' => ['nullable', 'timezone', 'max:64'],
@@ -33,5 +33,12 @@ class UpdateClientProfileRequest extends FormRequest
             'phone' => $this->filled('phone') ? trim((string) $this->input('phone')) : null,
             'bio' => $this->filled('bio') ? trim((string) $this->input('bio')) : null,
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'phone.regex' => 'Saisissez un numéro de téléphone valide.',
+        ];
     }
 }

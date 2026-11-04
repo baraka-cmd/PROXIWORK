@@ -52,7 +52,7 @@
 
 
 /* Phase 5 UI refinement: service catalogue, editing and realization workflow. */
-.service-filters { grid-template-columns:minmax(220px,2fr) minmax(170px,1fr) minmax(170px,1fr) auto; }
+.service-filters { grid-template-columns:minmax(220px,2fr) repeat(4,minmax(145px,1fr)) auto; }
 .service-summary-card { min-height:92px; border-radius:var(--radius-lg); }
 .service-summary-card__icon { flex-shrink:0; }
 .service-card { overflow:hidden; height:100%; }

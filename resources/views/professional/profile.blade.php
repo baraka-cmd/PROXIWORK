@@ -10,6 +10,7 @@
 @endpush
 
 @section('content')
+    <div class="professional-profile-page">
     @php
         $personalProfile = $professional->user->profile;
         $name = trim(($personalProfile?->first_name ?? '').' '.($personalProfile?->last_name ?? '')) ?: $professional->user->name;
@@ -62,7 +63,6 @@
             <p class="eyebrow">Identité professionnelle</p>
             <h1>Votre profil professionnel</h1>
             <p class="page-lead">Gérez votre présentation, vos compétences, votre disponibilité et les informations visibles par les clients.</p>
-            <p class="profile-date"><i class="fa-regular fa-calendar" aria-hidden="true"></i> {{ now()->translatedFormat('l j F Y') }}</p>
         </div>
         <div class="dashboard-page-header__actions">
             @if ($isPubliclyVisible)
@@ -156,7 +156,7 @@
             <div class="surface-card__body">
                 <div class="completion-score"><strong>{{ $completionPercentage }}%</strong><span>des éléments essentiels renseignés</span></div>
                 <div class="completion-track" role="progressbar" aria-label="Complétude du profil" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $completionPercentage }}"><span style="width:{{ $completionPercentage }}%"></span></div>
-                <p class="field-help">La complétude mesure les informations renseignées. Elle ne signifie pas que le compte ou les documents sont vérifiés.</p>
+                <p class="field-help">La complétude mesure les informations essentielles valides. Une présentation doit contenir au moins 40 caractères. Elle ne signifie pas que le compte ou les documents sont vérifiés.</p>
                 <ul class="completion-list">
                     <li class="{{ $completionItems['personal'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['personal'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Prénom et nom</li>
                     <li class="{{ $completionItems['profession'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['profession'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Titre professionnel</li>
@@ -165,7 +165,13 @@
                     <li class="{{ $completionItems['skills'] ? 'is-complete' : '' }}"><i class="fa-solid {{ $completionItems['skills'] ? 'fa-circle-check' : 'fa-circle' }}" aria-hidden="true"></i> Au moins une compétence</li>
                         </ul>
                 @if (! $completionItems['personal'] || ! $completionItems['profession'] || ! $completionItems['presentation'] || ! $completionItems['service_area'] || ! $completionItems['skills'])
-                    <a class="button button--secondary profile-completion-action" href="{{ route('professional.profile.edit') }}">Compléter les informations manquantes</a>
+                    <ul class="completion-list completion-list--actions" aria-label="Actions pour compléter le profil">
+                        @unless ($completionItems['personal'])<li><a href="{{ route('professional.profile.edit') }}#professional-identity">Compléter le prénom et le nom</a></li>@endunless
+                        @unless ($completionItems['profession'])<li><a href="{{ route('professional.profile.edit') }}#professional-identity">Ajouter un titre professionnel</a></li>@endunless
+                        @unless ($completionItems['presentation'])<li><a href="{{ route('professional.profile.edit') }}#professional-description">Compléter la présentation</a></li>@endunless
+                        @unless ($completionItems['service_area'])<li><a href="{{ route('professional.profile.edit') }}#professional-location">Renseigner la zone d’intervention</a></li>@endunless
+                        @unless ($completionItems['skills'])<li><a href="{{ route('professional.profile.edit') }}#professional-skills">Ajouter au moins une compétence</a></li>@endunless
+                    </ul>
                 @endif
             </div>
         </section>
@@ -244,4 +250,5 @@
             @endif
         </div>
     </section>
+    </div>
 @endsection

@@ -113,7 +113,7 @@ class ConversationService
                 'conversations.*',
                 DB::raw('CASE WHEN current_participant.pinned_at IS NULL THEN 0 ELSE 1 END AS is_pinned_sort'),
             ])
-            ->with(['professional.user', 'client', 'lastMessage.sender', 'lastMessage.attachments']);
+            ->with(['professional.user.profile', 'client.profile', 'lastMessage.sender.profile', 'lastMessage.attachments']);
 
         if (($filters['archived'] ?? false) === true) {
             $query->whereNotNull('current_participant.archived_at');
@@ -204,11 +204,11 @@ class ConversationService
         $this->assertParticipant($conversation, $user);
 
         $conversation->load([
-            'client',
-            'professional.user',
+            'client.profile',
+            'professional.user.profile',
             'order',
             'serviceRequest',
-            'lastMessage.sender',
+            'lastMessage.sender.profile',
         ]);
 
         $recipientId = (string) $conversation->client_id === (string) $user->getKey()
@@ -243,7 +243,7 @@ class ConversationService
         $this->assertParticipant($conversation, $user);
 
         $messages = $conversation->messages()
-            ->with(['sender', 'attachments', 'replyTo.sender'])
+            ->with(['sender.profile', 'attachments', 'replyTo.sender.profile'])
             ->orderByDesc('id')
             ->cursorPaginate(max(1, min($perPage, 100)));
 
@@ -258,7 +258,7 @@ class ConversationService
 
         $messages = $conversation->messages()
             ->where('id', '>', max(0, $afterId))
-            ->with(['sender', 'attachments'])
+            ->with(['sender.profile', 'attachments'])
             ->orderBy('id')
             ->limit(max(1, min($limit, 50)))
             ->get();

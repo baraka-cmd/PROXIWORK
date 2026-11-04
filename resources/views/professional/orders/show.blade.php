@@ -33,6 +33,7 @@
         };
         $requiresClientAddress = $order->serviceRequest?->execution_mode?->requiresClientAddress() ?? false;
     @endphp
+    <div class="professional-order-detail-page">
     <div class="page-header professional-order-detail-header">
         <div>
             <p class="page-kicker">SUIVI DE PRESTATION · {{ $order->order_number ?? ('COMMANDE #'.$order->getKey()) }}</p>
@@ -42,8 +43,8 @@
         <span class="status-badge status-badge--{{ $order->status->value }}" role="status">{{ $orderStatusLabel }}</span>
     </div>
 
-    <div class="detail-grid">
-        <section class="data-card">
+    <div class="detail-grid professional-order-detail-grid">
+        <section class="data-card professional-order-summary-card">
             <h2>Commande</h2>
             <dl class="detail-list">
                 <div><dt>Référence</dt><dd>{{ $order->order_number ?? ('#'.$order->getKey()) }}</dd></div>
@@ -65,7 +66,7 @@
             @endif
         </section>
 
-        <section class="data-card">
+        <section class="data-card professional-order-finance-card">
             <h2>Finances</h2>
             <dl class="detail-list">
                 <div><dt>État du paiement</dt><dd>{{ $paymentStatusLabel }}</dd></div>
@@ -108,7 +109,7 @@
             </ol>
         </section>
 
-        <section class="data-card">
+        <section class="data-card professional-order-location-card">
             <h2>Lieu d’exécution</h2>
             @if ($requiresClientAddress)
                 @if ($order->addressSnapshot)
@@ -149,7 +150,7 @@
         );
     @endphp
 
-    <section class="data-card professional-order-workflow">
+    <section class="data-card professional-order-workflow professional-order-workflow--main">
         <h2>Suivi de réalisation</h2>
         <p class="muted">Le paiement, l’exécution et la réception sont suivis séparément. Une commande n’est terminée qu’après confirmation de réception par le client.</p>
 
@@ -313,7 +314,7 @@
         @endif
     </section>
 
-    <section class="data-card professional-order-workflow">
+    <section class="data-card professional-order-workflow professional-order-workflow--events">
         <h2>Événements opérationnels</h2>
         @forelse ($order->statusHistories->filter(fn ($history) => filled(data_get($history->metadata, 'event'))) as $event)
             <article class="timeline-item">
@@ -367,4 +368,5 @@
         @endforelse
     </section>
 
+    </div>
 @endsection

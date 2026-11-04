@@ -154,11 +154,11 @@ class NotificationFoundationTest extends TestCase
 
         $service = app(TransactionalNotificationService::class);
 
-        $service->serviceRequestCreated($recipient, 'Plomberie');
+        $service->serviceRequestCreated($recipient, 'Plomberie', 'request:42', '/professional/requests/42');
         $service->quotationCreated($recipient);
         $service->quotationAccepted($recipient);
         $service->paymentSucceeded($recipient);
-        $service->orderConfirmed($recipient);
+        $service->orderConfirmed($recipient, 'order:84', '/professional/orders/84');
         $service->messageReceived($recipient, 123, 456);
         $service->reviewReceived($recipient);
 
@@ -179,6 +179,15 @@ class NotificationFoundationTest extends TestCase
                 'review',
             ],
             $actions,
+        );
+
+        $this->assertSame(
+            '/professional/requests/42',
+            $recipient->notifications()->where('data->action', 'service_request')->firstOrFail()->data['url'],
+        );
+        $this->assertSame(
+            '/professional/orders/84',
+            $recipient->notifications()->where('data->action', 'order')->firstOrFail()->data['url'],
         );
     }
 
@@ -282,6 +291,54 @@ class NotificationFoundationTest extends TestCase
 
         Queue::assertPushed(SendNotificationEmail::class);
         $this->assertNotNull($delivery->fresh()->queued_at);
+    }
+
+    public function test_pending_deliveries_for_each_external_channel_are_queued_by_the_recovery_command(): void
+    {
+        Queue::fake();
+
+        $recipient = User::factory()->create();
+        $recipient->assignRole('client');
+        $recipient->profile()->create([
+            'first_name' => 'Test',
+            'last_name' => 'Client',
+            'phone' => '+243970001234',
+        ]);
+        $recipient->notificationPreference()->create([
+            'email_enabled' => true,
+            'sms_enabled' => true,
+            'push_enabled' => true,
+        ]);
+        NotificationDevice::query()->create([
+            'user_id' => $recipient->id,
+            'token' => 'test-device-token',
+            'platform' => 'web',
+        ]);
+
+        app(TransactionalNotificationService::class)->quotationCreated(
+            $recipient,
+            '/client/quotes/quote-44',
+            'quotation-created:44',
+        );
+
+        NotificationDelivery::query()
+            ->where('user_id', $recipient->id)
+            ->whereIn('channel', ['mail', 'sms', 'push'])
+            ->update([
+                'status' => 'PENDING',
+                'available_at' => now(),
+                'last_error_code' => null,
+            ]);
+
+        $this->artisan('notifications:dispatch-pending')->assertSuccessful();
+
+        Queue::assertPushed(SendNotificationEmail::class);
+        Queue::assertPushed(SendNotificationSms::class);
+        Queue::assertPushed(SendNotificationPush::class);
+        $this->assertSame(3, NotificationDelivery::query()
+            ->where('user_id', $recipient->id)
+            ->whereNotNull('queued_at')
+            ->count());
     }
 
     public function test_log_mailer_is_recorded_as_simulated_not_sent(): void

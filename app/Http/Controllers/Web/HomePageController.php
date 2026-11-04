@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Enums\ProfessionalVerificationStatus;
-use App\Enums\ServiceStatus;
+use App\Enums\UserAccountStatus;
 use App\Models\Category;
 use App\Models\HomepageSlide;
 use App\Models\ProfessionalProfile;
 use App\Models\Review;
 use App\Models\Service;
 use App\Models\Skill;
-use App\Enums\UserAccountStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\View\View;
 
@@ -25,7 +24,10 @@ class HomePageController
                 ->where('status', ProfessionalProfile::STATUS_ACTIVE)
                 ->where('visibility', ProfessionalProfile::VISIBILITY_PUBLIC)
                 ->where('verification_status', ProfessionalVerificationStatus::VERIFIED->value)
-                ->whereHas('user', fn (Builder $user) => $user->where('account_status', UserAccountStatus::ACTIVE->value));
+                ->whereNotNull('verified_at')
+                ->whereHas('user', fn (Builder $user) => $user
+                    ->where('account_status', UserAccountStatus::ACTIVE->value)
+                    ->whereNotNull('email_verified_at'));
         };
 
         $publishedServices = function (Builder $query) use ($visibleProfessional): void {

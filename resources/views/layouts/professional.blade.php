@@ -89,6 +89,16 @@
 @endsection
 
 @section('dashboard_sidebar_footer')
+    @if (auth()->user()?->hasRole('client'))
+        <form method="POST" action="{{ route('workspace.switch', ['workspace' => 'client']) }}" class="dashboard-workspace-form">
+            @csrf
+            <button type="submit" class="dashboard-nav-link dashboard-workspace-switch">
+                <i class="fa-solid fa-right-left" aria-hidden="true"></i>
+                <span>Passer à l’espace client</span>
+            </button>
+        </form>
+    @endif
+
     <div class="dashboard-security-note">
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         <span>Espace sécurisé</span>

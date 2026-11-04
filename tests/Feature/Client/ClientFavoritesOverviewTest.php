@@ -154,6 +154,79 @@ class ClientFavoritesOverviewTest extends TestCase
             ->assertSessionHasErrors('type');
     }
 
+    public function test_favorites_page_shows_the_verified_public_business_name(): void
+    {
+        $client = $this->client();
+        $professional = $this->visibleProfessional();
+        $professional->forceFill(['business_name' => 'Atelier public'])->save();
+        Favorite::create([
+            'user_id' => $client->id,
+            'professional_profile_id' => $professional->id,
+            'service_id' => null,
+        ]);
+
+        $this->actingAs($client)
+            ->get('/client/favorites')
+            ->assertOk()
+            ->assertSee('Atelier public')
+            ->assertSee('Vérifié');
+    }
+
+    public function test_favorites_page_hides_details_and_verification_badge_for_a_private_professional(): void
+    {
+        $client = $this->client();
+        $professional = $this->visibleProfessional();
+        $professional->forceFill([
+            'business_name' => 'Entreprise privée',
+            'professional_title' => 'Expertise privée',
+            'city' => 'Ville privée',
+            'visibility' => ProfessionalProfile::VISIBILITY_PRIVATE,
+            'verification_status' => ProfessionalVerificationStatus::PENDING,
+            'verified_at' => null,
+        ])->save();
+        Favorite::create([
+            'user_id' => $client->id,
+            'professional_profile_id' => $professional->id,
+            'service_id' => null,
+        ]);
+
+        $this->actingAs($client)
+            ->get('/client/favorites')
+            ->assertOk()
+            ->assertSee('Professionnel devenu indisponible')
+            ->assertDontSee('Entreprise privée')
+            ->assertDontSee('Expertise privée')
+            ->assertDontSee('Ville privée')
+            ->assertDontSee('Vérifié');
+    }
+
+    public function test_service_search_shows_the_remove_action_after_a_service_is_favorited(): void
+    {
+        $client = $this->client();
+        $service = $this->publishedService();
+
+        $this->actingAs($client)
+            ->post('/client/favorites/services/'.$service->id)
+            ->assertRedirect();
+
+        $favorite = Favorite::query()
+            ->where('user_id', $client->id)
+            ->where('service_id', $service->id)
+            ->firstOrFail();
+
+        $this->actingAs($client)
+            ->get('/client/recherche')
+            ->assertOk()
+            ->assertSee(route('client.favorites.destroy', $favorite), false)
+            ->assertSee('Retirer des favoris');
+
+        $this->actingAs($client)
+            ->get(route('public.services.show', $service))
+            ->assertOk()
+            ->assertSee(route('client.favorites.destroy', $favorite), false)
+            ->assertSee('Retirer des favoris');
+    }
+
     private function client(): User
     {
         $client = User::factory()->create();

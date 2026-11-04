@@ -203,24 +203,20 @@ class ProfessionalWebDashboardService
                 && in_array($mimeType, ['image/jpeg', 'image/png', 'image/webp'], true);
         }
 
-        // Keep this score aligned with the existing profile page's seven completion criteria.
+        // Keep this score aligned with the profile page's information-only completion criteria.
         $completionItems = [
-            'personal' => $userProfile !== null,
+            'personal' => filled($userProfile?->first_name) && filled($userProfile?->last_name),
             'profession' => filled($profile->professional_title),
             'presentation' => filled($profile->description),
             'service_area' => filled($profile->city) && filled($profile->province),
             'skills' => (int) $profile->skills_count > 0,
-            'services' => (int) $profile->services_count > 0,
-            'verification' => $profile->verification_status?->value === 'verified',
         ];
         $completionLabels = [
-            'personal' => 'Informations personnelles',
+            'personal' => 'Prénom et nom',
             'profession' => 'Spécialité professionnelle',
             'presentation' => 'Présentation professionnelle',
             'service_area' => 'Zone d’intervention (ville et province)',
             'skills' => 'Compétences professionnelles',
-            'services' => 'Au moins un service',
-            'verification' => 'Vérification professionnelle',
         ];
         $missingFields = collect($completionItems)
             ->filter(fn (bool $complete): bool => ! $complete)
@@ -472,14 +468,13 @@ class ProfessionalWebDashboardService
             ]);
         }
 
-        $profileIsComplete = $profile->user->profile !== null
+        $profileIsComplete = filled($profile->user->profile?->first_name)
+            && filled($profile->user->profile?->last_name)
             && filled($profile->professional_title)
             && filled($profile->description)
             && filled($profile->city)
             && filled($profile->province)
-            && (int) $profile->skills_count > 0
-            && (int) $profile->services_count > 0
-            && $profile->verification_status?->value === 'verified';
+            && (int) $profile->skills_count > 0;
 
         if (! $profileIsComplete && $profile->status !== ProfessionalProfile::STATUS_SUSPENDED) {
             $actions->push([

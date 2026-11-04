@@ -25,7 +25,7 @@
     <section class="payment-metrics" aria-label="Résumé financier">
         <article class="payment-metric">
             <span class="payment-metric__icon"><i class="fa-solid fa-wallet" aria-hidden="true"></i></span>
-            <div><h2>À régler</h2><p>Commandes en attente de paiement</p></div>
+                <div><h2>Montant à régler</h2><p>Commandes en attente de paiement</p></div>
             <div class="payment-metric__totals">
                 @forelse($dueByCurrency as $total)
                     <strong>{{ number_format((float) $total->total, 2, ',', ' ') }} <small>{{ $total->currency }}</small></strong>
@@ -36,7 +36,7 @@
         </article>
         <article class="payment-metric">
             <span class="payment-metric__icon payment-metric__icon--success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>
-            <div><h2>Paiements confirmés</h2><p>Total brut des réussites simulées, avant remboursements</p></div>
+                <div><h2>Paiements confirmés</h2><p>Total brut des paiements simulés réussis, avant remboursements</p></div>
             <div class="payment-metric__totals">
                 @forelse($confirmedByCurrency as $total)
                     <strong>{{ number_format((float) $total->total, 2, ',', ' ') }} <small>{{ $total->currency }}</small></strong>
@@ -47,7 +47,7 @@
         </article>
         <article class="payment-metric">
             <span class="payment-metric__icon payment-metric__icon--pending"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></span>
-            <div><h2>En traitement</h2><p>Opérations qui nécessitent encore une vérification</p></div>
+                <div><h2>Paiements en traitement</h2><p>Opérations qui nécessitent encore une vérification</p></div>
             <div class="payment-metric__totals">
                 @forelse($processingByCurrency as $total)
                     <strong>{{ number_format((float) $total->total, 2, ',', ' ') }} <small>{{ $total->currency }}</small></strong>
@@ -58,7 +58,7 @@
         </article>
         <article class="payment-metric">
             <span class="payment-metric__icon payment-metric__icon--refund"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></span>
-            <div><h2>Remboursements demandés</h2><p>Montants soumis à examen, non encore remboursés</p></div>
+                <div><h2>Remboursements demandés</h2><p>Montants soumis à examen et pas encore remboursés</p></div>
             <div class="payment-metric__totals">
                 @forelse($refundRequestsByCurrency as $total)
                     <strong>{{ number_format((float) $total->total, 2, ',', ' ') }} <small>{{ $total->currency }}</small></strong>
@@ -75,8 +75,8 @@
         </div>
         <form method="GET" action="{{ route('client.payments.index') }}" class="payment-filter-form">
             <label class="payment-filter-form__search">
-                <span>Référence paiement, commande ou service</span>
-                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="Ex. PAY-00000012, CMD-…">
+                <span>Référence du paiement, commande ou service</span>
+                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" maxlength="100" placeholder="Ex. PAY-00000012 ou nom du service">
             </label>
             <label><span>Statut du paiement</span>
                 <select name="status">
@@ -86,7 +86,7 @@
                     @endforeach
                 </select>
             </label>
-            <label><span>Moyen simulé</span>
+            <label><span>Moyen de paiement simulé</span>
                 <select name="method">
                     <option value="">Tous les moyens</option>
                     @foreach($methodLabels as $value => $label)
@@ -135,18 +135,19 @@
 
     <section class="client-panel payment-results">
         <div class="payment-section-heading">
-            <div><h2>Historique</h2><p>{{ $payments->total() }} paiement(s) trouvé(s)</p></div>
+            <div><h2>Historique des paiements</h2><p>{{ $payments->total() }} {{ $payments->total() === 1 ? 'paiement trouvé' : 'paiements trouvés' }}</p></div>
         </div>
         @if($payments->isEmpty())
             <div class="payment-empty-state">
                 <span><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
                 <h3>Aucun paiement correspondant</h3>
-                <p>Essayez d’ajuster vos filtres. Les paiements apparaîtront ici après leur initialisation.</p>
+                <p>Modifiez vos critères de recherche ou réinitialisez les filtres. Vos paiements apparaîtront ici après leur initialisation.</p>
+                <a class="btn btn-secondary" href="{{ route('client.payments.index') }}">Réinitialiser les filtres</a>
             </div>
         @else
             <div class="payment-table-wrap">
                 <table class="payment-table">
-                    <thead><tr><th>Références</th><th>Montant</th><th>Moyen</th><th>Dates</th><th>État</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                    <thead><tr><th>Références</th><th>Montant</th><th>Moyen de paiement</th><th>Dates du paiement</th><th>Statut du paiement</th><th><span class="sr-only">Actions</span></th></tr></thead>
                     <tbody>
                     @foreach($payments as $payment)
                         @php
@@ -160,10 +161,10 @@
                                 <small>{{ $serviceTitle }}</small>
                             </td>
                             <td data-label="Montant"><strong class="payment-table__amount">{{ number_format((float) $payment->amount, 2, ',', ' ') }} {{ $payment->currency }}</strong></td>
-                            <td data-label="Moyen"><span>{{ $methodLabels[$payment->method->value] ?? $payment->method->value }}</span><small>Simulateur PROXIWORK</small></td>
-                            <td data-label="Dates"><span>{{ optional($payment->created_at)->format('d/m/Y H:i') }}</span><small>Confirmation : {{ optional($payment->paid_at)->format('d/m/Y H:i') ?? 'non confirmée' }}</small></td>
-                            <td data-label="État"><span class="status-badge status-badge--{{ $paymentStatus }}">{{ $statusLabels[$paymentStatus] ?? $paymentStatus }}</span></td>
-                            <td data-label="Actions"><div class="payment-row-actions"><a class="btn btn-secondary btn-sm" href="{{ route('client.payments.show', $payment) }}">Détails</a>@if($payment->status === \App\Enums\PaymentStatus::SUCCEEDED)<a class="payment-text-link" href="{{ route('client.payments.receipt', $payment) }}">Reçu</a>@endif</div></td>
+                            <td data-label="Moyen de paiement"><span>{{ $methodLabels[$payment->method->value] ?? $payment->method->value }}</span><small>Simulateur PROXIWORK</small></td>
+                            <td data-label="Dates du paiement"><span>{{ optional($payment->created_at)->format('d/m/Y H:i') }}</span><small>Confirmation : {{ optional($payment->paid_at)->format('d/m/Y H:i') ?? 'Non confirmée' }}</small></td>
+                            <td data-label="Statut du paiement"><span class="status-badge status-badge--{{ $paymentStatus }}">{{ $statusLabels[$paymentStatus] ?? $paymentStatus }}</span></td>
+                            <td data-label="Actions"><div class="payment-row-actions"><a class="btn btn-secondary btn-sm" href="{{ route('client.payments.show', $payment) }}">Consulter les détails</a>@if($payment->status === \App\Enums\PaymentStatus::SUCCEEDED)<a class="payment-text-link" href="{{ route('client.payments.receipt', $payment) }}">Voir le reçu</a>@endif</div></td>
                         </tr>
                     @endforeach
                     </tbody>

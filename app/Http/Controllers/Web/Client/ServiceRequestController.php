@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web\Client;
 
+use App\Enums\ServiceRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ServiceRequest\IndexServiceRequestRequest;
 use App\Http\Requests\ServiceRequest\SetServiceRequestAddressRequest;
@@ -12,8 +13,10 @@ use App\Http\Requests\ServiceRequest\UpdateServiceRequestRequest;
 use App\Models\Category;
 use App\Models\Conversation;
 use App\Models\ProfessionalProfile;
+use App\Models\QuotationEvent;
 use App\Models\Service;
 use App\Models\ServiceRequest;
+use App\Models\ServiceRequestStatusHistory;
 use App\Services\Audit\AuditLogService;
 use App\Services\ServiceRequest\ServiceRequestLifecycleService;
 use App\Services\ServiceRequest\ServiceRequestService;
@@ -119,7 +122,7 @@ class ServiceRequestController extends Controller
             'quotation.currentOffer',
             'quotation.acceptedOffer',
             'quotation.offers',
-            'quotation.events',
+            'quotation.events.actor',
             'order',
             'attachments.uploader',
         ]);
@@ -127,17 +130,58 @@ class ServiceRequestController extends Controller
         $conversation = Conversation::query()
             ->where('client_id', $request->user()->getKey())
             ->where('professional_id', $serviceRequest->professional_id)
+            ->where('service_request_id', $serviceRequest->getKey())
             ->first();
 
         if ($conversation !== null && ! Gate::allows('view', $conversation)) {
             $conversation = null;
         }
 
+        $requestTimeline = $serviceRequest->statusHistories
+            ->map(function (ServiceRequestStatusHistory $history): array {
+                $status = ServiceRequestStatus::tryFrom($history->to_status);
+
+                return [
+                    'label' => $status?->label() ?? ucfirst(str_replace('_', ' ', $history->to_status)),
+                    'occurred_at' => $history->created_at,
+                    'actor' => $history->actor?->name ?? 'Système PROXIWORK',
+                    'reason' => $history->reason,
+                    'type' => 'status',
+                ];
+            });
+
+        if ($serviceRequest->quotation !== null) {
+            $quotationEventLabels = [
+                'quote_created' => 'Le professionnel a envoyé un devis',
+                'offer_accepted' => 'Vous avez accepté une offre',
+                'offer_accepted_by_professional' => 'Le professionnel a accepté votre contre-proposition',
+                'counter_offer_rejected_by_professional' => 'Le professionnel a refusé votre contre-proposition',
+                'quote_rejected' => 'Le devis a été refusé',
+                'counter_offer_created' => 'Une contre-proposition a été envoyée',
+                'quote_renewed' => 'Le professionnel a renouvelé le devis',
+                'quote_expired' => 'Le devis est arrivé à expiration',
+            ];
+
+            $requestTimeline = $requestTimeline->concat(
+                $serviceRequest->quotation->events->map(fn (QuotationEvent $event): array => [
+                    'label' => $quotationEventLabels[$event->type] ?? 'Mise à jour du devis',
+                    'occurred_at' => $event->created_at,
+                    'actor' => $event->actor?->name ?? 'Système PROXIWORK',
+                    'reason' => null,
+                    'type' => 'quotation',
+                ]),
+            );
+        }
+
+        $requestTimeline = $requestTimeline
+            ->sortBy(fn (array $event): int => $event['occurred_at']?->getTimestamp() ?? 0)
+            ->values();
+
         $addresses = in_array($serviceRequest->status->value, ['requested', 'quoted'], true)
             ? $request->user()->addresses()->latest('is_default')->latest('id')->get()
             : collect();
 
-        return view('client.requests.show', compact('serviceRequest', 'conversation', 'addresses'));
+        return view('client.requests.show', compact('serviceRequest', 'conversation', 'addresses', 'requestTimeline'));
     }
 
     public function edit(Request $request, ServiceRequest $serviceRequest): View

@@ -17,10 +17,13 @@ class ProfessionalSearchResource extends JsonResource
         return [
             'id' => $this->getKey(),
             'professional_title' => $this->professional_title,
-            'name' => $profile !== null
+            'name' => $this->business_name ?: ($profile !== null
                 ? trim($profile->first_name.' '.$profile->last_name)
-                : $this->user->name,
+                : $this->user->name),
             'bio' => $this->description ?: $profile?->bio,
+            'avatar_url' => $profile?->avatar_path
+                ? route('public.professionals.photo', $this->resource)
+                : null,
             'years_experience' => $this->years_experience,
             'starting_price' => $this->starting_price === null ? null : (float) $this->starting_price,
             'currency' => $this->currency,
@@ -46,6 +49,10 @@ class ProfessionalSearchResource extends JsonResource
                 'slug' => $skill->slug,
             ])->values(),
             'published_services_count' => $this->published_services_count,
+            'is_favorite' => $this->when(
+                $this->relationLoaded('favorites'),
+                fn (): bool => $this->favorites->isNotEmpty(),
+            ),
         ];
     }
 }

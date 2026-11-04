@@ -1,7 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-login-password-toggle], [data-reset-password-toggle]').forEach((button) => {
+        const input = document.getElementById(button.getAttribute('aria-controls'));
+
+        if (!input) {
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            button.setAttribute('aria-pressed', String(isPassword));
+            button.setAttribute('aria-label', isPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+            const icon = button.querySelector('i');
+            icon?.classList.toggle('fa-eye', !isPassword);
+            icon?.classList.toggle('fa-eye-slash', isPassword);
+        });
+    });
+
     const form = document.querySelector('[data-login-form]');
     const password = document.querySelector('[data-password-strength]');
-    const passwordToggle = document.querySelector('[data-login-password-toggle]');
     const strengthBar = document.querySelector('[data-strength-bar]');
     const strengthLabel = document.querySelector('[data-strength-label]');
     const submitButton = document.querySelector('[data-login-submit]');
@@ -59,26 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     password.addEventListener('input', updateStrength);
-
-    if (passwordToggle) {
-        passwordToggle.addEventListener('click', () => {
-            const isPassword = password.type === 'password';
-
-            password.type = isPassword ? 'text' : 'password';
-            passwordToggle.setAttribute('aria-pressed', String(isPassword));
-            passwordToggle.setAttribute(
-                'aria-label',
-                isPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe',
-            );
-
-            const icon = passwordToggle.querySelector('i');
-
-            if (icon) {
-                icon.classList.toggle('fa-eye', !isPassword);
-                icon.classList.toggle('fa-eye-slash', isPassword);
-            }
-        });
-    }
 
     form.addEventListener('submit', () => {
         if (!form.checkValidity() || !submitButton) {

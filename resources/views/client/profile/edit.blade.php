@@ -7,7 +7,7 @@
     @vite(['resources/css/pages/client/profile.css', 'resources/js/pages/client/profile.js'])
 @endpush
 
-<div class="client-profile-page">
+<div class="client-profile-page client-profile-edit-page">
     <header class="client-module__header profile-page-header">
         <div>
             <p class="client-module__eyebrow">ESPACE PERSONNEL</p>
@@ -41,7 +41,7 @@
         </div>
     @endif
 
-    <section class="client-panel profile-section" aria-labelledby="profile-photo-title">
+    <section class="client-panel profile-section profile-edit-photo-section" aria-labelledby="profile-photo-title">
         <div class="profile-section-heading">
             <div>
                 <p class="profile-section-kicker">PERSONNALISATION</p>
@@ -79,7 +79,7 @@
         </div>
     </section>
 
-    <section class="client-panel profile-section" aria-labelledby="profile-personal-title">
+    <section class="client-panel profile-section profile-edit-personal-section" aria-labelledby="profile-personal-title">
         <div class="profile-section-heading">
             <div>
                 <p class="profile-section-kicker">IDENTITÉ DU COMPTE</p>
@@ -109,7 +109,7 @@
                 </label>
 
                 <label for="phone">Téléphone
-                    <input id="phone" type="tel" name="phone" value="{{ old('phone', $user->profile?->phone) }}" maxlength="30" autocomplete="tel" placeholder="Ex. : +243…" aria-invalid="@error('phone') true @else false @enderror" aria-describedby="@error('phone') phone-error @enderror">
+                    <input id="phone" type="tel" name="phone" value="{{ old('phone', $user->profile?->phone) }}" maxlength="30" pattern="\+?[0-9][0-9\s().-]{6,28}" autocomplete="tel" placeholder="Ex. : +243…" aria-invalid="@error('phone') true @else false @enderror" aria-describedby="@error('phone') phone-error @enderror">
                     @error('phone')<small id="phone-error" class="profile-field-error">{{ $message }}</small>@enderror
                     <small class="profile-muted-copy">L’enregistrement d’un numéro ne signifie pas qu’il a été vérifié.</small>
                 </label>
@@ -128,7 +128,7 @@
         </form>
     </section>
 
-    <section id="profile-email" class="client-panel profile-section" aria-labelledby="profile-email-title">
+    <section id="profile-email" class="client-panel profile-section profile-edit-email-section" aria-labelledby="profile-email-title">
         <div class="profile-section-heading">
             <div>
                 <p class="profile-section-kicker">COORDONNÉES DU COMPTE</p>
@@ -166,7 +166,7 @@
         </form>
     </section>
 
-    <section id="profile-password" class="client-panel profile-section" aria-labelledby="profile-password-title">
+    <section id="profile-password" class="client-panel profile-section profile-edit-password-section" aria-labelledby="profile-password-title">
         <div class="profile-section-heading">
             <div>
                 <p class="profile-section-kicker">PROTECTION DU COMPTE</p>
@@ -187,8 +187,8 @@
 
             <div class="profile-form-grid">
                 <label for="password">Nouveau mot de passe
-                    <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password" aria-invalid="@error('password') true @else false @enderror" aria-describedby="password-help @error('password') password-error @enderror">
-                    <small id="password-help" class="profile-muted-copy">Au moins 8 caractères, avec majuscule, minuscule, chiffre et symbole.</small>
+                    <input id="password" type="password" name="password" required minlength="12" autocomplete="new-password" aria-invalid="@error('password') true @else false @enderror" aria-describedby="password-help @error('password') password-error @enderror">
+                    <small id="password-help" class="profile-muted-copy">Au moins 12 caractères. Choisissez une phrase de passe unique que vous n’utilisez pas ailleurs.</small>
                     @error('password')<small id="password-error" class="profile-field-error">{{ $message }}</small>@enderror
                 </label>
 
@@ -209,6 +209,7 @@
             <h2 id="profile-privacy-title">Vos données et votre compte</h2>
             <p>Les adresses d’intervention sont gérées séparément. Les commandes et paiements historiques ne sont pas modifiés lorsque vous mettez à jour ce profil. L’export et la suppression du compte ne sont pas proposés ici tant qu’un processus complet de conservation et de traitement des opérations en cours n’est pas défini.</p>
             <a class="profile-text-link" href="{{ route('client.addresses.index') }}">Gérer mes adresses <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a class="profile-text-link" href="{{ route('client.notifications.index') }}#notification-preferences-title">Gérer mes préférences de notification <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
     </section>
 </div>

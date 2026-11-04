@@ -33,6 +33,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'account_status' => UserAccountStatus::class,
             'pending_email_expires_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
         ];
     }
 

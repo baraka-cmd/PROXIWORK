@@ -7,6 +7,17 @@
 @endpush
 
 @section('content')
+    @php
+        $orderStatusLabels = [
+            'pending_payment' => 'En attente de paiement',
+            'confirmed' => 'Confirmée / planifiée',
+            'in_progress' => 'En cours',
+            'delivery_submitted' => 'Livrable à vérifier',
+            'completed' => 'Terminée',
+            'cancelled' => 'Annulée',
+            'disputed' => 'Contestée',
+        ];
+    @endphp
     <div class="client-messages-page client-message-thread-page">
         @if (session('success'))
             <div class="client-panel messages-feedback" role="status">{{ session('success') }}</div>
@@ -28,7 +39,13 @@
                 <span class="conversation-avatar" aria-hidden="true">{{ strtoupper(mb_substr(($conversation->professional?->user?->name ?? 'P'), 0, 1)) }}</span>
                 <div>
                     <p class="client-module__eyebrow">CONVERSATION PRIVÉE</p>
-                    <h1>{{ $conversation->professional?->user?->name ?? 'Professionnel' }}</h1>
+                    <h1>
+                        @if ($conversation->professional?->isPubliclyVisible())
+                            <a href="{{ route('client.professionals.show', $conversation->professional) }}">{{ $conversation->professional->user?->name ?? 'Professionnel' }}</a>
+                        @else
+                            {{ $conversation->professional?->user?->name ?? 'Professionnel' }}
+                        @endif
+                    </h1>
                     <p>{{ $conversation->professional?->professional_title ?? 'Échange professionnel PROXIWORK' }}</p>
                 </div>
             </div>
@@ -67,10 +84,10 @@
             <div>
                 <span class="message-context__label">Contexte</span>
                 @if ($conversation->order_id)
-                    <strong>Commande #{{ $conversation->order_id }} · {{ $conversation->order?->status?->value ?? 'En suivi' }}</strong>
+                    <strong>Commande {{ $conversation->order?->order_number ?? '#'.$conversation->order_id }} · {{ $orderStatusLabels[$conversation->order?->status?->value ?? ''] ?? 'En suivi' }}</strong>
                     <a href="{{ route('client.orders.show', $conversation->order_id) }}">Consulter la commande <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                 @elseif ($conversation->service_request_id)
-                    <strong>Demande #{{ $conversation->service_request_id }} · {{ $conversation->serviceRequest?->status?->value ?? 'En cours' }}</strong>
+                    <strong>Demande #{{ $conversation->service_request_id }} · {{ $conversation->serviceRequest?->status?->label() ?? 'En cours' }}</strong>
                     <a href="{{ route('client.requests.show', $conversation->service_request_id) }}">Consulter la demande <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
                 @else
                     <strong>Conversation générale</strong>
@@ -124,7 +141,7 @@
                                 <a class="message-attachment" href="{{ route('client.messages.attachments.download', $attachment) }}">
                                     <i class="fa-solid fa-paperclip" aria-hidden="true"></i>
                                     <span>{{ $attachment->original_name }}</span>
-                                    <small>{{ number_format($attachment->size / 1024, 0, ',', ' ') }} Ko</small>
+                                    <small>{{ number_format($attachment->size / 1024, 0, ',', ' ') }} kilooctets</small>
                                 </a>
                             @endforeach
                         </div>
@@ -199,7 +216,7 @@
                         <input id="message-attachments" type="file" name="attachments[]" multiple
                                accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                data-attachment-input>
-                        <small data-attachment-names>Aucun fichier sélectionné · 5 fichiers maximum · 10 Mo par fichier</small>
+                        <small data-attachment-names>Aucun fichier sélectionné · 5 fichiers maximum · 10 mégaoctets par fichier</small>
                     </div>
                     <span class="message-character-count" data-character-count>0 / 5 000</span>
                     <button class="btn btn-primary" type="submit" data-send-button>

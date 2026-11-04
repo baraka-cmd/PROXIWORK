@@ -10,6 +10,7 @@
 @endpush
 
 @section('content')
+    <div class="professional-profile-edit-page">
     <div class="dashboard-page-header">
         <div>
             <p class="eyebrow">Votre présence sur PROXIWORK</p>
@@ -69,7 +70,7 @@
                 @csrf
                 @method('PATCH')
 
-                <fieldset class="form-fieldset">
+                <fieldset id="professional-identity" class="form-fieldset">
                     <legend>Identité publique</legend>
                     <div class="form-grid">
                         <div class="form-field">
@@ -90,7 +91,7 @@
                             @error('professional_title')<p class="form-error">{{ $message }}</p>@enderror
                         </div>
                         <div class="form-field form-field--full">
-                            <label for="description">Présentation professionnelle</label>
+                            <label id="professional-description" for="description">Présentation professionnelle</label>
                             <textarea id="description" name="description" rows="6" maxlength="5000" aria-describedby="description-help">{{ old('description', $professional->description) }}</textarea>
                             <small id="description-help" class="field-help">Présentez votre spécialité, les travaux que vous réalisez et votre approche. 5 000 caractères maximum.</small>
                             @error('description')<p class="form-error">{{ $message }}</p>@enderror
@@ -122,7 +123,7 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="form-fieldset">
+                <fieldset id="professional-location" class="form-fieldset">
                     <legend>Localisation et zone d’intervention</legend>
                     <p class="field-help">Indiquez votre zone professionnelle. Ces champs ne sont pas votre adresse personnelle. Les coordonnées GPS restent privées et ne sont pas affichées dans l’annuaire.</p>
                     <div class="form-grid">
@@ -254,4 +255,5 @@
             <a class="button button--secondary" href="{{ route('professional.documents.index') }}">Consulter mes documents</a>
         </div>
     </section>
+    </div>
 @endsection
