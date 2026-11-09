@@ -158,14 +158,15 @@
             </section>
         @endif
 
+        @if(auth()->user()->hasPermissionTo('support.manage') || auth()->user()->hasPermissionTo('reports.manage'))
         <section class="admin-card" aria-labelledby="user-support-title">
             <div class="admin-card__header">
                 <div><span class="admin-card__eyebrow">Relation avec l’équipe PROXIWORK</span><h3 id="user-support-title">Support et modération</h3></div>
             </div>
             <dl class="admin-definition-list">
-                <div><dt>Tickets de support associés</dt><dd>{{ number_format($details['support']['tickets']) }}</dd></div>
-                <div><dt>Signalements émis</dt><dd>{{ number_format($details['support']['reports_filed']) }}</dd></div>
-                <div><dt>Signalements reçus sur ce compte</dt><dd>{{ number_format($details['support']['reports_received']) }}</dd></div>
+                @if(auth()->user()->hasPermissionTo('support.manage'))<div><dt>Tickets de support associés</dt><dd>{{ number_format($details['support']['tickets']) }}</dd></div>@endif
+                @if(auth()->user()->hasPermissionTo('reports.manage'))<div><dt>Signalements émis</dt><dd>{{ number_format($details['support']['reports_filed']) }}</dd></div>@endif
+                @if(auth()->user()->hasPermissionTo('reports.manage'))<div><dt>Signalements reçus sur ce compte</dt><dd>{{ number_format($details['support']['reports_received']) }}</dd></div>@endif
             </dl>
             <div class="admin-users__module-links">
                 @if(auth()->user()->hasPermissionTo('support.manage'))
@@ -177,6 +178,7 @@
                 @endif
             </div>
         </section>
+        @endif
 
         <section class="admin-card" aria-labelledby="user-business-activity-title">
             <div class="admin-card__header">
