@@ -50,6 +50,10 @@ class AdminReportManagementService
             $query->where('reporter_id', $filters['reporter_id']);
         }
 
+        if (! empty($filters['target_id'])) {
+            $query->where('target_id', $filters['target_id']);
+        }
+
         foreach (['status', 'priority', 'target_type', 'assigned_to'] as $filter) {
             if (($value = $filters[$filter] ?? null) !== null && $value !== '') {
                 $query->where($filter, $value);
