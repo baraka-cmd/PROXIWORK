@@ -24,6 +24,7 @@ class WithdrawalController extends Controller
                 static fn (WithdrawalStatus $status): string => $status->value,
                 WithdrawalStatus::cases(),
             ))],
+            'status_group' => ['nullable', Rule::in(['pending_review'])],
             'currency' => ['nullable', 'string', 'regex:/^[A-Za-z]{3}$/'],
         ]);
         $filters['currency'] = isset($filters['currency']) ? strtoupper($filters['currency']) : null;
@@ -35,6 +36,10 @@ class WithdrawalController extends Controller
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
+        }
+
+        if (($filters['status_group'] ?? null) === 'pending_review') {
+            $query->whereIn('status', [WithdrawalStatus::REQUESTED->value, WithdrawalStatus::REVIEW_REQUIRED->value]);
         }
 
         if (isset($filters['currency'])) {

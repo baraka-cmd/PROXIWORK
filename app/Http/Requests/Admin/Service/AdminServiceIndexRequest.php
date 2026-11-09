@@ -22,6 +22,8 @@ class AdminServiceIndexRequest extends FormRequest
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'pricing_type' => ['nullable', Rule::in(['fixed', 'from', 'range', 'quote'])],
             'professional_id' => ['nullable', 'integer', 'exists:professional_profiles,id'],
+            'created_from' => ['nullable', 'date'],
+            'created_to' => ['nullable', 'date', 'after_or_equal:created_from'],
             'sort' => ['nullable', Rule::in(['-created_at', 'title'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];

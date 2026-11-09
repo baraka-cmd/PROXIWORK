@@ -21,9 +21,12 @@ class AdminOrderIndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::enum(OrderStatus::class)],
+            'status_group' => ['nullable', Rule::in(['active'])],
             'payment_status' => ['nullable', Rule::enum(PaymentStatus::class)],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'completed_from' => ['nullable', 'date'],
+            'completed_to' => ['nullable', 'date', 'after_or_equal:completed_from'],
             'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
         ];
     }

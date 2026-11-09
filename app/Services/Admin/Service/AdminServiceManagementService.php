@@ -49,6 +49,14 @@ class AdminServiceManagementService
             $query->where('professional_profile_id', $filters['professional_id']);
         }
 
+        if (! empty($filters['created_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_from']);
+        }
+
+        if (! empty($filters['created_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_to']);
+        }
+
         $sort = $filters['sort'] ?? '-created_at';
 
         $query

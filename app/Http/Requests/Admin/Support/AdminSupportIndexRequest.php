@@ -24,6 +24,7 @@ class AdminSupportIndexRequest extends FormRequest
             'category' => ['nullable', Rule::enum(SupportTicketCategory::class)],
             'priority' => ['nullable', Rule::enum(SupportTicketPriority::class)],
             'status' => ['nullable', Rule::enum(SupportTicketStatus::class)],
+            'status_group' => ['nullable', Rule::in(['active'])],
             'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
             'created_from' => ['nullable', 'date'],
             'created_to' => ['nullable', 'date', 'after_or_equal:created_from'],

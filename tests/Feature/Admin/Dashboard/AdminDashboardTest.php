@@ -59,7 +59,17 @@ class AdminDashboardTest extends TestCase
             ->assertJsonPath('data.professionals.total', 1)
             ->assertJsonPath('data.professionals.new', 1)
             ->assertJsonPath('data.services.draft', 1)
-            ->assertJsonPath('meta.scope', 'admin');
+            ->assertJsonPath('meta.scope', 'admin')
+            ->assertJsonStructure([
+                'data' => [
+                    'comparisons' => ['users_new', 'clients_new', 'professionals_new', 'requests', 'orders', 'confirmed_transactions'],
+                    'charts' => ['labels', 'dates', 'registrations', 'order_statuses'],
+                    'financial' => ['payment_volume', 'commissions', 'transaction_statuses', 'trend'],
+                    'catalog' => ['requests_by_category', 'active_categories', 'top_services'],
+                    'geography' => ['professionals_by_zone', 'clients_by_zone'],
+                    'recent_activity',
+                ],
+            ]);
     }
 
     public function test_invalid_period_is_rejected(): void

@@ -52,6 +52,20 @@ class AdminProfessionalService
             $query->where('availability_status', $status);
         }
 
+        if (! empty($filters['city'])) {
+            $query->where('city', $filters['city']);
+        }
+
+        if (! empty($filters['province'])) {
+            $query->where('province', $filters['province']);
+        }
+
+        if (($filters['has_published_service'] ?? null) === 'yes') {
+            $query->publiclyVisible()->whereHas('services', fn ($services) => $services->where('status', 'published'));
+        } elseif (($filters['has_published_service'] ?? null) === 'no') {
+            $query->whereDoesntHave('services', fn ($services) => $services->where('status', 'published'));
+        }
+
         $query->when($filters['created_from'] ?? null, fn ($q, $date) => $q->where('created_at', '>=', $date));
         $query->when($filters['created_to'] ?? null, fn ($q, $date) => $q->where('created_at', '<=', $date));
 

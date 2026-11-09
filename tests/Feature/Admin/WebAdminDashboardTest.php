@@ -55,6 +55,8 @@ class WebAdminDashboardTest extends TestCase
             ->assertViewHas('dashboard')
             ->assertSee('Utilisateurs')
             ->assertSee('Professionnels')
+            ->assertSee('À traiter maintenant')
+            ->assertSee('Activité récente')
             ->assertSee('Finances');
     }
 

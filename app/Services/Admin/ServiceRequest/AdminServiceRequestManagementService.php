@@ -39,6 +39,26 @@ class AdminServiceRequestManagementService
             $query->where('service_id', $filters['service_id']);
         }
 
+        if (! empty($filters['category_id'])) {
+            $query->whereHas('service', fn ($service) => $service->where('category_id', $filters['category_id']));
+        }
+
+        if (! empty($filters['created_from'])) {
+            $query->whereDate('created_at', '>=', $filters['created_from']);
+        }
+
+        if (! empty($filters['created_to'])) {
+            $query->whereDate('created_at', '<=', $filters['created_to']);
+        }
+
+        if (! empty($filters['requested_from'])) {
+            $query->whereDate('requested_at', '>=', $filters['requested_from']);
+        }
+
+        if (! empty($filters['requested_to'])) {
+            $query->whereDate('requested_at', '<=', $filters['requested_to']);
+        }
+
         return $query->latest('id')
             ->paginate(min(max((int) ($filters['per_page'] ?? 20), 1), 100))
             ->withQueryString();

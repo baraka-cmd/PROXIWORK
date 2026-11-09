@@ -41,6 +41,14 @@ class SupportTicketService
             });
         }
 
+        if (($filters['status_group'] ?? null) === 'active') {
+            $query->whereIn('status', [
+                SupportTicketStatus::OPEN->value,
+                SupportTicketStatus::IN_PROGRESS->value,
+                SupportTicketStatus::WAITING->value,
+            ]);
+        }
+
         foreach (['category', 'priority', 'status', 'assigned_to'] as $filter) {
             if (($value = $filters[$filter] ?? null) !== null && $value !== '') {
                 $query->where($filter, $value);
