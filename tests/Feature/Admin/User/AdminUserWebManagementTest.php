@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin\User;
 
 use App\Models\Permission;
-use App\Models\Profile;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Admin\User\AdminUserService;
