@@ -82,16 +82,12 @@ class ProfessionalVerificationService
                 ]);
             }
 
-            $latestDocumentIds = $target->documents()
-                ->selectRaw('MAX(id)')
-                ->groupBy('document_type');
-
             if ($target->documents()
-                ->whereIn('id', $latestDocumentIds)
+                ->whereNull('superseded_by_document_id')
                 ->where('status', '!=', ProfessionalDocument::STATUS_APPROVED)
                 ->exists()) {
                 throw ValidationException::withMessages([
-                    'documents' => ['Le dernier justificatif transmis pour chaque catégorie doit être approuvé avant la validation finale.'],
+                    'documents' => ['Tous les justificatifs actuellement valides doivent être approuvés avant la validation finale.'],
                 ]);
             }
 
@@ -165,6 +161,12 @@ class ProfessionalVerificationService
 
             if ((int) $target->professional_profile_id !== (int) $lockedProfile->getKey()) {
                 abort(404);
+            }
+
+            if ($target->superseded_by_document_id !== null) {
+                throw ValidationException::withMessages([
+                    'document' => ['Ce justificatif a été remplacé par une version plus récente et ne peut plus être examiné.'],
+                ]);
             }
 
             if ($target->status !== ProfessionalDocument::STATUS_PENDING) {
