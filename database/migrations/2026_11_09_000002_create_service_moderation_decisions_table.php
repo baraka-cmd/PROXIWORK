@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('service_moderation_decisions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('service_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('service_id')->constrained()->restrictOnDelete();
             $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('action', 40);
             $table->string('from_status', 30);

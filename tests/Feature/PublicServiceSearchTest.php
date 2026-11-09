@@ -75,6 +75,26 @@ class PublicServiceSearchTest extends TestCase
             ->assertNotFound();
     }
 
+
+    public function test_main_category_filter_lists_active_subcategories_with_requestable_services(): void
+    {
+        $parent = Category::factory()->create(['name' => 'Informatique', 'slug' => 'informatique']);
+        $child = Category::factory()->create([
+            'parent_id' => $parent->id,
+            'name' => 'Développement Web',
+            'slug' => 'developpement-web',
+        ]);
+        $service = $this->service('Création de site web', 'creation-site-web', [
+            'category_id' => $child->id,
+        ]);
+
+        $this->get('/search')
+            ->assertOk()
+            ->assertSee('Informatique')
+            ->assertSee('Développement Web')
+            ->assertSee($service->title);
+    }
+
     private function service(string $title, string $slug, array $overrides = []): Service
     {
         $user = User::factory()->create();

@@ -18,7 +18,7 @@
             <div><dt>Professionnel</dt><dd>{{ $service->professionalProfile->user->name ?? '—' }}</dd></div>
             <div><dt>Catégorie</dt><dd>{{ $service->category->parent?->name ? $service->category->parent->name.' / ' : '' }}{{ $service->category->name ?? '—' }}</dd></div>
             <div><dt>Tarification</dt><dd>{{ $service->pricing_type->value }} · {{ $service->currency }}</dd></div>
-            <div><dt>Prix</dt><dd>{{ $service->price ?? ($service->price_min.' — '.$service->price_max) ?? 'Sur devis' }}</dd></div>
+            <div><dt>Prix</dt><dd>@if($service->pricing_type->value === 'range'){{ $service->price_min }} — {{ $service->price_max }} {{ $service->currency }}@elseif(in_array($service->pricing_type->value, ['fixed', 'from'], true)){{ $service->pricing_type->value === 'from' ? 'À partir de ' : '' }}{{ $service->price }} {{ $service->currency }}@else Sur devis @endif</dd></div>
             <div><dt>Durée estimée</dt><dd>{{ $service->estimated_duration_minutes ? $service->estimated_duration_minutes.' min' : '—' }}</dd></div>
             <div><dt>Demandes historiques</dt><dd>{{ $service->service_requests_count }}</dd></div>
             <div><dt>Publication</dt><dd>{{ $service->status->value }}</dd></div>
@@ -26,7 +26,7 @@
             <div><dt>Dernière décision</dt><dd>{{ $service->moderated_at?->format('d/m/Y H:i') ?? '—' }}</dd></div>
             <div><dt>Modérateur</dt><dd>{{ $service->moderator?->name ?? '—' }}</dd></div>
         </dl>
-        @if($service->moderation_reason)<p><strong>Motif communiqué :</strong> {{ $service->moderation_reason }}</p>@endif
+        @if($service->moderation_status->value !== 'clear' && $service->moderation_reason)<p><strong>Motif communiqué :</strong> {{ $service->moderation_reason }}</p>@endif
         <div class="admin-action-row">
             @can('adminManage',$service)
                 @if($service->status->value==='published')

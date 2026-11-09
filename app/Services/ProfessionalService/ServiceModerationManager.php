@@ -9,6 +9,7 @@ use App\Enums\ServiceStatus;
 use App\Models\Service;
 use App\Models\ServiceModerationDecision;
 use App\Models\User;
+use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -38,12 +39,13 @@ class ServiceModerationManager
                 ]);
             }
 
+            $locked->loadMissing('professionalProfile.user');
             $from = $locked->moderation_status;
             $to = $this->targetStatus($action, $from);
 
             $locked->forceFill([
                 'moderation_status' => $to,
-                'moderation_reason' => $reason,
+                'moderation_reason' => $to === ServiceModerationStatus::CLEAR ? null : $reason,
                 'moderated_by' => $actor->getKey(),
                 'moderated_at' => now(),
             ])->save();
@@ -63,6 +65,8 @@ class ServiceModerationManager
                 $actor,
                 ['from' => $from->value, 'to' => $to->value, 'reason' => $reason],
             );
+
+            $this->notifyProfessional($locked, $action, $reason);
 
             return $locked->refresh()->load(['moderator', 'moderationDecisions.actor']);
         });
@@ -111,6 +115,32 @@ class ServiceModerationManager
 
             return $locked->refresh()->load('moderationDecisions.actor');
         });
+    }
+
+    private function notifyProfessional(Service $service, string $action, string $reason): void
+    {
+        $professional = $service->professionalProfile?->user;
+
+        if ($professional === null) {
+            return;
+        }
+
+        [$title, $message] = match ($action) {
+            'start_review' => ['Votre service est en cours d’examen', 'L’administration a commencé l’examen de votre service.'],
+            'approve' => ['Votre service a été approuvé', 'L’administration a approuvé votre service.'],
+            'request_changes' => ['Des corrections sont demandées', 'Votre service nécessite des corrections avant sa remise en visibilité.'],
+            'hide' => ['Votre service a été masqué', 'L’administration a temporairement masqué votre service du catalogue client.'],
+            'reject' => ['Votre service a été refusé', 'Votre service ne respecte pas actuellement les règles de publication de PROXIWORK.'],
+            'restore' => ['Le blocage de votre service a été levé', 'Votre service peut à nouveau suivre le processus normal de publication.'],
+            default => ['Mise à jour de votre service', 'Le statut de modération de votre service a été mis à jour.'],
+        };
+
+        $professional->notify(new AccountActivityNotification(
+            $title,
+            $message.' Motif : '.$reason,
+            'service_moderation_updated',
+            route('professional.services.index'),
+        ));
     }
 
     private function targetStatus(string $action, ServiceModerationStatus $from): ServiceModerationStatus

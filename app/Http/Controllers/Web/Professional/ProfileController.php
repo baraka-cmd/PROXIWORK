@@ -71,10 +71,7 @@ class ProfileController extends Controller
             ->with(['user.profile', 'skills'])
             ->withCount([
                 'skills',
-                'services as published_services_count' => fn ($query) => $query
-                    ->where('status', ServiceStatus::PUBLISHED->value)
-                    ->whereNotNull('published_at')
-                    ->whereHas('category', fn ($query) => $query->where('status', 'active')),
+                'services as published_services_count' => fn ($query) => $query->requestable(),
             ])
             ->firstOrFail();
 
