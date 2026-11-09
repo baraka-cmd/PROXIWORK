@@ -25,6 +25,9 @@ class AdminSidebarNavigationTest extends TestCase
 
         $response->assertOk()
             ->assertSee('data-admin-navigation', false)
+            ->assertSee('href="'.route('admin.users.index').'"', false)
+            ->assertSee('href="'.route('admin.users.index', ['role' => 'client']).'"', false)
+            ->assertSee('href="'.route('admin.users.index', ['account_status' => 'suspended']).'"', false)
             ->assertSee('Tous les utilisateurs')
             ->assertSee('Clients')
             ->assertSee('Professionnels')
