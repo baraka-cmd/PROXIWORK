@@ -64,6 +64,12 @@ class DocumentController extends Controller
     {
         abort_unless($document->professionalProfile->user_id === $request->user()->getKey(), 403);
 
+        if ($document->status !== ProfessionalDocument::STATUS_PENDING || $document->reviews()->exists()) {
+            return back()->withErrors([
+                'document' => 'Un justificatif déjà examiné ne peut pas être supprimé. Transmettez une nouvelle version pour conserver la traçabilité.',
+            ]);
+        }
+
         $path = $document->path;
         $document->delete();
         Storage::disk($document->disk)->delete($path);
