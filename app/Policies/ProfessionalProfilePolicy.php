@@ -26,8 +26,7 @@ class ProfessionalProfilePolicy
 
     public function viewVerificationHistory(User $user, ProfessionalProfile $professional): bool
     {
-        return $user->hasPermissionTo('admin.verification.history.view')
-            || $user->hasPermissionTo('admin.professionals.view');
+        return $user->hasPermissionTo('admin.verification.history.view');
     }
 
     public function suspend(User $user, ProfessionalProfile $professional): bool
