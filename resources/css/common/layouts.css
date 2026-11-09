@@ -204,161 +204,404 @@ body.navigation-is-open {
     margin-left: var(--sidebar-width);
 }
 
-.admin-layout { --admin-sidebar-compact: 76px; --admin-sidebar-expanded: 264px; }
-.admin-layout .dashboard-sidebar { width: var(--admin-sidebar-compact); overflow: visible; }
-.admin-layout .dashboard-sidebar__header { justify-content: center; padding-inline: .75rem; }
-.admin-layout .dashboard-sidebar__header .brand { gap: .65rem; white-space: nowrap; }
-.admin-layout .dashboard-sidebar__nav,
-.admin-layout .dashboard-sidebar__footer { overflow: hidden; }
-.admin-layout .dashboard-sidebar__nav { padding: .65rem; }
-.admin-layout .dashboard-sidebar__footer { padding: .65rem; }
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar__header .brand > span:last-child,
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-title,
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__toggle > span,
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__chevron,
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__items,
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar__footer span,
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .admin-sidebar-pin span { opacity: 0; width: 0; overflow: hidden; }
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar__header .brand { justify-content: center; }
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar__header .icon-button { display: none; }
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-link,
+.admin-layout {
+    --admin-sidebar-compact: 72px;
+    --admin-sidebar-expanded: 264px;
+}
+
+.admin-layout .dashboard-sidebar {
+    z-index: calc(var(--z-sidebar) + 1);
+    width: var(--admin-sidebar-compact);
+    overflow: visible;
+    border-right: 1px solid rgba(148, 163, 184, 0.16);
+    background: #0f172a;
+    box-shadow: 4px 0 22px rgba(2, 6, 23, 0.12);
+    color: #f8fafc;
+    transition: width 230ms ease, transform var(--transition-slow);
+}
+
+.admin-layout .dashboard-sidebar__header {
+    min-height: var(--topbar-height);
+    justify-content: center;
+    padding-inline: .75rem;
+    border-bottom-color: rgba(148, 163, 184, 0.16);
+}
+
+.admin-layout .dashboard-sidebar__header .brand {
+    min-width: 0;
+    gap: .7rem;
+    overflow: hidden;
+    color: #f8fafc;
+    white-space: nowrap;
+}
+
+.admin-layout .dashboard-sidebar__header .brand-mark {
+    flex: 0 0 40px;
+    background: #0f766e;
+    color: #fff;
+}
+
+.admin-layout .dashboard-sidebar__header .icon-button {
+    flex: 0 0 40px;
+    color: #cbd5e1;
+}
+
+.admin-layout .dashboard-sidebar__nav {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: .65rem;
+    scrollbar-color: #475569 #0f172a;
+    scrollbar-width: thin;
+}
+
+.admin-layout .dashboard-sidebar__footer {
+    flex: 0 0 auto;
+    overflow: hidden;
+    padding: .75rem;
+    border-top-color: rgba(148, 163, 184, 0.16);
+    background: #0f172a;
+}
+
+.admin-layout .admin-sidebar-nav {
+    display: grid;
+    gap: .3rem;
+}
+
+.admin-layout .admin-nav-group {
+    min-width: 0;
+    margin: 0;
+}
+
 .admin-layout .admin-nav-group__toggle,
 .admin-layout .admin-sidebar-pin,
-.admin-layout .admin-logout-button { justify-content: flex-start; }
-.admin-layout .dashboard-sidebar:not(.is-open):not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-link,
-.admin-layout .admin-nav-group__toggle { justify-content: center; padding-inline: 0; }
-.admin-layout .dashboard-nav-link { white-space: nowrap; }
-.admin-layout .admin-nav-group__toggle,
-.admin-layout .admin-sidebar-pin { display: flex; width: 100%; min-height: 44px; align-items: center; gap: .75rem; border: 0; border-radius: var(--radius-md); padding: 0 .75rem; background: transparent; color: var(--color-text-muted); cursor: pointer; font: inherit; text-align: left; }
-.admin-layout .admin-nav-group__toggle > i:first-child,
-.admin-layout .admin-sidebar-pin > i { width: 20px; flex: 0 0 20px; text-align: center; }
-.admin-layout .admin-nav-group__toggle:hover,
-.admin-layout .admin-sidebar-pin:hover { background: var(--color-surface-muted); color: var(--color-text); }
-.admin-layout .admin-nav-group__chevron { margin-left: auto; font-size: .7rem; transition: transform var(--transition-base); }
-.admin-layout .admin-nav-group.is-active > .admin-nav-group__toggle { color: var(--color-primary); font-weight: var(--font-weight-semibold); }
-.admin-layout .admin-nav-group.is-active > .admin-nav-group__toggle .admin-nav-group__chevron { transform: rotate(180deg); }
-.admin-layout .admin-nav-group__items { padding-left: 1.25rem; }
-.admin-layout .admin-nav-group__items[hidden] { display: none; }
-.admin-layout .admin-sidebar-pin { margin-bottom: .75rem; }
-.admin-layout .admin-sidebar-pin[aria-pressed="true"] { color: var(--color-primary); background: var(--color-primary-soft); }
-.admin-layout .dashboard-security-note { white-space: nowrap; }
-.admin-layout .dashboard-content { margin-left: var(--admin-sidebar-compact); transition: margin-left 220ms ease; }
-.admin-layout .dashboard-sidebar.is-pinned { width: var(--admin-sidebar-expanded); }
-.admin-layout .dashboard-content.is-admin-sidebar-pinned { margin-left: var(--admin-sidebar-expanded); }
-.admin-layout .admin-nav-link { min-height: 40px; font-size: var(--font-size-xs); }
-.admin-layout .dashboard-sidebar .admin-nav-group__toggle,
-.admin-layout .dashboard-sidebar .dashboard-nav-link,
-.admin-layout .dashboard-sidebar .admin-sidebar-pin { color: #334155; }
-.admin-layout .dashboard-sidebar .admin-nav-group__toggle > i:first-child,
-.admin-layout .dashboard-sidebar .dashboard-nav-link > i,
-.admin-layout .dashboard-sidebar .admin-sidebar-pin > i { color: #0f766e; }
-.admin-layout .dashboard-sidebar .admin-nav-group__toggle { min-width: 44px; }
-.admin-layout .dashboard-sidebar .admin-nav-group__toggle:hover,
-.admin-layout .dashboard-sidebar .dashboard-nav-link:hover { background: #e8f4f2; color: #0f766e; }
-.admin-layout .dashboard-sidebar .dashboard-nav-link.is-active { background: #d9eeea; color: #0f766e; box-shadow: inset 3px 0 #0f766e; }
-.admin-layout .dashboard-sidebar .admin-nav-group__toggle > span,
-.admin-layout .dashboard-sidebar .admin-sidebar-pin > span { display: inline-block; white-space: nowrap; transition: opacity 180ms ease; }
-.admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__toggle > span,
-.admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-sidebar-pin > span { display: none; }
-.admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__toggle { width: 44px; height: 44px; margin-inline: auto; }
-.admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__items { display: none; }
-.admin-layout .dashboard-sidebar:hover .admin-nav-group__items,
-.admin-layout .dashboard-sidebar:focus-within .admin-nav-group__items,
-.admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__items { display: block; }
-.admin-layout .dashboard-sidebar:hover .admin-nav-group__items[hidden],
-.admin-layout .dashboard-sidebar:focus-within .admin-nav-group__items[hidden],
-.admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__items[hidden] { display: none; }
-@media (hover: none) and (min-width: 1024px) {
-    .admin-layout .dashboard-sidebar { width: var(--admin-sidebar-expanded); }
-    .admin-layout .dashboard-sidebar .admin-nav-group__toggle > span,
-    .admin-layout .dashboard-sidebar .admin-sidebar-pin > span { display: inline-block; }
-    .admin-layout .dashboard-sidebar .admin-nav-group__items[hidden] { display: none; }
-    .admin-layout .dashboard-sidebar .admin-nav-group__items:not([hidden]) { display: block; }
+.admin-layout .admin-logout-button {
+    display: flex;
+    width: 100%;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    gap: .8rem;
+    border: 0;
+    border-radius: 10px;
+    padding: 0 .75rem;
+    background: transparent;
+    color: #cbd5e1;
+    cursor: pointer;
+    font: inherit;
+    font-size: .82rem;
+    font-weight: 500;
+    text-align: left;
+    text-decoration: none;
+    transition: background 180ms ease, color 180ms ease;
 }
-@media (hover: hover) and (min-width: 1024px) {
-    .admin-layout .dashboard-sidebar { transition: width 220ms ease, transform var(--transition-slow); }
+
+.admin-layout .admin-nav-group__toggle > i:first-child,
+.admin-layout .admin-sidebar-pin > i,
+.admin-layout .admin-logout-button > i {
+    width: 20px;
+    flex: 0 0 20px;
+    color: #99b7c5;
+    text-align: center;
+}
+
+.admin-layout .admin-nav-group__toggle > span,
+.admin-layout .admin-sidebar-pin > span,
+.admin-layout .admin-logout-button > span,
+.admin-layout .dashboard-sidebar__header .brand > span:last-child,
+.admin-layout .dashboard-security-note > span {
+    min-width: 0;
+    overflow: hidden;
+    opacity: 1;
+    white-space: nowrap;
+    transition: opacity 180ms ease, max-width 230ms ease;
+}
+
+.admin-layout .admin-nav-group__toggle:hover,
+.admin-layout .admin-sidebar-pin:hover,
+.admin-layout .admin-logout-button:hover {
+    background: rgba(148, 163, 184, 0.12);
+    color: #fff;
+}
+
+.admin-layout .admin-nav-group.is-active > .admin-nav-group__toggle,
+.admin-layout .admin-nav-group__toggle[aria-expanded="true"] {
+    background: rgba(15, 118, 110, 0.2);
+    color: #ccfbf1;
+}
+
+.admin-layout .admin-nav-group.is-active > .admin-nav-group__toggle > i:first-child,
+.admin-layout .admin-nav-group__toggle[aria-expanded="true"] > i:first-child {
+    color: #5eead4;
+}
+
+.admin-layout .admin-nav-group__chevron {
+    width: 12px;
+    margin-left: auto;
+    color: #94a3b8;
+    font-size: .68rem;
+    transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.admin-layout .admin-nav-group__toggle[aria-expanded="true"] .admin-nav-group__chevron {
+    transform: rotate(180deg);
+}
+
+.admin-layout .admin-nav-group__items {
+    display: grid;
+    gap: .2rem;
+    margin: .25rem 0 .4rem .95rem;
+    padding: .15rem 0 .15rem .7rem;
+    border-left: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.admin-layout .admin-nav-group__items[hidden] {
+    display: none !important;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-link {
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: .7rem;
+    margin: 0;
+    border-radius: 8px;
+    padding: .45rem .65rem;
+    color: #cbd5e1;
+    font-size: .76rem;
+    font-weight: 400;
+    white-space: nowrap;
+    transition: background 180ms ease, color 180ms ease;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-link > i {
+    width: 18px;
+    flex: 0 0 18px;
+    color: #94a3b8;
+    text-align: center;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-link:hover {
+    background: rgba(148, 163, 184, 0.12);
+    color: #fff;
+    transform: none;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-link.is-active {
+    background: rgba(15, 118, 110, 0.28);
+    box-shadow: inset 3px 0 #2dd4bf;
+    color: #99f6e4;
+    font-weight: 600;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-link.is-active > i {
+    color: #5eead4;
+}
+
+.admin-layout .admin-sidebar-pin {
+    margin: 0 0 .35rem;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(148, 163, 184, 0.07);
+    color: #e2e8f0;
+}
+
+.admin-layout .admin-sidebar-pin[aria-pressed="true"] {
+    border-color: rgba(45, 212, 191, 0.4);
+    background: rgba(15, 118, 110, 0.24);
+    color: #99f6e4;
+}
+
+.admin-layout .admin-sidebar-pin > i {
+    color: #5eead4;
+}
+
+.admin-layout .dashboard-security-note {
+    display: flex;
+    min-height: 38px;
+    align-items: center;
+    gap: .65rem;
+    color: #94a3b8;
+    font-size: .68rem;
+    white-space: nowrap;
+}
+
+.admin-layout .dashboard-security-note > i {
+    width: 20px;
+    flex: 0 0 20px;
+    color: #5eead4;
+    text-align: center;
+}
+
+.admin-layout .admin-logout-form {
+    margin-top: .4rem;
+}
+
+.admin-layout .admin-logout-button {
+    color: #fecaca;
+}
+
+.admin-layout .admin-logout-button > i {
+    color: #fca5a5;
+}
+
+.admin-layout .admin-logout-button:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fee2e2;
+}
+
+.admin-layout .dashboard-content {
+    min-width: 0;
+    margin-left: var(--admin-sidebar-compact);
+    transition: margin-left 230ms ease;
+}
+
+@media (min-width: 1024px) and (hover: hover) {
     .admin-layout .dashboard-sidebar:hover,
     .admin-layout .dashboard-sidebar:focus-within,
-    .admin-layout .dashboard-sidebar.is-pinned { width: var(--admin-sidebar-expanded); }
+    .admin-layout .dashboard-sidebar.is-pinned {
+        width: var(--admin-sidebar-expanded);
+        box-shadow: 8px 0 28px rgba(2, 6, 23, 0.2);
+    }
+
     .admin-layout .dashboard-sidebar:hover .dashboard-sidebar__header,
     .admin-layout .dashboard-sidebar:focus-within .dashboard-sidebar__header,
-    .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__header { justify-content: space-between; padding-inline: var(--space-4); }
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__header {
+        justify-content: space-between;
+        padding-inline: 1rem;
+    }
+
     .admin-layout .dashboard-sidebar:hover .dashboard-sidebar__header .brand > span:last-child,
     .admin-layout .dashboard-sidebar:focus-within .dashboard-sidebar__header .brand > span:last-child,
     .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__header .brand > span:last-child,
-    .admin-layout .dashboard-sidebar:hover .dashboard-nav-title,
-    .admin-layout .dashboard-sidebar:focus-within .dashboard-nav-title,
-    .admin-layout .dashboard-sidebar.is-pinned .dashboard-nav-title,
     .admin-layout .dashboard-sidebar:hover .admin-nav-group__toggle > span,
     .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__toggle > span,
     .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle > span,
     .admin-layout .dashboard-sidebar:hover .admin-nav-group__chevron,
     .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__chevron,
     .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__chevron,
-    .admin-layout .dashboard-sidebar:hover .admin-nav-group__items,
-    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__items,
-    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__items,
-    .admin-layout .dashboard-sidebar:hover .dashboard-sidebar__footer span,
-    .admin-layout .dashboard-sidebar:focus-within .dashboard-sidebar__footer span,
-    .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__footer span,
-    .admin-layout .dashboard-sidebar:hover .admin-sidebar-pin span,
-    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin span,
-    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin span { opacity: 1; width: auto; }
-    .admin-layout .dashboard-sidebar:hover .dashboard-nav-link,
-    .admin-layout .dashboard-sidebar:focus-within .dashboard-nav-link,
-    .admin-layout .dashboard-sidebar.is-pinned .dashboard-nav-link,
+    .admin-layout .dashboard-sidebar:hover .admin-sidebar-pin > span,
+    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin > span,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin > span,
+    .admin-layout .dashboard-sidebar:hover .dashboard-security-note > span,
+    .admin-layout .dashboard-sidebar:focus-within .dashboard-security-note > span,
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-security-note > span,
+    .admin-layout .dashboard-sidebar:hover .admin-logout-button > span,
+    .admin-layout .dashboard-sidebar:focus-within .admin-logout-button > span,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-logout-button > span {
+        max-width: 220px;
+        opacity: 1;
+    }
+
     .admin-layout .dashboard-sidebar:hover .admin-nav-group__toggle,
     .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__toggle,
-    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle { justify-content: flex-start; padding-inline: .75rem; }
-}
-@media (max-width: 1023px) {
-    .admin-layout .dashboard-sidebar { width: min(86vw, 320px); }
-    .admin-layout .dashboard-sidebar__header { justify-content: space-between; padding-inline: var(--space-4); }
-    .admin-layout .dashboard-sidebar__header .brand > span:last-child,
-    .admin-layout .dashboard-sidebar .dashboard-nav-title,
-    .admin-layout .dashboard-sidebar .admin-nav-group__toggle > span,
-    .admin-layout .dashboard-sidebar .admin-nav-group__chevron,
-    .admin-layout .dashboard-sidebar .admin-nav-group__items,
-    .admin-layout .dashboard-sidebar .dashboard-sidebar__footer span,
-    .admin-layout .dashboard-sidebar .admin-sidebar-pin span { opacity: 1; width: auto; }
-    .admin-layout .dashboard-sidebar .dashboard-nav-link,
-    .admin-layout .dashboard-sidebar .admin-nav-group__toggle { justify-content: flex-start; padding-inline: .75rem; }
-    .admin-layout .dashboard-content { margin-left: 0; }
-    .admin-layout .admin-sidebar-pin { display: none; }
-}
-@media (min-width: 768px) and (max-width: 1023px) {
-    .admin-layout .dashboard-sidebar,
-    .admin-layout .dashboard-sidebar.is-open {
-        width: var(--admin-sidebar-compact);
-        transform: translateX(0);
-        box-shadow: var(--shadow-sm);
+    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle,
+    .admin-layout .dashboard-sidebar:hover .admin-sidebar-pin,
+    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin,
+    .admin-layout .dashboard-sidebar:hover .admin-logout-button,
+    .admin-layout .dashboard-sidebar:focus-within .admin-logout-button,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-logout-button {
+        justify-content: flex-start;
+        padding-inline: .75rem;
     }
-    .admin-layout .dashboard-content { margin-left: var(--admin-sidebar-compact); }
-    .admin-layout .mobile-menu-toggle,
-    .admin-layout .sidebar-overlay { display: none; }
+
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar__header .brand > span:last-child,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__toggle > span,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__chevron,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__items,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-sidebar-pin > span,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-security-note > span,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-logout-button > span {
+        max-width: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__items {
+        display: none;
+    }
+
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__toggle,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-sidebar-pin,
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-logout-button {
+        justify-content: center;
+        padding-inline: 0;
+    }
+
+    .admin-layout .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-nav-group__toggle {
+        width: 44px;
+        margin-inline: auto;
+    }
+
+    .admin-layout .dashboard-sidebar.is-pinned {
+        width: var(--admin-sidebar-expanded);
+    }
+
+    .admin-layout .dashboard-content.is-admin-sidebar-pinned {
+        margin-left: var(--admin-sidebar-expanded);
+    }
+}
+
+@media (min-width: 1024px) and (hover: none) {
+    .admin-layout .dashboard-sidebar {
+        width: var(--admin-sidebar-expanded);
+    }
+
+    .admin-layout .dashboard-content {
+        margin-left: var(--admin-sidebar-expanded);
+    }
+
+    .admin-layout .admin-sidebar-pin {
+        display: none;
+    }
+}
+
+@media (max-width: 1023px) {
+    .admin-layout .dashboard-sidebar {
+        width: min(86vw, 320px);
+        overflow: hidden;
+    }
+
+    .admin-layout .dashboard-sidebar__header {
+        justify-content: space-between;
+        padding-inline: 1rem;
+    }
+
     .admin-layout .dashboard-sidebar__header .brand > span:last-child,
-    .admin-layout .dashboard-sidebar .dashboard-nav-title,
     .admin-layout .dashboard-sidebar .admin-nav-group__toggle > span,
     .admin-layout .dashboard-sidebar .admin-nav-group__chevron,
-    .admin-layout .dashboard-sidebar .admin-nav-group__items,
-    .admin-layout .dashboard-sidebar .dashboard-sidebar__footer span,
-    .admin-layout .dashboard-sidebar .admin-sidebar-pin span { opacity: 0; width: 0; overflow: hidden; }
+    .admin-layout .dashboard-sidebar .admin-sidebar-pin > span,
+    .admin-layout .dashboard-sidebar .dashboard-security-note > span,
+    .admin-layout .dashboard-sidebar .admin-logout-button > span {
+        max-width: none;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
     .admin-layout .dashboard-sidebar .admin-nav-group__toggle,
-    .admin-layout .dashboard-sidebar .dashboard-nav-link { justify-content: center; padding-inline: 0; }
-    .admin-layout .dashboard-sidebar:hover,
-    .admin-layout .dashboard-sidebar:focus-within,
-    .admin-layout .dashboard-sidebar.is-pinned { width: var(--admin-sidebar-expanded); }
-    .admin-layout .dashboard-sidebar:hover .admin-nav-group__toggle > span,
-    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__toggle > span,
-    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle > span,
-    .admin-layout .dashboard-sidebar:hover .admin-sidebar-pin span,
-    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin span,
-    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin span { opacity: 1; width: auto; }
+    .admin-layout .dashboard-sidebar .admin-sidebar-pin,
+    .admin-layout .dashboard-sidebar .admin-logout-button {
+        justify-content: flex-start;
+        padding-inline: .75rem;
+    }
+
+    .admin-layout .dashboard-content {
+        margin-left: 0;
+    }
+
+    .admin-layout .admin-sidebar-pin {
+        display: none;
+    }
 }
+
 @media (prefers-reduced-motion: reduce) {
     .admin-layout .dashboard-sidebar,
     .admin-layout .dashboard-content,
-    .admin-layout .admin-nav-group__chevron { transition: none; }
+    .admin-layout .admin-nav-group__chevron,
+    .admin-layout .admin-nav-group__toggle,
+    .admin-layout .dashboard-sidebar .admin-nav-link {
+        transition: none;
+    }
 }
 
 .dashboard-topbar {
