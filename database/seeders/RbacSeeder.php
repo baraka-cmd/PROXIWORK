@@ -50,6 +50,10 @@ class RbacSeeder extends Seeder
             'admin.professionals.review' => ['Administration - professionnels revoir', 'admin.professionals', 'Placer une vérification professionnelle en revue.'],
             'admin.professionals.verify' => ['Administration - professionnels vérifier', 'admin.professionals', 'Valider une vérification professionnelle.'],
             'admin.professionals.reject' => ['Administration - professionnels rejeter', 'admin.professionals', 'Rejeter une vérification professionnelle.'],
+            'admin.verification.documents.view' => ['Vérification - consulter les justificatifs', 'admin.verification', 'Consulter les documents privés des dossiers professionnels.'],
+            'admin.verification.documents.review' => ['Vérification - examiner les justificatifs', 'admin.verification', 'Approuver ou rejeter individuellement les justificatifs.'],
+            'admin.verification.request_documents' => ['Vérification - demander des justificatifs', 'admin.verification', 'Demander des documents complémentaires à un professionnel.'],
+            'admin.verification.history.view' => ['Vérification - consulter l’historique', 'admin.verification', 'Consulter l’historique des décisions et examens de vérification.'],
         ];
 
         foreach ($permissions as $name => [$displayName, $group, $description]) {
