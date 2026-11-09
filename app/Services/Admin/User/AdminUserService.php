@@ -69,8 +69,7 @@ class AdminUserService
         bool $includeStatus = true,
         bool $includePeriod = true,
         bool $includeSensitiveSearch = false,
-    ): Builder
-    {
+    ): Builder {
         $query = User::query()
             ->select('users.*')
             ->with([
