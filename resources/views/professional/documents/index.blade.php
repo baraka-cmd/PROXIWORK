@@ -60,6 +60,7 @@
                     </div>
                 </div>
                 <div class="surface-card__body">
+                    @if (!in_array($verificationStatus ?? null, ['verified', 'rejected'], true))
                     <form class="professional-documents__form" method="POST" action="{{ route('professional.documents.store') }}" enctype="multipart/form-data" data-professional-document-form>
                         @csrf
                         <div class="form-field">
@@ -87,6 +88,9 @@
                             <span data-submit-label>Transmettre pour vérification</span>
                         </button>
                     </form>
+                    @else
+                        <p class="field-help">Le dossier est clôturé. Pour demander un réexamen ou une mise à jour, contactez le support PROXIWORK.</p>
+                    @endif
                 </div>
             </section>
 
