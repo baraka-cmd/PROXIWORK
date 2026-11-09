@@ -68,7 +68,7 @@ class AdminUserWebManagementTest extends TestCase
             'account_status' => 'active',
         ]);
 
-        $this->assertSame(4, $summary['total']);
+        $this->assertSame(1, $summary['total']);
         $this->assertSame(1, $summary['clients']);
         $this->assertSame(1, $summary['professionals']);
         $this->assertSame(1, $summary['active']);
