@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\Service;
 
+use App\Enums\ServiceModerationStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,7 +12,7 @@ class AdminServiceIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->hasPermissionTo('services.view') === true;
+        return $this->user()?->hasPermissionTo('admin.services.view') === true;
     }
 
     public function rules(): array
@@ -19,11 +20,19 @@ class AdminServiceIndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::in(['draft', 'published', 'unpublished', 'archived'])],
+            'moderation_status' => ['nullable', Rule::enum(ServiceModerationStatus::class)],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'pricing_type' => ['nullable', Rule::in(['fixed', 'from', 'range', 'quote'])],
             'professional_id' => ['nullable', 'integer', 'exists:professional_profiles,id'],
             'sort' => ['nullable', Rule::in(['-created_at', 'title'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('search')) {
+            $this->merge(['search' => trim((string) $this->input('search'))]);
+        }
     }
 }

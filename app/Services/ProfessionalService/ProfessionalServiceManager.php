@@ -24,6 +24,10 @@ use Illuminate\Validation\ValidationException;
 
 class ProfessionalServiceManager
 {
+    public function __construct(
+        private readonly ServicePublicationEligibility $publicationEligibility,
+    ) {}
+
     public function create(ProfessionalProfile $profile, array $attributes): Service
     {
         return DB::transaction(function () use ($profile, $attributes): Service {
@@ -32,6 +36,7 @@ class ProfessionalServiceManager
 
             $skillIds = $attributes['skill_ids'] ?? [];
             $this->ensureSkillsAreActive($skillIds);
+            $this->publicationEligibility->assertSkillsCompatible((int) $category->getKey(), $skillIds);
 
             $service = $this->createWithUniqueSlug(
                 $profile,
@@ -55,8 +60,15 @@ class ProfessionalServiceManager
                 $this->ensureCategoryIsActive($category);
             }
 
+            $targetCategoryId = (int) ($attributes['category_id'] ?? $service->category_id);
+            $targetSkillIds = array_key_exists('skill_ids', $attributes)
+                ? $attributes['skill_ids']
+                : $service->skills()->pluck('skills.id')->map(fn ($id) => (int) $id)->all();
+
+            $this->ensureSkillsAreActive($targetSkillIds);
+            $this->publicationEligibility->assertSkillsCompatible($targetCategoryId, $targetSkillIds);
+
             if (array_key_exists('skill_ids', $attributes)) {
-                $this->ensureSkillsAreActive($attributes['skill_ids']);
                 $service->skills()->sync($attributes['skill_ids']);
             }
 
@@ -81,61 +93,26 @@ class ProfessionalServiceManager
     {
         return DB::transaction(function () use ($service): Service {
             $service = Service::query()->whereKey($service->getKey())->lockForUpdate()->firstOrFail();
-            $service->load(['category', 'skills', 'images']);
-
-            if ($service->status === ServiceStatus::ARCHIVED) {
-                throw ValidationException::withMessages([
-                    'status' => 'Un service archivé ne peut pas être publié.',
-                ]);
-            }
-
-            $this->ensureCategoryIsActive($service->category);
-            $this->ensurePricingIsCoherent($service);
+            $service->load(['category', 'skills.category.parent', 'images', 'professionalProfile.user']);
+            $this->publicationEligibility->assertProfessionalCanPublish($service);
 
             $professional = ProfessionalProfile::query()
                 ->with('user')
                 ->lockForUpdate()
                 ->findOrFail($service->professional_profile_id);
 
-            if ($professional->verification_status !== ProfessionalVerificationStatus::VERIFIED) {
-                throw ValidationException::withMessages([
-                    'professional' => 'Le profil professionnel doit être vérifié avant la publication d’un service.',
-                ]);
-            }
-
-            if ($service->images->where('is_cover', true)->isEmpty()) {
-                throw ValidationException::withMessages([
-                    'images' => 'Une image de couverture est obligatoire pour publier le service.',
-                ]);
-            }
-
-            $inactiveSkill = $service->skills->first(
-                fn (Skill $skill): bool => $skill->status !== SkillStatus::ACTIVE
-            );
-
-            if ($inactiveSkill !== null) {
-                throw ValidationException::withMessages([
-                    'skill_ids' => 'Toutes les compétences d’un service publié doivent être actives.',
-                ]);
-            }
+            // First publication may activate a draft profile, never a suspended or closed one.
+            $professional->forceFill([
+                'status' => ProfessionalProfile::STATUS_ACTIVE,
+                'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
+            ])->save();
 
             $service->forceFill([
                 'status' => ServiceStatus::PUBLISHED,
                 'published_at' => now(),
             ])->save();
 
-            if ($professional->user->account_status !== UserAccountStatus::ACTIVE) {
-                throw ValidationException::withMessages([
-                    'professional' => 'Un compte inactif ne peut pas publier de service.',
-                ]);
-            }
-
-            $professional->forceFill([
-                'status' => ProfessionalProfile::STATUS_ACTIVE,
-                'visibility' => ProfessionalProfile::VISIBILITY_PUBLIC,
-            ])->save();
-
-            return $service->refresh()->load(['category', 'skills', 'images']);
+            return $service->refresh()->load(['category', 'skills', 'images', 'professionalProfile.user']);
         });
     }
 

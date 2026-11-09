@@ -7,12 +7,19 @@ namespace App\Services\Admin\Service;
 use App\Enums\ServiceStatus;
 use App\Models\Service;
 use App\Models\User;
+use App\Services\Audit\AuditLogService;
+use App\Services\ProfessionalService\ServicePublicationEligibility;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AdminServiceManagementService
 {
+    public function __construct(
+        private readonly ServicePublicationEligibility $publicationEligibility,
+        private readonly AuditLogService $auditLogService,
+    ) {}
+
     public function paginate(array $filters): LengthAwarePaginator
     {
         $query = Service::query()
@@ -35,6 +42,10 @@ class AdminServiceManagementService
 
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
+        }
+
+        if (! empty($filters['moderation_status'])) {
+            $query->where('moderation_status', $filters['moderation_status']);
         }
 
         if (! empty($filters['category_id'])) {
@@ -113,7 +124,7 @@ class AdminServiceManagementService
         array $from,
         ServiceStatus $to,
     ): Service {
-        return DB::transaction(function () use ($service, $from, $to): Service {
+        $updated = DB::transaction(function () use ($service, $actor, $from, $to): Service {
             $locked = Service::query()
                 ->lockForUpdate()
                 ->findOrFail($service->getKey());
@@ -125,7 +136,7 @@ class AdminServiceManagementService
             }
 
             if ($to === ServiceStatus::PUBLISHED) {
-                $this->assertPublishable($locked);
+                $this->publicationEligibility->assertAdminCanPublish($locked);
                 $locked->forceFill(['published_at' => now()])->save();
             } else {
                 $locked->forceFill(['published_at' => null])->save();
@@ -137,57 +148,20 @@ class AdminServiceManagementService
                 ->refresh()
                 ->load(['professionalProfile.user', 'category', 'skills', 'images']);
         });
+
+        $this->auditLogService->record(
+            match ($to) {
+                ServiceStatus::PUBLISHED => 'admin_service_published',
+                ServiceStatus::UNPUBLISHED => 'admin_service_unpublished',
+                ServiceStatus::ARCHIVED => 'admin_service_archived',
+                default => 'admin_service_status_changed',
+            },
+            $updated,
+            $actor,
+            ['from' => array_map(fn (ServiceStatus $status) => $status->value, $from), 'to' => $to->value],
+        );
+
+        return $updated;
     }
 
-    private function assertPublishable(Service $service): void
-    {
-        if ($service->professionalProfile === null || $service->category === null) {
-            throw ValidationException::withMessages([
-                'service' => 'Le service doit avoir un professionnel et une catégorie.',
-            ]);
-        }
-
-        if (trim((string) $service->title) === '' || trim((string) $service->description) === '') {
-            throw ValidationException::withMessages([
-                'service' => 'Le service doit avoir un titre et une description.',
-            ]);
-        }
-
-        if ($service->skills()->where('status', 'active')->doesntExist()) {
-            throw ValidationException::withMessages([
-                'service' => 'Le service doit posséder au moins une compétence active.',
-            ]);
-        }
-
-        if ($service->images()->where('is_cover', true)->doesntExist()) {
-            throw ValidationException::withMessages([
-                'service' => 'Le service doit posséder une image de couverture.',
-            ]);
-        }
-
-        if ($service->pricing_type->value === 'fixed' && $service->price === null) {
-            throw ValidationException::withMessages([
-                'service' => 'Le prix fixe est obligatoire.',
-            ]);
-        }
-
-        if ($service->pricing_type->value === 'from' && $service->price_min === null) {
-            throw ValidationException::withMessages([
-                'service' => 'Le prix minimum est obligatoire.',
-            ]);
-        }
-
-        if (
-            $service->pricing_type->value === 'range'
-            && (
-                $service->price_min === null
-                || $service->price_max === null
-                || (float) $service->price_min > (float) $service->price_max
-            )
-        ) {
-            throw ValidationException::withMessages([
-                'service' => 'La fourchette de prix est invalide.',
-            ]);
-        }
-    }
 }
