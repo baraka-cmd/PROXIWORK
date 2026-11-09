@@ -32,6 +32,21 @@
         <div class="alert alert--success professional-alert" role="status" aria-live="polite">{{ session('success') }}</div>
     @endif
 
+    @if($editing && $service->moderation_status->value !== 'clear')
+        <section class="surface-card service-validation-summary" role="status">
+            <h2>État de modération : {{ ['under_review' => 'En examen', 'hidden' => 'Masqué par l’administration', 'changes_requested' => 'Corrections demandées', 'rejected' => 'Refusé'][$service->moderation_status->value] ?? $service->moderation_status->value }}</h2>
+            @if($service->moderation_reason)<p>{{ $service->moderation_reason }}</p>@endif
+            @if(in_array($service->moderation_status->value, ['hidden', 'changes_requested', 'rejected'], true))
+                <form method="POST" action="{{ route('professional.services.submit-review', $service) }}">
+                    @csrf
+                    <label class="form-label" for="moderation-note">Note à l’administration (facultative)</label>
+                    <input class="form-control" id="moderation-note" name="note" maxlength="2000">
+                    <button class="button button--primary" type="submit">Soumettre à nouveau pour examen</button>
+                </form>
+            @endif
+        </section>
+    @endif
+
     @if($errors->any())
         <section class="surface-card service-validation-summary" role="alert" aria-labelledby="service-validation-title">
             <h2 id="service-validation-title">Certaines informations doivent être corrigées</h2>
@@ -95,7 +110,7 @@
                     <select class="form-control form-select" id="category_id" name="category_id" required @error('category_id') aria-invalid="true" aria-describedby="category_id-error" @enderror>
                         <option value="">Choisir une catégorie</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" @selected(old('category_id', $service?->category_id) == $category->id)>{{ $category->name }}</option>
+                            <option value="{{ $category->id }}" data-parent-id="{{ $category->parent_id ?? '' }}" @selected(old('category_id', $service?->category_id) == $category->id)>{{ $category->parent?->name ? $category->parent->name.' / ' : '' }}{{ $category->name }}</option>
                         @endforeach
                     </select>
                     @error('category_id')<p class="form-error" id="category_id-error">{{ $message }}</p>@enderror
@@ -104,11 +119,12 @@
                     <label class="form-label" for="skill_ids">Compétences associées</label>
                     <select class="form-control form-select" id="skill_ids" name="skill_ids[]" multiple size="6" @error('skill_ids') aria-invalid="true" aria-describedby="skill_ids-error" @enderror>
                         @foreach($skills as $skill)
-                            <option value="{{ $skill->id }}" @selected(in_array($skill->id, old('skill_ids', $service?->skills->pluck('id')->all() ?? [])))>{{ $skill->name }}</option>
+                            <option value="{{ $skill->id }}" data-category-id="{{ $skill->category_id ?? '' }}" data-parent-id="{{ $skill->category?->parent_id ?? '' }}" @selected(in_array($skill->id, old('skill_ids', $service?->skills->pluck('id')->all() ?? [])))>{{ $skill->name }}{{ $skill->category?->name ? ' · '.$skill->category->name : '' }}</option>
                         @endforeach
                     </select>
                     @error('skill_ids')<p class="form-error" id="skill_ids-error">{{ $message }}</p>@enderror
-                    <p class="form-help">Choisissez jusqu’à 10 compétences actives liées à cette prestation. Cela ne crée pas de nouveau service.</p>
+                    <p class="form-help">Choisissez jusqu’à 10 compétences actives liées à cette prestation. Les compétences de la catégorie sélectionnée, de son parent ou de ses sous-catégories sont proposées.</p>
+                    <p class="form-help" data-skill-compatibility-warning hidden role="alert">Une ou plusieurs compétences déjà sélectionnées ne correspondent plus à cette catégorie. Retirez-les ou choisissez une catégorie compatible avant d’enregistrer.</p>
                 </div>
             </div>
         </section>

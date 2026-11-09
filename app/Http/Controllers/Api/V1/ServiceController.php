@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalService\IndexServiceRequest;
 use App\Http\Resources\ProfessionalService\ServiceResource;
+use App\Models\Category;
 use App\Models\Service;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -53,7 +54,17 @@ class ServiceController extends Controller
                         ->orWhere('description', 'like', "%{$search}%");
                 });
             })
-            ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
+            ->when($validated['category_id'] ?? null, function ($query, int $categoryId): void {
+                $category = Category::query()->find($categoryId);
+
+                if ($category?->parent_id === null) {
+                    $query->whereHas('category', fn ($serviceCategory) => $serviceCategory
+                        ->whereKey($categoryId)
+                        ->orWhere('parent_id', $categoryId));
+                } else {
+                    $query->where('category_id', $categoryId);
+                }
+            })
             ->when($validated['skill_id'] ?? null, fn ($query, int $skillId) => $query->whereHas('skills', fn ($skills) => $skills->whereKey($skillId)))
             ->orderBy('sort_order')
             ->orderByDesc('published_at')

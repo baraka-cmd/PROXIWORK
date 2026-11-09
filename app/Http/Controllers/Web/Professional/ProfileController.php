@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Professional;
 
 use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ServiceModerationStatus;
 use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
@@ -81,7 +82,7 @@ class ProfileController extends Controller
         $professional->setRelation(
             'services',
             $professional->services()
-                ->with(['category', 'skills', 'images'])
+                ->with(['category', 'skills.category.parent', 'images'])
                 ->orderBy('sort_order')
                 ->orderByDesc('id')
                 ->limit(6)
@@ -379,8 +380,13 @@ class ProfileController extends Controller
             ->groupBy('status')
             ->pluck('aggregate', 'status');
 
+        $moderationCounts = $profile->services()
+            ->selectRaw('moderation_status, COUNT(*) as aggregate')
+            ->groupBy('moderation_status')
+            ->pluck('aggregate', 'moderation_status');
+
         $services = $profile->services()
-            ->with(['category', 'skills', 'images'])
+            ->with(['category', 'skills.category.parent', 'images'])
             ->withCount('serviceRequests')
             ->withCount(['realizations as pending_realizations_count' => fn ($query) => $query->where('status', ServiceRealization::STATUS_PENDING)])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
@@ -391,6 +397,7 @@ class ProfileController extends Controller
                 });
             })
             ->when($validated['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($validated['moderation_status'] ?? null, fn ($query, string $status) => $query->where('moderation_status', $status))
             ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
             ->when($validated['skill_id'] ?? null, fn ($query, int $skillId) => $query->whereHas('skills', fn ($skills) => $skills->whereKey($skillId)))
             ->when(($validated['sort'] ?? 'recent') === 'title', fn ($query) => $query->orderBy('title')->orderByDesc('id'))
@@ -403,8 +410,10 @@ class ProfileController extends Controller
             'services' => $services,
             'filters' => $validated,
             'statuses' => ServiceStatus::cases(),
-            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'moderationStatuses' => ServiceModerationStatus::cases(),
+            'categories' => Category::query()->where('status', 'active')->with('parent')->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'parent_id']),
             'skills' => Skill::query()
+                ->with('category.parent')
                 ->where('status', 'active')
                 ->whereHas('services', fn ($query) => $query->where('professional_profile_id', $profile->getKey()))
                 ->orderBy('name')
@@ -416,12 +425,23 @@ class ProfileController extends Controller
                 'unpublished' => (int) ($serviceCounts[ServiceStatus::UNPUBLISHED->value] ?? 0),
                 'archived' => (int) ($serviceCounts[ServiceStatus::ARCHIVED->value] ?? 0),
                 'pending_realizations' => $pendingRealizationsCount,
+                'under_review' => (int) ($moderationCounts[ServiceModerationStatus::UNDER_REVIEW->value] ?? 0),
+                'changes_requested' => (int) ($moderationCounts[ServiceModerationStatus::CHANGES_REQUESTED->value] ?? 0),
+                'hidden' => (int) ($moderationCounts[ServiceModerationStatus::HIDDEN->value] ?? 0),
+                'rejected' => (int) ($moderationCounts[ServiceModerationStatus::REJECTED->value] ?? 0),
             ],
             'statusLabels' => [
                 ServiceStatus::DRAFT->value => 'Brouillon',
                 ServiceStatus::PUBLISHED->value => 'Publié',
                 ServiceStatus::UNPUBLISHED->value => 'Dépublié',
                 ServiceStatus::ARCHIVED->value => 'Archivé',
+            ],
+            'moderationStatusLabels' => [
+                ServiceModerationStatus::CLEAR->value => 'Normal',
+                ServiceModerationStatus::UNDER_REVIEW->value => 'En examen',
+                ServiceModerationStatus::HIDDEN->value => 'Masqué par l’administration',
+                ServiceModerationStatus::CHANGES_REQUESTED->value => 'Corrections demandées',
+                ServiceModerationStatus::REJECTED->value => 'Refusé',
             ],
         ]);
     }
@@ -432,8 +452,8 @@ class ProfileController extends Controller
 
         return view('professional/services/form', [
             'service' => null,
-            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(),
-            'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(),
+            'categories' => Category::query()->where('status', 'active')->with('parent')->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')->get(),
+            'skills' => Skill::query()->where('status', 'active')->with('category.parent')->orderBy('name')->get(),
         ]);
     }
 
@@ -452,9 +472,9 @@ class ProfileController extends Controller
         abort_if($service->status === ServiceStatus::ARCHIVED, 404);
 
         return view('professional/services/form', [
-            'service' => $service->load(['category', 'skills', 'images', 'realizations']),
-            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(),
-            'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(),
+            'service' => $service->load(['category.parent', 'skills.category.parent', 'images', 'realizations']),
+            'categories' => Category::query()->where('status', 'active')->with('parent')->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')->get(),
+            'skills' => Skill::query()->where('status', 'active')->with('category.parent')->orderBy('name')->get(),
         ]);
     }
 
