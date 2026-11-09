@@ -107,24 +107,27 @@
                             @foreach ($documents as $document)
                                 @php
                                     $documentStatus = (string) $document->status;
-                                    $statusLabel = match ($documentStatus) {
+                                    $isSuperseded = $document->superseded_by_document_id !== null;
+                                    $statusLabel = $isSuperseded ? 'Remplacé par une version récente' : match ($documentStatus) {
                                         'pending' => 'En attente de vérification',
                                         'approved' => 'Approuvé',
                                         'rejected' => 'Refusé',
                                         default => 'État à confirmer',
                                     };
-                                    $statusClass = match ($documentStatus) {
+                                    $statusClass = $isSuperseded ? 'neutral' : match ($documentStatus) {
                                         'approved' => 'success',
                                         'rejected' => 'danger',
                                         'pending' => 'warning',
                                         default => 'neutral',
                                     };
-                                    $statusHelp = match ($documentStatus) {
-                                        'pending' => 'Votre document a été transmis et attend son examen.',
-                                        'approved' => 'Ce document a été approuvé. Sa suppression n’est pas proposée depuis cet écran.',
-                                        'rejected' => 'Ce document n’a pas été approuvé. '.($document->review_note ?: 'Transmettez une nouvelle version si elle est demandée.'),
-                                        default => 'Le statut est en cours de clarification.',
-                                    };
+                                    $statusHelp = $isSuperseded
+                                        ? 'Une nouvelle version a été transmise pour cette catégorie. Cette ancienne version et ses décisions sont conservées dans votre dossier.'
+                                        : match ($documentStatus) {
+                                            'pending' => 'Votre document a été transmis et attend son examen.',
+                                            'approved' => 'Ce document a été approuvé. Sa suppression n’est pas proposée depuis cet écran.',
+                                            'rejected' => 'Ce document n’a pas été approuvé. '.($document->review_note ?: 'Transmettez une nouvelle version si elle est demandée.'),
+                                            default => 'Le statut est en cours de clarification.',
+                                        };
                                 @endphp
                                 <article class="professional-document-card">
                                     <span class="professional-document-card__icon" aria-hidden="true">
@@ -137,7 +140,7 @@
                                             <span>{{ number_format($document->size / 1024, 0, ',', ' ') }} Ko</span>
                                             <span>Transmis le {{ $document->created_at?->locale(app()->getLocale())->translatedFormat('j F Y') ?? 'date non disponible' }}</span>
                                         </div>
-                                        @if ($documentStatus === 'pending')
+                                        @if ($documentStatus === 'pending' && ! $isSuperseded)
                                             <div class="professional-document-card__actions">
                                                 <form method="POST" action="{{ route('professional.documents.destroy', $document) }}" data-professional-document-form data-confirm-delete="true">
                                                     @csrf
