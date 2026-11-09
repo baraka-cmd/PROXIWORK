@@ -172,6 +172,13 @@ class AdminUserWebManagementTest extends TestCase
             'last_name' => 'Confidentiel',
             'phone' => '+243990000002',
         ]);
+        $user->addresses()->create([
+            'label' => 'Adresse privée',
+            'country_code' => 'CD',
+            'city' => 'VilleConfidentielle',
+            'address_line_1' => 'Adresse non publique',
+            'is_default' => true,
+        ]);
 
         $this->actingAs($admin)
             ->get(route('admin.users.index', ['search' => 'needle.private@example.test']))
@@ -180,6 +187,11 @@ class AdminUserWebManagementTest extends TestCase
 
         $this->actingAs($admin)
             ->get(route('admin.users.index', ['search' => '+243990000002']))
+            ->assertOk()
+            ->assertDontSee('Compte confidentiel');
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.index', ['location' => 'VilleConfidentielle']))
             ->assertOk()
             ->assertDontSee('Compte confidentiel');
     }
