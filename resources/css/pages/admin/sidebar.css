@@ -1,0 +1,243 @@
+/*
+ * Navigation de l'administration PROXIWORK.
+ * Les règles sont volontairement isolées sous .admin-layout afin de ne pas
+ * modifier les espaces Client, Professionnel ou public.
+ */
+.admin-layout {
+    --admin-sidebar-compact: 72px;
+    --admin-sidebar-expanded: 264px;
+}
+
+.admin-layout .dashboard-sidebar {
+    color: #e2e8f0;
+    background: #0f172a;
+    border-right: 1px solid rgba(148, 163, 184, 0.16);
+    box-shadow: 10px 0 30px rgba(15, 23, 42, 0.12);
+    transition: width 220ms ease, transform 220ms ease;
+}
+
+.admin-layout .dashboard-sidebar__header,
+.admin-layout .dashboard-sidebar__footer {
+    border-color: rgba(148, 163, 184, 0.16);
+}
+
+.admin-layout .dashboard-sidebar__nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: #475569 #0f172a;
+    scrollbar-width: thin;
+}
+
+.admin-layout .dashboard-sidebar__nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.admin-layout .dashboard-sidebar__nav::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #475569;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group__toggle,
+.admin-layout .dashboard-sidebar .dashboard-nav-link,
+.admin-layout .dashboard-sidebar .admin-sidebar-pin,
+.admin-layout .dashboard-sidebar .admin-logout-button {
+    color: #cbd5e1;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group__toggle > i:first-child,
+.admin-layout .dashboard-sidebar .dashboard-nav-link > i,
+.admin-layout .dashboard-sidebar .admin-sidebar-pin > i,
+.admin-layout .dashboard-sidebar .admin-logout-button > i,
+.admin-layout .dashboard-sidebar .dashboard-security-note > i {
+    color: #5eead4;
+}
+
+.admin-layout .dashboard-sidebar .dashboard-security-note {
+    color: #94a3b8;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group__toggle:hover,
+.admin-layout .dashboard-sidebar .dashboard-nav-link:hover,
+.admin-layout .dashboard-sidebar .admin-sidebar-pin:hover {
+    color: #f8fafc;
+    background: rgba(148, 163, 184, 0.12);
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group.is-active > .admin-nav-group__toggle {
+    color: #5eead4;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group__toggle:focus-visible,
+.admin-layout .dashboard-sidebar .dashboard-nav-link:focus-visible,
+.admin-layout .dashboard-sidebar .admin-sidebar-pin:focus-visible,
+.admin-layout .dashboard-sidebar .admin-logout-button:focus-visible {
+    outline: 2px solid #5eead4;
+    outline-offset: 2px;
+}
+
+.admin-layout .dashboard-sidebar .dashboard-nav-link.is-active {
+    color: #f0fdfa;
+    background: rgba(15, 118, 110, 0.34);
+    box-shadow: inset 3px 0 #2dd4bf;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group__items {
+    padding-left: 1rem;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-group__items[hidden] {
+    display: none;
+}
+
+.admin-layout .dashboard-sidebar .admin-nav-link {
+    min-height: 42px;
+    font-size: var(--font-size-xs);
+}
+
+.admin-layout .dashboard-sidebar .admin-logout-button:hover {
+    color: #fecaca;
+    background: rgba(220, 38, 38, 0.14);
+}
+
+.admin-layout .dashboard-content {
+    margin-left: var(--admin-sidebar-compact);
+    transition: margin-left 220ms ease;
+}
+
+.admin-layout .dashboard-sidebar.is-pinned {
+    width: var(--admin-sidebar-expanded);
+}
+
+.admin-layout .dashboard-content.is-admin-sidebar-pinned {
+    margin-left: var(--admin-sidebar-expanded);
+}
+
+@media (hover: hover) and (min-width: 1024px) {
+    .admin-layout .dashboard-sidebar:hover,
+    .admin-layout .dashboard-sidebar:focus-within,
+    .admin-layout .dashboard-sidebar.is-pinned {
+        width: var(--admin-sidebar-expanded);
+    }
+
+    .admin-layout .dashboard-sidebar:hover .dashboard-sidebar__header,
+    .admin-layout .dashboard-sidebar:focus-within .dashboard-sidebar__header,
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__header {
+        justify-content: space-between;
+        padding-inline: var(--space-4);
+    }
+
+    .admin-layout .dashboard-sidebar:hover .dashboard-sidebar__header .brand > span:last-child,
+    .admin-layout .dashboard-sidebar:focus-within .dashboard-sidebar__header .brand > span:last-child,
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__header .brand > span:last-child,
+    .admin-layout .dashboard-sidebar:hover .admin-nav-group__toggle > span,
+    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__toggle > span,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle > span,
+    .admin-layout .dashboard-sidebar:hover .admin-nav-group__chevron,
+    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__chevron,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__chevron,
+    .admin-layout .dashboard-sidebar:hover .dashboard-sidebar__footer span,
+    .admin-layout .dashboard-sidebar:focus-within .dashboard-sidebar__footer span,
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-sidebar__footer span,
+    .admin-layout .dashboard-sidebar:hover .admin-sidebar-pin span,
+    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin span,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin span {
+        opacity: 1;
+        width: auto;
+    }
+
+    .admin-layout .dashboard-sidebar:hover .dashboard-nav-title,
+    .admin-layout .dashboard-sidebar:focus-within .dashboard-nav-title,
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-nav-title {
+        opacity: 1;
+        width: auto;
+    }
+
+    .admin-layout .dashboard-sidebar:hover .dashboard-nav-link,
+    .admin-layout .dashboard-sidebar:focus-within .dashboard-nav-link,
+    .admin-layout .dashboard-sidebar.is-pinned .dashboard-nav-link,
+    .admin-layout .dashboard-sidebar:hover .admin-nav-group__toggle,
+    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__toggle,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle {
+        justify-content: flex-start;
+        padding-inline: 0.75rem;
+    }
+
+    .admin-layout .dashboard-sidebar:hover .admin-nav-group__items,
+    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__items,
+    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__items {
+        display: block;
+        width: auto;
+        opacity: 1;
+    }
+
+    .admin-layout .dashboard-sidebar:hover .admin-nav-group__items[hidden],
+    .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__items[hidden],
+    .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__items[hidden] {
+        display: none;
+    }
+}
+
+@media (max-width: 1023px) {
+    .admin-layout .dashboard-sidebar {
+        width: min(86vw, 320px);
+    }
+
+    .admin-layout .dashboard-sidebar__header {
+        justify-content: space-between;
+        padding-inline: var(--space-4);
+    }
+
+    .admin-layout .dashboard-sidebar .dashboard-sidebar__header .brand > span:last-child,
+    .admin-layout .dashboard-sidebar .admin-nav-group__toggle > span,
+    .admin-layout .dashboard-sidebar .admin-nav-group__chevron,
+    .admin-layout .dashboard-sidebar .dashboard-sidebar__footer span,
+    .admin-layout .dashboard-sidebar .admin-sidebar-pin span {
+        opacity: 1;
+        width: auto;
+    }
+
+    .admin-layout .dashboard-sidebar .admin-nav-group__toggle,
+    .admin-layout .dashboard-sidebar .dashboard-nav-link {
+        justify-content: flex-start;
+        padding-inline: 0.75rem;
+    }
+
+    .admin-layout .dashboard-content,
+    .admin-layout .dashboard-content.is-admin-sidebar-pinned {
+        margin-left: 0;
+    }
+
+    .admin-layout .admin-sidebar-pin {
+        display: none;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .admin-layout .dashboard-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .admin-layout .dashboard-sidebar.is-open {
+        transform: translateX(0);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .admin-layout .mobile-menu-toggle {
+        display: inline-flex;
+    }
+
+    .admin-layout .sidebar-overlay {
+        display: block;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-layout .dashboard-sidebar,
+    .admin-layout .dashboard-content,
+    .admin-layout .admin-nav-group__chevron {
+        transition: none;
+    }
+}
