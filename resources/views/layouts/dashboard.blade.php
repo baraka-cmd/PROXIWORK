@@ -24,6 +24,13 @@
             </div>
 
             <div class="dashboard-sidebar__nav">
+                @unless (request()->routeIs('admin.*'))
+                    <button class="dashboard-sidebar-pin" type="button" data-sidebar-pin aria-pressed="false" aria-label="Épingler la barre latérale" title="Épingler la barre latérale">
+                        <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+                        <span>Épingler la barre</span>
+                    </button>
+                @endunless
+
                 @yield('dashboard_sidebar')
             </div>
 
