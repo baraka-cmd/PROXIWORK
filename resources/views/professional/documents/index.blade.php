@@ -76,6 +76,20 @@
                         </div>
 
                         <div class="form-field">
+                            <label class="form-label" for="replaces_document_id">Remplacer un justificatif existant (facultatif)</label>
+                            <select class="form-control form-select" id="replaces_document_id" name="replaces_document_id" aria-describedby="replace-document-help">
+                                <option value="">Nouveau justificatif (ne remplace aucun document)</option>
+                                @foreach ($replaceableDocuments as $existingDocument)
+                                    <option value="{{ $existingDocument->id }}" @selected((string) old('replaces_document_id') === (string) $existingDocument->id)>
+                                        {{ $documentTypes[$existingDocument->document_type] ?? 'Justificatif' }} — {{ $existingDocument->original_name }} ({{ $existingDocument->status }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small id="replace-document-help" class="professional-documents__file-note">Si ce fichier corrige ou actualise un justificatif, sélectionnez précisément l’ancienne version. Les autres documents de la même catégorie seront conservés.</small>
+                            @error('replaces_document_id')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field">
                             <label class="form-label" for="professional-document-file">Fichier <span class="form-label__required">*</span></label>
                             <input class="form-control" id="professional-document-file" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" required aria-describedby="document-file-help document-file-status">
                             <small id="document-file-help" class="professional-documents__file-note">Le type et la taille seront également vérifiés par le serveur.</small>
