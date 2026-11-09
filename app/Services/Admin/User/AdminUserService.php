@@ -66,13 +66,12 @@ class AdminUserService
         bool $includeStatus = true,
         bool $includePeriod = true,
         bool $includeSensitiveSearch = false,
-    ): Builder
-    {
+    ): Builder {
         $query = User::query()
             ->select('users.*')
             ->with(['roles', 'profile', 'professionalProfile']);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
             $query->where(function (Builder $q) use ($search, $includeSensitiveSearch): void {
                 $q->where('users.name', 'like', "%{$search}%")
