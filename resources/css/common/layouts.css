@@ -242,6 +242,7 @@ body.navigation-is-open {
 }
 
 .admin-layout .dashboard-sidebar__header .icon-button {
+    display: none;
     flex: 0 0 40px;
     color: #cbd5e1;
 }
@@ -565,6 +566,10 @@ body.navigation-is-open {
     .admin-layout .dashboard-sidebar__header {
         justify-content: space-between;
         padding-inline: 1rem;
+    }
+
+    .admin-layout .dashboard-sidebar__header .icon-button {
+        display: inline-flex;
     }
 
     .admin-layout .dashboard-sidebar__header .brand > span:last-child,
