@@ -28,8 +28,7 @@ class AdminUserService
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
-    ) {
-    }
+    ) {}
 
     public function paginate(array $filters, bool $includeSensitiveSearch = false): LengthAwarePaginator
     {
@@ -95,7 +94,7 @@ class AdminUserService
                 'professionalProfile',
             ]);
 
-        if (filled($filters['search'])) {
+        if (filled($filters['search'] ?? null)) {
             $search = trim((string) $filters['search']);
             $query->where(function (Builder $q) use ($search, $includeSensitiveSearch): void {
                 $q->where('users.name', 'like', "%{$search}%")
@@ -132,15 +131,15 @@ class AdminUserService
             });
         }
 
-        if (filled($filters['role'])) {
+        if (filled($filters['role'] ?? null)) {
             $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', $filters['role']));
         }
 
-        if (filled($filters['account_status'])) {
+        if (filled($filters['account_status'] ?? null)) {
             $query->where('users.account_status', $filters['account_status']);
         }
 
-        if (filled($filters['period'])) {
+        if (filled($filters['period'] ?? null)) {
             $start = match ($filters['period']) {
                 'today' => now()->startOfDay(),
                 '7d' => now()->subDays(6)->startOfDay(),
@@ -149,15 +148,15 @@ class AdminUserService
             $query->where('users.created_at', '>=', $start);
         }
 
-        if (filled($filters['created_from'])) {
+        if (filled($filters['created_from'] ?? null)) {
             $query->whereDate('users.created_at', '>=', $filters['created_from']);
         }
 
-        if (filled($filters['created_to'])) {
+        if (filled($filters['created_to'] ?? null)) {
             $query->whereDate('users.created_at', '<=', $filters['created_to']);
         }
 
-        if (filled($filters['location'])) {
+        if (filled($filters['location'] ?? null)) {
             $location = trim((string) $filters['location']);
             $query->where(function (Builder $q) use ($location, $includeSensitiveSearch): void {
                 $q->whereHas('professionalProfile', fn (Builder $profile) => $profile
@@ -181,12 +180,12 @@ class AdminUserService
                 : $query->whereNull('users.email_verified_at');
         }
 
-        if (filled($filters['verification_status'])) {
+        if (filled($filters['verification_status'] ?? null)) {
             $query->whereHas('professionalProfile', fn (Builder $profile) => $profile
                 ->where('verification_status', $filters['verification_status']));
         }
 
-        if (filled($filters['activity']) && $this->sessionActivityAvailable()) {
+        if (filled($filters['activity'] ?? null) && $this->sessionActivityAvailable()) {
             $threshold = now()->subDays($filters['activity'] === 'recent_7d' ? 7 : 30)->timestamp;
             if ($filters['activity'] === 'recent_7d') {
                 $query->whereExists(fn ($sessions) => $sessions->selectRaw('1')
