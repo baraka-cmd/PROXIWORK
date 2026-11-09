@@ -21,7 +21,7 @@
         <div class="admin-profile-hero__body">
             <span class="admin-card__eyebrow">Compte #{{ $user->id }}</span>
             <h3 id="user-profile-title">{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name }}</h3>
-            <p>{{ $user->email }}</p>
+            <p>{{ $canViewSensitive ? $user->email : 'E-mail masqué · permission requise' }}</p>
             <div class="admin-chip-list">
                 @forelse($user->roles as $role)<span class="admin-chip admin-chip--accent">{{ $role->display_name }}</span>@empty<span class="admin-muted">Aucun rôle attribué</span>@endforelse
             </div>
@@ -57,7 +57,7 @@
                 <div><dt>Identifiant interne</dt><dd>#{{ $user->id }}</dd></div>
                 <div><dt>Nom du compte</dt><dd>{{ $user->name }}</dd></div>
                 <div><dt>Prénom et nom</dt><dd>{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: 'Non renseignés' }}</dd></div>
-                <div><dt>Adresse e-mail</dt><dd>{{ $user->email }}</dd></div>
+                <div><dt>Adresse e-mail</dt><dd>{{ $canViewSensitive ? $user->email : 'Masquée · permission requise' }}</dd></div>
                 <div><dt>Vérification e-mail</dt><dd>@if($user->email_verified_at)<span class="admin-verified">Vérifié le {{ $user->email_verified_at->format('d/m/Y H:i') }}</span>@else<span class="admin-muted">Non vérifié</span>@endif</dd></div>
                 <div><dt>Téléphone</dt><dd>{{ $canViewSensitive ? ($user->profile?->phone ?: 'Non renseigné') : 'Masqué · permission requise' }}</dd></div>
                 <div><dt>Localisation déclarée</dt><dd>{{ $canViewSensitive ? ($details['client']['location'] ?: 'Non renseignée') : 'Masquée · permission requise' }}</dd></div>
