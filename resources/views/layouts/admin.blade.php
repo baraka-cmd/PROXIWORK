@@ -20,7 +20,7 @@
                 'items' => [
                     ['label' => 'Tous les utilisateurs', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-users', 'active' => ['admin.users.*'], 'default' => true],
                     ['label' => 'Clients', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-user-group', 'active' => ['admin.users.index'], 'query' => ['role' => 'client']],
-                    ['label' => 'Prestataires professionnels', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-user-tie', 'active' => ['admin.users.index'], 'query' => ['role' => 'professional']],
+                    ['label' => 'Prestataires professionnels', 'route' => 'admin.professionals.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-user-tie', 'active' => ['admin.professionals.*']],
                     ['label' => 'Comptes suspendus', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-user-lock', 'active' => ['admin.users.index'], 'query' => ['account_status' => 'suspended']],
                     ['label' => 'Gestion des accès', 'route' => 'admin.rbac.dashboard', 'permission' => 'rbac.view', 'icon' => 'fa-user-shield', 'active' => ['admin.rbac.*']],
                     ['label' => 'Rôles', 'route' => 'admin.roles.index', 'permission' => 'rbac.view', 'icon' => 'fa-users-gear', 'active' => ['admin.roles.*']],
@@ -32,7 +32,6 @@
                 'icon' => 'fa-user-check',
                 'items' => [
                     ['label' => 'Dossiers professionnels', 'route' => 'admin.verification.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-folder-open', 'active' => ['admin.verification.*']],
-                    ['label' => 'Fiches professionnels', 'route' => 'admin.professionals.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-id-card', 'active' => ['admin.professionals.*']],
                 ],
             ],
             [
