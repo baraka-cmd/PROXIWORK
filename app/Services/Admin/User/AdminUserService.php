@@ -27,9 +27,9 @@ class AdminUserService
         private readonly AuditLogService $auditLogService,
     ) {}
 
-    public function paginate(array $filters): LengthAwarePaginator
+    public function paginate(array $filters, bool $includeSensitiveSearch = false): LengthAwarePaginator
     {
-        return $this->usersQuery($filters)
+        return $this->usersQuery($filters, includeSensitiveSearch: $includeSensitiveSearch)
             ->orderBy(
                 ltrim((string) ($filters['sort'] ?? '-created_at'), '-'),
                 str_starts_with((string) ($filters['sort'] ?? '-created_at'), '-') ? 'desc' : 'asc',
@@ -43,15 +43,15 @@ class AdminUserService
      * Each summary card preserves the active search and common filters,
      * neutralizing only the dimension represented by that card.
      */
-    public function overview(array $filters = []): array
+    public function overview(array $filters = [], bool $includeSensitiveSearch = false): array
     {
-        $allFilters = $this->usersQuery($filters);
-        $roleScope = $this->usersQuery($filters, includeRole: false);
-        $statusScope = $this->usersQuery($filters, includeStatus: false);
-        $newScope = $this->usersQuery($filters, includePeriod: false);
+        $allRoleStatus = $this->usersQuery($filters, includeRole: false, includeStatus: false, includeSensitiveSearch: $includeSensitiveSearch);
+        $roleScope = $this->usersQuery($filters, includeRole: false, includeSensitiveSearch: $includeSensitiveSearch);
+        $statusScope = $this->usersQuery($filters, includeStatus: false, includeSensitiveSearch: $includeSensitiveSearch);
+        $newScope = $this->usersQuery($filters, includePeriod: false, includeSensitiveSearch: $includeSensitiveSearch);
 
         return [
-            'total' => (clone $allFilters)->count('users.id'),
+            'total' => (clone $allRoleStatus)->count('users.id'),
             'clients' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'client'))->count('users.id'),
             'professionals' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'professional'))->count('users.id'),
             'active' => (clone $statusScope)->where('users.account_status', UserAccountStatus::ACTIVE->value)->count('users.id'),
@@ -65,6 +65,7 @@ class AdminUserService
         bool $includeRole = true,
         bool $includeStatus = true,
         bool $includePeriod = true,
+        bool $includeSensitiveSearch = false,
     ): Builder
     {
         $query = User::query()
@@ -73,29 +74,38 @@ class AdminUserService
 
         if (!empty($filters['search'])) {
             $search = trim((string) $filters['search']);
-            $query->where(function (Builder $q) use ($search): void {
+            $query->where(function (Builder $q) use ($search, $includeSensitiveSearch): void {
                 $q->where('users.name', 'like', "%{$search}%")
-                    ->orWhere('users.email', 'like', "%{$search}%")
-                    ->orWhere('users.id', is_numeric($search) ? '=' : 'like', is_numeric($search) ? (int) $search : "%{$search}%")
-                    ->orWhereHas('profile', function (Builder $profile) use ($search): void {
-                        $profile->where(function (Builder $matches) use ($search): void {
-                            $matches->where('phone', 'like', "%{$search}%")
-                                ->orWhere('first_name', 'like', "%{$search}%")
-                                ->orWhere('last_name', 'like', "%{$search}%");
+                    ->orWhere('users.id', is_numeric($search) ? '=' : 'like', is_numeric($search) ? (int) $search : "%{$search}%");
 
-                            $nameParts = preg_split('/\\s+/', $search, 2);
-                            if (count($nameParts) === 2) {
-                                [$firstName, $lastName] = $nameParts;
-                                $matches->orWhere(function (Builder $name) use ($firstName, $lastName): void {
-                                    $name->where('first_name', 'like', "%{$firstName}%")
-                                        ->where('last_name', 'like', "%{$lastName}%");
-                                })->orWhere(function (Builder $name) use ($firstName, $lastName): void {
-                                    $name->where('first_name', 'like', "%{$lastName}%")
-                                        ->where('last_name', 'like', "%{$firstName}%");
-                                });
-                            }
-                        });
+                if ($includeSensitiveSearch) {
+                    $q->orWhere('users.email', 'like', "%{$search}%");
+                }
+
+                $q->orWhereHas('profile', function (Builder $profile) use ($search, $includeSensitiveSearch): void {
+                    $profile->where(function (Builder $matches) use ($search, $includeSensitiveSearch): void {
+                        if ($includeSensitiveSearch) {
+                            $matches->where('phone', 'like', "%{$search}%")
+                                ->orWhere('first_name', 'like', "%{$search}%");
+                        } else {
+                            $matches->where('first_name', 'like', "%{$search}%");
+                        }
+
+                        $matches->orWhere('last_name', 'like', "%{$search}%");
+
+                        $nameParts = preg_split('/\\s+/', $search, 2);
+                        if (count($nameParts) === 2) {
+                            [$firstName, $lastName] = $nameParts;
+                            $matches->orWhere(function (Builder $name) use ($firstName, $lastName): void {
+                                $name->where('first_name', 'like', "%{$firstName}%")
+                                    ->where('last_name', 'like', "%{$lastName}%");
+                            })->orWhere(function (Builder $name) use ($firstName, $lastName): void {
+                                $name->where('first_name', 'like', "%{$lastName}%")
+                                    ->where('last_name', 'like', "%{$firstName}%");
+                            });
+                        }
                     });
+                });
             });
         }
 
@@ -182,7 +192,7 @@ class AdminUserService
             && Schema::hasTable((string) config('session.table', 'sessions'));
     }
 
-    public function detail(User $user): array
+    public function detail(User $user, bool $includeSensitiveData = false): array
     {
         $professionalProfile = $user->professionalProfile;
         $professionalId = $professionalProfile?->getKey();
@@ -191,8 +201,9 @@ class AdminUserService
             ? Order::query()->where('professional_id', $professionalId)
             : Order::query()->whereRaw('1 = 0');
 
-        $defaultAddress = $user->addresses()->where('is_default', true)
-            ->first(['province', 'city', 'commune', 'neighborhood']);
+        $defaultAddress = $includeSensitiveData
+            ? $user->addresses()->where('is_default', true)->first(['province', 'city', 'commune', 'neighborhood'])
+            : null;
 
         $businessActivity = collect();
 
