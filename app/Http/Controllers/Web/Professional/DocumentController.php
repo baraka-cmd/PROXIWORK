@@ -88,17 +88,42 @@ class DocumentController extends Controller
 
     public function destroy(Request $request, ProfessionalDocument $document): RedirectResponse
     {
-        abort_unless($document->professionalProfile->user_id === $request->user()->getKey(), 403);
+        $path = null;
+        $disk = null;
 
-        if ($document->status !== ProfessionalDocument::STATUS_PENDING || $document->reviews()->exists()) {
-            return back()->withErrors([
-                'document' => 'Un justificatif déjà examiné ne peut pas être supprimé. Transmettez une nouvelle version pour conserver la traçabilité.',
-            ]);
+        try {
+            DB::transaction(function () use ($request, $document, &$path, &$disk): void {
+                $professional = ProfessionalProfile::query()
+                    ->lockForUpdate()
+                    ->findOrFail($document->professional_profile_id);
+
+                abort_unless($professional->user_id === $request->user()->getKey(), 403);
+
+                if (in_array($professional->verification_status?->value, ['verified', 'rejected'], true)) {
+                    throw ValidationException::withMessages([
+                        'document' => 'Le dossier est clôturé ; les justificatifs ne peuvent plus être supprimés.',
+                    ]);
+                }
+
+                $target = ProfessionalDocument::query()->lockForUpdate()->findOrFail($document->getKey());
+
+                if ($target->status !== ProfessionalDocument::STATUS_PENDING || $target->reviews()->exists()) {
+                    throw ValidationException::withMessages([
+                        'document' => 'Un justificatif déjà examiné ne peut pas être supprimé. Transmettez une nouvelle version pour conserver la traçabilité.',
+                    ]);
+                }
+
+                $path = $target->path;
+                $disk = $target->disk;
+                $target->delete();
+            });
+        } catch (ValidationException $exception) {
+            return back()->withErrors($exception->errors());
         }
 
-        $path = $document->path;
-        $document->delete();
-        Storage::disk($document->disk)->delete($path);
+        if ($path !== null && $disk !== null) {
+            Storage::disk($disk)->delete($path);
+        }
 
         return back()->with('success', 'Le document a été supprimé.');
     }
