@@ -7,7 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;\nuse Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProfessionalDocument extends Model
 {
@@ -25,13 +25,28 @@ class ProfessionalDocument extends Model
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
-        'professional_profile_id', 'document_type', 'original_name', 'path', 'disk',
-        'mime_type', 'size', 'status', 'review_note', 'reviewed_by', 'reviewed_at',\n        'superseded_by_document_id', 'superseded_at',
+        'professional_profile_id',
+        'document_type',
+        'original_name',
+        'path',
+        'disk',
+        'mime_type',
+        'size',
+        'status',
+        'review_note',
+        'reviewed_by',
+        'reviewed_at',
+        'superseded_by_document_id',
+        'superseded_at',
     ];
 
     protected function casts(): array
     {
-        return ['size' => 'integer', 'reviewed_at' => 'datetime', 'superseded_at' => 'datetime'];
+        return [
+            'size' => 'integer',
+            'reviewed_at' => 'datetime',
+            'superseded_at' => 'datetime',
+        ];
     }
 
     public function professionalProfile(): BelongsTo
