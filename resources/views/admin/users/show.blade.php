@@ -107,8 +107,6 @@
                     <div><dt>Commandes terminées</dt><dd>{{ number_format($details['client']['completed_orders']) }}</dd></div>
                     <div><dt>Commandes annulées</dt><dd>{{ number_format($details['client']['cancelled_orders']) }}</dd></div>
                     <div><dt>Commandes en litige</dt><dd>{{ number_format($details['client']['disputes']) }}</dd></div>
-                    <div><dt>Tickets de support</dt><dd>{{ number_format($details['client']['support_tickets']) }}</dd></div>
-                    <div><dt>Signalements émis</dt><dd>{{ number_format($details['client']['reports']) }}</dd></div>
                 </dl>
                 <div class="admin-users__module-links">
                     @if(auth()->user()->hasPermissionTo('requests.view'))
@@ -119,12 +117,6 @@
                     @endif
                     @if(auth()->user()->hasPermissionTo('payments.view'))
                         <a href="{{ route('admin.payments.index', ['client_id' => $user->id]) }}"><i class="fa-solid fa-credit-card" aria-hidden="true"></i> Ses paiements</a>
-                    @endif
-                    @if(auth()->user()->hasPermissionTo('support.manage'))
-                        <a href="{{ route('admin.support.index', ['user_id' => $user->id]) }}"><i class="fa-solid fa-headset" aria-hidden="true"></i> Ses tickets support</a>
-                    @endif
-                    @if(auth()->user()->hasPermissionTo('reports.manage'))
-                        <a href="{{ route('admin.reports.index', ['reporter_id' => $user->id]) }}"><i class="fa-solid fa-flag" aria-hidden="true"></i> Ses signalements</a>
                     @endif
                 </div>
             </section>
@@ -165,6 +157,26 @@
                 </div>
             </section>
         @endif
+
+        <section class="admin-card" aria-labelledby="user-support-title">
+            <div class="admin-card__header">
+                <div><span class="admin-card__eyebrow">Relation avec l’équipe PROXIWORK</span><h3 id="user-support-title">Support et modération</h3></div>
+            </div>
+            <dl class="admin-definition-list">
+                <div><dt>Tickets de support associés</dt><dd>{{ number_format($details['support']['tickets']) }}</dd></div>
+                <div><dt>Signalements émis</dt><dd>{{ number_format($details['support']['reports_filed']) }}</dd></div>
+                <div><dt>Signalements reçus sur ce compte</dt><dd>{{ number_format($details['support']['reports_received']) }}</dd></div>
+            </dl>
+            <div class="admin-users__module-links">
+                @if(auth()->user()->hasPermissionTo('support.manage'))
+                    <a href="{{ route('admin.support.index', ['user_id' => $user->id]) }}"><i class="fa-solid fa-headset" aria-hidden="true"></i> Tickets support</a>
+                @endif
+                @if(auth()->user()->hasPermissionTo('reports.manage'))
+                    <a href="{{ route('admin.reports.index', ['reporter_id' => $user->id]) }}"><i class="fa-solid fa-flag" aria-hidden="true"></i> Signalements émis</a>
+                    <a href="{{ route('admin.reports.index', ['target_type' => $user->getMorphClass(), 'target_id' => $user->id]) }}"><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i> Signalements reçus</a>
+                @endif
+            </div>
+        </section>
 
         <section class="admin-card" aria-labelledby="user-business-activity-title">
             <div class="admin-card__header">
