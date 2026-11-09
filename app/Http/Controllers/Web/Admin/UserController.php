@@ -43,7 +43,17 @@ class UserController extends Controller
         $this->authorize('view', $user);
 
         $canViewSensitive = $request->user()->can('viewSensitive', User::class);
-        $user->load(['roles', 'profile', 'professionalProfile.skills']);
+        $user->load([
+            'roles',
+            'profile' => function ($query) use ($canViewSensitive): void {
+                $columns = ['id', 'user_id', 'first_name', 'last_name'];
+                if ($canViewSensitive) {
+                    $columns[] = 'phone';
+                }
+                $query->select($columns);
+            },
+            'professionalProfile.skills',
+        ]);
 
         return view('admin.users.show', [
             'user' => $user,
