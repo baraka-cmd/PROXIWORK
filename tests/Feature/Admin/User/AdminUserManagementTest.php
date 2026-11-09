@@ -97,6 +97,9 @@ class AdminUserManagementTest extends TestCase
         $admin = $this->admin();
         $user = User::factory()->create();
         $user->assignRole('client');
+        $user->setRememberToken('existing-remember-token');
+        $user->save();
+        $oldRememberToken = $user->getRememberToken();
         $user->createToken('device');
         config(['session.driver' => 'database']);
         DB::table('sessions')->insert([
@@ -121,6 +124,7 @@ class AdminUserManagementTest extends TestCase
             'account_status' => 'suspended',
         ]);
         $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertNotSame($oldRememberToken, $user->fresh()->getRememberToken());
         $this->assertDatabaseMissing('sessions', ['id' => 'admin-user-test-'.$user->id]);
 
         $this->actingAs($admin, 'sanctum')
