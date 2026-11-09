@@ -247,8 +247,7 @@ body.navigation-is-open {
     color: #cbd5e1;
 }
 
-.admin-layout .dashboard-sidebar__nav {
-    min-height: 0;
+.admin-layout .dashboard-sidebar__nav {    min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
     padding: .65rem;
@@ -497,8 +496,7 @@ body.navigation-is-open {
     .admin-layout .dashboard-sidebar:focus-within .admin-nav-group__toggle,
     .admin-layout .dashboard-sidebar.is-pinned .admin-nav-group__toggle,
     .admin-layout .dashboard-sidebar:hover .admin-sidebar-pin,
-    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin,
-    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin,
+    .admin-layout .dashboard-sidebar:focus-within .admin-sidebar-pin,    .admin-layout .dashboard-sidebar.is-pinned .admin-sidebar-pin,
     .admin-layout .dashboard-sidebar:hover .admin-logout-button,
     .admin-layout .dashboard-sidebar:focus-within .admin-logout-button,
     .admin-layout .dashboard-sidebar.is-pinned .admin-logout-button {
@@ -747,8 +745,7 @@ body.navigation-is-open {
     color: var(--color-primary);
 }
 
-.dashboard-topbar__left,
-.dashboard-topbar__actions {
+.dashboard-topbar__left,.dashboard-topbar__actions {
     display: flex;
     align-items: center;
     gap: var(--space-3);
@@ -965,4 +962,184 @@ body.navigation-is-open {
 .admin-logout-button:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 3px;
+}
+
+/* Navigation compacte partagée des espaces Client et Professionnel. */
+.dashboard-layout:not(.admin-layout) {
+    --workspace-sidebar-compact: 72px;
+    --workspace-sidebar-expanded: 264px;
+}
+
+@media (min-width: 1024px) and (hover: hover) {
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar {
+        width: var(--workspace-sidebar-compact);
+        overflow: visible;
+        transition: width 230ms ease, transform var(--transition-slow);
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:hover,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:focus-within,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar.is-pinned {
+        width: var(--workspace-sidebar-expanded);
+        box-shadow: 8px 0 28px rgba(2, 6, 23, .16);
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar__header {
+        justify-content: center;
+        overflow: hidden;
+        padding-inline: .75rem;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar__header .brand {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar__nav {
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: .65rem;
+        scrollbar-width: thin;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar__footer {
+        overflow: hidden;
+        padding: .65rem;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-title,
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-link > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar__header .brand > span:last-child,
+    .dashboard-layout:not(.admin-layout) .dashboard-security-note > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar-pin > span {
+        display: block;
+        max-width: 220px;
+        overflow: hidden;
+        opacity: 1;
+        white-space: nowrap;
+        transition: opacity 180ms ease, max-width 230ms ease;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-title {
+        max-height: 30px;
+        transition: opacity 180ms ease, max-height 230ms ease;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-link {
+        min-height: 44px;
+        gap: .8rem;
+        white-space: nowrap;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-link > i {
+        width: 20px;
+        flex: 0 0 20px;
+        text-align: center;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar-pin {
+        display: flex;
+        width: 100%;
+        min-height: 44px;
+        align-items: center;
+        gap: .8rem;
+        margin: 0 0 .5rem;
+        padding: 0 .75rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background: var(--color-surface-muted);
+        color: var(--color-text-muted);
+        cursor: pointer;
+        font: inherit;
+        font-size: var(--font-size-sm);
+        white-space: nowrap;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar-pin > i {
+        width: 20px;
+        flex: 0 0 20px;
+        text-align: center;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar__header .brand > span:last-child,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-title,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-link > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-security-note > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-workspace-switch > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-logout-button > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar-pin > span {
+        max-width: 0;
+        max-height: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-section {
+        margin-bottom: .5rem;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-link,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-workspace-switch,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .admin-logout-button,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-sidebar-pin {
+        justify-content: center;
+        padding-inline: 0;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-link {
+        width: 44px;
+        margin-inline: auto;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar:not(:hover):not(:focus-within):not(.is-pinned) .dashboard-nav-badge {
+        display: none;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-content {
+        margin-left: var(--workspace-sidebar-compact);
+        transition: margin-left 230ms ease;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-content.is-dashboard-sidebar-pinned {
+        margin-left: var(--workspace-sidebar-expanded);
+    }
+}
+
+@media (min-width: 1024px) and (hover: none) {
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar {
+        width: var(--workspace-sidebar-expanded);
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-content {
+        margin-left: var(--workspace-sidebar-expanded);
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar-pin {
+        display: none;
+    }
+}
+
+@media (max-width: 1023px) {
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar {
+        width: min(86vw, 320px);
+        overflow: hidden;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar-pin {
+        display: none;
+    }
+
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-title,
+    .dashboard-layout:not(.admin-layout) .dashboard-nav-link > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-sidebar__header .brand > span:last-child,
+    .dashboard-layout:not(.admin-layout) .dashboard-security-note > span,
+    .dashboard-layout:not(.admin-layout) .dashboard-workspace-switch > span,
+    .dashboard-layout:not(.admin-layout) .admin-logout-button > span {
+        max-width: none;
+        max-height: none;
+        opacity: 1;
+        pointer-events: auto;
+    }
 }
