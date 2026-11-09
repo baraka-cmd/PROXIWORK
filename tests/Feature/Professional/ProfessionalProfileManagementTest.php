@@ -6,7 +6,8 @@ namespace Tests\Feature\Professional;
 
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
-use App\Models\Category;\nuse App\Models\ProfessionalDocument;
+use App\Models\Category;
+use App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\Skill;
