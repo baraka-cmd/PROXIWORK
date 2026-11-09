@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\UserAccountStatus;
 use App\Models\User;
 
 class UserPolicy
@@ -27,7 +28,7 @@ class UserPolicy
     {
         return $user->hasPermissionTo('admin.users.update')
             && $user->getKey() !== $subject->getKey()
-            && ! $subject->hasRole('admin');
+            && !$subject->hasRole('admin');
     }
 
     public function suspend(User $user, User $subject): bool
@@ -35,7 +36,7 @@ class UserPolicy
         return $user->hasPermissionTo('admin.users.suspend')
             && $user->getKey() !== $subject->getKey()
             && ! $subject->hasRole('admin')
-            && $subject->account_status === \App\Enums\UserAccountStatus::ACTIVE;
+            && $subject->account_status === UserAccountStatus::ACTIVE;
     }
 
     public function activate(User $user, User $subject): bool
@@ -43,6 +44,6 @@ class UserPolicy
         return $user->hasPermissionTo('admin.users.activate')
             && $user->getKey() !== $subject->getKey()
             && ! $subject->hasRole('admin')
-            && $subject->account_status === \App\Enums\UserAccountStatus::SUSPENDED;
+            && $subject->account_status === UserAccountStatus::SUSPENDED;
     }
 }
