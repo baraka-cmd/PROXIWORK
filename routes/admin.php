@@ -70,12 +70,15 @@ Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->g
     Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
 });
-Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->group(function (): void {
+Route::middleware(['auth', 'active.account', 'permission:skills.view'])->group(function (): void {
     Route::get('skills', [SkillController::class, 'index'])->name('skills.index');
+    Route::get('skills/{skill}/edit', [SkillController::class, 'edit'])->middleware('permission:skills.manage')->name('skills.edit');
+});
+Route::middleware(['auth', 'active.account', 'permission:skills.manage'])->group(function (): void {
     Route::get('skills/create', [SkillController::class, 'create'])->name('skills.create');
     Route::post('skills', [SkillController::class, 'store'])->name('skills.store');
-    Route::get('skills/{skill}/edit', [SkillController::class, 'edit'])->name('skills.edit');
     Route::put('skills/{skill}', [SkillController::class, 'update'])->name('skills.update');
+    Route::post('skills/{skill}/archive', [SkillController::class, 'archive'])->name('skills.archive');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {

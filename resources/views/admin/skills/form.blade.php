@@ -25,6 +25,7 @@
 
             <label class="admin-field"><span>Nom de la compétence</span><input name="name" value="{{ old('name', $skill?->name) }}" maxlength="100" required>@error('name')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label class="admin-field"><span>Slug (facultatif)</span><input name="slug" value="{{ old('slug', $skill?->slug) }}" maxlength="120">@error('slug')<small class="field-error">{{ $message }}</small>@enderror</label>
+            <label class="admin-field"><span>Icône (classe ou identifiant visuel)</span><input name="icon" value="{{ old('icon', $skill?->icon) }}" maxlength="100">@error('icon')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label class="admin-field"><span>Description</span><textarea name="description" rows="3" maxlength="2000">{{ old('description', $skill?->description) }}</textarea>@error('description')<small class="field-error">{{ $message }}</small>@enderror</label>
             <label class="admin-field"><span>État</span>
                 <select name="status" required>

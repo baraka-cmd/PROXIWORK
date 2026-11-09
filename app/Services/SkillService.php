@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Enums\CategoryStatus;
 use App\Enums\SkillStatus;
+use App\Models\Category;
 use App\Models\Skill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,25 +17,42 @@ class SkillService
     public function create(array $attributes): Skill
     {
         return DB::transaction(function () use ($attributes): Skill {
+            $this->assertCategoryIsActive((int) $attributes['category_id']);
             $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $attributes['name']);
 
-            return Skill::create($attributes);
+            return Skill::query()->create($attributes);
         });
     }
 
     public function update(Skill $skill, array $attributes): Skill
     {
         return DB::transaction(function () use ($skill, $attributes): Skill {
-            $skill->update($attributes);
+            $locked = Skill::query()->lockForUpdate()->findOrFail($skill->getKey());
+            $categoryId = (int) ($attributes['category_id'] ?? $locked->category_id);
 
-            return $skill->refresh();
+            if ($categoryId > 0) {
+                $this->assertCategoryIsActive($categoryId);
+            }
+
+            if (array_key_exists('name', $attributes) || array_key_exists('slug', $attributes)) {
+                $attributes['slug'] = $this->resolveSlug(
+                    $attributes['slug'] ?? null,
+                    $attributes['name'] ?? $locked->name,
+                    $locked,
+                );
+            }
+
+            $locked->update($attributes);
+
+            return $locked->refresh()->load('category');
         });
     }
 
     public function archive(Skill $skill): void
     {
         DB::transaction(function () use ($skill): void {
-            $skill->update(['status' => SkillStatus::ARCHIVED]);
+            Skill::query()->lockForUpdate()->findOrFail($skill->getKey())
+                ->update(['status' => SkillStatus::ARCHIVED]);
         });
     }
 
@@ -46,6 +65,10 @@ class SkillService
                 throw ValidationException::withMessages([
                     'skill_id' => 'Cette compétence n’est plus active.',
                 ]);
+            }
+
+            if ($skill->category_id !== null) {
+                $this->assertCategoryIsActive((int) $skill->category_id);
             }
 
             if (DB::table('professional_skills')
@@ -82,13 +105,27 @@ class SkillService
         }
     }
 
-    private function resolveSlug(?string $slug, string $name): string
+    private function assertCategoryIsActive(int $categoryId): void
     {
-        $base = $slug !== null && $slug !== '' ? $slug : Str::slug($name);
+        $category = Category::query()->lockForUpdate()->find($categoryId);
+
+        if ($category === null || $category->status !== CategoryStatus::ACTIVE) {
+            throw ValidationException::withMessages([
+                'category_id' => 'La compétence doit être rattachée à une catégorie active.',
+            ]);
+        }
+    }
+
+    private function resolveSlug(?string $slug, string $name, ?Skill $ignore = null): string
+    {
+        $base = Str::slug(filled($slug) ? $slug : $name) ?: 'competence';
         $candidate = $base;
         $suffix = 2;
 
-        while (Skill::query()->where('slug', $candidate)->exists()) {
+        while (Skill::query()
+            ->where('slug', $candidate)
+            ->when($ignore, fn ($query) => $query->whereKeyNot($ignore->getKey()))
+            ->exists()) {
             $candidate = $base.'-'.$suffix++;
         }
 
