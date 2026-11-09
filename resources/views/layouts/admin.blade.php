@@ -35,10 +35,10 @@
                     'title' => 'Utilisateurs',
                     'icon' => 'fa-users',
                     'items' => [
-                        ['label' => 'Tous les utilisateurs', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-users'],
-                        ['label' => 'Clients', 'route' => 'admin.users.index', 'parameters' => ['role' => 'client'], 'permission' => 'admin.users.view', 'icon' => 'fa-user-group'],
+                        ['label' => 'Tous les utilisateurs', 'route' => 'admin.users.index', 'active_query' => ['role' => null, 'account_status' => null], 'permission' => 'admin.users.view', 'icon' => 'fa-users'],
+                        ['label' => 'Clients', 'route' => 'admin.users.index', 'parameters' => ['role' => 'client'], 'active_query' => ['role' => 'client', 'account_status' => null], 'permission' => 'admin.users.view', 'icon' => 'fa-user-group'],
                         ['label' => 'Professionnels', 'route' => 'admin.professionals.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-user-tie'],
-                        ['label' => 'Comptes suspendus', 'route' => 'admin.users.index', 'parameters' => ['account_status' => 'suspended'], 'permission' => 'admin.users.view', 'icon' => 'fa-user-lock'],
+                        ['label' => 'Comptes suspendus', 'route' => 'admin.users.index', 'parameters' => ['account_status' => 'suspended'], 'active_query' => ['role' => null, 'account_status' => 'suspended'], 'permission' => 'admin.users.view', 'icon' => 'fa-user-lock'],
                         ['label' => 'Rôles', 'route' => 'admin.roles.index', 'permission' => 'rbac.view', 'icon' => 'fa-user-shield'],
                         ['label' => 'Permissions', 'route' => 'admin.permissions.index', 'permission' => 'rbac.view', 'icon' => 'fa-key'],
                     ],
@@ -47,8 +47,8 @@
                     'title' => 'Vérifications',
                     'icon' => 'fa-user-check',
                     'items' => [
-                        ['label' => 'Dossiers professionnels', 'route' => 'admin.verification.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-folder-open'],
-                        ['label' => 'Dossiers en attente', 'route' => 'admin.verification.index', 'parameters' => ['verification_status' => 'pending'], 'permission' => 'admin.professionals.view', 'icon' => 'fa-hourglass-half'],
+                        ['label' => 'Dossiers professionnels', 'route' => 'admin.verification.index', 'active_query' => ['verification_status' => null], 'permission' => 'admin.professionals.view', 'icon' => 'fa-folder-open'],
+                        ['label' => 'Dossiers en attente', 'route' => 'admin.verification.index', 'parameters' => ['verification_status' => 'pending'], 'active_query' => ['verification_status' => 'pending'], 'permission' => 'admin.professionals.view', 'icon' => 'fa-hourglass-half'],
                     ],
                 ],
                 [
@@ -57,8 +57,8 @@
                     'items' => [
                         ['label' => 'Catégories', 'route' => 'admin.categories.index', 'permission' => 'categories.view', 'icon' => 'fa-layer-group'],
                         ['label' => 'Compétences', 'route' => 'admin.skills.index', 'permission' => 'categories.manage', 'icon' => 'fa-list-check'],
-                        ['label' => 'Tous les services', 'route' => 'admin.services.index', 'permission' => 'admin.services.view', 'icon' => 'fa-briefcase'],
-                        ['label' => 'Services publiés', 'route' => 'admin.services.index', 'parameters' => ['status' => 'published'], 'permission' => 'admin.services.view', 'icon' => 'fa-circle-check'],
+                        ['label' => 'Tous les services', 'route' => 'admin.services.index', 'active_query' => ['status' => null], 'permission' => 'admin.services.view', 'icon' => 'fa-briefcase'],
+                        ['label' => 'Services publiés', 'route' => 'admin.services.index', 'parameters' => ['status' => 'published'], 'active_query' => ['status' => 'published'], 'permission' => 'admin.services.view', 'icon' => 'fa-circle-check'],
                     ],
                 ],
                 [
@@ -136,8 +136,12 @@
                     <div id="{{ $groupId }}" class="admin-nav-group__items" @if (! $isActive) hidden @endif>
                         @foreach ($visibleItems as $item)
                             @php
-                                $itemActive = request()->routeIs($item['route'])
+                                $itemMatchesRoute = request()->routeIs($item['route'])
                                     || (! ($item['exact'] ?? false) && request()->routeIs(str_replace('.index', '.*', $item['route'])));
+                                $queryMatches = collect($item['active_query'] ?? [])->every(
+                                    fn ($value, $key): bool => request()->query($key) === $value,
+                                );
+                                $itemActive = $itemMatchesRoute && $queryMatches;
                             @endphp
 
                             <a
