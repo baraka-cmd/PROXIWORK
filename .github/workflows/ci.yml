@@ -68,6 +68,9 @@ jobs:
           vendor/bin/phpunit tests/Feature/Admin/Dashboard
           vendor/bin/phpunit tests/Feature/Admin/WebAdminDashboardTest.php
 
+      - name: Run admin user management regression tests
+        run: vendor/bin/phpunit tests/Feature/Admin/User
+
       - name: Run test suite
         run: vendor/bin/phpunit
 

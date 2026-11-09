@@ -92,6 +92,47 @@ class ReportControllerTest extends TestCase
         $this->assertSame('active', $reporter->refresh()->account_status->value);
     }
 
+    public function test_admin_moderation_uses_the_audited_user_suspension_lifecycle(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::query()->where('name', 'admin')->firstOrFail());
+
+        $reporter = User::factory()->create();
+        $target = User::factory()->create();
+        $target->assignRole('client');
+
+        $report = Report::query()->create([
+            'reporter_id' => $reporter->id,
+            'target_type' => User::class,
+            'target_id' => $target->id,
+            'reason_code' => 'ABUSE',
+            'description' => 'Signalement nécessitant une intervention.',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.reports.start-review', $report))
+            ->assertRedirect();
+
+        $this->actingAs($admin)
+            ->post(route('admin.reports.moderate', $report), [
+                'action_type' => 'suspend_user',
+                'reason_code' => 'ABUSE',
+                'note' => 'Suspension décidée après examen du signalement.',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $target->id,
+            'account_status' => 'suspended',
+            'suspension_reason' => 'administrative_decision',
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'admin.user.suspended',
+            'subject_id' => $target->id,
+        ]);
+    }
+
     public function test_non_moderator_cannot_access_reports(): void
     {
         $user = User::factory()->create();

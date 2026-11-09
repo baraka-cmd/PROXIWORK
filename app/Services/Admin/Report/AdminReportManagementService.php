@@ -46,6 +46,10 @@ class AdminReportManagementService
             });
         }
 
+        if (! empty($filters['reporter_id'])) {
+            $query->where('reporter_id', $filters['reporter_id']);
+        }
+
         foreach (['status', 'priority', 'target_type', 'assigned_to'] as $filter) {
             if (($value = $filters[$filter] ?? null) !== null && $value !== '') {
                 $query->where($filter, $value);
@@ -207,7 +211,16 @@ class AdminReportManagementService
                 ModerationActionType::WARNING => null,
                 ModerationActionType::HIDE_REVIEW => $this->hideReview($target->target, $actor, $request),
                 ModerationActionType::UNPUBLISH_SERVICE => $this->serviceService->unpublish($target->target, $actor),
-                ModerationActionType::SUSPEND_USER => $this->userService->suspend($target->target, $actor, $request),
+                ModerationActionType::SUSPEND_USER => $this->userService->suspend(
+                    $target->target,
+                    $actor,
+                    [
+                        'reason_code' => 'administrative_decision',
+                        'duration' => 'until_review',
+                        'note' => $note ?? ('Intervention consécutive au signalement #'.$target->getKey()),
+                    ],
+                    $request,
+                ),
                 ModerationActionType::SUSPEND_PROFESSIONAL => $this->professionalService->suspend($target->target, $actor, $request),
             };
 

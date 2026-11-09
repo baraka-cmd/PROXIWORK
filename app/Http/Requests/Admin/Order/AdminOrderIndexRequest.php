@@ -20,6 +20,8 @@ class AdminOrderIndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:120'],
+            'client_id' => ['nullable', 'integer', 'exists:users,id'],
+            'professional_id' => ['nullable', 'integer', 'exists:professional_profiles,id'],
             'status' => ['nullable', Rule::enum(OrderStatus::class)],
             'status_group' => ['nullable', Rule::in(['active'])],
             'payment_status' => ['nullable', Rule::enum(PaymentStatus::class)],

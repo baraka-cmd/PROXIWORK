@@ -8,12 +8,17 @@ use App\Enums\UserAccountStatus;
 use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\Quotation;
+use App\Models\Review;
+use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
-use BackedEnum;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class AdminUserService
@@ -22,183 +27,528 @@ class AdminUserService
         private readonly AuditLogService $auditLogService,
     ) {}
 
-    public function paginate(array $filters)
+    public function paginate(array $filters): LengthAwarePaginator
     {
-        $query = User::query()->with(['roles', 'profile', 'professionalProfile']);
+        return $this->usersQuery($filters)
+            ->orderBy(
+                ltrim((string) ($filters['sort'] ?? '-created_at'), '-'),
+                str_starts_with((string) ($filters['sort'] ?? '-created_at'), '-') ? 'desc' : 'asc',
+            )
+            ->orderBy('users.id')
+            ->paginate((int) ($filters['per_page'] ?? 25))
+            ->withQueryString();
+    }
+
+    /**
+     * Each summary card preserves the active search and common filters,
+     * neutralizing only the dimension represented by that card.
+     */
+    public function overview(array $filters = []): array
+    {
+        $allFilters = $this->usersQuery($filters);
+        $roleScope = $this->usersQuery($filters, includeRole: false);
+        $statusScope = $this->usersQuery($filters, includeStatus: false);
+
+        return [
+            'total' => (clone $allFilters)->count('users.id'),
+            'clients' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'client'))->count('users.id'),
+            'professionals' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'professional'))->count('users.id'),
+            'active' => (clone $statusScope)->where('users.account_status', UserAccountStatus::ACTIVE->value)->count('users.id'),
+            'suspended' => (clone $statusScope)->where('users.account_status', UserAccountStatus::SUSPENDED->value)->count('users.id'),
+            'new' => (clone $allFilters)->where('users.created_at', '>=', now()->subDays(29)->startOfDay())->count('users.id'),
+        ];
+    }
+
+    private function usersQuery(
+        array $filters,
+        bool $includeRole = true,
+        bool $includeStatus = true,
+    ): Builder
+    {
+        $query = User::query()
+            ->select('users.*')
+            ->with(['roles', 'profile', 'professionalProfile']);
 
         if (! empty($filters['search'])) {
-            $search = trim($filters['search']);
-            $query->where(function ($q) use ($search): void {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhereKey(is_numeric($search) ? (int) $search : -1)
-                    ->orWhereHas('profile', fn ($profile) => $profile->where('phone', 'like', "%{$search}%"))
-                    ->orWhereHas('profile', fn ($profile) => $profile->whereRaw("TRIM(CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, ''))) LIKE ?", ["%{$search}%"]));
+            $search = trim((string) $filters['search']);
+            $query->where(function (Builder $q) use ($search): void {
+                $q->where('users.name', 'like', "%{$search}%")
+                    ->orWhere('users.email', 'like', "%{$search}%")
+                    ->orWhere('users.id', is_numeric($search) ? '=' : 'like', is_numeric($search) ? (int) $search : "%{$search}%")
+                    ->orWhereHas('profile', function (Builder $profile) use ($search): void {
+                        $profile->where('phone', 'like', "%{$search}%")
+                            ->orWhere('first_name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%");
+
+                        $nameParts = preg_split('/\\s+/', $search, 2);
+                        if (count($nameParts) === 2) {
+                            [$firstName, $lastName] = $nameParts;
+                            $profile->orWhere(function (Builder $name) use ($firstName, $lastName): void {
+                                $name->where('first_name', 'like', "%{$firstName}%")
+                                    ->where('last_name', 'like', "%{$lastName}%");
+                            })->orWhere(function (Builder $name) use ($firstName, $lastName): void {
+                                $name->where('first_name', 'like', "%{$lastName}%")
+                                    ->where('last_name', 'like', "%{$firstName}%");
+                            });
+                        }
+                    });
             });
         }
 
-        if (($role = $filters['role'] ?? null) !== null) {
-            $query->whereHas('roles', fn ($roles) => $roles->where('name', $role));
+        if ($includeRole && ! empty($filters['role'])) {
+            $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', $filters['role']));
         }
 
-        if (($status = $filters['account_status'] ?? null) !== null) {
-            $status = $status instanceof BackedEnum ? $status->value : $status;
-            $query->where('account_status', $status);
+        if ($includeStatus && ! empty($filters['account_status'])) {
+            $query->where('users.account_status', $filters['account_status']);
         }
 
-        if (($period = $filters['period'] ?? null) !== null) {
-            $start = match ($period) {
+        if (! empty($filters['period'])) {
+            $start = match ($filters['period']) {
                 'today' => now()->startOfDay(),
                 '7d' => now()->subDays(6)->startOfDay(),
                 '30d' => now()->subDays(29)->startOfDay(),
             };
-            $query->where('created_at', '>=', $start);
+            $query->where('users.created_at', '>=', $start);
+        }
+
+        if (! empty($filters['created_from'])) {
+            $query->whereDate('users.created_at', '>=', $filters['created_from']);
+        }
+
+        if (! empty($filters['created_to'])) {
+            $query->whereDate('users.created_at', '<=', $filters['created_to']);
         }
 
         if (! empty($filters['location'])) {
-            $location = trim($filters['location']);
-            $query->where(function ($q) use ($location): void {
-                $q->whereHas('professionalProfile', fn ($profile) => $profile->where('city', 'like', "%{$location}%")
+            $location = trim((string) $filters['location']);
+            $query->where(function (Builder $q) use ($location): void {
+                $q->whereHas('professionalProfile', fn (Builder $profile) => $profile
+                    ->where('city', 'like', "%{$location}%")
                     ->orWhere('province', 'like', "%{$location}%")
                     ->orWhere('commune', 'like', "%{$location}%"))
-                    ->orWhereHas('addresses', fn ($address) => $address->where('city', 'like', "%{$location}%")
+                    ->orWhereHas('addresses', fn (Builder $address) => $address
+                        ->where('city', 'like', "%{$location}%")
                         ->orWhere('province', 'like', "%{$location}%")
-                        ->orWhere('commune', 'like', "%{$location}%"));
+                        ->orWhere('commune', 'like', "%{$location}%")
+                        ->orWhere('neighborhood', 'like', "%{$location}%"));
             });
         }
 
-        if (array_key_exists('email_verified', $filters)) {
+        if (array_key_exists('email_verified', $filters) && $filters['email_verified'] !== null) {
             $filters['email_verified']
-                ? $query->whereNotNull('email_verified_at')
-                : $query->whereNull('email_verified_at');
+                ? $query->whereNotNull('users.email_verified_at')
+                : $query->whereNull('users.email_verified_at');
         }
 
-        $query->when($filters['created_from'] ?? null, fn ($q, $date) => $q->where('created_at', '>=', $date));
-        $query->when($filters['created_to'] ?? null, fn ($q, $date) => $q->where('created_at', '<=', $date));
+        if (! empty($filters['verification_status'])) {
+            $query->whereHas('professionalProfile', fn (Builder $profile) => $profile
+                ->where('verification_status', $filters['verification_status']));
+        }
 
-        $sort = $filters['sort'] ?? '-created_at';
-        $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
-        $column = ltrim($sort, '-');
-        $query->orderBy($column, $direction);
+        if (! empty($filters['activity']) && $this->sessionActivityAvailable()) {
+            $threshold = now()->subDays($filters['activity'] === 'recent_7d' ? 7 : 30)->timestamp;
+            if ($filters['activity'] === 'recent_7d') {
+                $query->whereExists(fn ($sessions) => $sessions->selectRaw('1')
+                    ->from((string) config('session.table', 'sessions'))
+                    ->whereColumn(config('session.table', 'sessions').'.user_id', 'users.id')
+                    ->where(config('session.table', 'sessions').'.last_activity', '>=', $threshold));
+            } else {
+                $query->whereNotExists(fn ($sessions) => $sessions->selectRaw('1')
+                    ->from((string) config('session.table', 'sessions'))
+                    ->whereColumn(config('session.table', 'sessions').'.user_id', 'users.id')
+                    ->where(config('session.table', 'sessions').'.last_activity', '>=', $threshold));
+            }
+        }
 
-        return $query->paginate((int) ($filters['per_page'] ?? 25))->withQueryString();
+        if ($this->sessionActivityAvailable()) {
+            $query->addSelect([
+                'last_activity_timestamp' => DB::table((string) config('session.table', 'sessions'))
+                    ->selectRaw('MAX(last_activity)')
+                    ->whereColumn(config('session.table', 'sessions').'.user_id', 'users.id'),
+            ]);
+        }
+
+        return $query;
     }
 
-    public function overview(): array
+    public function sessionActivityAvailable(): bool
     {
-        $base = User::query();
-        $newSince = now()->subDays(29)->startOfDay();
-
-        return [
-            'total' => (clone $base)->count(),
-            'clients' => (clone $base)->whereHas('roles', fn ($q) => $q->where('name', 'client'))->count(),
-            'professionals' => (clone $base)->whereHas('roles', fn ($q) => $q->where('name', 'professional'))->count(),
-            'active' => (clone $base)->where('account_status', UserAccountStatus::ACTIVE->value)->count(),
-            'suspended' => (clone $base)->where('account_status', UserAccountStatus::SUSPENDED->value)->count(),
-            'new' => (clone $base)->where('created_at', '>=', $newSince)->count(),
-        ];
+        return config('session.driver') === 'database'
+            && Schema::hasTable((string) config('session.table', 'sessions'));
     }
 
     public function detail(User $user): array
     {
-        $professionalId = $user->professionalProfile?->getKey();
-        $requests = $user->serviceRequests()->count();
-        $receivedRequests = $professionalId ? $user->professionalProfile->serviceRequests()->count() : 0;
-        $clientOrders = Order::query()->where('client_id', $user->getKey())->count();
-        $professionalOrders = $professionalId ? Order::query()->where('professional_id', $professionalId)->count() : 0;
+        $professionalProfile = $user->professionalProfile;
+        $professionalId = $professionalProfile?->getKey();
+        $clientOrders = Order::query()->where('client_id', $user->getKey());
+        $professionalOrders = $professionalId
+            ? Order::query()->where('professional_id', $professionalId)
+            : Order::query()->whereRaw('1 = 0');
+
+        $defaultAddress = $user->addresses()->where('is_default', true)
+            ->first(['province', 'city', 'commune', 'neighborhood']);
+
+        $businessActivity = collect();
+
+        if ($user->hasRole('client')) {
+            ServiceRequest::query()->where('client_id', $user->getKey())
+                ->latest('created_at')->limit(10)->get(['id', 'title', 'created_at'])
+                ->each(fn ($request) => $businessActivity->push([
+                    'type' => 'Demande de service',
+                    'description' => $request->title ?: 'Demande #'.$request->id,
+                    'date' => $request->created_at,
+                ]));
+
+            (clone $clientOrders)->latest('created_at')->limit(10)->get(['id', 'order_number', 'status', 'created_at', 'completed_at'])
+                ->each(fn ($order) => $businessActivity->push([
+                    'type' => $order->completed_at ? 'Commande terminée' : 'Commande',
+                    'description' => $order->order_number ?: 'Commande #'.$order->id,
+                    'date' => $order->completed_at ?? $order->created_at,
+                ]));
+
+            Quotation::query()->whereHas('serviceRequest', fn (Builder $q) => $q->where('client_id', $user->getKey()))
+                ->latest('created_at')->limit(10)->get(['id', 'created_at'])
+                ->each(fn ($quotation) => $businessActivity->push([
+                    'type' => 'Devis reçu',
+                    'description' => 'Devis #'.$quotation->id,
+                    'date' => $quotation->created_at,
+                ]));
+
+            Review::query()->where('client_id', $user->getKey())
+                ->latest('created_at')->limit(10)->get(['id', 'published_at', 'created_at'])
+                ->each(fn ($review) => $businessActivity->push([
+                    'type' => 'Avis créé',
+                    'description' => 'Avis #'.$review->id,
+                    'date' => $review->published_at ?? $review->created_at,
+                ]));
+        }
+
+        if ($professionalId !== null) {
+            $professionalProfile->serviceRequests()
+                ->latest('created_at')->limit(10)->get(['id', 'title', 'created_at'])
+                ->each(fn ($request) => $businessActivity->push([
+                    'type' => 'Demande reçue',
+                    'description' => $request->title ?: 'Demande #'.$request->id,
+                    'date' => $request->created_at,
+                ]));
+
+            (clone $professionalOrders)->latest('created_at')->limit(10)->get(['id', 'order_number', 'status', 'created_at', 'completed_at'])
+                ->each(fn ($order) => $businessActivity->push([
+                    'type' => $order->completed_at ? 'Prestation terminée' : 'Commande reçue',
+                    'description' => $order->order_number ?: 'Commande #'.$order->id,
+                    'date' => $order->completed_at ?? $order->created_at,
+                ]));
+        }
+
+        $businessActivity = $businessActivity
+            ->filter(fn (array $event) => $event['date'] !== null)
+            ->sortByDesc(fn (array $event) => $event['date']->getTimestamp())
+            ->take(20)
+            ->values();
+
+        $lastActivity = null;
+        if ($this->sessionActivityAvailable()) {
+            $lastActivityTimestamp = DB::table((string) config('session.table', 'sessions'))
+                ->where('user_id', $user->getKey())
+                ->max('last_activity');
+            $lastActivity = $lastActivityTimestamp ? now()->setTimestamp((int) $lastActivityTimestamp) : null;
+        }
 
         return [
             'client' => [
-                'requests' => $requests,
-                'quotations' => Quotation::query()->whereHas('serviceRequest', fn ($q) => $q->where('client_id', $user->getKey()))->count(),
-                'orders' => $clientOrders,
-                'completed_orders' => Order::query()->where('client_id', $user->getKey())->where('status', 'completed')->count(),
-                'cancelled_orders' => Order::query()->where('client_id', $user->getKey())->where('status', 'cancelled')->count(),
-                'disputes' => Order::query()->where('client_id', $user->getKey())->where('status', 'disputed')->count(),
+                'requests' => $user->serviceRequests()->count(),
+                'quotations' => Quotation::query()->whereHas('serviceRequest', fn (Builder $q) => $q->where('client_id', $user->getKey()))->count(),
+                'orders' => (clone $clientOrders)->count(),
+                'completed_orders' => (clone $clientOrders)->where('status', 'completed')->count(),
+                'cancelled_orders' => (clone $clientOrders)->where('status', 'cancelled')->count(),
+                'disputes' => (clone $clientOrders)->where('status', 'disputed')->count(),
+                'support_tickets' => $user->supportTickets()->count(),
+                'reports' => $user->reports()->count(),
+                'location' => collect([$defaultAddress?->city, $defaultAddress?->commune, $defaultAddress?->neighborhood, $defaultAddress?->province])->filter()->join(', '),
             ],
             'professional' => $professionalId ? [
-                'verification' => $user->professionalProfile->verification_status?->value,
-                'profile_complete' => filled($user->professionalProfile->professional_title) && filled($user->professionalProfile->description)
-                    && filled($user->professionalProfile->city) && filled($user->professionalProfile->province)
-                    && $user->professionalProfile->skills()->exists(),
-                'services' => $user->professionalProfile->services()->count(),
-                'published_services' => $user->professionalProfile->services()->where('status', 'published')->count(),
-                'requests' => $receivedRequests,
-                'quotations' => Quotation::query()->whereHas('serviceRequest', fn ($q) => $q->where('professional_id', $professionalId))->count(),
-                'orders' => $professionalOrders,
-                'rating' => $user->professionalProfile->rating_average,
-                'reviews' => $user->professionalProfile->rating_count,
-                'availability' => $user->professionalProfile->availability_status?->value,
+                'verification' => $professionalProfile->verification_status?->value,
+                'profile_complete' => filled($professionalProfile->professional_title)
+                    && filled($professionalProfile->description)
+                    && filled($professionalProfile->city)
+                    && filled($professionalProfile->province)
+                    && $professionalProfile->skills()->exists(),
+                'services' => $professionalProfile->services()->count(),
+                'published_services' => $professionalProfile->services()->where('status', 'published')->count(),
+                'requests' => $professionalProfile->serviceRequests()->count(),
+                'quotations' => Quotation::query()->whereHas('serviceRequest', fn (Builder $q) => $q->where('professional_id', $professionalId))->count(),
+                'orders' => (clone $professionalOrders)->count(),
+                'rating' => $professionalProfile->rating_average,
+                'reviews' => $professionalProfile->rating_count,
+                'availability' => $professionalProfile->availability_status?->value,
+                'status' => $professionalProfile->status,
+                'visibility' => $professionalProfile->visibility,
             ] : null,
-            'activity' => AuditLog::query()->where('subject_type', User::class)
-                ->where('subject_id', $user->getKey())->latest()->limit(20)->get(),
+            'last_activity' => $lastActivity,
+            'business_activity' => $businessActivity,
+            'administrative_activity' => AuditLog::query()
+                ->with('user:id,name')
+                ->where('subject_type', $user->getMorphClass())
+                ->where('subject_id', $user->getKey())
+                ->latest('created_at')
+                ->latest('id')
+                ->limit(20)
+                ->get(),
         ];
     }
 
-    public function suspend(User $user, User $actor, Request $request): User
+    public function updateIdentity(User $user, User $actor, array $data, Request $request): User
     {
-        $changed = false;
-        $updated = DB::transaction(function () use ($user, $actor, $request, &$changed): User {
+        $updated = DB::transaction(function () use ($user, $actor, $data, $request): User {
             $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
-            if ($target->getKey() === $actor->getKey()) {
+            if ($target->getKey() === $actor->getKey() || $target->hasRole('admin')) {
                 throw ValidationException::withMessages([
-                    'user' => ['Un administrateur ne peut pas suspendre son propre compte.'],
+                    'user' => ['Ce compte ne peut pas être modifié depuis cette rubrique.'],
                 ]);
             }
 
-            if ($target->account_status === UserAccountStatus::SUSPENDED) {
-                return $target->fresh(['roles']);
+            $firstName = trim($data['first_name']);
+            $lastName = trim($data['last_name']);
+            $fullName = trim($firstName.' '.$lastName);
+            $profile = $target->profile()->firstOrNew();
+
+            $previous = [
+                'account_name' => $target->name,
+                'first_name' => $profile->first_name,
+                'last_name' => $profile->last_name,
+            ];
+
+            if (
+                $target->name === $fullName
+                && $profile->first_name === $firstName
+                && $profile->last_name === $lastName
+            ) {
+                throw ValidationException::withMessages([
+                    'first_name' => ['Aucune modification du nom n’a été détectée.'],
+                ]);
             }
 
-            $target->account_status = UserAccountStatus::SUSPENDED->value;
+            $profile->first_name = $firstName;
+            $profile->last_name = $lastName;
+            $profile->save();
+
+            $target->name = $fullName;
             $target->save();
-            $changed = true;
+
+            $this->auditLogService->record(
+                'admin.user.identity_updated',
+                $target,
+                $actor,
+                [
+                    'previous' => $previous,
+                    'new' => [
+                        'account_name' => $fullName,
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                    ],
+                    'reason' => $data['reason'],
+                ],
+                $request,
+            );
+
+            return $target->fresh(['roles', 'profile']);
+        });
+
+        $updated->notify(new AccountActivityNotification(
+            'Informations de compte corrigées',
+            'L’administration a corrigé le prénom ou le nom associé à votre compte PROXIWORK. Si cette modification vous semble incorrecte, contactez le support.',
+            'account_identity_updated',
+        ));
+
+        return $updated;
+    }
+
+    public function suspend(User $user, User $actor, array $data, Request $request): User
+    {
+        $until = match ($data['duration']) {
+            '7d' => now()->addDays(7),
+            '30d' => now()->addDays(30),
+            'custom' => Carbon::parse($data['suspended_until']),
+            default => null,
+        };
+
+        $updated = DB::transaction(function () use ($user, $actor, $request, $data, $until): User {
+            $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
+
+            if ($target->getKey() === $actor->getKey() || $target->hasRole('admin')) {
+                throw ValidationException::withMessages([
+                    'user' => ['Ce compte ne peut pas être suspendu depuis cette rubrique.'],
+                ]);
+            }
+
+            if ($target->account_status !== UserAccountStatus::ACTIVE) {
+                throw ValidationException::withMessages([
+                    'user' => ['Ce compte est déjà suspendu.'],
+                ]);
+            }
+
+            $target->account_status = UserAccountStatus::SUSPENDED;
+            $target->suspended_at = now();
+            $target->suspended_until = $until;
+            $target->suspended_by = $actor->getKey();
+            $target->suspension_reason = $data['reason_code'];
+            $target->suspension_note = $data['note'] ?? null;
+            $target->save();
+
             $target->tokens()->delete();
+
+            if ($this->sessionActivityAvailable()) {
+                DB::table((string) config('session.table', 'sessions'))
+                    ->where('user_id', $target->getKey())
+                    ->delete();
+            }
 
             $this->auditLogService->record(
                 'admin.user.suspended',
                 $target,
                 $actor,
-                ['previous_status' => UserAccountStatus::ACTIVE->value, 'new_status' => UserAccountStatus::SUSPENDED->value],
+                [
+                    'previous_status' => UserAccountStatus::ACTIVE->value,
+                    'new_status' => UserAccountStatus::SUSPENDED->value,
+                    'reason_code' => $data['reason_code'],
+                    'duration' => $data['duration'],
+                    'suspended_until' => $until?->toISOString(),
+                    'note' => $data['note'] ?? null,
+                ],
                 $request,
             );
 
-            return $target->fresh(['roles']);
+            return $target->fresh(['roles', 'suspendedBy']);
         });
 
-        if ($changed) {
-            $updated->notify(new AccountActivityNotification(
-                'Compte suspendu',
-                'Votre compte PROXIWORK a été suspendu par l’administration.',
-                'account_suspended',
-            ));
-        }
+        $updated->notify(new AccountActivityNotification(
+            'Compte suspendu',
+            'Votre compte PROXIWORK a été suspendu par l’administration. Consultez votre espace pour connaître les informations relatives à cette décision.',
+            'account_suspended',
+            priority: 'important',
+        ));
 
         return $updated;
     }
 
-    public function activate(User $user, User $actor, Request $request): User
+    public function activate(User $user, User $actor, string $reason, Request $request): User
     {
-        return DB::transaction(function () use ($user, $actor, $request): User {
+        $updated = DB::transaction(function () use ($user, $actor, $reason, $request): User {
             $target = User::query()->lockForUpdate()->findOrFail($user->getKey());
 
-            if ($target->account_status === UserAccountStatus::ACTIVE) {
-                return $target;
+            if ($target->getKey() === $actor->getKey() || $target->hasRole('admin')) {
+                throw ValidationException::withMessages([
+                    'user' => ['Ce compte ne peut pas être réactivé depuis cette rubrique.'],
+                ]);
             }
 
-            $target->account_status = UserAccountStatus::ACTIVE->value;
+            if ($target->account_status !== UserAccountStatus::SUSPENDED) {
+                throw ValidationException::withMessages([
+                    'user' => ['Ce compte n’est pas suspendu.'],
+                ]);
+            }
+
+            $previousReason = $target->suspension_reason;
+            $previousUntil = $target->suspended_until?->toISOString();
+
+            $target->account_status = UserAccountStatus::ACTIVE;
+            $target->suspended_at = null;
+            $target->suspended_until = null;
+            $target->suspended_by = null;
+            $target->suspension_reason = null;
+            $target->suspension_note = null;
             $target->save();
 
             $this->auditLogService->record(
                 'admin.user.activated',
                 $target,
                 $actor,
-                ['previous_status' => UserAccountStatus::SUSPENDED->value, 'new_status' => UserAccountStatus::ACTIVE->value],
+                [
+                    'previous_status' => UserAccountStatus::SUSPENDED->value,
+                    'new_status' => UserAccountStatus::ACTIVE->value,
+                    'previous_reason_code' => $previousReason,
+                    'previous_suspended_until' => $previousUntil,
+                    'reason' => $reason,
+                ],
                 $request,
             );
 
             return $target->fresh(['roles']);
         });
+
+        $updated->notify(new AccountActivityNotification(
+            'Compte réactivé',
+            'Votre compte PROXIWORK a été réactivé par l’administration.',
+            'account_activated',
+        ));
+
+        return $updated;
+    }
+
+    public function expireSuspensions(): int
+    {
+        $expiredCount = 0;
+
+        User::query()
+            ->where('account_status', UserAccountStatus::SUSPENDED->value)
+            ->whereNotNull('suspended_until')
+            ->where('suspended_until', '<=', now())
+            ->orderBy('id')
+            ->chunkById(100, function ($users) use (&$expiredCount): void {
+                foreach ($users as $user) {
+                    $expired = DB::transaction(function () use ($user): ?User {
+                        $target = User::query()->lockForUpdate()->find($user->getKey());
+
+                        if (
+                            $target === null
+                            || $target->account_status !== UserAccountStatus::SUSPENDED
+                            || $target->suspended_until === null
+                            || $target->suspended_until->isFuture()
+                        ) {
+                            return null;
+                        }
+
+                        $previousReason = $target->suspension_reason;
+                        $previousUntil = $target->suspended_until->toISOString();
+
+                        $target->account_status = UserAccountStatus::ACTIVE;
+                        $target->suspended_at = null;
+                        $target->suspended_until = null;
+                        $target->suspended_by = null;
+                        $target->suspension_reason = null;
+                        $target->suspension_note = null;
+                        $target->save();
+
+                        $this->auditLogService->record(
+                            'admin.user.suspension_expired',
+                            $target,
+                            null,
+                            [
+                                'previous_status' => UserAccountStatus::SUSPENDED->value,
+                                'new_status' => UserAccountStatus::ACTIVE->value,
+                                'previous_reason_code' => $previousReason,
+                                'previous_suspended_until' => $previousUntil,
+                                'actor' => 'system',
+                            ],
+                        );
+
+                        return $target;
+                    });
+
+                    if ($expired !== null) {
+                        $expired->notify(new AccountActivityNotification(
+                            'Fin de suspension',
+                            'La période de suspension de votre compte PROXIWORK est arrivée à son terme. Votre compte est de nouveau actif.',
+                            'account_suspension_expired',
+                        ));
+                        $expiredCount++;
+                    }
+                }
+            });
+
+        return $expiredCount;
     }
 }

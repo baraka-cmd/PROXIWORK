@@ -21,6 +21,7 @@ class AdminPaymentIndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:120'],
+            'client_id' => ['nullable', 'integer', 'exists:users,id'],
             'status' => ['nullable', Rule::enum(PaymentStatus::class)],
             'transaction_status' => ['nullable', Rule::enum(PaymentTransactionStatus::class)],
             'refund_status_group' => ['nullable', Rule::in(['open'])],

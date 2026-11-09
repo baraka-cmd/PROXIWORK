@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin\User;
 
+use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\UserAccountStatus;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,16 +34,18 @@ class AdminUserIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search' => ['sometimes', 'string', 'max:160'],
-            'role' => ['sometimes', 'string', 'max:50'],
-            'account_status' => ['sometimes', Rule::enum(UserAccountStatus::class)],
-            'email_verified' => ['sometimes', 'boolean'],
-            'period' => ['sometimes', Rule::in(['today', '7d', '30d'])],
-            'location' => ['sometimes', 'string', 'max:120'],
-            'created_from' => ['sometimes', 'date'],
-            'created_to' => ['sometimes', 'date', 'after_or_equal:created_from'],
-            'sort' => ['sometimes', Rule::in(['created_at', '-created_at', 'name', '-name'])],
-            'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'search' => ['nullable', 'string', 'max:160'],
+            'role' => ['nullable', 'string', 'max:50', Rule::exists('roles', 'name')],
+            'account_status' => ['nullable', Rule::enum(UserAccountStatus::class)],
+            'email_verified' => ['nullable', 'boolean'],
+            'period' => ['nullable', Rule::in(['today', '7d', '30d'])],
+            'location' => ['nullable', 'string', 'max:120'],
+            'verification_status' => ['nullable', Rule::enum(ProfessionalVerificationStatus::class)],
+            'activity' => ['nullable', Rule::in(['recent_7d', 'inactive_30d'])],
+            'created_from' => ['nullable', 'date'],
+            'created_to' => ['nullable', 'date', 'after_or_equal:created_from'],
+            'sort' => ['nullable', Rule::in(['created_at', '-created_at', 'name', '-name'])],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 }

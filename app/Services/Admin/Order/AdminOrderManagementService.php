@@ -32,6 +32,8 @@ class AdminOrderManagementService
                         ),
                 ),
             )
+            ->when($filters['client_id'] ?? null, fn ($query, $value) => $query->where('client_id', $value))
+            ->when($filters['professional_id'] ?? null, fn ($query, $value) => $query->where('professional_id', $value))
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
             ->when(($filters['status_group'] ?? null) === 'active', fn ($query) => $query->whereIn('status', OrderStatus::operationallyActiveValues()))
             ->when(

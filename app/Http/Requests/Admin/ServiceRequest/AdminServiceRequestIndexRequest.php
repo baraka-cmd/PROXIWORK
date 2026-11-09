@@ -18,6 +18,8 @@ class AdminServiceRequestIndexRequest extends FormRequest
     {
         return [
             'search' => ['nullable', 'string', 'max:120'],
+            'client_id' => ['nullable', 'integer', 'exists:users,id'],
+            'professional_id' => ['nullable', 'integer', 'exists:professional_profiles,id'],
             'status' => ['nullable', Rule::in(['draft', 'requested', 'quoted', 'accepted', 'cancelled', 'rejected'])],
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],

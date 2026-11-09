@@ -22,6 +22,14 @@ class AdminServiceRequestManagementService
             'address',
         ]);
 
+        if (! empty($filters['client_id'])) {
+            $query->where('client_id', $filters['client_id']);
+        }
+
+        if (! empty($filters['professional_id'])) {
+            $query->where('professional_id', $filters['professional_id']);
+        }
+
         if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }

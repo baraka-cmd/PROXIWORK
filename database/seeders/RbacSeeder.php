@@ -42,6 +42,8 @@ class RbacSeeder extends Seeder
             'audit.view' => ['Audit - consulter', 'audit', 'Consulter les journaux d’audit.'],
             'admin.dashboard.view' => ['Dashboard administrateur - consulter', 'admin', 'Consulter les statistiques administratives.'],
             'admin.users.view' => ['Administration - utilisateurs consulter', 'admin.users', 'Consulter, rechercher et filtrer les utilisateurs.'],
+            'admin.users.view_sensitive' => ['Administration - utilisateurs données sensibles', 'admin.users', 'Consulter les coordonnées et données de localisation privées nécessaires à la gestion des comptes.'],
+            'admin.users.update' => ['Administration - utilisateurs corriger identité', 'admin.users', 'Corriger le prénom et le nom avec un motif et une trace administrative.'],
             'admin.users.suspend' => ['Administration - utilisateurs suspendre', 'admin.users', 'Suspendre un compte utilisateur.'],
             'admin.users.activate' => ['Administration - utilisateurs activer', 'admin.users', 'Réactiver un compte utilisateur.'],
             'admin.professionals.view' => ['Administration - professionnels consulter', 'admin.professionals', 'Consulter les dossiers professionnels.'],

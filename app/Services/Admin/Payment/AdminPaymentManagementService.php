@@ -33,6 +33,7 @@ class AdminPaymentManagementService
                         ),
                 ),
             )
+            ->when($filters['client_id'] ?? null, fn ($query, $value) => $query->where('client_id', $value))
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
             ->when(
                 collect([

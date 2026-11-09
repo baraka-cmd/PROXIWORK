@@ -8,6 +8,7 @@ use App\Enums\UserAccountStatus;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AdminUserManagementTest extends TestCase
@@ -78,9 +79,20 @@ class AdminUserManagementTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('client');
         $user->createToken('device');
+        DB::table('sessions')->insert([
+            'id' => 'admin-user-test-'.$user->id,
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PROXIWORK test',
+            'payload' => '{}',
+            'last_activity' => now()->timestamp,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson("/api/v1/admin/users/{$user->id}/suspend")
+            ->postJson("/api/v1/admin/users/{$user->id}/suspend", [
+                'reason_code' => 'administrative_decision',
+                'duration' => 'until_review',
+            ])
             ->assertOk()
             ->assertJsonPath('data.account_status', 'suspended');
 
@@ -89,9 +101,12 @@ class AdminUserManagementTest extends TestCase
             'account_status' => 'suspended',
         ]);
         $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertDatabaseMissing('sessions', ['id' => 'admin-user-test-'.$user->id]);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson("/api/v1/admin/users/{$user->id}/activate")
+            ->postJson("/api/v1/admin/users/{$user->id}/activate", [
+                'reason' => 'Les vérifications sont terminées et le compte peut être réactivé.',
+            ])
             ->assertOk()
             ->assertJsonPath('data.account_status', 'active');
 
@@ -112,6 +127,60 @@ class AdminUserManagementTest extends TestCase
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/users/{$admin->id}/suspend")
             ->assertForbidden();
+    }
+
+    public function test_suspension_requires_a_reason_and_duration(): void
+    {
+        $admin = $this->admin();
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/admin/users/{$user->id}/suspend", [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['reason_code', 'duration']);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'account_status' => 'active',
+        ]);
+    }
+
+    public function test_admin_cannot_suspend_another_administrator(): void
+    {
+        $admin = $this->admin();
+        $target = User::factory()->create();
+        $target->assignRole('admin');
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/admin/users/{$target->id}/suspend", [
+                'reason_code' => 'administrative_decision',
+                'duration' => 'until_review',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_expired_temporary_suspensions_are_reactivated_and_audited(): void
+    {
+        $user = User::factory()->suspended()->create();
+        $user->forceFill([
+            'suspended_at' => now()->subDays(7),
+            'suspended_until' => now()->subMinute(),
+            'suspension_reason' => 'abusive_use',
+        ])->save();
+
+        $this->artisan('users:expire-suspensions')->assertExitCode(0);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'account_status' => 'active',
+            'suspended_until' => null,
+            'suspension_reason' => null,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'admin.user.suspension_expired',
+            'subject_id' => $user->id,
+        ]);
     }
 
     public function test_suspended_user_cannot_login(): void
