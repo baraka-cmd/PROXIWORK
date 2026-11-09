@@ -108,6 +108,7 @@ class ProfessionalVerificationTest extends TestCase
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/reject", [
                 'reason_code' => 'DOCUMENT_INVALID',
+                'note' => 'Le justificatif est invalide.',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['verification_status']);
@@ -154,6 +155,7 @@ class ProfessionalVerificationTest extends TestCase
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/reject", [
                 'reason_code' => 'OTHER',
+                'note' => 'Motif de rejet documenté.',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['verification_status']);
