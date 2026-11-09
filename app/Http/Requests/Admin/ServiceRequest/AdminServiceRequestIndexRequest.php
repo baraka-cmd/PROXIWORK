@@ -20,6 +20,11 @@ class AdminServiceRequestIndexRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::in(['draft', 'requested', 'quoted', 'accepted', 'cancelled', 'rejected'])],
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'created_from' => ['nullable', 'date'],
+            'created_to' => ['nullable', 'date', 'after_or_equal:created_from'],
+            'requested_from' => ['nullable', 'date'],
+            'requested_to' => ['nullable', 'date', 'after_or_equal:requested_from'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }

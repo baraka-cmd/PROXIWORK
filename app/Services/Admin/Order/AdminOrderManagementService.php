@@ -33,6 +33,7 @@ class AdminOrderManagementService
                 ),
             )
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->when(($filters['status_group'] ?? null) === 'active', fn ($query) => $query->whereIn('status', OrderStatus::operationallyActiveValues()))
             ->when(
                 $filters['payment_status'] ?? null,
                 fn ($query, $value) => $query->whereHas(
@@ -42,6 +43,8 @@ class AdminOrderManagementService
             )
             ->when($filters['from'] ?? null, fn ($query, $value) => $query->whereDate('created_at', '>=', $value))
             ->when($filters['to'] ?? null, fn ($query, $value) => $query->whereDate('created_at', '<=', $value))
+            ->when($filters['completed_from'] ?? null, fn ($query, $value) => $query->whereDate('completed_at', '>=', $value))
+            ->when($filters['completed_to'] ?? null, fn ($query, $value) => $query->whereDate('completed_at', '<=', $value))
             ->orderByDesc('created_at')
             ->paginate($filters['per_page'] ?? 20)
             ->withQueryString();

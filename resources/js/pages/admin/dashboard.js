@@ -54,7 +54,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 { label: 'Clients', data: data.registrations?.clients ?? [], borderColor: '#0f766e', backgroundColor: '#0f766e', tension: 0.25 },
                 { label: 'Professionnels', data: data.registrations?.professionals ?? [], borderColor: '#2563eb', backgroundColor: '#2563eb', tension: 0.25 },
             ] },
-            options: { ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
+            options: { ...chartOptions, interaction: { mode: 'index', intersect: false }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }, onClick: (_event, elements) => {
+                const element = elements[0];
+                const url = element
+                    ? data.registrationUrls?.[element.datasetIndex]?.[element.index]
+                    : null;
+                if (url) window.location.assign(url);
+            } },
+        });
+    }
+
+
+    const communityCanvas = document.getElementById('admin-dashboard-community');
+    const communityEntries = data.community ?? [];
+    if (communityCanvas && communityEntries.length) {
+        new Chart(communityCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: communityEntries.map(({ label }) => label),
+                datasets: [{ data: communityEntries.map(({ value }) => value), backgroundColor: ['#0f766e', '#2563eb'] }],
+            },
+            options: { ...chartOptions, onClick: (_event, elements) => {
+                const element = elements[0];
+                if (element) {
+                    const url = communityEntries[element.index]?.url;
+                    if (url) window.location.assign(url);
+                }
+            } },
         });
     }
 
@@ -73,6 +99,56 @@ document.addEventListener('DOMContentLoaded', () => {
             } },
         });
     }
+
+
+    const transactionCanvas = document.getElementById('admin-dashboard-transactions');
+    const transactionEntries = data.transactionStatuses ?? [];
+    if (transactionCanvas && transactionEntries.length) {
+        new Chart(transactionCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: transactionEntries.map(({ label }) => label),
+                datasets: [{ data: transactionEntries.map(({ value }) => value), backgroundColor: ['#0f766e', '#2563eb', '#f59e0b', '#dc2626', '#64748b', '#8b5cf6', '#14b8a6'] }],
+            },
+            options: { ...chartOptions, onClick: (_event, elements) => {
+                const element = elements[0];
+                if (element) {
+                    const url = transactionEntries[element.index]?.url;
+                    if (url) window.location.assign(url);
+                }
+            } },
+        });
+    }
+
+
+    document.querySelectorAll('[data-financial-currency]').forEach((canvas) => {
+        const currency = canvas.dataset.financialCurrency;
+        const series = data.financialTrends?.[currency];
+        if (!series) return;
+
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: series.labels ?? [],
+                datasets: [
+                    { label: `Paiements confirmés (${currency})`, data: series.payments ?? [], borderColor: '#0f766e', backgroundColor: '#0f766e', tension: 0.25 },
+                    { label: `Commissions (${currency})`, data: series.commissions ?? [], borderColor: '#2563eb', backgroundColor: '#2563eb', tension: 0.25 },
+                ],
+            },
+            options: {
+                ...chartOptions,
+                interaction: { mode: 'index', intersect: false },
+                scales: { y: { beginAtZero: true } },
+                onClick: (_event, elements) => {
+                    const element = elements[0];
+                    if (!element) return;
+                    const urls = element.datasetIndex === 0 ? series.paymentUrls : series.commissionUrls;
+                    const url = urls?.[element.index];
+                    if (url) window.location.assign(url);
+                },
+            },
+        });
+    });
 
     const categoryCanvas = document.getElementById('admin-dashboard-categories');
     const categories = data.categories ?? [];
