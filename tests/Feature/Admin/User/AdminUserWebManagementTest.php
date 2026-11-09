@@ -130,7 +130,7 @@ class AdminUserWebManagementTest extends TestCase
         $sensitivePermission = Permission::query()->where('name', 'admin.users.view_sensitive')->firstOrFail();
         $adminRole->permissions()->detach($sensitivePermission->id);
 
-        $user = User::factory()->create(['name' => 'Compte privé']);
+        $user = User::factory()->create(['name' => 'Compte privé', 'email' => 'prive@example.test']);
         $user->assignRole('client');
         $user->profile()->create([
             'first_name' => 'Compte',
@@ -142,13 +142,46 @@ class AdminUserWebManagementTest extends TestCase
             ->get(route('admin.users.index', ['search' => 'Compte privé']))
             ->assertOk()
             ->assertSee('Masqué · permission requise')
-            ->assertDontSee('+243990000001');
+            ->assertSee('E-mail masqué')
+            ->assertDontSee('+243990000001')
+            ->assertDontSee('prive@example.test');
 
         $this->actingAs($admin)
             ->get(route('admin.users.show', $user))
             ->assertOk()
             ->assertSee('Masqué · permission requise')
-            ->assertDontSee('+243990000001');
+            ->assertSee('E-mail masqué · permission requise')
+            ->assertDontSee('+243990000001')
+            ->assertDontSee('prive@example.test');
+    }
+
+    public function test_search_cannot_discover_accounts_by_private_email_or_phone(): void
+    {
+        $admin = $this->admin();
+        $adminRole = Role::query()->where('name', 'admin')->firstOrFail();
+        $sensitivePermission = Permission::query()->where('name', 'admin.users.view_sensitive')->firstOrFail();
+        $adminRole->permissions()->detach($sensitivePermission->id);
+
+        $user = User::factory()->create([
+            'name' => 'Compte confidentiel',
+            'email' => 'needle.private@example.test',
+        ]);
+        $user->assignRole('client');
+        $user->profile()->create([
+            'first_name' => 'Compte',
+            'last_name' => 'Confidentiel',
+            'phone' => '+243990000002',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.index', ['search' => 'needle.private@example.test']))
+            ->assertOk()
+            ->assertDontSee('Compte confidentiel');
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.index', ['search' => '+243990000002']))
+            ->assertOk()
+            ->assertDontSee('Compte confidentiel');
     }
 
     public function test_admin_can_correct_only_the_profile_name_with_reason_and_audit(): void
