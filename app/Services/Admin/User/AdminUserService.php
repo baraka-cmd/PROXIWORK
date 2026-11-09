@@ -122,15 +122,15 @@ class AdminUserService
             });
         }
 
-        if ($includeRole && !empty($filters['role'])) {
+        if ($includeRole && ! empty($filters['role'])) {
             $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', $filters['role']));
         }
 
-        if ($includeStatus && !empty($filters['account_status'])) {
+        if ($includeStatus && ! empty($filters['account_status'])) {
             $query->where('users.account_status', $filters['account_status']);
         }
 
-        if ($includePeriod && !empty($filters['period'])) {
+        if ($includePeriod && ! empty($filters['period'])) {
             $start = match ($filters['period']) {
                 'today' => now()->startOfDay(),
                 '7d' => now()->subDays(6)->startOfDay(),
@@ -139,15 +139,15 @@ class AdminUserService
             $query->where('users.created_at', '>=', $start);
         }
 
-        if (!empty($filters['created_from'])) {
+        if (! empty($filters['created_from'])) {
             $query->whereDate('users.created_at', '>=', $filters['created_from']);
         }
 
-        if (!empty($filters['created_to'])) {
+        if (! empty($filters['created_to'])) {
             $query->whereDate('users.created_at', '<=', $filters['created_to']);
         }
 
-        if (!empty($filters['location'])) {
+        if (! empty($filters['location'])) {
             $location = trim((string) $filters['location']);
             $query->where(function (Builder $q) use ($location, $includeSensitiveSearch): void {
                 $q->whereHas('professionalProfile', fn (Builder $profile) => $profile
@@ -171,12 +171,12 @@ class AdminUserService
                 : $query->whereNull('users.email_verified_at');
         }
 
-        if (!empty($filters['verification_status'])) {
+        if (! empty($filters['verification_status'])) {
             $query->whereHas('professionalProfile', fn (Builder $profile) => $profile
                 ->where('verification_status', $filters['verification_status']));
         }
 
-        if (!empty($filters['activity']) && $this->sessionActivityAvailable()) {
+        if (! empty($filters['activity']) && $this->sessionActivityAvailable()) {
             $threshold = now()->subDays($filters['activity'] === 'recent_7d' ? 7 : 30)->timestamp;
             if ($filters['activity'] === 'recent_7d') {
                 $query->whereExists(fn ($sessions) => $sessions->selectRaw('1')
