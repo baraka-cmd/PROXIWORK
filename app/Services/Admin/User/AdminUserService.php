@@ -78,9 +78,6 @@ class AdminUserService
 
     private function usersQuery(
         array $filters,
-        bool $includeRole = true,
-        bool $includeStatus = true,
-        bool $includePeriod = true,
         bool $includeSensitiveSearch = false,
     ): Builder {
         $query = User::query()
@@ -135,15 +132,15 @@ class AdminUserService
             });
         }
 
-        if ($includeRole && ! empty($filters['role'])) {
+        if (! empty($filters['role'])) {
             $query->whereHas('roles', fn (Builder $roles) => $roles->where('name', $filters['role']));
         }
 
-        if ($includeStatus && ! empty($filters['account_status'])) {
+        if (! empty($filters['account_status'])) {
             $query->where('users.account_status', $filters['account_status']);
         }
 
-        if ($includePeriod && ! empty($filters['period'])) {
+        if (! empty($filters['period'])) {
             $start = match ($filters['period']) {
                 'today' => now()->startOfDay(),
                 '7d' => now()->subDays(6)->startOfDay(),
