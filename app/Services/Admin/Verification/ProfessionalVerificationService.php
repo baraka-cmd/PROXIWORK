@@ -66,15 +66,32 @@ class ProfessionalVerificationService
         $updated = DB::transaction(function () use ($professional, $admin, $request, $note): ProfessionalProfile {
             $target = ProfessionalProfile::query()->lockForUpdate()->findOrFail($professional->getKey());
 
+            if (! $this->isAllowedTransition($target->verification_status, ProfessionalVerificationStatus::VERIFIED)) {
+                throw ValidationException::withMessages([
+                    'verification_status' => [sprintf(
+                        'Transition impossible : %s → %s.',
+                        $target->verification_status->value,
+                        ProfessionalVerificationStatus::VERIFIED->value,
+                    )],
+                ]);
+            }
+
             if (! $target->documents()->exists()) {
                 throw ValidationException::withMessages([
                     'documents' => ['Impossible de vérifier le professionnel : aucun justificatif n’a été transmis.'],
                 ]);
             }
 
-            if ($target->documents()->where('status', '!=', ProfessionalDocument::STATUS_APPROVED)->exists()) {
+            $latestDocumentIds = $target->documents()
+                ->selectRaw('MAX(id)')
+                ->groupBy('document_type');
+
+            if ($target->documents()
+                ->whereIn('id', $latestDocumentIds)
+                ->where('status', '!=', ProfessionalDocument::STATUS_APPROVED)
+                ->exists()) {
                 throw ValidationException::withMessages([
-                    'documents' => ['Tous les justificatifs transmis doivent être approuvés avant la validation finale.'],
+                    'documents' => ['Le dernier justificatif transmis pour chaque catégorie doit être approuvé avant la validation finale.'],
                 ]);
             }
 
