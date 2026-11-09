@@ -12,7 +12,6 @@ use App\Services\Admin\Professional\AdminProfessionalService;
 use App\Services\Admin\Verification\ProfessionalVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class VerificationController extends Controller
@@ -33,7 +32,7 @@ class VerificationController extends Controller
             'additional_documents_requested' => (clone $base)->where('verification_status', 'additional_documents_requested')->count(),
             'verified' => (clone $base)->where('verification_status', 'verified')->count(),
             'rejected' => (clone $base)->where('verification_status', 'rejected')->count(),
-            'documents_pending' => ProfessionalDocument::query()->where('status', ProfessionalDocument::STATUS_PENDING)->count(),
+            'documents_pending' => ProfessionalDocument::query()->whereNull('superseded_by_document_id')->where('status', ProfessionalDocument::STATUS_PENDING)->count(),
         ];
 
         $professionals = $this->professionalService->paginate($filters);
