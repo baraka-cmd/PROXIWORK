@@ -28,7 +28,7 @@ class UserPolicy
     {
         return $user->hasPermissionTo('admin.users.update')
             && $user->getKey() !== $subject->getKey()
-            && !$subject->hasRole('admin');
+            && ! $subject->hasRole('admin');
     }
 
     public function suspend(User $user, User $subject): bool
