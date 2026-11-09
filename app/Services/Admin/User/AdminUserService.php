@@ -45,13 +45,13 @@ class AdminUserService
      */
     public function overview(array $filters = []): array
     {
-        $allRoleStatus = $this->usersQuery($filters, includeRole: false, includeStatus: false);
+        $allFilters = $this->usersQuery($filters);
         $roleScope = $this->usersQuery($filters, includeRole: false);
         $statusScope = $this->usersQuery($filters, includeStatus: false);
         $newScope = $this->usersQuery($filters, includePeriod: false);
 
         return [
-            'total' => (clone $allRoleStatus)->count('users.id'),
+            'total' => (clone $allFilters)->count('users.id'),
             'clients' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'client'))->count('users.id'),
             'professionals' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'professional'))->count('users.id'),
             'active' => (clone $statusScope)->where('users.account_status', UserAccountStatus::ACTIVE->value)->count('users.id'),
@@ -107,7 +107,7 @@ class AdminUserService
             $query->where('users.account_status', $filters['account_status']);
         }
 
-        if (!empty($filters['period'])) {
+        if ($includePeriod && !empty($filters['period'])) {
             $start = match ($filters['period']) {
                 'today' => now()->startOfDay(),
                 '7d' => now()->subDays(6)->startOfDay(),
