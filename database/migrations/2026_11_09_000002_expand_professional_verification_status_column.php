@@ -19,6 +19,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::table('professional_profiles')->whereRaw('CHAR_LENGTH(verification_status) > 20')->exists()) {
+            throw new RuntimeException('Cannot shrink verification_status while additional-document requests still exist.');
+        }
+
         Schema::table('professional_profiles', function (Blueprint $table): void {
             $table->string('verification_status', 20)->default('pending')->change();
         });
