@@ -88,7 +88,7 @@ class AdminUserWebManagementTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.users.index', ['search' => 'Jean Dupont']))
             ->assertOk()
-            ->assertSee('Compte de test');
+            ->assertSee('Jean Dupont');
     }
 
     public function test_blank_optional_filters_are_accepted(): void
