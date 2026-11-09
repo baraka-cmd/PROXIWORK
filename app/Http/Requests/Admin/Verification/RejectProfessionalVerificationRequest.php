@@ -23,7 +23,7 @@ class RejectProfessionalVerificationRequest extends FormRequest
                 'IDENTITY_MISMATCH',
                 'OTHER',
             ])],
-            'note' => ['nullable', 'string', 'max:2000'],
+            'note' => ['required', 'string', 'min:5', 'max:2000'],
         ];
     }
 }
