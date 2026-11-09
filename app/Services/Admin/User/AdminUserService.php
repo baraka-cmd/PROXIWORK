@@ -461,9 +461,20 @@ class AdminUserService
             return $target->fresh(['roles', 'suspendedBy']);
         });
 
+        $reasonLabel = match ($data['reason_code']) {
+            'suspected_fraud' => 'Fraude présumée',
+            'abusive_use' => 'Utilisation abusive',
+            'compromised_account' => 'Compte compromis ou suspect',
+            'identity_misrepresentation' => 'Usurpation ou fausses informations',
+            'policy_violation' => 'Non-respect des règles de la plateforme',
+            'administrative_decision' => 'Décision administrative motivée',
+            default => 'Autre motif administratif',
+        };
+        $endLabel = $until?->format('d/m/Y à H:i') ?? 'jusqu’à nouvel examen';
+
         $updated->notify(new AccountActivityNotification(
             'Compte suspendu',
-            'Votre compte PROXIWORK a été suspendu par l’administration. Consultez votre espace pour connaître les informations relatives à cette décision.',
+            "Votre compte PROXIWORK a été suspendu par l’administration. Motif : {$reasonLabel}. Fin prévue : {$endLabel}. Pour toute question ou contestation, contactez le support PROXIWORK.",
             'account_suspended',
             priority: 'important',
         ));
