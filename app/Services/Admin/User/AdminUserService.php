@@ -146,16 +146,19 @@ class AdminUserService
 
         if (!empty($filters['location'])) {
             $location = trim((string) $filters['location']);
-            $query->where(function (Builder $q) use ($location): void {
+            $query->where(function (Builder $q) use ($location, $includeSensitiveSearch): void {
                 $q->whereHas('professionalProfile', fn (Builder $profile) => $profile
                     ->where('city', 'like', "%{$location}%")
                     ->orWhere('province', 'like', "%{$location}%")
-                    ->orWhere('commune', 'like', "%{$location}%"))
-                    ->orWhereHas('addresses', fn (Builder $address) => $address
+                    ->orWhere('commune', 'like', "%{$location}%"));
+
+                if ($includeSensitiveSearch) {
+                    $q->orWhereHas('addresses', fn (Builder $address) => $address
                         ->where('city', 'like', "%{$location}%")
                         ->orWhere('province', 'like', "%{$location}%")
                         ->orWhere('commune', 'like', "%{$location}%")
                         ->orWhere('neighborhood', 'like', "%{$location}%"));
+                }
             });
         }
 
