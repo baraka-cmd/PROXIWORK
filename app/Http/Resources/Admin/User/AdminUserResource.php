@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources\Admin\User;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,7 @@ class AdminUserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => $this->when($request->user()?->can('viewSensitive', User::class), $this->email),
             'account_status' => $this->account_status?->value,
             'email_verified_at' => $this->email_verified_at?->toISOString(),
             'suspended_at' => $this->suspended_at?->toISOString(),
