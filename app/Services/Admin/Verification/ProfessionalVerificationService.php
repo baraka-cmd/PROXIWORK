@@ -150,9 +150,20 @@ class ProfessionalVerificationService
         ?string $note = null,
     ): ProfessionalDocument {
         $updated = DB::transaction(function () use ($professional, $document, $admin, $request, $decision, $note): ProfessionalDocument {
+            $lockedProfile = ProfessionalProfile::query()->lockForUpdate()->findOrFail($professional->getKey());
+
+            if (in_array($lockedProfile->verification_status, [
+                ProfessionalVerificationStatus::VERIFIED,
+                ProfessionalVerificationStatus::REJECTED,
+            ], true)) {
+                throw ValidationException::withMessages([
+                    'document' => ['Le dossier est clôturé ; aucun justificatif ne peut plus être modifié.'],
+                ]);
+            }
+
             $target = ProfessionalDocument::query()->lockForUpdate()->findOrFail($document->getKey());
 
-            if ((int) $target->professional_profile_id !== (int) $professional->getKey()) {
+            if ((int) $target->professional_profile_id !== (int) $lockedProfile->getKey()) {
                 abort(404);
             }
 
