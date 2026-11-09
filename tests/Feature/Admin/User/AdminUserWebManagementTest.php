@@ -271,6 +271,59 @@ class AdminUserWebManagementTest extends TestCase
         $this->assertFalse($user->fresh()->hasRole('admin'));
     }
 
+    public function test_identity_correction_cannot_modify_self_or_another_administrator(): void
+    {
+        $admin = $this->admin();
+        $otherAdmin = $this->admin();
+
+        $payload = [
+            'first_name' => 'Nouveau',
+            'last_name' => 'Nom',
+            'reason' => 'Demande de correction vérifiée auprès du titulaire.',
+        ];
+
+        $this->actingAs($admin)
+            ->patch(route('admin.users.update', $admin), $payload)
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->patch(route('admin.users.update', $otherAdmin), $payload)
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $admin->id,
+            'name' => $admin->name,
+        ]);
+        $this->assertDatabaseHas('users', [
+            'id' => $otherAdmin->id,
+            'name' => $otherAdmin->name,
+        ]);
+    }
+
+    public function test_identity_correction_requires_its_specific_permission(): void
+    {
+        $admin = $this->admin();
+        $adminRole = Role::query()->where('name', 'admin')->firstOrFail();
+        $permission = Permission::query()->where('name', 'admin.users.update')->firstOrFail();
+        $adminRole->permissions()->detach($permission->id);
+
+        $user = User::factory()->create(['name' => 'Nom initial']);
+        $user->assignRole('client');
+
+        $this->actingAs($admin)
+            ->patch(route('admin.users.update', $user), [
+                'first_name' => 'Autre',
+                'last_name' => 'Nom',
+                'reason' => 'Correction demandée avec une justification suffisamment précise.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'Nom initial',
+        ]);
+    }
+
     public function test_web_admin_can_suspend_and_reactivate_with_a_reason(): void
     {
         $admin = $this->admin();
