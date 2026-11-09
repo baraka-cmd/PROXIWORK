@@ -37,6 +37,8 @@ class AdminUserIndexRequest extends FormRequest
             'role' => ['sometimes', 'string', 'max:50'],
             'account_status' => ['sometimes', Rule::enum(UserAccountStatus::class)],
             'email_verified' => ['sometimes', 'boolean'],
+            'period' => ['sometimes', Rule::in(['today', '7d', '30d'])],
+            'location' => ['sometimes', 'string', 'max:120'],
             'created_from' => ['sometimes', 'date'],
             'created_to' => ['sometimes', 'date', 'after_or_equal:created_from'],
             'sort' => ['sometimes', Rule::in(['created_at', '-created_at', 'name', '-name'])],

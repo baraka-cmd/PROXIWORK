@@ -34,6 +34,7 @@ class AdminPaymentManagementService
                 ),
             )
             ->when($filters['status'] ?? null, fn ($query, $value) => $query->where('status', $value))
+            ->when($filters['transaction_status'] ?? null, fn ($query, $value) => $query->whereHas('transactions', fn ($transactions) => $transactions->where('status', $value)))
             ->when($filters['provider'] ?? null, fn ($query, $value) => $query->where('provider', $value))
             ->when($filters['from'] ?? null, fn ($query, $value) => $query->whereDate('created_at', '>=', $value))
             ->when($filters['to'] ?? null, fn ($query, $value) => $query->whereDate('created_at', '<=', $value))

@@ -56,7 +56,7 @@ class ProfessionalSearchService
 
         if ($viewer?->hasRole('client') === true) {
             $query->with([
-                'favorites' => fn (Builder $favorites) => $favorites
+                'favorites' => fn ($favorites) => $favorites
                     ->where('user_id', $viewer->getKey())
                     ->select(['id', 'user_id', 'professional_profile_id']),
             ]);
@@ -151,7 +151,7 @@ class ProfessionalSearchService
 
         if ($viewer?->hasRole('client') === true) {
             $query->with([
-                'favorites' => fn (Builder $favorites) => $favorites
+                'favorites' => fn ($favorites) => $favorites
                     ->where('user_id', $viewer->getKey())
                     ->select(['id', 'user_id', 'professional_profile_id']),
             ]);

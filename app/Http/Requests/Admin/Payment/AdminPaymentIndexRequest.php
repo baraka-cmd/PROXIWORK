@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin\Payment;
 
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
+use App\Enums\PaymentTransactionStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -21,6 +22,7 @@ class AdminPaymentIndexRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::enum(PaymentStatus::class)],
+            'transaction_status' => ['nullable', Rule::enum(PaymentTransactionStatus::class)],
             'provider' => ['nullable', Rule::enum(PaymentProvider::class)],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],

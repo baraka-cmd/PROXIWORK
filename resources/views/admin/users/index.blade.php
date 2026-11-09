@@ -13,6 +13,24 @@
         <div class="admin-alert admin-alert--success" role="status"><i class="fa-solid fa-circle-check"></i>{{ session('success') }}</div>
     @endif
 
+    <section class="admin-card" aria-labelledby="users-overview-title">
+        <div class="admin-card__header"><div><span class="admin-card__eyebrow">Vue globale</span><h3 id="users-overview-title">Comptes PROXIWORK</h3></div></div>
+        <div class="admin-stat-grid">
+            @foreach([
+                ['Tous les comptes', 'total', []],
+                ['Clients', 'clients', ['role' => 'client']],
+                ['Professionnels', 'professionals', ['role' => 'professional']],
+                ['Comptes actifs', 'active', ['account_status' => 'active']],
+                ['Comptes suspendus', 'suspended', ['account_status' => 'suspended']],
+                ['Nouveaux · 30 jours', 'new', ['period' => '30d']],
+            ] as [$label, $key, $query])
+                <a class="admin-card admin-stat-card" href="{{ route('admin.users.index', array_merge(request()->query(), $query, ['page' => null])) }}">
+                    <span>{{ $label }}</span><strong>{{ number_format($overview[$key]) }}</strong>
+                </a>
+            @endforeach
+        </div>
+    </section>
+
     <section class="admin-card admin-users__filters" aria-labelledby="users-filters-title">
         <div class="admin-card__header">
             <div>
@@ -26,7 +44,7 @@
                 <span>Recherche</span>
                 <div class="admin-input-icon">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nom ou adresse e-mail">
+                    <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nom, e-mail, téléphone ou identifiant">
                 </div>
             </label>
             <label class="admin-field">
@@ -39,8 +57,10 @@
             </label>
             <label class="admin-field">
                 <span>Rôle</span>
-                <input name="role" value="{{ $filters['role'] ?? '' }}" placeholder="ex. professional">
+                <select name="role"><option value="">Tous les rôles</option><option value="client" @selected(($filters['role'] ?? '') === 'client')>Client</option><option value="professional" @selected(($filters['role'] ?? '') === 'professional')>Professionnel</option><option value="admin" @selected(($filters['role'] ?? '') === 'admin')>Administrateur</option><option value="support" @selected(($filters['role'] ?? '') === 'support')>Support</option><option value="moderator" @selected(($filters['role'] ?? '') === 'moderator')>Modérateur</option></select>
             </label>
+            <label class="admin-field"><span>Inscription</span><select name="period"><option value="">Toutes les dates</option><option value="today" @selected(($filters['period'] ?? '') === 'today')>Aujourd’hui</option><option value="7d" @selected(($filters['period'] ?? '') === '7d')>7 derniers jours</option><option value="30d" @selected(($filters['period'] ?? '') === '30d')>30 derniers jours</option></select></label>
+            <label class="admin-field"><span>Localisation</span><input name="location" value="{{ $filters['location'] ?? '' }}" placeholder="Ville, commune ou province"></label>
             <label class="admin-field">
                 <span>E-mail</span>
                 <select name="email_verified">
@@ -70,19 +90,21 @@
         </div>
         <div class="admin-table-wrap">
             <table class="admin-table">
-                <thead><tr><th>Utilisateur</th><th>Rôles</th><th>Statut</th><th>E-mail</th><th>Créé le</th><th><span class="sr-only">Actions</span></th></tr></thead>
+                <thead><tr><th>Utilisateur</th><th>ID</th><th>Type</th><th>Contact</th><th>Vérification</th><th>Statut</th><th>Inscription</th><th><span class="sr-only">Actions</span></th></tr></thead>
                 <tbody>
                 @forelse($users as $user)
                     <tr>
-                        <td><a class="admin-user-cell" href="{{ route('admin.users.show', $user) }}"><span class="admin-avatar">{{ mb_strtoupper(mb_substr($user->name, 0, 1)) }}</span><span><strong>{{ $user->name }}</strong><small>{{ $user->email }}</small></span></a></td>
+                        <td><a class="admin-user-cell" href="{{ route('admin.users.show', array_merge(['user' => $user], request()->query())) }}"><span class="admin-avatar">{{ mb_strtoupper(mb_substr($user->profile?->first_name ?: $user->name, 0, 1).mb_substr($user->profile?->last_name ?? '', 0, 1)) }}</span><span><strong>{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name }}</strong><small>{{ $user->email }}</small></span></a></td>
+                        <td>#{{ $user->id }}</td>
                         <td><div class="admin-chip-list">@forelse($user->roles as $role)<span class="admin-chip">{{ $role->display_name }}</span>@empty<span class="admin-muted">Aucun</span>@endforelse</div></td>
+                        <td>{{ $user->email }}<small>{{ $user->profile?->phone ?: 'Téléphone non renseigné' }}</small></td>
+                        <td>@if($user->email_verified_at)<span class="admin-verified">E-mail vérifié</span>@else<span class="admin-muted">E-mail non vérifié</span>@endif</td>
                         <td><span class="admin-status admin-status--{{ $user->account_status?->value }}">{{ $user->account_status?->value === 'active' ? 'Actif' : 'Suspendu' }}</span></td>
-                        <td>@if($user->email_verified_at)<span class="admin-verified"><i class="fa-solid fa-circle-check"></i> Vérifié</span>@else<span class="admin-muted">Non vérifié</span>@endif</td>
                         <td>{{ $user->created_at?->format('d/m/Y') }}</td>
                         <td class="admin-table__actions"><a class="admin-icon-button" href="{{ route('admin.users.show', $user) }}" aria-label="Voir {{ $user->name }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="6"><div class="admin-empty"><i class="fa-solid fa-users-slash"></i><strong>Aucun utilisateur trouvé</strong><span>Modifiez vos critères de recherche.</span></div></td></tr>
+                    <tr><td colspan="8"><div class="admin-empty"><i class="fa-solid fa-users-slash"></i><strong>Aucun utilisateur trouvé</strong><span>Modifiez vos critères de recherche.</span></div></td></tr>
                 @endforelse
                 </tbody>
             </table>

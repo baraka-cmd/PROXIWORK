@@ -25,6 +25,7 @@ class UserController extends Controller
         return view('admin.users.index', [
             'users' => $users,
             'filters' => $request->validated(),
+            'overview' => $this->service->overview(),
         ]);
     }
 
@@ -32,8 +33,11 @@ class UserController extends Controller
     {
         $this->authorize('view', $user);
 
+        $user->load(['roles', 'profile', 'professionalProfile.skills']);
+
         return view('admin.users.show', [
-            'user' => $user->load(['roles', 'profile', 'professionalProfile']),
+            'user' => $user,
+            'details' => $this->service->detail($user),
         ]);
     }
 

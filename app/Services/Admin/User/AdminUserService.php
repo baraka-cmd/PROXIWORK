@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Admin\User;
 
 use App\Enums\UserAccountStatus;
+use App\Models\AuditLog;
+use App\Models\Order;
+use App\Models\Quotation;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
@@ -21,13 +24,16 @@ class AdminUserService
 
     public function paginate(array $filters)
     {
-        $query = User::query()->with('roles');
+        $query = User::query()->with(['roles', 'profile', 'professionalProfile']);
 
         if (! empty($filters['search'])) {
             $search = trim($filters['search']);
             $query->where(function ($q) use ($search): void {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereKey(is_numeric($search) ? (int) $search : -1)
+                    ->orWhereHas('profile', fn ($profile) => $profile->where('phone', 'like', "%{$search}%"))
+                    ->orWhereHas('profile', fn ($profile) => $profile->whereRaw("TRIM(CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, ''))) LIKE ?", ["%{$search}%"]));
             });
         }
 
@@ -38,6 +44,27 @@ class AdminUserService
         if (($status = $filters['account_status'] ?? null) !== null) {
             $status = $status instanceof BackedEnum ? $status->value : $status;
             $query->where('account_status', $status);
+        }
+
+        if (($period = $filters['period'] ?? null) !== null) {
+            $start = match ($period) {
+                'today' => now()->startOfDay(),
+                '7d' => now()->subDays(6)->startOfDay(),
+                '30d' => now()->subDays(29)->startOfDay(),
+            };
+            $query->where('created_at', '>=', $start);
+        }
+
+        if (! empty($filters['location'])) {
+            $location = trim($filters['location']);
+            $query->where(function ($q) use ($location): void {
+                $q->whereHas('professionalProfile', fn ($profile) => $profile->where('city', 'like', "%{$location}%")
+                    ->orWhere('province', 'like', "%{$location}%")
+                    ->orWhere('commune', 'like', "%{$location}%"))
+                    ->orWhereHas('addresses', fn ($address) => $address->where('city', 'like', "%{$location}%")
+                        ->orWhere('province', 'like', "%{$location}%")
+                        ->orWhere('commune', 'like', "%{$location}%"));
+            });
         }
 
         if (array_key_exists('email_verified', $filters)) {
@@ -55,6 +82,57 @@ class AdminUserService
         $query->orderBy($column, $direction);
 
         return $query->paginate((int) ($filters['per_page'] ?? 25))->withQueryString();
+    }
+
+    public function overview(): array
+    {
+        $base = User::query();
+        $newSince = now()->subDays(29)->startOfDay();
+
+        return [
+            'total' => (clone $base)->count(),
+            'clients' => (clone $base)->whereHas('roles', fn ($q) => $q->where('name', 'client'))->count(),
+            'professionals' => (clone $base)->whereHas('roles', fn ($q) => $q->where('name', 'professional'))->count(),
+            'active' => (clone $base)->where('account_status', UserAccountStatus::ACTIVE->value)->count(),
+            'suspended' => (clone $base)->where('account_status', UserAccountStatus::SUSPENDED->value)->count(),
+            'new' => (clone $base)->where('created_at', '>=', $newSince)->count(),
+        ];
+    }
+
+    public function detail(User $user): array
+    {
+        $professionalId = $user->professionalProfile?->getKey();
+        $requests = $user->serviceRequests()->count();
+        $receivedRequests = $professionalId ? $user->professionalProfile->serviceRequests()->count() : 0;
+        $clientOrders = Order::query()->where('client_id', $user->getKey())->count();
+        $professionalOrders = $professionalId ? Order::query()->where('professional_id', $professionalId)->count() : 0;
+
+        return [
+            'client' => [
+                'requests' => $requests,
+                'quotations' => Quotation::query()->whereHas('serviceRequest', fn ($q) => $q->where('client_id', $user->getKey()))->count(),
+                'orders' => $clientOrders,
+                'completed_orders' => Order::query()->where('client_id', $user->getKey())->where('status', 'completed')->count(),
+                'cancelled_orders' => Order::query()->where('client_id', $user->getKey())->where('status', 'cancelled')->count(),
+                'disputes' => Order::query()->where('client_id', $user->getKey())->where('status', 'disputed')->count(),
+            ],
+            'professional' => $professionalId ? [
+                'verification' => $user->professionalProfile->verification_status?->value,
+                'profile_complete' => filled($user->professionalProfile->professional_title) && filled($user->professionalProfile->description)
+                    && filled($user->professionalProfile->city) && filled($user->professionalProfile->province)
+                    && $user->professionalProfile->skills()->exists(),
+                'services' => $user->professionalProfile->services()->count(),
+                'published_services' => $user->professionalProfile->services()->where('status', 'published')->count(),
+                'requests' => $receivedRequests,
+                'quotations' => Quotation::query()->whereHas('serviceRequest', fn ($q) => $q->where('professional_id', $professionalId))->count(),
+                'orders' => $professionalOrders,
+                'rating' => $user->professionalProfile->rating_average,
+                'reviews' => $user->professionalProfile->rating_count,
+                'availability' => $user->professionalProfile->availability_status?->value,
+            ] : null,
+            'activity' => AuditLog::query()->where('subject_type', User::class)
+                ->where('subject_id', $user->getKey())->latest()->limit(20)->get(),
+        ];
     }
 
     public function suspend(User $user, User $actor, Request $request): User

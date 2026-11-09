@@ -452,7 +452,7 @@ class ClientDashboardService
             ->with([
                 'user:id,name',
                 'user.profile:id,user_id,first_name,last_name,avatar_path',
-                'skills' => fn (Builder $skills) => $skills->where('status', 'active'),
+                'skills' => fn ($skills) => $skills->where('skills.status', 'active'),
             ])
             ->withCount(['services as published_services_count' => fn (Builder $service) => $service->requestable()]);
 

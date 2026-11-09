@@ -7,6 +7,7 @@ namespace Tests\Feature\Admin\Dashboard;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\User;
+use Carbon\Carbon;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,6 +39,8 @@ class AdminDashboardTest extends TestCase
 
     public function test_admin_can_read_dashboard_and_period_is_applied(): void
     {
+        $this->travelTo(Carbon::parse('2026-10-15 12:00:00'));
+
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 

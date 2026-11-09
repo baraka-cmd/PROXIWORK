@@ -21,6 +21,7 @@ class DashboardController extends Controller
             'dashboard' => $dashboard,
             'from' => $request->date('from'),
             'to' => $request->date('to'),
+            'periodKey' => $request->validated('period', '30d'),
         ]);
     }
 }

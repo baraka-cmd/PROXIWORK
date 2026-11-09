@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('body_class', 'app-shell dashboard-layout')
+@section('body_class', 'app-shell dashboard-layout'.(request()->routeIs('admin.*') ? ' admin-layout' : ''))
 
 @section('body')
     <div class="dashboard-shell">
