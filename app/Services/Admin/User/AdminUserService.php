@@ -45,13 +45,13 @@ class AdminUserService
      */
     public function overview(array $filters = [], bool $includeSensitiveSearch = false): array
     {
-        $allRoleStatus = $this->usersQuery($filters, includeRole: false, includeStatus: false, includeSensitiveSearch: $includeSensitiveSearch);
+        $allFilters = $this->usersQuery($filters, includeSensitiveSearch: $includeSensitiveSearch);
         $roleScope = $this->usersQuery($filters, includeRole: false, includeSensitiveSearch: $includeSensitiveSearch);
         $statusScope = $this->usersQuery($filters, includeStatus: false, includeSensitiveSearch: $includeSensitiveSearch);
         $newScope = $this->usersQuery($filters, includePeriod: false, includeSensitiveSearch: $includeSensitiveSearch);
 
         return [
-            'total' => (clone $allRoleStatus)->count('users.id'),
+            'total' => (clone $allFilters)->count('users.id'),
             'clients' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'client'))->count('users.id'),
             'professionals' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'professional'))->count('users.id'),
             'active' => (clone $statusScope)->where('users.account_status', UserAccountStatus::ACTIVE->value)->count('users.id'),
