@@ -96,10 +96,15 @@ class WebAdminUsersRolesTest extends TestCase
         $admin = $this->admin();
         $target = User::factory()->create();
 
-        $this->actingAs($admin)->post('/admin/users/'.$target->id.'/suspend')->assertRedirect();
+        $this->actingAs($admin)->post('/admin/users/'.$target->id.'/suspend', [
+            'reason_code' => 'administrative_decision',
+            'duration' => 'until_review',
+        ])->assertRedirect();
         $this->assertSame('suspended', $target->fresh()->account_status->value);
 
-        $this->actingAs($admin)->post('/admin/users/'.$target->id.'/activate')->assertRedirect();
+        $this->actingAs($admin)->post('/admin/users/'.$target->id.'/activate', [
+            'reason' => 'La situation a été réexaminée et le compte peut être réactivé.',
+        ])->assertRedirect();
         $this->assertSame('active', $target->fresh()->account_status->value);
     }
 }
