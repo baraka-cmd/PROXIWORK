@@ -76,15 +76,6 @@ class ServiceController extends Controller
         return back()->with('success', 'Le service a été publié.');
     }
 
-    public function unpublish(Request $request, Service $service): RedirectResponse
-    {
-        $this->authorize('adminManage', $service);
-
-        $this->serviceManager->unpublish($service, $request->user());
-
-        return back()->with('success', 'Le service a été dépublié.');
-    }
-
     public function archive(Request $request, Service $service): RedirectResponse
     {
         $this->authorize('adminManage', $service);

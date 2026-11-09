@@ -95,6 +95,30 @@ class ServiceModerationWorkflowTest extends TestCase
         ]);
     }
 
+
+    public function test_professional_cannot_republish_a_service_hidden_by_administration(): void
+    {
+        $service = Service::factory()->create([
+            'moderation_status' => ServiceModerationStatus::HIDDEN,
+            'moderation_reason' => 'Le contenu doit être corrigé avant sa remise en visibilité.',
+        ]);
+        $owner = $service->professionalProfile->user;
+        $owner->assignRole('professional');
+        $service->images()->create([
+            'path' => 'services/'.$service->getKey().'/cover.webp',
+            'is_cover' => true,
+            'sort_order' => 0,
+        ]);
+
+        $this->actingAs($owner, 'sanctum')
+            ->postJson('/api/v1/professional/services/'.$service->getKey().'/publish')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['moderation']);
+
+        $this->assertSame(ServiceModerationStatus::HIDDEN, $service->fresh()->moderation_status);
+        $this->assertSame(ServiceStatus::DRAFT, $service->fresh()->status);
+    }
+
     public function test_moderator_cannot_apply_an_invalid_transition(): void
     {
         $service = Service::factory()->create();

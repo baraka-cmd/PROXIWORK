@@ -29,9 +29,7 @@
         @if($service->moderation_status->value !== 'clear' && $service->moderation_reason)<p><strong>Motif communiqué :</strong> {{ $service->moderation_reason }}</p>@endif
         <div class="admin-action-row">
             @can('adminManage',$service)
-                @if($service->status->value==='published')
-                    <form method="POST" action="{{ route('admin.services.unpublish',$service) }}" data-confirm="Dépublier ce service ?">@csrf<button class="button button--secondary" type="submit">Dépublier</button></form>
-                @elseif(in_array($service->status->value,['draft','unpublished']) && $service->moderation_status->value === 'clear')
+                @if(in_array($service->status->value,['draft','unpublished']) && $service->moderation_status->value === 'clear')
                     <form method="POST" action="{{ route('admin.services.publish',$service) }}" data-confirm="Publier ce service ?">@csrf<button class="button button--primary" type="submit">Publier</button></form>
                     <form method="POST" action="{{ route('admin.services.archive',$service) }}" data-confirm="Archiver ce service ?">@csrf<button class="button button--secondary" type="submit">Archiver</button></form>
                 @endif

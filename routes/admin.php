@@ -98,7 +98,6 @@ Route::middleware(['auth', 'active.account', 'permission:admin.service_realizati
 
 Route::middleware(['auth', 'active.account'])->group(function (): void {
     Route::post('services/{service}/publish', [ServiceController::class, 'publish'])->middleware('permission:admin.services.manage')->name('services.publish');
-    Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])->middleware('permission:admin.services.manage')->name('services.unpublish');
     Route::post('services/{service}/archive', [ServiceController::class, 'archive'])->middleware('permission:admin.services.manage')->name('services.archive');
 });
 

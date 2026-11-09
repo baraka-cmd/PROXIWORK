@@ -100,16 +100,6 @@ class AdminServiceManagementService
         );
     }
 
-    public function unpublish(Service $service, User $actor): Service
-    {
-        return $this->transition(
-            $service,
-            $actor,
-            [ServiceStatus::PUBLISHED],
-            ServiceStatus::UNPUBLISHED,
-        );
-    }
-
     public function archive(Service $service, User $actor): Service
     {
         return $this->transition(
