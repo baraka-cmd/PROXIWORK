@@ -232,6 +232,23 @@ class AdminUserService
 
         $businessActivity = collect();
 
+        // These are explicit account lifecycle timestamps, not inferred activity.
+        if ($user->created_at !== null) {
+            $businessActivity->push([
+                'type' => 'Compte créé',
+                'description' => 'Inscription sur PROXIWORK',
+                'date' => $user->created_at,
+            ]);
+        }
+
+        if ($user->email_verified_at !== null) {
+            $businessActivity->push([
+                'type' => 'Adresse e-mail confirmée',
+                'description' => 'Vérification de l’adresse e-mail',
+                'date' => $user->email_verified_at,
+            ]);
+        }
+
         if ($user->hasRole('client')) {
             ServiceRequest::query()->where('client_id', $user->getKey())
                 ->latest('created_at')->limit(10)->get(['id', 'title', 'created_at'])
