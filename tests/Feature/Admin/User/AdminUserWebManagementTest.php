@@ -113,6 +113,40 @@ class AdminUserWebManagementTest extends TestCase
             ->assertSee('Tous les utilisateurs');
     }
 
+    public function test_account_scoped_links_open_their_responsible_admin_modules(): void
+    {
+        $admin = $this->admin();
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($admin)
+            ->get(route('admin.service-requests.index', ['client_id' => $user->id]))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('admin.orders.index', ['client_id' => $user->id]))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('admin.payments.index', ['client_id' => $user->id]))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('admin.support.index', ['user_id' => $user->id]))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.index', ['reporter_id' => $user->id]))
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.index', [
+                'target_type' => $user->getMorphClass(),
+                'target_id' => $user->id,
+            ]))
+            ->assertOk();
+    }
+
     public function test_user_without_admin_users_permission_cannot_open_directory(): void
     {
         $client = User::factory()->create();
