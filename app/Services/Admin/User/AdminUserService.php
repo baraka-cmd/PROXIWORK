@@ -16,6 +16,7 @@ use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -67,12 +68,13 @@ class AdminUserService
         bool $includeStatus = true,
         bool $includePeriod = true,
         bool $includeSensitiveSearch = false,
-    ): Builder {
+    ): Builder
+    {
         $query = User::query()
             ->select('users.*')
             ->with([
                 'roles',
-                'profile' => function (Builder $profile) use ($includeSensitiveSearch): void {
+                'profile' => function (HasOne $profile) use ($includeSensitiveSearch): void {
                     $columns = ['id', 'user_id', 'first_name', 'last_name'];
                     if ($includeSensitiveSearch) {
                         $columns[] = 'phone';
@@ -83,7 +85,7 @@ class AdminUserService
                 'professionalProfile',
             ]);
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
             $query->where(function (Builder $q) use ($search, $includeSensitiveSearch): void {
                 $q->where('users.name', 'like', "%{$search}%")
