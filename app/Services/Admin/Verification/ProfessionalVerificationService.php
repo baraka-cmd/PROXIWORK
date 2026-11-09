@@ -149,7 +149,7 @@ class ProfessionalVerificationService
         string $decision,
         ?string $note = null,
     ): ProfessionalDocument {
-        return DB::transaction(function () use ($professional, $document, $admin, $request, $decision, $note): ProfessionalDocument {
+        $updated = DB::transaction(function () use ($professional, $document, $admin, $request, $decision, $note): ProfessionalDocument {
             $target = ProfessionalDocument::query()->lockForUpdate()->findOrFail($document->getKey());
 
             if ((int) $target->professional_profile_id !== (int) $professional->getKey()) {
@@ -198,6 +198,17 @@ class ProfessionalVerificationService
 
             return $target->fresh(['reviewer', 'reviews.admin']);
         });
+
+        $professional->user()->first()?->notify(new AccountActivityNotification(
+            $decision === ProfessionalDocument::STATUS_APPROVED ? 'Justificatif approuvé' : 'Justificatif à corriger',
+            $decision === ProfessionalDocument::STATUS_APPROVED
+                ? 'Un justificatif de votre dossier professionnel a été approuvé.'
+                : ('Un justificatif de votre dossier professionnel doit être corrigé. '.trim((string) $note)),
+            'professional_verification_document_'.$decision,
+            '/professional/documents',
+        ));
+
+        return $updated;
     }
 
     private function transition(
