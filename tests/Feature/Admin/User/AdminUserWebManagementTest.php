@@ -6,8 +6,8 @@ namespace Tests\Feature\Admin\User;
 
 use App\Models\Permission;
 use App\Models\Role;
-use App\Services\Admin\User\AdminUserService;
 use App\Models\User;
+use App\Services\Admin\User\AdminUserService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -70,7 +70,7 @@ class AdminUserWebManagementTest extends TestCase
 
         $this->assertSame(1, $summary['total']);
         $this->assertSame(1, $summary['clients']);
-        $this->assertSame(0, $summary['professionals']);
+        $this->assertSame(1, $summary['professionals']);
         $this->assertSame(1, $summary['active']);
         $this->assertSame(1, $summary['suspended']);
     }
@@ -132,8 +132,7 @@ class AdminUserWebManagementTest extends TestCase
 
         $user = User::factory()->create(['name' => 'Compte privé']);
         $user->assignRole('client');
-        Profile::query()->create([
-            'user_id' => $user->id,
+        $user->profile()->create([
             'first_name' => 'Compte',
             'last_name' => 'Privé',
             'phone' => '+243990000001',
