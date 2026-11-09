@@ -36,8 +36,6 @@ class ProfessionalDocument extends Model
         'review_note',
         'reviewed_by',
         'reviewed_at',
-        'superseded_by_document_id',
-        'superseded_at',
     ];
 
     protected function casts(): array
