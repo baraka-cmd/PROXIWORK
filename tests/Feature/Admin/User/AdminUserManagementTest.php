@@ -8,6 +8,7 @@ use App\Enums\UserAccountStatus;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Admin\User\AdminUserService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +91,28 @@ class AdminUserManagementTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.id', $user->id)
             ->assertJsonPath('data.roles.0', 'client');
+    }
+
+    public function test_business_timeline_includes_only_recorded_account_lifecycle_timestamps(): void
+    {
+        $user = User::factory()->create([
+            'created_at' => now()->subDays(3),
+            'email_verified_at' => now()->subDays(2),
+        ]);
+
+        $activity = app(AdminUserService::class)->detail($user)['business_activity'];
+
+        $this->assertTrue($activity->contains(
+            fn (array $event): bool => $event['type'] === 'Compte créé'
+                && $event['date']->equalTo($user->created_at),
+        ));
+        $this->assertTrue($activity->contains(
+            fn (array $event): bool => $event['type'] === 'Adresse e-mail confirmée'
+                && $event['date']->equalTo($user->email_verified_at),
+        ));
+        $this->assertFalse($activity->contains(
+            fn (array $event): bool => str_contains(mb_strtolower($event['type']), 'connexion'),
+        ));
     }
 
     public function test_admin_can_suspend_and_reactivate_user_and_tokens_are_revoked(): void
