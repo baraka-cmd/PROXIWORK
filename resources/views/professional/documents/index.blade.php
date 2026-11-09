@@ -38,6 +38,19 @@
             </div>
         </aside>
 
+        @if (($verificationStatus ?? null) === 'additional_documents_requested')
+            <div class="alert alert--warning" role="alert">
+                <strong>Des documents complémentaires sont nécessaires.</strong>
+                <p>{{ $verificationInstructions ?: 'Consultez les documents à corriger et transmettez une nouvelle version.' }}</p>
+                <p>Après transmission, l’administration pourra reprendre l’examen de votre dossier. Les décisions déjà prises sur les anciens justificatifs sont conservées.</p>
+            </div>
+        @elseif (($verificationStatus ?? null) === 'rejected')
+            <div class="alert alert--error" role="alert">
+                <strong>Votre vérification a été rejetée.</strong>
+                <p>Le workflow actuel considère cette décision comme définitive. Contactez le support PROXIWORK si vous pensez qu’il s’agit d’une erreur.</p>
+            </div>
+        @endif
+
         <div class="professional-documents__layout">
             <section class="surface-card surface-card--lg" aria-labelledby="professional-document-upload-title">
                 <div class="surface-card__header">
@@ -105,7 +118,7 @@
                                     $statusHelp = match ($documentStatus) {
                                         'pending' => 'Votre document a été transmis et attend son examen.',
                                         'approved' => 'Ce document a été approuvé. Sa suppression n’est pas proposée depuis cet écran.',
-                                        'rejected' => 'Ce document n’a pas été approuvé. Consultez les consignes communiquées par PROXIWORK si vous devez en transmettre un autre.',
+                                        'rejected' => 'Ce document n’a pas été approuvé. '.($document->review_note ?: 'Transmettez une nouvelle version si elle est demandée.'),
                                         default => 'Le statut est en cours de clarification.',
                                     };
                                 @endphp
@@ -120,7 +133,7 @@
                                             <span>{{ number_format($document->size / 1024, 0, ',', ' ') }} Ko</span>
                                             <span>Transmis le {{ $document->created_at?->locale(app()->getLocale())->translatedFormat('j F Y') ?? 'date non disponible' }}</span>
                                         </div>
-                                        @if ($documentStatus !== 'approved')
+                                        @if ($documentStatus === 'pending')
                                             <div class="professional-document-card__actions">
                                                 <form method="POST" action="{{ route('professional.documents.destroy', $document) }}" data-professional-document-form data-confirm-delete="true">
                                                     @csrf
