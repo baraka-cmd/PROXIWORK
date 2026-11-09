@@ -30,6 +30,7 @@ class StoreProfessionalDocumentRequest extends FormRequest
                 ]),
             ],
             'file' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png,webp', 'max:10240'],
+            'replaces_document_id' => ['nullable', 'integer', 'exists:professional_documents,id'],
         ];
     }
 }
