@@ -48,14 +48,15 @@
     @can('viewVerificationDocuments',$professional)
         <div class="verification-documents">
         @forelse($professional->documents as $document)
+            @php($isSuperseded = $document->superseded_by_document_id !== null)
             <article class="verification-document">
                 <div class="verification-document__heading">
                     <div><strong>{{ $documentTypes[$document->document_type] ?? 'Autre justificatif' }}</strong><small>{{ $document->original_name }} · {{ number_format($document->size / 1024, 0, ',', ' ') }} Ko</small></div>
-                    <span class="admin-status admin-status--{{ $document->status }}">{{ ['pending'=>'À examiner','approved'=>'Approuvé','rejected'=>'Rejeté'][$document->status] ?? $document->status }}</span>
+                    <span class="admin-status admin-status--{{ $isSuperseded ? 'neutral' : $document->status }}">{{ $isSuperseded ? 'Remplacé' : (['pending'=>'À examiner','approved'=>'Approuvé','rejected'=>'Rejeté'][$document->status] ?? $document->status) }}</span>
                 </div>
                 <div class="admin-action-row">
                     <a class="button button--secondary" href="{{ route('admin.professionals.documents.download',$document) }}"><i class="fa-solid fa-lock"></i> Télécharger le justificatif privé</a>
-                    @if($document->status === 'pending')
+                    @if($document->status === 'pending' && ! $isSuperseded)
                         @can('reviewDocument',$professional)
                             <form method="POST" action="{{ route('admin.verification.documents.approve',[$professional,$document]) }}">@csrf<button class="button button--primary" type="submit">Approuver</button></form>
                             <form method="POST" action="{{ route('admin.verification.documents.reject',[$professional,$document]) }}" class="verification-reject-form">
@@ -64,6 +65,7 @@
                         @endcan
                     @endif
                 </div>
+                @if($isSuperseded)<p class="admin-note"><span>Cette version a été remplacée par un justificatif plus récent. Son historique est conservé.</span></p>@endif
                 @if($document->review_note)<p class="admin-note"><span>Dernière note : {{ $document->review_note }}</span></p>@endif
                 @can('reviewDocument',$professional)
                     @if($document->reviews->isNotEmpty())
