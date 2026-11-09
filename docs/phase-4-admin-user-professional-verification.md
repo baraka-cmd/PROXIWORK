@@ -102,9 +102,9 @@ The current status and history are written in one database transaction.
 
 The professional row is locked during a transition, preventing two administrators from successfully applying conflicting decisions to the same state.
 
-Every individual document decision is also persisted in `professional_document_reviews`, with the administrator, decision, note and timestamp. Reviewed documents cannot be deleted from the professional portal; a corrected version is uploaded as a new record so previous decisions remain available.
+Every individual document decision is also persisted in `professional_document_reviews`, with the administrator, decision, note and timestamp. Reviewed documents cannot be deleted from the professional portal; a corrected version is uploaded as a new record. The previous record is marked as superseded through a self-reference and timestamp, while its original decision and review history remain available.
 
-Final approval requires at least one submitted document and approval of the latest submitted version for each document category. Older rejected versions remain in the dossier history and do not block a later approved replacement.
+Final approval requires at least one current document and approval of every current document. Uploading a replacement marks the previous current version as superseded; superseded versions remain downloadable to authorized reviewers with their original decisions and do not block approval.
 
 ### Rejection reasons
 
