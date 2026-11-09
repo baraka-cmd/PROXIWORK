@@ -7,7 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;\nuse Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProfessionalDocument extends Model
 {
@@ -26,12 +26,12 @@ class ProfessionalDocument extends Model
 
     protected $fillable = [
         'professional_profile_id', 'document_type', 'original_name', 'path', 'disk',
-        'mime_type', 'size', 'status', 'review_note', 'reviewed_by', 'reviewed_at',
+        'mime_type', 'size', 'status', 'review_note', 'reviewed_by', 'reviewed_at',\n        'superseded_by_document_id', 'superseded_at',
     ];
 
     protected function casts(): array
     {
-        return ['size' => 'integer', 'reviewed_at' => 'datetime'];
+        return ['size' => 'integer', 'reviewed_at' => 'datetime', 'superseded_at' => 'datetime'];
     }
 
     public function professionalProfile(): BelongsTo
@@ -47,5 +47,10 @@ class ProfessionalDocument extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(ProfessionalDocumentReview::class)->latest();
+    }
+
+    public function supersededBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'superseded_by_document_id');
     }
 }
