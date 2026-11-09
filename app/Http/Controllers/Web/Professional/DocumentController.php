@@ -46,6 +46,13 @@ class DocumentController extends Controller
     public function store(StoreProfessionalDocumentRequest $request): RedirectResponse
     {
         $professional = $request->user()->professionalProfile()->firstOrFail();
+
+        if (in_array($professional->verification_status?->value, ['verified', 'rejected'], true)) {
+            return back()->withErrors([
+                'document' => 'Votre dossier est clôturé dans son état actuel. Contactez le support PROXIWORK pour toute demande de réexamen.',
+            ]);
+        }
+
         $file = $request->file('file');
         $path = $this->storage->storeVerificationFile($file, $professional->getKey());
 
