@@ -49,7 +49,6 @@ Route::middleware(['auth', 'permission:rbac.view'])->group(function (): void {
 Route::middleware(['auth', 'active.account', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('professionals', [ProfessionalController::class, 'index'])->name('professionals.index');
     Route::get('professionals/{professional}', [ProfessionalController::class, 'show'])->name('professionals.show');
-    Route::get('professionals/documents/{document}', [ProfessionalDocumentController::class, 'download'])->name('professionals.documents.download');
 });
 Route::middleware(['auth', 'active.account'])->group(function (): void {
     Route::post('professionals/{professional}/suspend', [ProfessionalController::class, 'suspend'])->middleware('permission:admin.professionals.suspend')->name('professionals.suspend');
@@ -81,15 +80,12 @@ Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->g
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
-});
-Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {
     Route::get('service-realizations/{realization}/file', [AdminServiceRealizationController::class, 'file'])->name('service-realizations.file');
 });
 Route::middleware(['auth', 'active.account', 'permission:admin.service_realizations.moderate'])->group(function (): void {
     Route::post('service-realizations/{realization}/approve', [AdminServiceRealizationController::class, 'approve'])->name('service-realizations.approve');
     Route::post('service-realizations/{realization}/reject', [AdminServiceRealizationController::class, 'reject'])->name('service-realizations.reject');
 });
-
 Route::middleware(['auth', 'active.account'])->group(function (): void {
     Route::post('services/{service}/publish', [ServiceController::class, 'publish'])->middleware('permission:admin.services.manage')->name('services.publish');
     Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])->middleware('permission:admin.services.manage')->name('services.unpublish');
@@ -136,6 +132,20 @@ Route::middleware(['auth', 'active.account', 'permission:admin.dashboard.view'])
 Route::middleware(['auth', 'active.account', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('verification', [VerificationController::class, 'index'])->name('verification.index');
     Route::get('verification/{professional}', [VerificationController::class, 'show'])->name('verification.show');
+});
+Route::middleware(['auth', 'active.account'])->group(function (): void {
+    Route::post('verification/{professional}/request-documents', [VerificationController::class, 'requestDocuments'])
+        ->middleware('permission:admin.verification.request_documents')
+        ->name('verification.request-documents');
+    Route::get('professionals/documents/{document}', [ProfessionalDocumentController::class, 'download'])
+        ->middleware('permission:admin.verification.documents.view')
+        ->name('professionals.documents.download');
+    Route::post('verification/{professional}/documents/{document}/approve', [VerificationController::class, 'approveDocument'])
+        ->middleware('permission:admin.verification.documents.review')
+        ->name('verification.documents.approve');
+    Route::post('verification/{professional}/documents/{document}/reject', [VerificationController::class, 'rejectDocument'])
+        ->middleware('permission:admin.verification.documents.review')
+        ->name('verification.documents.reject');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:reports.manage'])->group(function (): void {
