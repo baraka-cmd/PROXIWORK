@@ -17,7 +17,9 @@ class SkillService
     public function create(array $attributes): Skill
     {
         return DB::transaction(function () use ($attributes): Skill {
-            $this->assertCategoryIsActive((int) $attributes['category_id']);
+            if (isset($attributes['category_id'])) {
+                $this->assertCategoryIsActive((int) $attributes['category_id']);
+            }
             $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $attributes['name']);
 
             return Skill::query()->create($attributes);
@@ -28,9 +30,11 @@ class SkillService
     {
         return DB::transaction(function () use ($skill, $attributes): Skill {
             $locked = Skill::query()->lockForUpdate()->findOrFail($skill->getKey());
-            $categoryId = (int) ($attributes['category_id'] ?? $locked->category_id);
+            $categoryId = array_key_exists('category_id', $attributes)
+                ? ($attributes['category_id'] === null ? null : (int) $attributes['category_id'])
+                : $locked->category_id;
 
-            if ($categoryId > 0) {
+            if ($categoryId !== null && $categoryId > 0) {
                 $this->assertCategoryIsActive($categoryId);
             }
 

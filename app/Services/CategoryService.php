@@ -66,8 +66,8 @@ class CategoryService
                 ]);
             }
 
-            if (array_key_exists('name', $attributes) || array_key_exists('slug', $attributes)) {
-                $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $name, $locked);
+            if (array_key_exists('slug', $attributes)) {
+                $attributes['slug'] = $this->resolveSlug($attributes['slug'], $name, $locked);
             }
 
             if ($newStatus !== CategoryStatus::ACTIVE) {
