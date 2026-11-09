@@ -1,111 +1,106 @@
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.querySelector('.admin-layout [data-dashboard-sidebar]');
-    const nav = sidebar?.querySelector('[data-admin-navigation]');
-    const pin = nav?.querySelector('[data-admin-pin]');
+    const navigation = sidebar?.querySelector('[data-admin-navigation]');
+    const pinButton = navigation?.querySelector('[data-admin-pin]');
     const content = document.querySelector('.admin-layout .dashboard-content');
-    const overlay = document.querySelector('.admin-layout [data-sidebar-overlay]');
-    const mobileToggle = document.querySelector('.admin-layout [data-mobile-menu-toggle="#dashboard-sidebar"]');
-    const desktopViewport = window.matchMedia('(min-width: 1024px)');
-    const storageKey = 'proxiwork.admin.sidebar.pinned';
 
-    if (!sidebar || !nav || !content) {
+    if (!sidebar || !navigation || !pinButton || !content) {
         return;
     }
 
-    const setGroupState = (group, expanded) => {
-        const toggle = group.querySelector('[data-admin-group-toggle]');
-        const children = group.querySelector('.admin-nav-group__items');
+    const desktopHover = window.matchMedia('(min-width: 1024px) and (hover: hover)');
+    const pinStorageKey = 'proxiwork-admin-sidebar-pinned';
+    const groups = Array.from(navigation.querySelectorAll('[data-admin-group]'));
 
-        if (!toggle || !children) {
+    const setGroupExpanded = (group, expanded) => {
+        const toggle = group.querySelector('[data-admin-group-toggle]');
+        const items = group.querySelector('.admin-nav-group__items');
+
+        if (!toggle || !items) {
             return;
         }
 
         toggle.setAttribute('aria-expanded', String(expanded));
-        children.hidden = !expanded;
+        items.hidden = !expanded;
+        group.classList.toggle('is-expanded', expanded);
     };
 
-    nav.querySelectorAll('[data-admin-group-toggle]').forEach((toggle) => {
-        toggle.addEventListener('click', () => {
-            const currentGroup = toggle.closest('[data-admin-group]');
-            const children = currentGroup?.querySelector('.admin-nav-group__items');
-
-            if (!currentGroup || !children) {
-                return;
+    const closeOtherGroups = (currentGroup) => {
+        groups.forEach((group) => {
+            if (group !== currentGroup) {
+                setGroupExpanded(group, false);
             }
-
-            const shouldExpand = toggle.getAttribute('aria-expanded') !== 'true';
-
-            if (shouldExpand) {
-                nav.querySelectorAll('[data-admin-group]').forEach((group) => {
-                    if (group !== currentGroup) {
-                        setGroupState(group, false);
-                    }
-                });
-            }
-
-            setGroupState(currentGroup, shouldExpand);
         });
-    });
+    };
 
-    const readPinnedPreference = () => {
-        try {
-            return window.localStorage.getItem(storageKey) === 'true';
-        } catch {
-            return false;
+    const updatePinLabel = (pinned) => {
+        pinButton.setAttribute('aria-pressed', String(pinned));
+        pinButton.setAttribute(
+            'aria-label',
+            pinned ? 'Désépingler la barre latérale' : 'Épingler la barre développée',
+        );
+        pinButton.title = pinned
+            ? 'Désépingler la barre latérale'
+            : 'Épingler la barre développée';
+
+        const label = pinButton.querySelector('span');
+
+        if (label) {
+            label.textContent = pinned ? 'Barre épinglée' : 'Épingler la barre';
         }
     };
 
     const applyPinnedState = (pinned) => {
-        const shouldPin = desktopViewport.matches && pinned;
+        const shouldPin = desktopHover.matches && pinned;
 
         sidebar.classList.toggle('is-pinned', shouldPin);
         content.classList.toggle('is-admin-sidebar-pinned', shouldPin);
-
-        if (pin) {
-            pin.setAttribute('aria-pressed', String(shouldPin));
-            pin.setAttribute('aria-label', shouldPin ? 'Désépingler la barre' : 'Épingler la barre développée');
-            pin.title = shouldPin ? 'Désépingler la barre' : 'Épingler la barre développée';
-
-            const label = pin.querySelector('span');
-            if (label) {
-                label.textContent = shouldPin ? 'Barre épinglée' : 'Épingler la barre';
-            }
-        }
+        updatePinLabel(shouldPin);
     };
 
-    let pinnedPreference = readPinnedPreference();
-    applyPinnedState(pinnedPreference);
+    let savedPinned = false;
 
-    pin?.addEventListener('click', () => {
-        pinnedPreference = !sidebar.classList.contains('is-pinned');
+    try {
+        savedPinned = window.localStorage.getItem(pinStorageKey) === 'true';
+    } catch {
+        savedPinned = false;
+    }
+
+    applyPinnedState(savedPinned);
+
+    groups.forEach((group) => {
+        const toggle = group.querySelector('[data-admin-group-toggle]');
+
+        toggle?.addEventListener('click', () => {
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+
+            if (!expanded) {
+                closeOtherGroups(group);
+            }
+
+            setGroupExpanded(group, !expanded);
+        });
+    });
+
+    pinButton.addEventListener('click', () => {
+        savedPinned = !sidebar.classList.contains('is-pinned');
 
         try {
-            window.localStorage.setItem(storageKey, String(pinnedPreference));
+            window.localStorage.setItem(pinStorageKey, String(savedPinned));
         } catch {
             // La navigation reste utilisable même si le stockage local est indisponible.
         }
 
-        applyPinnedState(pinnedPreference);
+        applyPinnedState(savedPinned);
     });
 
-    desktopViewport.addEventListener('change', () => {
-        applyPinnedState(pinnedPreference);
-        syncOverlay();
-    });
+    const handleViewportChange = () => {
+        applyPinnedState(savedPinned);
+    };
 
-    function syncOverlay() {
-        overlay?.classList.toggle('is-visible', sidebar.classList.contains('is-open'));
+    if (typeof desktopHover.addEventListener === 'function') {
+        desktopHover.addEventListener('change', handleViewportChange);
+    } else {
+        desktopHover.addListener(handleViewportChange);
     }
-
-    mobileToggle?.addEventListener('click', syncOverlay);
-    overlay?.addEventListener('click', () => window.requestAnimationFrame(syncOverlay));
-    sidebar.querySelector('[data-sidebar-close]')?.addEventListener('click', () => window.requestAnimationFrame(syncOverlay));
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            window.requestAnimationFrame(syncOverlay);
-        }
-    });
-
-    syncOverlay();
 });
