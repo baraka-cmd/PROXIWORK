@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin\User;
 
 use App\Enums\UserAccountStatus;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -58,6 +60,23 @@ class AdminUserManagementTest extends TestCase
             ->assertJsonPath('data.0.account_status', 'suspended')
             ->assertJsonPath('meta.scope', 'admin.users')
             ->assertJsonPath('meta.per_page', 1);
+    }
+
+    public function test_admin_api_hides_email_without_sensitive_data_permission(): void
+    {
+        $admin = $this->admin();
+        $adminRole = Role::query()->where('name', 'admin')->firstOrFail();
+        $sensitivePermission = Permission::query()->where('name', 'admin.users.view_sensitive')->firstOrFail();
+        $adminRole->permissions()->detach($sensitivePermission->id);
+
+        $user = User::factory()->create(['email' => 'api-private@example.test']);
+        $user->assignRole('client');
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson("/api/v1/admin/users/{$user->id}")
+            ->assertOk()
+            ->assertJsonMissingPath('data.email')
+            ->assertJsonPath('data.id', $user->id);
     }
 
     public function test_admin_can_view_user(): void
