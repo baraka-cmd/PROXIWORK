@@ -5,117 +5,134 @@
 @section('dashboard_title', 'Administration')
 
 @section('dashboard_sidebar')
+    @php
+        $adminGroups = [
+            [
+                'title' => 'Tableau de bord',
+                'icon' => 'fa-gauge-high',
+                'items' => [
+                    ['label' => 'Accueil', 'route' => 'admin.dashboard', 'permission' => 'admin.dashboard.view', 'icon' => 'fa-house', 'active' => ['admin.dashboard']],
+                ],
+            ],
+            [
+                'title' => 'Utilisateurs',
+                'icon' => 'fa-users',
+                'items' => [
+                    ['label' => 'Tous les utilisateurs', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-users', 'active' => ['admin.users.*'], 'default' => true],
+                    ['label' => 'Clients', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-user-group', 'active' => ['admin.users.index'], 'query' => ['role' => 'client']],
+                    ['label' => 'Prestataires professionnels', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-user-tie', 'active' => ['admin.users.index'], 'query' => ['role' => 'professional']],
+                    ['label' => 'Comptes suspendus', 'route' => 'admin.users.index', 'permission' => 'admin.users.view', 'icon' => 'fa-user-lock', 'active' => ['admin.users.index'], 'query' => ['account_status' => 'suspended']],
+                    ['label' => 'Gestion des accès', 'route' => 'admin.rbac.dashboard', 'permission' => 'rbac.view', 'icon' => 'fa-user-shield', 'active' => ['admin.rbac.*']],
+                    ['label' => 'Rôles', 'route' => 'admin.roles.index', 'permission' => 'rbac.view', 'icon' => 'fa-users-gear', 'active' => ['admin.roles.*']],
+                    ['label' => 'Permissions', 'route' => 'admin.permissions.index', 'permission' => 'rbac.view', 'icon' => 'fa-key', 'active' => ['admin.permissions.*']],
+                ],
+            ],
+            [
+                'title' => 'Vérifications',
+                'icon' => 'fa-user-check',
+                'items' => [
+                    ['label' => 'Dossiers professionnels', 'route' => 'admin.verification.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-folder-open', 'active' => ['admin.verification.*']],
+                    ['label' => 'Fiches professionnels', 'route' => 'admin.professionals.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-id-card', 'active' => ['admin.professionals.*']],
+                ],
+            ],
+            [
+                'title' => 'Catalogue',
+                'icon' => 'fa-layer-group',
+                'items' => [
+                    ['label' => 'Catégories', 'route' => 'admin.categories.index', 'permission' => 'categories.view', 'icon' => 'fa-layer-group', 'active' => ['admin.categories.*']],
+                    ['label' => 'Compétences', 'route' => 'admin.skills.index', 'permission' => 'categories.manage', 'icon' => 'fa-list-check', 'active' => ['admin.skills.*']],
+                    ['label' => 'Services', 'route' => 'admin.services.index', 'permission' => 'admin.services.view', 'icon' => 'fa-briefcase', 'active' => ['admin.services.*']],
+                ],
+            ],
+            [
+                'title' => 'Opérations',
+                'icon' => 'fa-arrows-rotate',
+                'items' => [
+                    ['label' => 'Demandes de services', 'route' => 'admin.service-requests.index', 'permission' => 'requests.view', 'icon' => 'fa-file-lines', 'active' => ['admin.service-requests.*']],
+                    ['label' => 'Commandes', 'route' => 'admin.orders.index', 'permission' => 'orders.view', 'icon' => 'fa-cart-shopping', 'active' => ['admin.orders.*']],
+                ],
+            ],
+            [
+                'title' => 'Finances',
+                'icon' => 'fa-wallet',
+                'items' => [
+                    ['label' => 'Paiements et transactions', 'route' => 'admin.payments.index', 'permission' => 'payments.view', 'icon' => 'fa-credit-card', 'active' => ['admin.payments.*']],
+                    ['label' => 'Retraits', 'route' => 'admin.withdrawals.index', 'permission' => 'admin.withdrawals.manage', 'icon' => 'fa-money-bill-transfer', 'active' => ['admin.withdrawals.*']],
+                ],
+            ],
+            [
+                'title' => 'Modération et litiges',
+                'icon' => 'fa-flag',
+                'items' => [
+                    ['label' => 'Signalements', 'route' => 'admin.reports.index', 'permission' => 'reports.manage', 'icon' => 'fa-flag', 'active' => ['admin.reports.*']],
+                    ['label' => 'Support et réclamations', 'route' => 'admin.support.index', 'permission' => 'support.manage', 'icon' => 'fa-headset', 'active' => ['admin.support.*']],
+                ],
+            ],
+            [
+                'title' => 'Rapports et statistiques',
+                'icon' => 'fa-chart-column',
+                'items' => [
+                    ['label' => 'Statistiques générales', 'route' => 'admin.analytics', 'permission' => 'admin.dashboard.view', 'icon' => 'fa-chart-column', 'active' => ['admin.analytics']],
+                ],
+            ],
+            [
+                'title' => 'Audit et sécurité',
+                'icon' => 'fa-shield-halved',
+                'items' => [
+                    ['label' => 'Journal des activités', 'route' => 'admin.audit.index', 'permission' => 'audit.view', 'icon' => 'fa-clock-rotate-left', 'active' => ['admin.audit.*']],
+                ],
+            ],
+        ];
+
+        $adminUser = auth()->user();
+
+        $isAdminItemActive = static function (array $item): bool {
+            $routePatterns = $item['active'] ?? [$item['route']];
+            $routeMatches = collect($routePatterns)->contains(
+                static fn (string $pattern): bool => request()->routeIs($pattern),
+            );
+
+            if (! $routeMatches) {
+                return false;
+            }
+
+            foreach (($item['query'] ?? []) as $key => $value) {
+                if ((string) request()->query($key) !== (string) $value) {
+                    return false;
+                }
+            }
+
+            if (($item['default'] ?? false) === true) {
+                return request()->query('role') === null
+                    && request()->query('account_status') === null;
+            }
+
+            return true;
+        };
+    @endphp
+
     <nav class="admin-sidebar-nav" aria-label="Navigation administration" data-admin-navigation>
         <button
             class="admin-sidebar-pin"
             type="button"
             data-admin-pin
             aria-pressed="false"
-            title="Épingler la barre"
+            title="Épingler la barre développée"
             aria-label="Épingler la barre développée"
         >
             <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
             <span>Épingler la barre</span>
         </button>
 
-        @php
-            /*
-             * Ne déclarer ici que les destinations qui existent réellement.
-             * Les permissions serveur restent contrôlées par les middlewares Laravel.
-             */
-            $adminGroups = [
-                [
-                    'title' => 'Tableau de bord',
-                    'icon' => 'fa-gauge-high',
-                    'items' => [
-                        ['label' => 'Accueil', 'route' => 'admin.dashboard', 'permission' => 'admin.dashboard.view', 'icon' => 'fa-house', 'exact' => true],
-                    ],
-                ],
-                [
-                    'title' => 'Utilisateurs',
-                    'icon' => 'fa-users',
-                    'items' => [
-                        ['label' => 'Tous les utilisateurs', 'route' => 'admin.users.index', 'active_query' => ['role' => null, 'account_status' => null], 'permission' => 'admin.users.view', 'icon' => 'fa-users'],
-                        ['label' => 'Clients', 'route' => 'admin.users.index', 'parameters' => ['role' => 'client'], 'active_query' => ['role' => 'client', 'account_status' => null], 'permission' => 'admin.users.view', 'icon' => 'fa-user-group'],
-                        ['label' => 'Professionnels', 'route' => 'admin.professionals.index', 'permission' => 'admin.professionals.view', 'icon' => 'fa-user-tie'],
-                        ['label' => 'Comptes suspendus', 'route' => 'admin.users.index', 'parameters' => ['account_status' => 'suspended'], 'active_query' => ['role' => null, 'account_status' => 'suspended'], 'permission' => 'admin.users.view', 'icon' => 'fa-user-lock'],
-                        ['label' => 'Rôles', 'route' => 'admin.roles.index', 'permission' => 'rbac.view', 'icon' => 'fa-user-shield'],
-                        ['label' => 'Permissions', 'route' => 'admin.permissions.index', 'permission' => 'rbac.view', 'icon' => 'fa-key'],
-                    ],
-                ],
-                [
-                    'title' => 'Vérifications',
-                    'icon' => 'fa-user-check',
-                    'items' => [
-                        ['label' => 'Dossiers professionnels', 'route' => 'admin.verification.index', 'active_query' => ['verification_status' => null], 'permission' => 'admin.professionals.view', 'icon' => 'fa-folder-open'],
-                        ['label' => 'Dossiers en attente', 'route' => 'admin.verification.index', 'parameters' => ['verification_status' => 'pending'], 'active_query' => ['verification_status' => 'pending'], 'permission' => 'admin.professionals.view', 'icon' => 'fa-hourglass-half'],
-                    ],
-                ],
-                [
-                    'title' => 'Catalogue',
-                    'icon' => 'fa-layer-group',
-                    'items' => [
-                        ['label' => 'Catégories', 'route' => 'admin.categories.index', 'permission' => 'categories.view', 'icon' => 'fa-layer-group'],
-                        ['label' => 'Compétences', 'route' => 'admin.skills.index', 'permission' => 'categories.manage', 'icon' => 'fa-list-check'],
-                        ['label' => 'Tous les services', 'route' => 'admin.services.index', 'active_query' => ['status' => null], 'permission' => 'admin.services.view', 'icon' => 'fa-briefcase'],
-                        ['label' => 'Services publiés', 'route' => 'admin.services.index', 'parameters' => ['status' => 'published'], 'active_query' => ['status' => 'published'], 'permission' => 'admin.services.view', 'icon' => 'fa-circle-check'],
-                    ],
-                ],
-                [
-                    'title' => 'Opérations',
-                    'icon' => 'fa-arrows-rotate',
-                    'items' => [
-                        ['label' => 'Demandes de services', 'route' => 'admin.service-requests.index', 'permission' => 'requests.view', 'icon' => 'fa-file-lines'],
-                        ['label' => 'Commandes', 'route' => 'admin.orders.index', 'permission' => 'orders.view', 'icon' => 'fa-cart-shopping'],
-                    ],
-                ],
-                [
-                    'title' => 'Finances',
-                    'icon' => 'fa-wallet',
-                    'items' => [
-                        ['label' => 'Paiements et transactions', 'route' => 'admin.payments.index', 'permission' => 'payments.view', 'icon' => 'fa-credit-card'],
-                        ['label' => 'Retraits', 'route' => 'admin.withdrawals.index', 'permission' => 'admin.withdrawals.manage', 'icon' => 'fa-money-bill-transfer'],
-                    ],
-                ],
-                [
-                    'title' => 'Modération et litiges',
-                    'icon' => 'fa-shield-halved',
-                    'items' => [
-                        ['label' => 'Signalements', 'route' => 'admin.reports.index', 'permission' => 'reports.manage', 'icon' => 'fa-flag'],
-                        ['label' => 'Support et réclamations', 'route' => 'admin.support.index', 'permission' => 'support.manage', 'icon' => 'fa-headset'],
-                    ],
-                ],
-                [
-                    'title' => 'Rapports et statistiques',
-                    'icon' => 'fa-chart-column',
-                    'items' => [
-                        ['label' => 'Statistiques générales', 'route' => 'admin.analytics', 'permission' => 'admin.dashboard.view', 'icon' => 'fa-chart-column', 'exact' => true],
-                    ],
-                ],
-                [
-                    'title' => 'Audit et sécurité',
-                    'icon' => 'fa-shield-halved',
-                    'items' => [
-                        ['label' => 'Journal des activités', 'route' => 'admin.audit.index', 'permission' => 'audit.view', 'icon' => 'fa-clock-rotate-left'],
-                    ],
-                ],
-            ];
-        @endphp
-
         @foreach ($adminGroups as $group)
             @php
-                $visibleItems = array_filter(
+                $visibleItems = array_values(array_filter(
                     $group['items'],
-                    fn (array $item): bool => auth()->user()?->hasPermissionTo($item['permission'])
-                        && Route::has($item['route']),
-                );
+                    static fn (array $item): bool => Route::has($item['route'])
+                        && ($adminUser?->hasPermissionTo($item['permission']) ?? false),
+                ));
 
-                $isActive = collect($visibleItems)->contains(
-                    fn (array $item): bool => request()->routeIs($item['route'])
-                        || (! ($item['exact'] ?? false) && request()->routeIs(str_replace('.index', '.*', $item['route']))),
-                );
-
-                $groupId = 'admin-nav-group-'.$loop->index;
+                $isActive = collect($visibleItems)->contains($isAdminItemActive);
             @endphp
 
             @if ($visibleItems !== [])
@@ -124,7 +141,7 @@
                         class="admin-nav-group__toggle"
                         type="button"
                         aria-expanded="{{ $isActive ? 'true' : 'false' }}"
-                        aria-controls="{{ $groupId }}"
+                        aria-controls="admin-nav-group-{{ $loop->index }}"
                         data-admin-group-toggle
                         title="{{ $group['title'] }}"
                     >
@@ -133,20 +150,16 @@
                         <i class="fa-solid fa-chevron-down admin-nav-group__chevron" aria-hidden="true"></i>
                     </button>
 
-                    <div id="{{ $groupId }}" class="admin-nav-group__items" @if (! $isActive) hidden @endif>
+                    <div
+                        class="admin-nav-group__items"
+                        id="admin-nav-group-{{ $loop->index }}"
+                        @if (! $isActive) hidden @endif
+                    >
                         @foreach ($visibleItems as $item)
-                            @php
-                                $itemMatchesRoute = request()->routeIs($item['route'])
-                                    || (! ($item['exact'] ?? false) && request()->routeIs(str_replace('.index', '.*', $item['route'])));
-                                $queryMatches = collect($item['active_query'] ?? [])->every(
-                                    fn ($value, $key): bool => request()->query($key) === $value,
-                                );
-                                $itemActive = $itemMatchesRoute && $queryMatches;
-                            @endphp
-
+                            @php($itemActive = $isAdminItemActive($item))
                             <a
                                 class="dashboard-nav-link admin-nav-link {{ $itemActive ? 'is-active' : '' }}"
-                                href="{{ route($item['route'], $item['parameters'] ?? []) }}"
+                                href="{{ route($item['route'], $item['query'] ?? []) }}"
                                 title="{{ $item['label'] }}"
                                 @if ($itemActive) aria-current="page" @endif
                             >
@@ -169,7 +182,7 @@
 
     <form method="POST" action="{{ route('admin.logout') }}" class="admin-logout-form">
         @csrf
-        <button type="submit" class="admin-logout-button" title="Déconnexion">
+        <button type="submit" class="admin-logout-button">
             <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
             <span>Déconnexion</span>
         </button>
