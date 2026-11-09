@@ -41,6 +41,10 @@ class SupportTicketService
             });
         }
 
+        if (! empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
         if (($filters['status_group'] ?? null) === 'active') {
             $query->whereIn('status', [
                 SupportTicketStatus::OPEN->value,

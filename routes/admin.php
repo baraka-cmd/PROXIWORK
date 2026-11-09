@@ -24,10 +24,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth', 'active.account', 'permission:admin.users.view'])->group(function (): void {
     Route::get('users', [UserController::class, 'index'])->name('users.index');
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
+    Route::patch('users/{user}', [UserController::class, 'update'])->middleware(['permission:admin.users.update', 'throttle:10,1'])->name('users.update');
 });
 Route::middleware(['auth', 'active.account'])->group(function (): void {
-    Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->middleware('permission:admin.users.suspend')->name('users.suspend');
-    Route::post('users/{user}/activate', [UserController::class, 'activate'])->middleware('permission:admin.users.activate')->name('users.activate');
+    Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->middleware(['permission:admin.users.suspend', 'throttle:10,1'])->name('users.suspend');
+    Route::post('users/{user}/activate', [UserController::class, 'activate'])->middleware(['permission:admin.users.activate', 'throttle:10,1'])->name('users.activate');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:rbac.view'])->group(function (): void {

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1\Admin\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\User\AdminUserActivateRequest;
 use App\Http\Requests\Admin\User\AdminUserIndexRequest;
+use App\Http\Requests\Admin\User\AdminUserSuspendRequest;
 use App\Http\Resources\Admin\User\AdminUserResource;
 use App\Models\User;
 use App\Services\Admin\User\AdminUserService;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AdminUserController extends Controller
@@ -20,7 +21,8 @@ class AdminUserController extends Controller
 
     public function index(AdminUserIndexRequest $request): AnonymousResourceCollection
     {
-        $users = $this->service->paginate($request->validated());
+        $canViewSensitive = $request->user()->can('viewSensitive', User::class);
+        $users = $this->service->paginate($request->validated(), $canViewSensitive);
 
         return AdminUserResource::collection($users)->additional([
             'message' => 'Utilisateurs récupérés avec succès.',
@@ -38,11 +40,11 @@ class AdminUserController extends Controller
         ]);
     }
 
-    public function suspend(User $user, Request $request): AdminUserResource
+    public function suspend(AdminUserSuspendRequest $request, User $user): AdminUserResource
     {
         $this->authorize('suspend', $user);
 
-        $updated = $this->service->suspend($user, $request->user(), $request);
+        $updated = $this->service->suspend($user, $request->user(), $request->validated(), $request);
 
         return (new AdminUserResource($updated))->additional([
             'message' => 'Utilisateur suspendu avec succès.',
@@ -50,11 +52,11 @@ class AdminUserController extends Controller
         ]);
     }
 
-    public function activate(User $user, Request $request): AdminUserResource
+    public function activate(AdminUserActivateRequest $request, User $user): AdminUserResource
     {
         $this->authorize('activate', $user);
 
-        $updated = $this->service->activate($user, $request->user(), $request);
+        $updated = $this->service->activate($user, $request->user(), (string) $request->validated('reason'), $request);
 
         return (new AdminUserResource($updated))->additional([
             'message' => 'Utilisateur réactivé avec succès.',

@@ -5,9 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin\User;
 
 use App\Enums\UserAccountStatus;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
+use App\Services\Admin\User\AdminUserService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AdminUserManagementTest extends TestCase
@@ -59,6 +63,23 @@ class AdminUserManagementTest extends TestCase
             ->assertJsonPath('meta.per_page', 1);
     }
 
+    public function test_admin_api_hides_email_without_sensitive_data_permission(): void
+    {
+        $admin = $this->admin();
+        $adminRole = Role::query()->where('name', 'admin')->firstOrFail();
+        $sensitivePermission = Permission::query()->where('name', 'admin.users.view_sensitive')->firstOrFail();
+        $adminRole->permissions()->detach($sensitivePermission->id);
+
+        $user = User::factory()->create(['email' => 'api-private@example.test']);
+        $user->assignRole('client');
+
+        $this->actingAs($admin, 'sanctum')
+            ->getJson("/api/v1/admin/users/{$user->id}")
+            ->assertOk()
+            ->assertJsonMissingPath('data.email')
+            ->assertJsonPath('data.id', $user->id);
+    }
+
     public function test_admin_can_view_user(): void
     {
         $admin = $this->admin();
@@ -72,15 +93,52 @@ class AdminUserManagementTest extends TestCase
             ->assertJsonPath('data.roles.0', 'client');
     }
 
+    public function test_business_timeline_includes_only_recorded_account_lifecycle_timestamps(): void
+    {
+        $user = User::factory()->create([
+            'created_at' => now()->subDays(3),
+            'email_verified_at' => now()->subDays(2),
+        ]);
+
+        $activity = app(AdminUserService::class)->detail($user)['business_activity'];
+
+        $this->assertTrue($activity->contains(
+            fn (array $event): bool => $event['type'] === 'Compte créé'
+                && $event['date']->equalTo($user->created_at),
+        ));
+        $this->assertTrue($activity->contains(
+            fn (array $event): bool => $event['type'] === 'Adresse e-mail confirmée'
+                && $event['date']->equalTo($user->email_verified_at),
+        ));
+        $this->assertFalse($activity->contains(
+            fn (array $event): bool => str_contains(mb_strtolower($event['type']), 'connexion'),
+        ));
+    }
+
     public function test_admin_can_suspend_and_reactivate_user_and_tokens_are_revoked(): void
     {
         $admin = $this->admin();
         $user = User::factory()->create();
         $user->assignRole('client');
+        $user->setRememberToken('existing-remember-token');
+        $user->save();
+        $oldRememberToken = $user->getRememberToken();
         $user->createToken('device');
+        config(['session.driver' => 'database']);
+        DB::table('sessions')->insert([
+            'id' => 'admin-user-test-'.$user->id,
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'PROXIWORK test',
+            'payload' => '{}',
+            'last_activity' => now()->timestamp,
+        ]);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson("/api/v1/admin/users/{$user->id}/suspend")
+            ->postJson("/api/v1/admin/users/{$user->id}/suspend", [
+                'reason_code' => 'administrative_decision',
+                'duration' => 'until_review',
+            ])
             ->assertOk()
             ->assertJsonPath('data.account_status', 'suspended');
 
@@ -89,9 +147,13 @@ class AdminUserManagementTest extends TestCase
             'account_status' => 'suspended',
         ]);
         $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertNotSame($oldRememberToken, $user->fresh()->getRememberToken());
+        $this->assertDatabaseMissing('sessions', ['id' => 'admin-user-test-'.$user->id]);
 
         $this->actingAs($admin, 'sanctum')
-            ->postJson("/api/v1/admin/users/{$user->id}/activate")
+            ->postJson("/api/v1/admin/users/{$user->id}/activate", [
+                'reason' => 'Les vérifications sont terminées et le compte peut être réactivé.',
+            ])
             ->assertOk()
             ->assertJsonPath('data.account_status', 'active');
 
@@ -112,6 +174,60 @@ class AdminUserManagementTest extends TestCase
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/users/{$admin->id}/suspend")
             ->assertForbidden();
+    }
+
+    public function test_suspension_requires_a_reason_and_duration(): void
+    {
+        $admin = $this->admin();
+        $user = User::factory()->create();
+        $user->assignRole('client');
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/admin/users/{$user->id}/suspend", [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['reason_code', 'duration']);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'account_status' => 'active',
+        ]);
+    }
+
+    public function test_admin_cannot_suspend_another_administrator(): void
+    {
+        $admin = $this->admin();
+        $target = User::factory()->create();
+        $target->assignRole('admin');
+
+        $this->actingAs($admin, 'sanctum')
+            ->postJson("/api/v1/admin/users/{$target->id}/suspend", [
+                'reason_code' => 'administrative_decision',
+                'duration' => 'until_review',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_expired_temporary_suspensions_are_reactivated_and_audited(): void
+    {
+        $user = User::factory()->suspended()->create();
+        $user->forceFill([
+            'suspended_at' => now()->subDays(7),
+            'suspended_until' => now()->subMinute(),
+            'suspension_reason' => 'abusive_use',
+        ])->save();
+
+        $this->artisan('users:expire-suspensions')->assertExitCode(0);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'account_status' => 'active',
+            'suspended_until' => null,
+            'suspension_reason' => null,
+        ]);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'admin.user.suspension_expired',
+            'subject_id' => $user->id,
+        ]);
     }
 
     public function test_suspended_user_cannot_login(): void

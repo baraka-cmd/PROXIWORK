@@ -24,6 +24,8 @@ class AdminReportIndexRequest extends FormRequest
             'priority' => ['nullable', Rule::enum(ReportPriority::class)],
             'target_type' => ['nullable', 'string', 'max:100'],
             'assigned_to' => ['nullable', 'integer', 'exists:users,id'],
+            'reporter_id' => ['nullable', 'integer', 'exists:users,id'],
+            'target_id' => ['nullable', 'integer', 'min:1'],
             'created_from' => ['nullable', 'date'],
             'created_to' => ['nullable', 'date', 'after_or_equal:created_from'],
             'sort' => ['nullable', Rule::in(['created_at', '-created_at', 'priority', '-priority'])],
