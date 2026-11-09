@@ -228,7 +228,7 @@
                     <div class="admin-chip-list">@forelse($user->roles as $role)<span class="admin-chip">{{ $role->display_name }}</span>@empty<span class="admin-muted">Aucun rôle</span>@endforelse</div>
                     <dl class="admin-users__mobile-meta">
                         <div><dt>Identifiant</dt><dd>#{{ $user->id }}</dd></div>
-                        <div><dt>Téléphone</dt><dd>{{ $user->profile?->phone ?: 'Non renseigné' }}</dd></div>
+                        <div><dt>Téléphone</dt><dd>{{ $canViewSensitive ? ($user->profile?->phone ?: 'Non renseigné') : 'Masqué · permission requise' }}</dd></div>
                         <div><dt>Inscription</dt><dd>{{ $user->created_at?->format('d/m/Y') }}</dd></div>
                         <div><dt>E-mail</dt><dd>{{ $user->email_verified_at ? 'Vérifié' : 'Non vérifié' }}</dd></div>
                         @if($activityTrackingAvailable)
