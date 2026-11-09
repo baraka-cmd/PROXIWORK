@@ -79,6 +79,7 @@ class AdminUserManagementTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('client');
         $user->createToken('device');
+        config(['session.driver' => 'database']);
         DB::table('sessions')->insert([
             'id' => 'admin-user-test-'.$user->id,
             'user_id' => $user->id,
