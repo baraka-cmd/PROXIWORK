@@ -76,21 +76,23 @@ class AdminUserService
                     ->orWhere('users.email', 'like', "%{$search}%")
                     ->orWhere('users.id', is_numeric($search) ? '=' : 'like', is_numeric($search) ? (int) $search : "%{$search}%")
                     ->orWhereHas('profile', function (Builder $profile) use ($search): void {
-                        $profile->where('phone', 'like', "%{$search}%")
-                            ->orWhere('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%");
+                        $profile->where(function (Builder $matches) use ($search): void {
+                            $matches->where('phone', 'like', "%{$search}%")
+                                ->orWhere('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%");
 
-                        $nameParts = preg_split('/\\s+/', $search, 2);
-                        if (count($nameParts) === 2) {
-                            [$firstName, $lastName] = $nameParts;
-                            $profile->orWhere(function (Builder $name) use ($firstName, $lastName): void {
-                                $name->where('first_name', 'like', "%{$firstName}%")
-                                    ->where('last_name', 'like', "%{$lastName}%");
-                            })->orWhere(function (Builder $name) use ($firstName, $lastName): void {
-                                $name->where('first_name', 'like', "%{$lastName}%")
-                                    ->where('last_name', 'like', "%{$firstName}%");
-                            });
-                        }
+                            $nameParts = preg_split('/\\s+/', $search, 2);
+                            if (count($nameParts) === 2) {
+                                [$firstName, $lastName] = $nameParts;
+                                $matches->orWhere(function (Builder $name) use ($firstName, $lastName): void {
+                                    $name->where('first_name', 'like', "%{$firstName}%")
+                                        ->where('last_name', 'like', "%{$lastName}%");
+                                })->orWhere(function (Builder $name) use ($firstName, $lastName): void {
+                                    $name->where('first_name', 'like', "%{$lastName}%")
+                                        ->where('last_name', 'like', "%{$firstName}%");
+                                });
+                            }
+                        });
                     });
             });
         }
