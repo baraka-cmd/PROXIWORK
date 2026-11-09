@@ -7,10 +7,13 @@ namespace App\Http\Controllers\Web\Professional;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalDocument\StoreProfessionalDocumentRequest;
 use App\Models\ProfessionalDocument;
+use App\Models\ProfessionalProfile;
 use App\Services\Storage\FileStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class DocumentController extends Controller
@@ -57,20 +60,29 @@ class DocumentController extends Controller
         $path = $this->storage->storeVerificationFile($file, $professional->getKey());
 
         try {
-            $professional->documents()->create([
-                'document_type' => $request->validated('document_type'),
-                'original_name' => $file->getClientOriginalName(),
-                'path' => $path,
-                'disk' => 'local',
-                'mime_type' => (string) $file->getMimeType(),
-                'size' => (int) $file->getSize(),
-                'status' => ProfessionalDocument::STATUS_PENDING,
-            ]);
+            DB::transaction(function () use ($professional, $request, $file, $path): void {
+                $lockedProfile = ProfessionalProfile::query()->lockForUpdate()->findOrFail($professional->getKey());
+
+                if (in_array($lockedProfile->verification_status?->value, ['verified', 'rejected'], true)) {
+                    throw ValidationException::withMessages([
+                        'document' => 'Le dossier est clôturé. Contactez le support PROXIWORK pour toute demande de réexamen.',
+                    ]);
+                }
+
+                $lockedProfile->documents()->create([
+                    'document_type' => $request->validated('document_type'),
+                    'original_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'disk' => 'local',
+                    'mime_type' => (string) $file->getMimeType(),
+                    'size' => (int) $file->getSize(),
+                    'status' => ProfessionalDocument::STATUS_PENDING,
+                ]);
+            });
         } catch (\Throwable $exception) {
             $this->storage->deletePrivate($path);
             throw $exception;
         }
-
         return back()->with('success', 'Le document a été transmis pour vérification.');
     }
 
