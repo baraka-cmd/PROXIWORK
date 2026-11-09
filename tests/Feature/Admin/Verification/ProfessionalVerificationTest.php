@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin\Verification;
 
 use App\Enums\ProfessionalVerificationStatus;
+use App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
@@ -29,6 +30,20 @@ class ProfessionalVerificationTest extends TestCase
         return $admin;
     }
 
+    private function addApprovedDocument(ProfessionalProfile $professional): void
+    {
+        ProfessionalDocument::query()->create([
+            'professional_profile_id' => $professional->getKey(),
+            'document_type' => ProfessionalDocument::TYPE_IDENTITY,
+            'original_name' => 'identity.pdf',
+            'path' => 'verification-files/'.$professional->getKey().'/identity.pdf',
+            'disk' => 'local',
+            'mime_type' => 'application/pdf',
+            'size' => 1024,
+            'status' => ProfessionalDocument::STATUS_APPROVED,
+        ]);
+    }
+
     public function test_pending_can_move_to_under_review_then_verified(): void
     {
         $admin = $this->admin();
@@ -43,6 +58,8 @@ class ProfessionalVerificationTest extends TestCase
             ])
             ->assertOk()
             ->assertJsonPath('data.verification_status', 'under_review');
+
+        $this->addApprovedDocument($professional);
 
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/verify", [
@@ -91,6 +108,7 @@ class ProfessionalVerificationTest extends TestCase
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/reject", [
                 'reason_code' => 'DOCUMENT_INVALID',
+                'note' => 'Le justificatif est invalide.',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['verification_status']);
@@ -137,6 +155,7 @@ class ProfessionalVerificationTest extends TestCase
         $this->actingAs($admin, 'sanctum')
             ->postJson("/api/v1/admin/professionals/{$professional->id}/verification/reject", [
                 'reason_code' => 'OTHER',
+                'note' => 'Motif de rejet documenté.',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['verification_status']);

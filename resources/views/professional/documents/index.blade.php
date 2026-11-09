@@ -38,6 +38,19 @@
             </div>
         </aside>
 
+        @if (($verificationStatus ?? null) === 'additional_documents_requested')
+            <div class="alert alert--warning" role="alert">
+                <strong>Des documents complémentaires sont nécessaires.</strong>
+                <p>{{ $verificationInstructions ?: 'Consultez les documents à corriger et transmettez une nouvelle version.' }}</p>
+                <p>Après transmission, l’administration pourra reprendre l’examen de votre dossier. Les décisions déjà prises sur les anciens justificatifs sont conservées.</p>
+            </div>
+        @elseif (($verificationStatus ?? null) === 'rejected')
+            <div class="alert alert--error" role="alert">
+                <strong>Votre vérification a été rejetée.</strong>
+                <p>Le workflow actuel considère cette décision comme définitive. Contactez le support PROXIWORK si vous pensez qu’il s’agit d’une erreur.</p>
+            </div>
+        @endif
+
         <div class="professional-documents__layout">
             <section class="surface-card surface-card--lg" aria-labelledby="professional-document-upload-title">
                 <div class="surface-card__header">
@@ -47,6 +60,7 @@
                     </div>
                 </div>
                 <div class="surface-card__body">
+                    @if (!in_array($verificationStatus ?? null, ['verified', 'rejected'], true))
                     <form class="professional-documents__form" method="POST" action="{{ route('professional.documents.store') }}" enctype="multipart/form-data" data-professional-document-form>
                         @csrf
                         <div class="form-field">
@@ -62,6 +76,20 @@
                         </div>
 
                         <div class="form-field">
+                            <label class="form-label" for="replaces_document_id">Remplacer un justificatif existant (facultatif)</label>
+                            <select class="form-control form-select" id="replaces_document_id" name="replaces_document_id" aria-describedby="replace-document-help">
+                                <option value="">Nouveau justificatif (ne remplace aucun document)</option>
+                                @foreach ($replaceableDocuments as $existingDocument)
+                                    <option value="{{ $existingDocument->id }}" @selected((string) old('replaces_document_id') === (string) $existingDocument->id)>
+                                        {{ $documentTypes[$existingDocument->document_type] ?? 'Justificatif' }} — {{ $existingDocument->original_name }} ({{ $existingDocument->status }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small id="replace-document-help" class="professional-documents__file-note">Si ce fichier corrige ou actualise un justificatif, sélectionnez précisément l’ancienne version. Les autres documents de la même catégorie seront conservés.</small>
+                            @error('replaces_document_id')<p class="form-error">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="form-field">
                             <label class="form-label" for="professional-document-file">Fichier <span class="form-label__required">*</span></label>
                             <input class="form-control" id="professional-document-file" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp" required aria-describedby="document-file-help document-file-status">
                             <small id="document-file-help" class="professional-documents__file-note">Le type et la taille seront également vérifiés par le serveur.</small>
@@ -74,6 +102,9 @@
                             <span data-submit-label>Transmettre pour vérification</span>
                         </button>
                     </form>
+                    @else
+                        <p class="field-help">Le dossier est clôturé. Pour demander un réexamen ou une mise à jour, contactez le support PROXIWORK.</p>
+                    @endif
                 </div>
             </section>
 
@@ -90,24 +121,27 @@
                             @foreach ($documents as $document)
                                 @php
                                     $documentStatus = (string) $document->status;
-                                    $statusLabel = match ($documentStatus) {
+                                    $isSuperseded = $document->superseded_by_document_id !== null;
+                                    $statusLabel = $isSuperseded ? 'Remplacé par une version récente' : match ($documentStatus) {
                                         'pending' => 'En attente de vérification',
                                         'approved' => 'Approuvé',
                                         'rejected' => 'Refusé',
                                         default => 'État à confirmer',
                                     };
-                                    $statusClass = match ($documentStatus) {
+                                    $statusClass = $isSuperseded ? 'neutral' : match ($documentStatus) {
                                         'approved' => 'success',
                                         'rejected' => 'danger',
                                         'pending' => 'warning',
                                         default => 'neutral',
                                     };
-                                    $statusHelp = match ($documentStatus) {
-                                        'pending' => 'Votre document a été transmis et attend son examen.',
-                                        'approved' => 'Ce document a été approuvé. Sa suppression n’est pas proposée depuis cet écran.',
-                                        'rejected' => 'Ce document n’a pas été approuvé. Consultez les consignes communiquées par PROXIWORK si vous devez en transmettre un autre.',
-                                        default => 'Le statut est en cours de clarification.',
-                                    };
+                                    $statusHelp = $isSuperseded
+                                        ? 'Une nouvelle version a été transmise pour cette catégorie. Cette ancienne version et ses décisions sont conservées dans votre dossier.'
+                                        : match ($documentStatus) {
+                                            'pending' => 'Votre document a été transmis et attend son examen.',
+                                            'approved' => 'Ce document a été approuvé. Sa suppression n’est pas proposée depuis cet écran.',
+                                            'rejected' => 'Ce document n’a pas été approuvé. '.($document->review_note ?: 'Transmettez une nouvelle version si elle est demandée.'),
+                                            default => 'Le statut est en cours de clarification.',
+                                        };
                                 @endphp
                                 <article class="professional-document-card">
                                     <span class="professional-document-card__icon" aria-hidden="true">
@@ -120,7 +154,7 @@
                                             <span>{{ number_format($document->size / 1024, 0, ',', ' ') }} Ko</span>
                                             <span>Transmis le {{ $document->created_at?->locale(app()->getLocale())->translatedFormat('j F Y') ?? 'date non disponible' }}</span>
                                         </div>
-                                        @if ($documentStatus !== 'approved')
+                                        @if ($documentStatus === 'pending' && ! $isSuperseded)
                                             <div class="professional-document-card__actions">
                                                 <form method="POST" action="{{ route('professional.documents.destroy', $document) }}" data-professional-document-form data-confirm-delete="true">
                                                     @csrf

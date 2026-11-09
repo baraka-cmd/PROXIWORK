@@ -7,27 +7,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProfessionalDocument extends Model
 {
     use HasFactory;
 
     public const TYPE_IDENTITY = 'identity';
-
     public const TYPE_CERTIFICATE = 'certificate';
-
     public const TYPE_TRAINING = 'training';
-
     public const TYPE_LICENSE = 'license';
-
     public const TYPE_REFERENCE = 'reference';
-
     public const TYPE_OTHER = 'other';
 
     public const STATUS_PENDING = 'pending';
-
     public const STATUS_APPROVED = 'approved';
-
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -49,6 +43,7 @@ class ProfessionalDocument extends Model
         return [
             'size' => 'integer',
             'reviewed_at' => 'datetime',
+            'superseded_at' => 'datetime',
         ];
     }
 
@@ -60,5 +55,15 @@ class ProfessionalDocument extends Model
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProfessionalDocumentReview::class)->latest();
+    }
+
+    public function supersededBy(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'superseded_by_document_id');
     }
 }

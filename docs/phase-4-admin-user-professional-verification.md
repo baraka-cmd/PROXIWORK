@@ -74,13 +74,17 @@ Allowed transitions:
 
 PENDING -> UNDER_REVIEW
 
+UNDER_REVIEW -> ADDITIONAL_DOCUMENTS_REQUESTED
+
+ADDITIONAL_DOCUMENTS_REQUESTED -> UNDER_REVIEW
+
 UNDER_REVIEW -> VERIFIED
 
 UNDER_REVIEW -> REJECTED
 
-No arbitrary status update endpoint exists.
+No arbitrary status update endpoint exists. The additional-documents state is stored in the existing string column; its width is expanded by a forward migration.
 
-Rejected verification is terminal in this first workflow. A future resubmission flow must be introduced explicitly rather than bypassing the state machine.
+A final rejection remains terminal. The additional-documents loop is not a final rejection or a new verification cycle: it is a controlled continuation of the same open dossier. A future post-rejection resubmission process must be designed explicitly rather than bypassing the state machine.
 
 ### History
 
@@ -97,6 +101,10 @@ Every transition creates a professional_verification_reviews record containing:
 The current status and history are written in one database transaction.
 
 The professional row is locked during a transition, preventing two administrators from successfully applying conflicting decisions to the same state.
+
+Every individual document decision is also persisted in `professional_document_reviews`, with the administrator, decision, note and timestamp. Reviewed documents cannot be deleted from the professional portal; a corrected version is uploaded as a new record. Only the specifically selected previous record is marked as superseded through a self-reference and timestamp, while its original decision and review history remain available. Other documents in the same category remain independent current records.
+
+Final approval requires at least one current document and approval of every current document. Explicitly selecting a previous document during upload marks only that record as superseded; superseded versions remain downloadable to authorized reviewers with their original decisions and do not block approval.
 
 ### Rejection reasons
 
@@ -120,6 +128,10 @@ Permissions introduced:
 - admin.professionals.review
 - admin.professionals.verify
 - admin.professionals.reject
+- admin.verification.documents.view
+- admin.verification.documents.review
+- admin.verification.request_documents
+- admin.verification.history.view
 
 Policies remain contextual authorization gates in addition to permission middleware.
 
@@ -137,7 +149,7 @@ No full-table hydration is used for list endpoints.
 
 ## Audit and privacy
 
-Existing AuditLogService is reused. Sensitive verification documents are not exposed by these resources.
+Existing AuditLogService is reused. Sensitive verification documents are stored on the private local disk and are delivered only through an authenticated route requiring the dedicated `admin.verification.documents.view` permission. Document review actions require `admin.verification.documents.review`. Verification history is separately permission-gated. Private file responses use attachment disposition, no-store cache headers and content-type sniffing protection.
 
 Audit metadata is sanitized using the existing sensitive-key policy.
 

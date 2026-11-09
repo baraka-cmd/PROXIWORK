@@ -24,7 +24,7 @@ class AdminProfessionalService
     {
         $query = ProfessionalProfile::query()
             ->with(['user.roles'])
-            ->withCount(['services', 'reviews', 'serviceRequests']);
+            ->withCount(['services', 'reviews', 'serviceRequests', 'documents']);
 
         if (! empty($filters['search'])) {
             $search = trim($filters['search']);
@@ -149,7 +149,8 @@ class AdminProfessionalService
             'user.profile',
             'skills',
             'documents.reviewer',
+            'documents.reviews.admin',
             'verificationReviews' => fn ($q) => $q->latest()->with('admin:id,name'),
-        ])->loadCount(['services', 'reviews', 'serviceRequests']);
+        ])->loadCount(['services', 'reviews', 'serviceRequests', 'documents']);
     }
 }
