@@ -120,7 +120,7 @@ class ProfessionalVerificationService
         User $admin,
         Request $request,
         string $reasonCode,
-        string $note,
+        ?string $note,
     ): ProfessionalProfile {
         $updated = $this->transition(
             $professional,
@@ -134,7 +134,7 @@ class ProfessionalVerificationService
 
         $updated->user->notify(new AccountActivityNotification(
             'Vérification professionnelle rejetée',
-            $note,
+            $note ?: 'Consultez les informations communiquées par PROXIWORK pour connaître la suite à donner à votre dossier.',
             'professional_verification_rejected',
         ));
 
