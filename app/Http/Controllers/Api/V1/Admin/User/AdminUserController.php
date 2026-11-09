@@ -21,7 +21,8 @@ class AdminUserController extends Controller
 
     public function index(AdminUserIndexRequest $request): AnonymousResourceCollection
     {
-        $users = $this->service->paginate($request->validated());
+        $canViewSensitive = $request->user()->can('viewSensitive', User::class);
+        $users = $this->service->paginate($request->validated(), $canViewSensitive);
 
         return AdminUserResource::collection($users)->additional([
             'message' => 'Utilisateurs récupérés avec succès.',
