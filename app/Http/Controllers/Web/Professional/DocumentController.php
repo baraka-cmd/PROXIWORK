@@ -69,7 +69,7 @@ class DocumentController extends Controller
                     ]);
                 }
 
-                $lockedProfile->documents()->create([
+                $newDocument = $lockedProfile->documents()->create([
                     'document_type' => $request->validated('document_type'),
                     'original_name' => $file->getClientOriginalName(),
                     'path' => $path,
@@ -78,6 +78,15 @@ class DocumentController extends Controller
                     'size' => (int) $file->getSize(),
                     'status' => ProfessionalDocument::STATUS_PENDING,
                 ]);
+
+                $lockedProfile->documents()
+                    ->where('document_type', $newDocument->document_type)
+                    ->where('id', '!=', $newDocument->getKey())
+                    ->whereNull('superseded_by_document_id')
+                    ->update([
+                        'superseded_by_document_id' => $newDocument->getKey(),
+                        'superseded_at' => now(),
+                    ]);
             });
         } catch (\Throwable $exception) {
             $this->storage->deletePrivate($path);
@@ -107,7 +116,7 @@ class DocumentController extends Controller
 
                 $target = ProfessionalDocument::query()->lockForUpdate()->findOrFail($document->getKey());
 
-                if ($target->status !== ProfessionalDocument::STATUS_PENDING || $target->reviews()->exists()) {
+                if ($target->superseded_by_document_id !== null || $target->status !== ProfessionalDocument::STATUS_PENDING || $target->reviews()->exists()) {
                     throw ValidationException::withMessages([
                         'document' => 'Un justificatif déjà examiné ne peut pas être supprimé. Transmettez une nouvelle version pour conserver la traçabilité.',
                     ]);
