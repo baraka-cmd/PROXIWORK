@@ -23,8 +23,15 @@ class DocumentController extends Controller
     {
         $professional = $request->user()->professionalProfile()->firstOrFail();
 
+        $latestDocumentsRequest = $professional->verificationReviews()
+            ->where('to_status', 'additional_documents_requested')
+            ->latest()
+            ->first();
+
         return view('professional.documents.index', [
             'documents' => $professional->documents()->latest()->get(),
+            'verificationStatus' => $professional->verification_status?->value,
+            'verificationInstructions' => $latestDocumentsRequest?->note,
             'documentTypes' => [
                 ProfessionalDocument::TYPE_IDENTITY => 'Pièce d’identité',
                 ProfessionalDocument::TYPE_CERTIFICATE => 'Certificat ou diplôme',
