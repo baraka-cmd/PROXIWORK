@@ -8,6 +8,7 @@ use App\Enums\UserAccountStatus;
 use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\Quotation;
+use App\Models\Report;
 use App\Models\Review;
 use App\Models\ServiceRequest;
 use App\Models\User;
@@ -292,8 +293,6 @@ class AdminUserService
                 'completed_orders' => (clone $clientOrders)->where('status', 'completed')->count(),
                 'cancelled_orders' => (clone $clientOrders)->where('status', 'cancelled')->count(),
                 'disputes' => (clone $clientOrders)->where('status', 'disputed')->count(),
-                'support_tickets' => $user->supportTickets()->count(),
-                'reports' => $user->reports()->count(),
                 'location' => collect([$defaultAddress?->city, $defaultAddress?->commune, $defaultAddress?->neighborhood, $defaultAddress?->province])->filter()->join(', '),
             ],
             'professional' => $professionalId ? [
@@ -314,6 +313,14 @@ class AdminUserService
                 'status' => $professionalProfile->status,
                 'visibility' => $professionalProfile->visibility,
             ] : null,
+            'support' => [
+                'tickets' => $user->supportTickets()->count(),
+                'reports_filed' => Report::query()->where('reporter_id', $user->getKey())->count(),
+                'reports_received' => Report::query()
+                    ->where('target_type', $user->getMorphClass())
+                    ->where('target_id', $user->getKey())
+                    ->count(),
+            ],
             'last_activity' => $lastActivity,
             'business_activity' => $businessActivity,
             'administrative_activity' => AuditLog::query()
