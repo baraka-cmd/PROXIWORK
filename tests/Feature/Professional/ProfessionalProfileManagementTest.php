@@ -6,7 +6,7 @@ namespace Tests\Feature\Professional;
 
 use App\Enums\ProfessionalAvailabilityStatus;
 use App\Enums\ProfessionalVerificationStatus;
-use App\Models\Category;
+use App\Models\Category;\nuse App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\Skill;
@@ -25,6 +25,47 @@ class ProfessionalProfileManagementTest extends TestCase
     {
         parent::setUp();
         $this->seed(RbacSeeder::class);
+    }
+
+    public function test_professional_can_replace_one_rejected_document_without_erasing_its_history(): void
+    {
+        Storage::fake('local');
+
+        $user = User::factory()->create();
+        $user->assignRole('professional');
+        $profile = $user->professionalProfile()->create();
+
+        $rejectedDocument = ProfessionalDocument::query()->create([
+            'professional_profile_id' => $profile->getKey(),
+            'document_type' => ProfessionalDocument::TYPE_IDENTITY,
+            'original_name' => 'old-identity.pdf',
+            'path' => 'verification-files/'.$profile->getKey().'/old-identity.pdf',
+            'disk' => 'local',
+            'mime_type' => 'application/pdf',
+            'size' => 1024,
+            'status' => ProfessionalDocument::STATUS_REJECTED,
+            'review_note' => 'La pièce est illisible.',
+        ]);
+
+        $this->actingAs($user)
+            ->post(route('professional.documents.store'), [
+                'document_type' => ProfessionalDocument::TYPE_IDENTITY,
+                'replaces_document_id' => $rejectedDocument->id,
+                'file' => UploadedFile::fake()->create('new-identity.pdf', 100, 'application/pdf'),
+            ])
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
+
+        $newDocument = ProfessionalDocument::query()
+            ->where('professional_profile_id', $profile->getKey())
+            ->where('original_name', 'new-identity.pdf')
+            ->firstOrFail();
+
+        $this->assertSame($newDocument->id, $rejectedDocument->fresh()->superseded_by_document_id);
+        $this->assertNotNull($rejectedDocument->fresh()->superseded_at);
+        $this->assertSame(ProfessionalDocument::STATUS_REJECTED, $rejectedDocument->fresh()->status);
+        $this->assertSame(ProfessionalDocument::STATUS_PENDING, $newDocument->status);
+        $this->assertNull($newDocument->superseded_by_document_id);
     }
 
     public function test_professional_can_open_and_update_own_profile(): void
