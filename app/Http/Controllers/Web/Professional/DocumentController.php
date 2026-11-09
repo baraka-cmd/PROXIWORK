@@ -33,6 +33,7 @@ class DocumentController extends Controller
 
         return view('professional.documents.index', [
             'documents' => $professional->documents()->latest()->get(),
+            'replaceableDocuments' => $professional->documents()->whereNull('superseded_by_document_id')->latest()->get(),
             'verificationStatus' => $professional->verification_status?->value,
             'verificationInstructions' => $latestDocumentsRequest?->note,
             'documentTypes' => [
@@ -79,14 +80,28 @@ class DocumentController extends Controller
                     'status' => ProfessionalDocument::STATUS_PENDING,
                 ]);
 
-                $lockedProfile->documents()
-                    ->where('document_type', $newDocument->document_type)
-                    ->where('id', '!=', $newDocument->getKey())
-                    ->whereNull('superseded_by_document_id')
-                    ->update([
+                $replacedDocumentId = $request->validated('replaces_document_id');
+
+                if ($replacedDocumentId !== null) {
+                    $replacedDocument = ProfessionalDocument::query()
+                        ->lockForUpdate()
+                        ->findOrFail($replacedDocumentId);
+
+                    if (
+                        (int) $replacedDocument->professional_profile_id !== (int) $lockedProfile->getKey()
+                        || $replacedDocument->document_type !== $newDocument->document_type
+                        || $replacedDocument->superseded_by_document_id !== null
+                    ) {
+                        throw ValidationException::withMessages([
+                            'replaces_document_id' => 'Choisissez un justificatif actuel de votre dossier appartenant à la même catégorie.',
+                        ]);
+                    }
+
+                    $replacedDocument->forceFill([
                         'superseded_by_document_id' => $newDocument->getKey(),
                         'superseded_at' => now(),
-                    ]);
+                    ])->save();
+                }
             });
         } catch (\Throwable $exception) {
             $this->storage->deletePrivate($path);
