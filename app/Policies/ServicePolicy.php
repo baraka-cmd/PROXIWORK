@@ -30,6 +30,11 @@ class ServicePolicy
         return $user->hasPermissionTo('admin.services.manage');
     }
 
+    public function moderate(User $user, Service $service): bool
+    {
+        return $user->hasPermissionTo('admin.services.moderate');
+    }
+
     public function moderateRealization(User $user, Service $service): bool
     {
         return $user->hasPermissionTo('admin.service_realizations.moderate');

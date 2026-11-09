@@ -85,6 +85,9 @@ Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])-
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
 });
+Route::middleware(['auth', 'active.account', 'permission:admin.services.moderate'])->group(function (): void {
+    Route::post('services/{service}/moderate', [ServiceController::class, 'moderate'])->name('services.moderate');
+});
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {
     Route::get('service-realizations/{realization}/file', [AdminServiceRealizationController::class, 'file'])->name('service-realizations.file');
 });

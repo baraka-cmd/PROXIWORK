@@ -23,6 +23,7 @@ use App\Models\Skill;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
+use App\Services\ProfessionalService\ServiceModerationManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,7 @@ class ProfileController extends Controller
     public function __construct(
         private readonly ProfessionalServiceManager $serviceManager,
         private readonly AuditLogService $auditLogService,
+        private readonly ServiceModerationManager $moderationManager,
     ) {}
 
     public function photo(Request $request): BinaryFileResponse
@@ -490,6 +492,23 @@ class ProfileController extends Controller
 
         return redirect()->route('professional.services.index')
             ->with('success', 'Service publié avec succès.');
+    }
+
+    public function submitServiceForReview(Request $request, Service $service): RedirectResponse
+    {
+        $this->authorize('update', $service);
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $this->moderationManager->submitForReview(
+            $service,
+            $request->user(),
+            $validated['note'] ?? null,
+        );
+
+        return redirect()->route('professional.services.index')
+            ->with('success', 'Votre service a été soumis à un nouvel examen.');
     }
 
     public function unpublishService(Request $request, Service $service): RedirectResponse

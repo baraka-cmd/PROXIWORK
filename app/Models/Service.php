@@ -112,6 +112,11 @@ class Service extends Model
         return $this->belongsTo(User::class, 'moderated_by');
     }
 
+    public function moderationDecisions(): HasMany
+    {
+        return $this->hasMany(ServiceModerationDecision::class)->latest();
+    }
+
     public function scopePublished($query)
     {
         return $query

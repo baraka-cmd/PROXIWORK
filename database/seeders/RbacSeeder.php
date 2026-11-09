@@ -28,6 +28,7 @@ class RbacSeeder extends Seeder
             'services.manage' => ['Services - administrer', 'services', 'Gérer ses propres services.'],
             'admin.services.view' => ['Administration - services consulter', 'admin.services', 'Consulter tous les services et leurs preuves de réalisation.'],
             'admin.services.manage' => ['Administration - services administrer', 'admin.services', 'Publier, dépublier et archiver les services.'],
+            'admin.services.moderate' => ['Administration - services modérer', 'admin.services', 'Examiner, approuver, masquer, rejeter ou demander des corrections pour les services.'],
             'admin.service_realizations.moderate' => ['Administration - réalisations modérer', 'admin.services', 'Approuver ou rejeter les preuves de réalisation.'],
             'requests.view' => ['Demandes - consulter', 'requests', 'Consulter les demandes de service.'],
             'requests.manage' => ['Demandes - administrer', 'requests', 'Gérer les demandes de service.'],
@@ -74,7 +75,7 @@ class RbacSeeder extends Seeder
             ]],
             'moderator' => ['Modérateur', 'Gère la qualité des contenus et les signalements.', true, [
                 'rbac.view', 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
-                'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage', 'admin.services.view', 'admin.service_realizations.moderate',
+                'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage', 'admin.services.view', 'admin.services.moderate', 'admin.service_realizations.moderate',
             ]],
             'support' => ['Support', 'Assure l’assistance et le suivi des utilisateurs.', true, [
                 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',

@@ -84,6 +84,8 @@ class AdminServiceManagementService
                 'skills',
                 'images',
                 'serviceRequests.client',
+                'moderationDecisions.actor',
+                'moderator',
             ])
             ->loadCount('serviceRequests');
     }

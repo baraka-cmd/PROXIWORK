@@ -6,10 +6,12 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Service\AdminServiceIndexRequest;
+use App\Http\Requests\Admin\Service\ModerateServiceRequest;
 use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Services\Admin\Service\AdminServiceManagementService;
+use App\Services\ProfessionalService\ServiceModerationManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,6 +20,7 @@ class ServiceController extends Controller
 {
     public function __construct(
         private readonly AdminServiceManagementService $serviceManager,
+        private readonly ServiceModerationManager $moderationManager,
     ) {}
 
     public function index(AdminServiceIndexRequest $request): View
@@ -47,6 +50,21 @@ class ServiceController extends Controller
         return view('admin.services.show', [
             'service' => $service,
         ]);
+    }
+
+    public function moderate(ModerateServiceRequest $request, Service $service): RedirectResponse
+    {
+        $this->authorize('moderate', $service);
+        $data = $request->validated();
+
+        $this->moderationManager->moderate(
+            $service,
+            $request->user(),
+            $data['decision'],
+            $data['reason'],
+        );
+
+        return back()->with('success', 'La décision de modération a été enregistrée.');
     }
 
     public function publish(Request $request, Service $service): RedirectResponse
