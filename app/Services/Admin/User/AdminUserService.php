@@ -69,7 +69,18 @@ class AdminUserService
     ): Builder {
         $query = User::query()
             ->select('users.*')
-            ->with(['roles', 'profile', 'professionalProfile']);
+            ->with([
+                'roles',
+                'profile' => function (Builder $profile) use ($includeSensitiveSearch): void {
+                    $columns = ['id', 'user_id', 'first_name', 'last_name'];
+                    if ($includeSensitiveSearch) {
+                        $columns[] = 'phone';
+                    }
+
+                    $profile->select($columns);
+                },
+                'professionalProfile',
+            ]);
 
         if (! empty($filters['search'])) {
             $search = trim((string) $filters['search']);
