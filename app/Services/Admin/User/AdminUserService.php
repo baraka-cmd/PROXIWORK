@@ -21,6 +21,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AdminUserService
@@ -433,6 +434,7 @@ class AdminUserService
             $target->suspended_by = $actor->getKey();
             $target->suspension_reason = $data['reason_code'];
             $target->suspension_note = $data['note'] ?? null;
+            $target->setRememberToken(Str::random(60));
             $target->save();
 
             $target->tokens()->delete();
