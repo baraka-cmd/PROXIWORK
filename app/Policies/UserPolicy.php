@@ -35,7 +35,7 @@ class UserPolicy
     {
         return $user->hasPermissionTo('admin.users.suspend')
             && $user->getKey() !== $subject->getKey()
-            && ! $subject->hasRole('admin')
+            && !$subject->hasRole('admin')
             && $subject->account_status === UserAccountStatus::ACTIVE;
     }
 
@@ -43,7 +43,7 @@ class UserPolicy
     {
         return $user->hasPermissionTo('admin.users.activate')
             && $user->getKey() !== $subject->getKey()
-            && ! $subject->hasRole('admin')
+            && !$subject->hasRole('admin')
             && $subject->account_status === UserAccountStatus::SUSPENDED;
     }
 }
