@@ -57,7 +57,7 @@
                 <span>Recherche</span>
                 <div class="admin-input-icon">
                     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-                    <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nom, prénom, e-mail, téléphone ou ID" autocomplete="off">
+                    <input type="search" name="search" value="{{ $filters['search'] ?? '' }}" placeholder="{{ $canViewSensitive ? 'Nom, prénom, e-mail, téléphone ou ID' : 'Nom, prénom ou ID' }}" autocomplete="off">
                 </div>
             </label>
             <label class="admin-field">
@@ -180,7 +180,7 @@
                             <td>
                                 <a class="admin-user-cell" href="{{ route('admin.users.show', array_merge(['user' => $user], request()->query())) }}">
                                     <span class="admin-avatar">{{ mb_strtoupper(mb_substr($user->profile?->first_name ?: $user->name, 0, 1).mb_substr($user->profile?->last_name ?? '', 0, 1)) }}</span>
-                                    <span><strong>{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name }}</strong><small>{{ $user->email }}</small></span>
+                                    <span><strong>{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name }}</strong><small>{{ $canViewSensitive ? $user->email : 'E-mail masqué' }}</small></span>
                                 </a>
                             </td>
                             <td>#{{ $user->id }}</td>
