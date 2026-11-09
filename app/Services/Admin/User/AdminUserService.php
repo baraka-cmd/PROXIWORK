@@ -45,17 +45,18 @@ class AdminUserService
      */
     public function overview(array $filters = []): array
     {
-        $allFilters = $this->usersQuery($filters);
+        $allRoleStatus = $this->usersQuery($filters, includeRole: false, includeStatus: false);
         $roleScope = $this->usersQuery($filters, includeRole: false);
         $statusScope = $this->usersQuery($filters, includeStatus: false);
+        $newScope = $this->usersQuery($filters, includePeriod: false);
 
         return [
-            'total' => (clone $allFilters)->count('users.id'),
+            'total' => (clone $allRoleStatus)->count('users.id'),
             'clients' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'client'))->count('users.id'),
             'professionals' => (clone $roleScope)->whereHas('roles', fn (Builder $q) => $q->where('name', 'professional'))->count('users.id'),
             'active' => (clone $statusScope)->where('users.account_status', UserAccountStatus::ACTIVE->value)->count('users.id'),
             'suspended' => (clone $statusScope)->where('users.account_status', UserAccountStatus::SUSPENDED->value)->count('users.id'),
-            'new' => (clone $allFilters)->where('users.created_at', '>=', now()->subDays(29)->startOfDay())->count('users.id'),
+            'new' => (clone $newScope)->where('users.created_at', '>=', now()->subDays(29)->startOfDay())->count('users.id'),
         ];
     }
 
@@ -63,6 +64,7 @@ class AdminUserService
         array $filters,
         bool $includeRole = true,
         bool $includeStatus = true,
+        bool $includePeriod = true,
     ): Builder
     {
         $query = User::query()
