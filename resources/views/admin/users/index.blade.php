@@ -113,8 +113,8 @@
                 <input type="date" name="created_to" value="{{ $filters['created_to'] ?? '' }}">
             </label>
             <label class="admin-field">
-                <span>Localisation</span>
-                <input name="location" value="{{ $filters['location'] ?? '' }}" placeholder="Ville, commune, quartier ou province">
+                <span>{{ $canViewSensitive ? 'Localisation du compte' : 'Localisation professionnelle publique' }}</span>
+                <input name="location" value="{{ $filters['location'] ?? '' }}" placeholder="{{ $canViewSensitive ? 'Ville, commune, quartier ou province' : 'Ville, commune ou province professionnelle' }}">
             </label>
             @if($activityTrackingAvailable)
                 <label class="admin-field">
