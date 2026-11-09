@@ -221,6 +221,7 @@
     }
 
     .admin-layout .dashboard-sidebar.is-open {
+        width: min(86vw, 320px);
         transform: translateX(0);
         box-shadow: var(--shadow-lg);
     }
