@@ -24,15 +24,17 @@ class UserController extends Controller
 
     public function index(AdminUserIndexRequest $request): View
     {
-        $users = $this->service->paginate($request->validated());
+        $canViewSensitive = $request->user()->can('viewSensitive', User::class);
+        $filters = $request->validated();
+        $users = $this->service->paginate($filters, $canViewSensitive);
 
         return view('admin.users.index', [
             'users' => $users,
-            'filters' => $request->validated(),
-            'overview' => $this->service->overview($request->validated()),
+            'filters' => $filters,
+            'overview' => $this->service->overview($filters, $canViewSensitive),
             'activityTrackingAvailable' => $this->service->sessionActivityAvailable(),
             'roles' => Role::query()->orderBy('display_name')->get(['name', 'display_name']),
-            'canViewSensitive' => $request->user()->can('viewSensitive', User::class),
+            'canViewSensitive' => $canViewSensitive,
         ]);
     }
 
@@ -40,14 +42,15 @@ class UserController extends Controller
     {
         $this->authorize('view', $user);
 
-        $user->load(['roles', 'profile', 'professionalProfile.skills', 'suspendedBy']);
+        $canViewSensitive = $request->user()->can('viewSensitive', User::class);
+        $user->load(['roles', 'profile', 'professionalProfile.skills']);
 
         return view('admin.users.show', [
             'user' => $user,
-            'details' => $this->service->detail($user),
+            'details' => $this->service->detail($user, $canViewSensitive),
             'activityTrackingAvailable' => $this->service->sessionActivityAvailable(),
             'returnQuery' => $request->query(),
-            'canViewSensitive' => $request->user()->hasPermissionTo('admin.users.view_sensitive'),
+            'canViewSensitive' => $canViewSensitive,
         ]);
     }
 
