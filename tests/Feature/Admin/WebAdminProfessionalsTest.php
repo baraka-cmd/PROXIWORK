@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\UserAccountStatus;
+use App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\Role;
 use App\Models\User;
@@ -72,6 +73,16 @@ class WebAdminProfessionalsTest extends TestCase
             ProfessionalVerificationStatus::UNDER_REVIEW,
             $professional->refresh()->verification_status,
         );
+
+        $professional->documents()->create([
+            'document_type' => ProfessionalDocument::TYPE_IDENTITY,
+            'original_name' => 'identity.pdf',
+            'path' => 'verification-files/'.$professional->getKey().'/identity.pdf',
+            'disk' => 'local',
+            'mime_type' => 'application/pdf',
+            'size' => 1024,
+            'status' => ProfessionalDocument::STATUS_APPROVED,
+        ]);
 
         $this->actingAs($admin)
             ->post(route('admin.professionals.verification.verify', $professional), ['note' => 'Contrôle terminé'])
