@@ -77,6 +77,13 @@ class AdminNotificationDeliveryTest extends TestCase
             'status' => 'FAILED',
             'error_code' => 'ProviderRejected',
         ]);
+
+        $delivery->refresh()->forceFill(['status' => 'RETRYING'])->saveQuietly();
+        $this->assertDatabaseHas('notification_delivery_attempts', [
+            'notification_delivery_id' => $delivery->id,
+            'attempt_number' => 1,
+            'status' => 'FAILED',
+        ]);
     }
 
     public function test_user_without_notification_permission_cannot_consult_delivery_history(): void
