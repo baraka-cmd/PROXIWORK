@@ -34,6 +34,27 @@ class PublicContentTest extends TestCase
             ->assertDontSee('<script>alert(1)</script>', false);
     }
 
+    public function test_faq_page_uses_french_fallback_when_current_locale_has_no_published_translation(): void
+    {
+        $category = FaqCategory::query()->create(['name' => 'Compte', 'slug' => 'compte']);
+        FaqArticle::query()->create([
+            'faq_category_id' => $category->id,
+            'question' => 'Comment créer un compte ?',
+            'slug' => 'faq-creer-compte',
+            'answer' => 'Remplissez le formulaire.',
+            'locale' => 'fr',
+            'audience' => 'all',
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        app()->setLocale('en');
+
+        $this->get(route('public.faq'))
+            ->assertOk()
+            ->assertSee('Comment créer un compte ?');
+    }
+
     public function test_faq_feedback_is_counted_once_per_visitor_fingerprint(): void
     {
         $category = FaqCategory::query()->create(['name' => 'Compte', 'slug' => 'compte']);
