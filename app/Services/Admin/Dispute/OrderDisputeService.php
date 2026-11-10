@@ -59,7 +59,7 @@ class OrderDisputeService
         }
 
         foreach (['status', 'priority', 'assigned_to', 'reason_code'] as $field) {
-            if (($filters[$field] ?? '') ! == '') {
+            if (($filters[$field] ?? '') !== '') {
                 $query->where($field, $filters[$field]);
             }
         }
@@ -158,7 +158,7 @@ class OrderDisputeService
                 $client = $lockedOrder->client()->first();
                 $professionalUser = $lockedOrder->professional()->with('user')->first()?->user;
                 $recipient = (int) $actor->getKey() === (int) $lockedOrder->client_id ? $professionalUser : $client;
-                if ($recipient ! == null) {
+                if ($recipient !== null) {
                     $url = (int) $recipient->getKey() === (int) $lockedOrder->client_id
                         ? route('client.disputes.show', $dispute)
                         : route('professional.disputes.show', $dispute);
@@ -261,7 +261,7 @@ class OrderDisputeService
     {
         return DB::transaction(function () use ($dispute, $reason, $actor, $request): OrderDispute {
             $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
-            if ($locked->status ! == OrderDisputeStatus::CLOSED) {
+            if ($locked->status !== OrderDisputeStatus::CLOSED) {
                 throw ValidationException::withMessages(['status' => 'Seul un dossier clôturé peut être rouvert.']);
             }
             $locked->update([
@@ -289,7 +289,7 @@ class OrderDisputeService
     {
         return DB::transaction(function () use ($dispute, $resolutionCode, $resolutionNote, $actor, $request): OrderDispute {
             $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
-            if ($locked->status ! == OrderDisputeStatus::DECISION_PENDING) {
+            if ($locked->status !== OrderDisputeStatus::DECISION_PENDING) {
                 throw ValidationException::withMessages(['status' => 'Le dossier doit être en attente de décision avant de pouvoir être résolu.']);
             }
             $locked->update([
@@ -382,7 +382,7 @@ class OrderDisputeService
                 return $attachment->load('uploader');
             });
         } catch (\Throwable $exception) {
-            if ($path ! == null) {
+            if ($path !== null) {
                 Storage::disk('local')->delete($path);
             }
             throw $exception;
