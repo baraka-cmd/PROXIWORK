@@ -160,7 +160,7 @@ class ContentManagementController extends Controller
 
         DB::transaction(function () use ($data, $content, $request): void {
             $content->fill($data);
-            $content->version ++;
+            $content->version = $content->version + 1;
             $content->updated_by = $request->user()->getAuthIdentifier();
             $content->save();
             $content->versions()->create(['version' => $content->version, 'snapshot' => $content->only(['key', 'title', 'body', 'status', 'effective_at']), 'created_by' => $request->user()->getAuthIdentifier(), 'created_at' => now()]);

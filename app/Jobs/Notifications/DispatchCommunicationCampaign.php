@@ -88,10 +88,10 @@ class DispatchCommunicationCampaign implements ShouldQueue
                                 ['user_id' => $recipient->getKey(), 'status' => 'PENDING', 'attempts' => 0, 'available_at' => now()],
                             );
                         }
-                        $created ++;
+                        $created = $created + 1;
                     });
                 } catch (Throwable $exception) {
-                    $failed ++;
+                    $failed = $failed + 1;
                     Log::warning('Communication campaign recipient could not be processed.', [
                         'campaign_id' => $campaign->id,
                         'recipient_id' => $recipient->getKey(),
