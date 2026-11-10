@@ -9,23 +9,31 @@ use App\Models\CommunicationCampaignRecipient;
 use App\Notifications\CommunicationCampaignNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class SendCommunicationCampaign implements ShouldQueue
+class SendCommunicationCampaign implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
+
+    public int $uniqueFor = 3600;
 
     public int $campaignId;
 
     public function __construct(int $campaignId)
     {
         $this->campaignId = $campaignId;
+    }
+
+    public function uniqueId(): string
+    {
+        return 'communication-campaign:'.$this->campaignId;
     }
 
     public function handle(): void
