@@ -112,10 +112,6 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isApi) {
-            if ($isApi($request) === false) {
-                return null;
-            }
-
             $status = $e->getStatusCode();
 
             if ($status === 403) {
@@ -133,6 +129,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 } catch (Throwable) {
                     // A failed audit write must not change the authorization decision.
                 }
+            }
+
+            if ($isApi($request) === false) {
+                return null;
             }
 
             if (in_array($status, [400, 401, 403, 404, 405, 409, 429], true)) {
