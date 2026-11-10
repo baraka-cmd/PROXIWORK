@@ -27,6 +27,7 @@ class NotificationTemplateRenderer
             ->where('channel', 'database')
             ->where('locale', $locale)
             ->where('status', 'published')
+            ->latest('id')
             ->first();
 
         $mailTemplate = NotificationTemplate::query()
