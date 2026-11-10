@@ -38,6 +38,28 @@ class AdminFinanceSupervisionTest extends TestCase
         $this->get(route('admin.finance.wallets'))->assertForbidden();
     }
 
+    public function test_admin_can_open_payment_transaction_consultation(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.finance.transactions'))
+            ->assertOk()
+            ->assertSee('Transactions de paiement');
+    }
+
+    public function test_admin_can_open_commission_consultation(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.finance.commissions'))
+            ->assertOk()
+            ->assertSee('Commissions');
+    }
+
     public function test_overview_keeps_wallet_balances_separated_by_currency(): void
     {
         $professionalUser = User::factory()->create();
