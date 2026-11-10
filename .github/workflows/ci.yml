@@ -82,6 +82,14 @@ jobs:
 
           printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
 
+      - name: Run Phase 6 moderation and dispute regression tests
+        run: >-
+          vendor/bin/phpunit
+          tests/Feature/Disputes/OrderDisputeWorkflowTest.php
+          tests/Feature/Admin/Moderation/ModerationTest.php
+          tests/Feature/Admin/ReportControllerTest.php
+          tests/Feature/Support/SupportTicketTest.php
+
       - name: Run test suite
         run: vendor/bin/phpunit
 
