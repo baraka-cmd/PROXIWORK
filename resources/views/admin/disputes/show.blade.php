@@ -2,7 +2,9 @@
 @section('page_eyebrow','ADMINISTRATION / MODÉRATION')
 @section('page_title','Litige #'.$dispute->id)
 @section('page_description','Dossier contradictoire lié à la commande '.($dispute->order?->order_number ?? '#'.$dispute->order_id).'.')
-@section('page_actions')<a class="button button--secondary" href="{{ route('admin.disputes.index') }}">Retour aux litiges</a>@endsection
+@section('page_actions')<a class="button button--secondary" href="{{ route('admin.disputes.index') }}">Retour aux litiges</a><section class="admin-card"><h3>Pièces justificatives privées</h3><ul>@forelse($dispute->attachments as $attachment)<li><a href="{{ route('admin.disputes.attachments.download', [$dispute, $attachment]) }}">{{ $attachment->original_name }}</a> — {{ number_format($attachment->size / 1024, 1) }} Ko · {{ $attachment->mime_type }} · ajouté par {{ $attachment->uploader?->name }}</li>@empty<li>Aucune preuve déposée.</li>@endforelse</ul></section>
+
+@endsection
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
 @if($errors->any())<div class="admin-alert admin-alert--danger" role="alert">{{ $errors->first() }}</div>@endif
