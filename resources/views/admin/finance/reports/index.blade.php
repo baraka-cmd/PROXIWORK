@@ -21,7 +21,7 @@
             <button class="button button--primary button--small" type="submit">Générer</button>
         </form>
     </section>
-    <div class="admin-alert admin-alert--warning" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>Rapports opérationnels</strong><p>Les paiements utilisent paid_at, les remboursements processed_at, les commissions posted_at et les retraits completed_at. Les soldes de portefeuilles sont une photographie actuelle, non un flux de la période. Les devises ne sont jamais additionnées entre elles.</p></div></div>
+    <div class="admin-alert admin-alert--warning" role="note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i><div><strong>Rapports opérationnels</strong><p>Les paiements utilisent paid_at, les remboursements processed_at, les commissions posted_at et les retraits completed_at. Les soldes de portefeuilles sont une photographie actuelle, non un flux de la période. Les commissions et le net professionnel affichés sont les valeurs postées; les remboursements ne déclenchent pas de contre-écriture automatique de commission dans le périmètre actuel. Les devises ne sont jamais additionnées entre elles.</p></div></div>
     <section class="admin-card"><h3>Synthèse par devise</h3>
     @forelse($report['by_currency'] as $currency=>$row)
         <div class="admin-report-currency"><h4>{{ $currency }}</h4><div class="admin-report-grid">
@@ -29,7 +29,7 @@
             <div><span>Remboursements réussis ({{ $row['refund_count'] }})</span><strong>{{ \App\Support\MoneyFormatter::format($row['refunds']) }} {{ $currency }}</strong></div>
             <div><span>Net après remboursements</span><strong>{{ \App\Support\MoneyFormatter::format($row['net_collected_after_refunds']) }} {{ $currency }}</strong></div>
             <div><span>Commissions comptabilisées ({{ $row['commission_count'] }})</span><strong>{{ \App\Support\MoneyFormatter::format($row['commission']) }} {{ $currency }}</strong></div>
-            <div><span>Net attribué aux professionnels</span><strong>{{ \App\Support\MoneyFormatter::format($row['professional_net']) }} {{ $currency }}</strong></div>
+            <div><span>Net professionnel comptabilisé (commissions postées)</span><strong>{{ \App\Support\MoneyFormatter::format($row['professional_net']) }} {{ $currency }}</strong></div>
             <div><span>Retraits réussis ({{ $row['withdrawal_count'] }})</span><strong>{{ \App\Support\MoneyFormatter::format($row['withdrawals']) }} {{ $currency }}</strong></div>
             <div><span>Solde disponible actuel</span><strong>{{ \App\Support\MoneyFormatter::format($row['available_balance']) }} {{ $currency }}</strong></div>
             <div><span>Solde en attente / bloqué actuel</span><strong>{{ \App\Support\MoneyFormatter::format($row['pending_balance']) }} / {{ \App\Support\MoneyFormatter::format($row['locked_balance']) }} {{ $currency }}</strong></div>

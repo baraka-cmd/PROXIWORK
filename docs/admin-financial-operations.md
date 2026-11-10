@@ -20,6 +20,7 @@ Cette évolution complète les opérations financières administratives sans cr�
 ## Limites explicites
 - Aucun versement ou remboursement externe automatique n'est déclaré intégré.
 - Aucun statut du paiement initial n'est modifié à la suite d'un remboursement : la politique de remboursement total/partiel et les effets sur la commande doivent être définis séparément.
+- La confirmation d'un remboursement ne crée pas automatiquement de contre-écriture de commission ni de débit du portefeuille professionnel. Une politique de reprise financière (responsabilité du client/professionnel, commissions, commande et wallet) doit être validée avant d'automatiser ces conséquences.
 - Le registre wallet_transactions couvre les mouvements des portefeuilles professionnels, pas une comptabilité générale complète.
 - Les rapports sont opérationnels et ne sont pas présentés comme des états comptables certifiés.
 - Les transitions historiques des remboursements utilisent PaymentEvent; aucun deuxième historique redondant n'est créé.

@@ -60,6 +60,7 @@ class PaymentRefundAdminService
             }
 
             $referenceUsed = PaymentRefund::query()
+                ->where('payment_id', $payment->getKey())
                 ->where('provider_reference', $providerReference)
                 ->where('id', '<>', $locked->getKey())
                 ->exists();

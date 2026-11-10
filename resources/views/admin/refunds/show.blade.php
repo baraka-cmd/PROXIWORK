@@ -13,7 +13,7 @@
 <div class="admin-financial-operations">
     @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="admin-alert admin-alert--error" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-    <div class="admin-alert admin-alert--warning" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Rapprochement manuel</strong><p>Ne confirmez pas un remboursement simulé comme un transfert réel. Le succès exige une preuve externe et une référence vérifiable.</p></div></div>
+    <div class="admin-alert admin-alert--warning" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Rapprochement manuel</strong><p>Ne confirmez pas un remboursement simulé comme un transfert réel. Le succès exige une preuve externe et une référence vérifiable. Cette opération ne déclenche pas automatiquement de contre-écriture de commission ni de débit du portefeuille professionnel : la politique de reprise financière doit être définie séparément.</p></div></div>
     <section class="admin-card">
         <div class="admin-card__header"><div><span class="admin-card__eyebrow">{{ $refund->reference }}</span><h3>{{ \App\Support\MoneyFormatter::format((string)$refund->amount) }} {{ $refund->currency }}</h3></div><span class="admin-refund-status admin-refund-status--{{ $refund->status->value }}" >{{ $refundStatusLabels[$refund->status->value] ?? $refund->status->value }}</span></div>
         <dl class="admin-financial-details">
