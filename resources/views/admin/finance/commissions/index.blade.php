@@ -1,5 +1,9 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/finance.css')@endunless@endpush
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/finance.css')
+    @endunless
+@endpush
 @section('page_eyebrow', 'FINANCES · REVENUS')
 @section('page_title', 'Commissions')
 @section('page_description', 'Contrôlez les commissions calculées et comptabilisées par le moteur financier existant.')
