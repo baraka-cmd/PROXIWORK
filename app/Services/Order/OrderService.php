@@ -9,6 +9,7 @@ use App\Enums\QuotationOfferActor;
 use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Models\CommissionRule;
+use App\Models\Currency;
 use App\Models\Order;
 use App\Models\OrderAddressSnapshot;
 use App\Models\OrderStatusHistory;
@@ -16,13 +17,11 @@ use App\Models\Quotation;
 use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
-use App\Services\Settings\CurrencyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private readonly CurrencyService $currencies) {}
 
     public function createFromAcceptedQuotation(Quotation $quotation, User $actor): Order
     {
@@ -110,7 +109,11 @@ class OrderService
             }
 
             $now = now();
-            $this->currencies->lockActive((string) $acceptedOffer->currency);
+            if (! Currency::query()->whereKey(strtoupper($acceptedOffer->currency))->where('is_active', true)->exists()) {
+                throw ValidationException::withMessages([
+                    'currency' => 'La devise de cette offre est inactive sur la plateforme.',
+                ]);
+            }
             $commissionRule = CommissionRule::query()
                 ->where('effective_at', '<=', $lockedQuotation->accepted_at ?? $now)
                 ->orderByDesc('effective_at')
