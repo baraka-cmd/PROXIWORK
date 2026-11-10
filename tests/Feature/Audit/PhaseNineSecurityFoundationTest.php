@@ -54,6 +54,52 @@ class PhaseNineSecurityFoundationTest extends TestCase
         $this->assertSame('high', $alert->severity);
     }
 
+    public function test_repeated_authorization_denials_create_a_security_alert(): void
+    {
+        $request = Request::create('/admin/users/999', 'GET', [], [], [], ['REMOTE_ADDR' => '192.0.2.12']);
+        $audit = app(AuditLogService::class);
+
+        for ($i = 0; $i < 20; $i++) {
+            $audit->recordEvent(
+                'security.authorization.denied',
+                null,
+                null,
+                ['route' => 'admin.users.show', 'method' => 'GET', 'path' => 'admin/users/999'],
+                $request,
+                category: 'security',
+                outcome: 'denied',
+                severity: 'low',
+            );
+        }
+
+        $this->assertDatabaseHas('security_alerts', [
+            'rule_key' => 'security.forbidden-burst',
+            'severity' => 'medium',
+        ]);
+    }
+
+    public function test_revoke_all_user_sessions_invalidates_legacy_sanctum_tokens(): void
+    {
+        $actor = User::factory()->create();
+        $owner = User::factory()->create();
+        $createdToken = $owner->createToken('legacy-device');
+        $token = $createdToken->accessToken;
+
+        SecuritySession::query()->create([
+            'user_id' => $owner->id,
+            'guard' => 'sanctum',
+            'identifier_hash' => hash_hmac('sha256', 'sanctum:'.$token->id, (string) config('app.key')),
+            'token_id' => $token->id,
+            'device_name' => 'legacy-device',
+            'last_seen_at' => now(),
+        ]);
+
+        app(SecuritySessionService::class)->revokeAllForUser($owner, $actor, 'Révocation après changement de sécurité.');
+
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $token->id]);
+        $this->assertNotNull(SecuritySession::query()->firstOrFail()->revoked_at);
+    }
+
     public function test_administrative_actions_are_projected_to_interventions_with_safe_changes(): void
     {
         $actor = User::factory()->create();
