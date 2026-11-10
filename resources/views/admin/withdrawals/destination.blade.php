@@ -3,6 +3,11 @@
 @section('page_title','Révélation de la destination de versement')
 @section('page_description','Consultation exceptionnelle et journalisée d’une donnée financière confidentielle.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.withdrawals.show', $withdrawal) }}">Retour au dossier</a>@endsection
+@push('head')
+@unless (app()->environment('testing'))
+@vite(['resources/css/pages/admin/withdrawals.css'])
+@endunless
+@endpush
 @section('content')
 <div class="admin-withdrawals">
     <div class="admin-alert admin-alert--warning" role="alert"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><div><strong>Information confidentielle</strong><p>Cette consultation est journalisée. Ne copiez pas cette destination dans les notes, captures, exports ou communications non sécurisées.</p></div></div>
