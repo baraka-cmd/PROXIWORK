@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FaqArticle extends Model
 {
-    protected $fillable = ['faq_category_id','question','slug','answer','audience','locale','status','sort_order','views_count','helpful_yes','helpful_no','created_by','updated_by','published_at'];
+    protected $fillable = ['faq_category_id', 'question', 'slug', 'answer', 'audience', 'locale', 'status', 'sort_order', 'views_count', 'helpful_yes', 'helpful_no', 'created_by', 'updated_by', 'published_at'];
 
     protected function casts(): array
     {
