@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Enums\UserAccountStatus;
 use App\Http\Requests\Web\LoginRequest;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,8 @@ use Illuminate\View\View;
 
 class LoginController
 {
+    public function __construct(private readonly AuditLogService $auditLogs) {}
+
     public function create(Request $request): View
     {
         $continuation = $request->query('continue');
@@ -28,13 +31,14 @@ class LoginController
     public function store(LoginRequest $request): RedirectResponse
     {
         $credentials = $request->validated();
-
         $remember = (bool) ($credentials['remember'] ?? false);
 
         if (! Auth::attempt([
             'email' => $credentials['email'],
             'password' => $credentials['password'],
         ], $remember)) {
+            $this->auditLogs->recordAuthenticationFailure($credentials['email'], $request);
+
             throw ValidationException::withMessages([
                 'email' => 'Les identifiants fournis sont incorrects.',
             ]);
@@ -43,6 +47,7 @@ class LoginController
         $user = Auth::user();
 
         if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE) {
+            $this->auditLogs->recordAuthenticationFailure($credentials['email'], $request, $user, 'account_inactive');
             Auth::logout();
 
             throw ValidationException::withMessages([
@@ -51,16 +56,22 @@ class LoginController
         }
 
         $request->session()->regenerate();
-
         $request->session()->forget('active_workspace');
+
+        $this->auditLogs->recordEvent('auth.login.succeeded', $user, $user, [], $request, category: 'authentication');
 
         return redirect()->to($this->safeIntendedUrl($request));
     }
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::logout();
+        $user = Auth::user();
 
+        if ($user !== null) {
+            $this->auditLogs->recordEvent('auth.logout', $user, $user, [], $request, category: 'authentication');
+        }
+
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -86,10 +97,7 @@ class LoginController
         }
 
         $parts = parse_url($intended);
-        if (! is_array($parts)
-            || ! isset($parts['scheme'], $parts['host'])
-            || isset($parts['user'])
-            || isset($parts['pass'])) {
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host']) || isset($parts['user']) || isset($parts['pass'])) {
             return false;
         }
 
@@ -97,12 +105,8 @@ class LoginController
         $requestPort = $request->getPort();
         $intendedPort = $parts['port'] ?? ($parts['scheme'] === 'https' ? 443 : 80);
 
-        if (strtolower($parts['scheme']) !== $requestScheme
-            || strtolower($parts['host']) !== strtolower($request->getHost())
-            || $intendedPort !== $requestPort) {
-            return false;
-        }
-
-        return true;
+        return strtolower($parts['scheme']) === $requestScheme
+            && strtolower($parts['host']) === strtolower($request->getHost())
+            && $intendedPort === $requestPort;
     }
 }
