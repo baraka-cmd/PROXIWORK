@@ -1,5 +1,9 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/finance.css')@endunless@endpush
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/finance.css')
+    @endunless
+@endpush
 @section('page_title', 'Commission COM-'.$commission->id)
 @section('page_description', 'Détail du calcul historique et vérification de son écriture de portefeuille.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.finance.commissions') }}">Retour aux commissions</a>@endsection
