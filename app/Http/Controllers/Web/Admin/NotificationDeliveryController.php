@@ -68,13 +68,13 @@ class NotificationDeliveryController extends Controller
         DB::transaction(function () use ($delivery): void {
             $locked = NotificationDelivery::query()->lockForUpdate()->findOrFail($delivery->id);
             abort_unless($locked->status === 'FAILED' && $locked->attempts < 5, 409);
-            $locked->update([
+            $locked->forceFill([
                 'status' => 'RETRYING',
                 'available_at' => now(),
                 'queued_at' => null,
                 'processing_at' => null,
                 'last_error_code' => null,
-            ]);
+            ])->saveQuietly();
         });
 
         $delivery->refresh();
@@ -93,7 +93,7 @@ class NotificationDeliveryController extends Controller
 
     public function show(NotificationDelivery $delivery): View
     {
-        $delivery->load(['user:id,name', 'notification']);
+        $delivery->load(['user:id,name', 'notification', 'attempts']);
 
         return view('admin.notifications.deliveries.show', [
             'delivery' => $delivery,
