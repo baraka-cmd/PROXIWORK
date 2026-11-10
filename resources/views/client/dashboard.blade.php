@@ -278,7 +278,7 @@
                         @endphp
                         <article class="client-dashboard__professional-card">
                             <div class="client-dashboard__professional-identity">
-                                @if ($hasProfessionalPhoto)
+                                @if ($professional->user?->profile?->avatar_path && \\Illuminate\\Support\\Facades\\Storage::disk('local')->exists($professional->user->profile->avatar_path))
                                     <img src="{{ route('client.professionals.photo', $professional) }}" alt="Photo de {{ $professionalName }}" loading="lazy">
                                 @else
                                     <span aria-hidden="true">{{ mb_strtoupper(mb_substr($professionalName, 0, 1)) }}</span>
