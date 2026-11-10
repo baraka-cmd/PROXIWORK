@@ -59,7 +59,7 @@ class OrderDisputeService
         }
 
         foreach (['status', 'priority', 'assigned_to', 'reason_code'] as $field) {
-            if (($filters[$field] ?? '') !== '') {
+            if (($filters[$field] ?? '') ! == '') {
                 $query->where($field, $filters[$field]);
             }
         }
@@ -102,7 +102,7 @@ class OrderDisputeService
             'resolver:id,name,email',
             'events.actor:id,name',
             'messages' => fn ($q) => $q->when(
-                !auth()->user()?->hasPermissionTo('disputes.manage'),
+                ! auth()->user()?->hasPermissionTo('disputes.manage'),
                 fn ($messages) => $messages->where('visibility', 'participants'),
             )->oldest()->with('sender:id,name'),
             'attachments.uploader:id,name',
@@ -120,7 +120,7 @@ class OrderDisputeService
             $isClient = (int) $lockedOrder->client_id === (int) $actor->getKey();
             $isProfessional = (int) $professionalUserId === (int) $actor->getKey();
 
-            if (!$isClient && !$isProfessional) {
+            if (! $isClient && ! $isProfessional) {
                 abort(403);
             }
 
@@ -158,7 +158,7 @@ class OrderDisputeService
                 $client = $lockedOrder->client()->first();
                 $professionalUser = $lockedOrder->professional()->with('user')->first()?->user;
                 $recipient = (int) $actor->getKey() === (int) $lockedOrder->client_id ? $professionalUser : $client;
-                if ($recipient !== null) {
+                if ($recipient ! == null) {
                     $url = (int) $recipient->getKey() === (int) $lockedOrder->client_id
                         ? route('client.disputes.show', $dispute)
                         : route('professional.disputes.show', $dispute);
@@ -179,13 +179,13 @@ class OrderDisputeService
 
     public function assign(OrderDispute $dispute, User $assignee, User $actor, Request $request): OrderDispute
     {
-        if (!$assignee->isActive() || !$assignee->hasPermissionTo('disputes.manage')) {
+        if (! $assignee->isActive() || ! $assignee->hasPermissionTo('disputes.manage')) {
             throw ValidationException::withMessages(['assigned_to' => 'Le responsable doit être un modérateur actif autorisé à gérer les litiges.']);
         }
 
         return DB::transaction(function () use ($dispute, $assignee, $actor, $request): OrderDispute {
             $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
-            if (!$locked->status->isActive()) {
+            if (! $locked->status->isActive()) {
                 throw ValidationException::withMessages(['status' => 'Un litige clôturé ne peut plus être assigné.']);
             }
             $previous = $locked->assigned_to;
@@ -215,7 +215,7 @@ class OrderDisputeService
                 OrderDisputeStatus::CLOSED => [],
             };
 
-            if (!in_array($to, $allowed, true)) {
+            if (! in_array($to, $allowed, true)) {
                 throw ValidationException::withMessages(['status' => 'Cette transition de litige n’est pas autorisée.']);
             }
 
@@ -261,7 +261,7 @@ class OrderDisputeService
     {
         return DB::transaction(function () use ($dispute, $reason, $actor, $request): OrderDispute {
             $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
-            if ($locked->status !== OrderDisputeStatus::CLOSED) {
+            if ($locked->status ! == OrderDisputeStatus::CLOSED) {
                 throw ValidationException::withMessages(['status' => 'Seul un dossier clôturé peut être rouvert.']);
             }
             $locked->update([
@@ -289,7 +289,7 @@ class OrderDisputeService
     {
         return DB::transaction(function () use ($dispute, $resolutionCode, $resolutionNote, $actor, $request): OrderDispute {
             $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
-            if ($locked->status !== OrderDisputeStatus::DECISION_PENDING) {
+            if ($locked->status ! == OrderDisputeStatus::DECISION_PENDING) {
                 throw ValidationException::withMessages(['status' => 'Le dossier doit être en attente de décision avant de pouvoir être résolu.']);
             }
             $locked->update([
@@ -343,10 +343,10 @@ class OrderDisputeService
                 $isParty = (int) $locked->client_id === (int) $actor->getKey()
                     || (int) $locked->professional()->value('user_id') === (int) $actor->getKey();
 
-                if (!$isAdmin && !$isParty) {
+                if (! $isAdmin && ! $isParty) {
                     abort(403);
                 }
-                if (!$locked->status->isActive()) {
+                if (! $locked->status->isActive()) {
                     throw ValidationException::withMessages(['file' => 'Un dossier clôturé ne peut plus recevoir de preuve.']);
                 }
                 if ($locked->attachments()->count() >= 20) {
@@ -382,7 +382,7 @@ class OrderDisputeService
                 return $attachment->load('uploader');
             });
         } catch (\Throwable $exception) {
-            if ($path !== null) {
+            if ($path ! == null) {
                 Storage::disk('local')->delete($path);
             }
             throw $exception;
@@ -397,13 +397,13 @@ class OrderDisputeService
             $isParty = (int) $locked->client_id === (int) $sender->getKey()
                 || (int) $locked->professional()->value('user_id') === (int) $sender->getKey();
 
-            if (!$isAdmin && !$isParty) {
+            if (! $isAdmin && ! $isParty) {
                 abort(403);
             }
-            if ($internal && !$isAdmin) {
+            if ($internal && ! $isAdmin) {
                 abort(403);
             }
-            if (!$locked->status->isActive()) {
+            if (! $locked->status->isActive()) {
                 throw ValidationException::withMessages(['message' => 'Ce dossier est clôturé et ne reçoit plus de message.']);
             }
 
@@ -419,7 +419,7 @@ class OrderDisputeService
                 'created_at' => now(),
             ]);
             $this->audit->record('order_dispute.message_added', $locked, $sender, ['message_id' => $message->getKey(), 'internal' => $internal], $request);
-            if (!$internal) {
+            if (! $internal) {
                 DB::afterCommit(function () use ($locked, $sender, $message): void {
                     $client = $locked->client()->first();
                     $professionalUser = $locked->professional()->with('user')->first()?->user;
