@@ -17,7 +17,7 @@ class ResolveReportRequest extends FormRequest
     {
         return [
             'status' => ['required', 'in:resolved,dismissed'],
-            'resolution_note' => ['nullable', 'string', 'max:5000'],
+            'resolution_note' => ['required', 'string', 'min:10', 'max:2000'],
         ];
     }
 }
