@@ -10,6 +10,7 @@ Schedule::command('auth:clear-resets')->everyFifteenMinutes();
 Schedule::command('quotations:expire')->hourly()->withoutOverlapping();
 // Durable notification deliveries are dispatched independently of business requests.
 Schedule::command('notifications:dispatch-pending')->everyMinute()->withoutOverlapping();
+Schedule::command('communications:dispatch-scheduled')->everyMinute()->withoutOverlapping();
 
 Artisan::command('inspire', function (): void {
     $this->comment(Inspiring::quote());

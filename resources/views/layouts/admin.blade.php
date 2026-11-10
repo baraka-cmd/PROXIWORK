@@ -80,6 +80,26 @@
                 ],
             ],
             [
+                'title' => 'Communication',
+                'icon' => 'fa-bullhorn',
+                'items' => [
+                    ['label' => 'Notifications et historique', 'route' => 'admin.communication.notifications', 'permission' => 'notifications.view', 'icon' => 'fa-bell', 'active' => ['admin.communication.notifications*']],
+                    ['label' => 'Modèles de notifications', 'route' => 'admin.communication.templates', 'permission' => 'notification_templates.view', 'icon' => 'fa-file-lines', 'active' => ['admin.communication.templates*']],
+                    ['label' => 'Annonces', 'route' => 'admin.communication.announcements', 'permission' => 'announcements.view', 'icon' => 'fa-bullhorn', 'active' => ['admin.communication.announcements*']],
+                    ['label' => 'Communications ciblées', 'route' => 'admin.communication.campaigns', 'permission' => 'communications.view', 'icon' => 'fa-paper-plane', 'active' => ['admin.communication.campaigns*']],
+                ],
+            ],
+            [
+                'title' => 'Contenus publics',
+                'icon' => 'fa-file-pen',
+                'items' => [
+                    ['label' => 'Diapositives accueil', 'route' => 'admin.content.homepage-slides', 'permission' => 'homepage_slides.view', 'icon' => 'fa-images', 'active' => ['admin.content.homepage-slides*']],
+                    ['label' => 'Pages publiques', 'route' => 'admin.content.pages', 'permission' => 'public_pages.view', 'icon' => 'fa-file-lines', 'active' => ['admin.content.pages*']],
+                    ['label' => 'FAQ', 'route' => 'admin.content.faq', 'permission' => 'faq.view', 'icon' => 'fa-circle-question', 'active' => ['admin.content.faq*']],
+                    ['label' => 'Contenus institutionnels', 'route' => 'admin.content.institutional', 'permission' => 'institutional_content.view', 'icon' => 'fa-building', 'active' => ['admin.content.institutional*']],
+                ],
+            ],
+            [
                 'title' => 'Audit et sécurité',
                 'icon' => 'fa-shield-halved',
                 'items' => [
