@@ -131,6 +131,7 @@ class PublicContentController extends Controller
         $document = InstitutionalDocument::query()->where('slug', $slug)->where('status', 'published')->firstOrFail();
         abort_unless($document->requires_acceptance, 409);
         $version = $document->versions()->where('status', 'published')->latest('version')->firstOrFail();
+        abort_if($version->effective_at !== null && $version->effective_at->isFuture(), 409, 'Cette version n’est pas encore entrée en vigueur.');
 
         DB::table('institutional_document_acceptances')->insertOrIgnore([
             'institutional_document_version_id' => $version->id,
