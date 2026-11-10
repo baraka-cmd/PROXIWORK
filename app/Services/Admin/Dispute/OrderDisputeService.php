@@ -22,7 +22,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Coordinates the lifecycle and audit trail of order-bound commercial disputes.
+ * Coordinates order-bound dispute lifecycles, evidence handling and audit trails.
  */
 class OrderDisputeService
 {
