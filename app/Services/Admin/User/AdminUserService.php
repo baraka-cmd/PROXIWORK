@@ -154,7 +154,7 @@ class AdminUserService
             $target->account_status = UserAccountStatus::SUSPENDED->value;
             $target->save();
             $changed = true;
-            $target->tokens()->delete();
+            $this->securitySessions->revokeAllForUser($target, $actor, 'Compte suspendu par l’administration.', $request);
 
             $this->auditLogService->record(
                 'admin.user.suspended',
