@@ -81,7 +81,7 @@ class PlatformSettingService
             $rules[$key] = $definition['rules'];
         }
 
-        $validated = Validator::make($flattened, $rules)->validate();
+        $validated = Arr::dot(Validator::make($flattened, $rules)->validate());
         $changes = [];
 
         foreach ($validated as $key => $value) {
