@@ -122,16 +122,18 @@ class SecuritySessionService
                     $locked->user->tokens()->whereKey($locked->token_id)->delete();
                 }
             } elseif ($locked->guard === 'web') {
-                if (config('session.driver') !== 'database') {
-                    throw ValidationException::withMessages([
-                        'session' => 'La révocation serveur des sessions web exige le pilote database.',
-                    ]);
-                }
-
                 $sessionId = $locked->identifier_ciphertext;
 
                 if (is_string($sessionId) && $sessionId !== '') {
-                    DB::table(config('session.table', 'sessions'))->where('id', $sessionId)->delete();
+                    $handler = app('session')->driver()->getHandler();
+
+                    if (! method_exists($handler, 'destroy')) {
+                        throw ValidationException::withMessages([
+                            'session' => 'Le fournisseur de sessions ne permet pas la révocation ciblée.',
+                        ]);
+                    }
+
+                    $handler->destroy($sessionId);
                 }
             }
 
