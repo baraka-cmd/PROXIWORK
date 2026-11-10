@@ -149,6 +149,23 @@ class PhaseNineSecurityFoundationTest extends TestCase
         }
     }
 
+    public function test_authenticated_sanctum_requests_register_the_current_device(): void
+    {
+        $user = User::factory()->create();
+        $createdToken = $user->createToken('ios-device');
+
+        $this->withToken($createdToken->plainTextToken)
+            ->getJson('/api/v1/auth/me')
+            ->assertOk();
+
+        $this->assertDatabaseHas('security_sessions', [
+            'user_id' => $user->id,
+            'guard' => 'sanctum',
+            'token_id' => $createdToken->accessToken->id,
+            'device_name' => 'ios-device',
+        ]);
+    }
+
     public function test_revoking_a_sanctum_session_deletes_the_real_personal_access_token(): void
     {
         $actor = User::factory()->create();
