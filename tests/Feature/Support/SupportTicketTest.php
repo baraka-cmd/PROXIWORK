@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Support;
 
 use App\Models\User;
+use App\Models\ProfessionalProfile;
+use App\Models\Service;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,6 +40,53 @@ class SupportTicketTest extends TestCase
         $this->getJson("/api/v1/support/tickets/{$id}")
             ->assertOk()
             ->assertJsonPath('data.id', $id);
+    }
+
+    public function test_claim_context_must_belong_to_the_authenticated_user(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+        $service = Service::factory()->create(['professional_profile_id' => $profile->id]);
+
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $this->actingAs($client, 'sanctum')
+            ->postJson('/api/v1/support/tickets', [
+                'subject' => 'Problème sur un service',
+                'category' => 'SERVICE',
+                'body' => 'Je souhaite signaler un problème sur ce service.',
+                'context_type' => 'service',
+                'context_id' => $service->id,
+            ])
+            ->assertUnprocessable();
+
+        $this->assertDatabaseCount('support_tickets', 0);
+    }
+
+    public function test_professional_can_link_claim_to_own_service(): void
+    {
+        $professional = User::factory()->create();
+        $professional->assignRole('professional');
+        $profile = ProfessionalProfile::factory()->create(['user_id' => $professional->id]);
+        $service = Service::factory()->create(['professional_profile_id' => $profile->id]);
+
+        $response = $this->actingAs($professional, 'sanctum')
+            ->postJson('/api/v1/support/tickets', [
+                'subject' => 'Assistance sur mon service',
+                'category' => 'SERVICE',
+                'body' => 'Je rencontre un problème avec la gestion de mon service.',
+                'context_type' => 'service',
+                'context_id' => $service->id,
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('support_tickets', [
+            'id' => $response->json('data.id'),
+            'context_type' => 'service',
+            'context_id' => $service->id,
+        ]);
     }
 
     public function test_invalid_ticket_category_is_rejected(): void

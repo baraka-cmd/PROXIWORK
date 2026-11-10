@@ -16,7 +16,7 @@ class AdminReportResolveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'resolution_note' => ['required', 'string', 'max:2000'],
+            'resolution_note' => ['required', 'string', 'min:10', 'max:2000'],
         ];
     }
 }

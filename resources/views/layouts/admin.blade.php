@@ -65,6 +65,11 @@
                 'items' => [
                     ['label' => 'Signalements', 'route' => 'admin.reports.index', 'permission' => 'reports.manage', 'icon' => 'fa-flag', 'active' => ['admin.reports.*']],
                     ['label' => 'Support et réclamations', 'route' => 'admin.support.index', 'permission' => 'support.manage', 'icon' => 'fa-headset', 'active' => ['admin.support.*']],
+                    ['label' => 'Litiges commerciaux', 'route' => 'admin.disputes.index', 'permission' => 'disputes.view', 'icon' => 'fa-scale-balanced', 'active' => ['admin.disputes.*']],
+                    ['label' => 'Avis et évaluations', 'route' => 'admin.moderation.reviews', 'permission' => 'reviews.moderate', 'icon' => 'fa-star', 'active' => ['admin.moderation.reviews*']],
+                    ['label' => 'Avis signalés', 'route' => 'admin.moderation.reported-reviews', 'permission' => 'reports.manage', 'icon' => 'fa-flag', 'active' => ['admin.moderation.reported-reviews']],
+                    ['label' => 'Historique de modération', 'route' => 'admin.moderation.history', 'permission' => 'moderation.history.view', 'icon' => 'fa-clock-rotate-left', 'active' => ['admin.moderation.history']],
+                    ['label' => 'Résolutions et décisions', 'route' => 'admin.moderation.resolutions', 'permission' => 'moderation.history.view', 'icon' => 'fa-scale-balanced', 'active' => ['admin.moderation.resolutions']],
                 ],
             ],
             [

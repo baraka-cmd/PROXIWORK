@@ -8,6 +8,13 @@ use App\Enums\SupportTicketCategory;
 use App\Enums\SupportTicketPriority;
 use App\Enums\SupportTicketStatus;
 use App\Models\SupportTicket;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\ProfessionalProfile;
+use App\Models\Service;
+use App\Models\ServiceRequest;
+use App\Models\Withdrawal;
+use Illuminate\Database\Eloquent\Model;
 use App\Models\TicketMessage;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
@@ -76,6 +83,7 @@ class SupportTicketService
             'user:id,name,email',
             'assignee:id,name,email',
             'withdrawal',
+            'context',
             'messages' => fn ($query) => $query->oldest()->with('sender:id,name,email'),
         ]);
     }
@@ -83,11 +91,15 @@ class SupportTicketService
     public function create(User $user, array $data, Request $request): SupportTicket
     {
         return DB::transaction(function () use ($user, $data, $request): SupportTicket {
+            $context = $this->resolveOwnedContext($user, $data);
+            $category = SupportTicketCategory::from($data['category']);
             $ticket = SupportTicket::create([
                 'user_id' => $user->id,
                 'withdrawal_id' => $data['withdrawal_id'] ?? null,
+                'context_type' => $context?->getMorphClass(),
+                'context_id' => $context?->getKey(),
                 'subject' => $data['subject'],
-                'category' => SupportTicketCategory::from($data['category']),
+                'category' => $category,
                 'priority' => SupportTicketPriority::from(
                     $data['priority'] ?? SupportTicketPriority::NORMAL->value
                 ),
@@ -105,6 +117,56 @@ class SupportTicketService
 
             return $ticket->load(['user', 'messages.sender']);
         });
+    }
+
+    private function resolveOwnedContext(User $user, array $data): ?Model
+    {
+        $type = $data['context_type'] ?? null;
+        $id = $data['context_id'] ?? null;
+
+        if ($type === null && $id === null) {
+            return null;
+        }
+        if ($type === null || $id === null) {
+            throw ValidationException::withMessages(['context_id' => 'Le type et l’identifiant du contexte doivent être fournis ensemble.']);
+        }
+
+        $map = [
+            'order' => Order::class,
+            'payment' => Payment::class,
+            'service_request' => ServiceRequest::class,
+            'service' => Service::class,
+            'professional_profile' => ProfessionalProfile::class,
+            'withdrawal' => Withdrawal::class,
+        ];
+        $class = $map[$type] ?? null;
+        if ($class === null) {
+            throw ValidationException::withMessages(['context_type' => 'Ce type de contexte n’est pas pris en charge.']);
+        }
+
+        $context = $class::query()->find($id);
+        if ($context === null) {
+            throw ValidationException::withMessages(['context_id' => 'L’opération associée est introuvable.']);
+        }
+
+        $owned = match (true) {
+            $context instanceof Order => (int) $context->client_id === (int) $user->getKey()
+                || (int) $context->professional?->user_id === (int) $user->getKey(),
+            $context instanceof Payment => (int) $context->client_id === (int) $user->getKey()
+                || (int) $context->order?->professional?->user_id === (int) $user->getKey(),
+            $context instanceof ServiceRequest => (int) $context->client_id === (int) $user->getKey()
+                || (int) $context->professional?->user_id === (int) $user->getKey(),
+            $context instanceof Service => (int) $context->professionalProfile?->user_id === (int) $user->getKey(),
+            $context instanceof ProfessionalProfile => (int) $context->user_id === (int) $user->getKey(),
+            $context instanceof Withdrawal => (int) $context->professional?->user_id === (int) $user->getKey(),
+            default => false,
+        };
+
+        if (! $owned) {
+            throw ValidationException::withMessages(['context_id' => 'Vous ne pouvez pas rattacher une réclamation à cette ressource.']);
+        }
+
+        return $context;
     }
 
     public function message(

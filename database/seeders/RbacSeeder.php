@@ -39,6 +39,10 @@ class RbacSeeder extends Seeder
             'admin.withdrawals.manage' => ['Administration - retraits financiers', 'admin.finance', 'Examiner, traiter, rapprocher et décider les retraits professionnels.'],
             'reviews.moderate' => ['Avis - modérer', 'reviews', 'Modérer les avis.'],
             'reports.manage' => ['Signalements - traiter', 'reports', 'Traiter les signalements.'],
+            'disputes.view' => ['Litiges - consulter', 'disputes', 'Consulter les dossiers de litiges commerciaux.'],
+            'disputes.manage' => ['Litiges - administrer', 'disputes', 'Attribuer et faire avancer les dossiers de litiges.'],
+            'disputes.decide' => ['Litiges - décider', 'disputes', 'Enregistrer les décisions motivées sur les litiges.'],
+            'moderation.history.view' => ['Modération - historique et résolutions consulter', 'moderation', 'Consulter l’historique et les indicateurs de résolution.'],
             'support.manage' => ['Support - administrer', 'support', 'Gérer les tickets de support.'],
             'audit.view' => ['Audit - consulter', 'audit', 'Consulter les journaux d’audit.'],
             'admin.dashboard.view' => ['Dashboard administrateur - consulter', 'admin', 'Consulter les statistiques administratives.'],
@@ -75,11 +79,11 @@ class RbacSeeder extends Seeder
             ]],
             'moderator' => ['Modérateur', 'Gère la qualité des contenus et les signalements.', true, [
                 'rbac.view', 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
-                'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage', 'admin.services.view', 'admin.services.moderate', 'admin.service_realizations.moderate',
+                'requests.view', 'orders.view', 'reviews.moderate', 'reports.manage', 'disputes.view', 'disputes.manage', 'moderation.history.view', 'admin.services.view', 'admin.services.moderate', 'admin.service_realizations.moderate',
             ]],
             'support' => ['Support', 'Assure l’assistance et le suivi des utilisateurs.', true, [
                 'users.view', 'profiles.view', 'categories.view', 'skills.view', 'services.view',
-                'requests.view', 'orders.view', 'payments.view', 'support.manage',
+                'requests.view', 'orders.view', 'payments.view', 'support.manage', 'disputes.view',
             ]],
             'admin' => ['Administrateur', 'Administration complète de la plateforme.', true, null],
         ];

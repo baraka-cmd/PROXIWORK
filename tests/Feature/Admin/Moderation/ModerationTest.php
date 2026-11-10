@@ -109,7 +109,7 @@ class ModerationTest extends TestCase
             'moderation_status' => 'hidden',
         ]);
         $this->assertDatabaseHas('audit_logs', [
-            'action' => 'moderation.action_created',
+            'action' => 'admin.report.moderated',
         ]);
     }
 }

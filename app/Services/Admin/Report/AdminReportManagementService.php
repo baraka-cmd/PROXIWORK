@@ -8,11 +8,14 @@ use App\Enums\ModerationActionType;
 use App\Enums\ReportStatus;
 use App\Models\ProfessionalProfile;
 use App\Models\Report;
+use App\Enums\ReviewStatus;
 use App\Models\Review;
+use App\Models\ReviewResponse;
+use App\Services\Review\ReviewService;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Admin\Professional\AdminProfessionalService;
-use App\Services\Admin\Service\AdminServiceManagementService;
+use App\Services\ProfessionalService\ServiceModerationManager;
 use App\Services\Admin\User\AdminUserService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -26,7 +29,8 @@ class AdminReportManagementService
         private readonly AuditLogService $auditLogService,
         private readonly AdminUserService $userService,
         private readonly AdminProfessionalService $professionalService,
-        private readonly AdminServiceManagementService $serviceService,
+        private readonly ServiceModerationManager $serviceModerationManager,
+        private readonly ReviewService $reviewService,
     ) {}
 
     public function paginate(array $filters): LengthAwarePaginator
@@ -205,8 +209,9 @@ class AdminReportManagementService
 
             match ($actionType) {
                 ModerationActionType::WARNING => null,
-                ModerationActionType::HIDE_REVIEW => $this->hideReview($target->target, $actor, $request),
-                ModerationActionType::UNPUBLISH_SERVICE => $this->serviceService->unpublish($target->target, $actor),
+                ModerationActionType::HIDE_REVIEW => $this->reviewService->moderate($target->target, $actor, ReviewStatus::HIDDEN, $note ?? $reasonCode ?? 'Avis masqué après examen du signalement.', $request),
+                ModerationActionType::HIDE_REVIEW_RESPONSE => $this->reviewService->moderateResponse($target->target, $actor, ReviewStatus::HIDDEN, $note ?? $reasonCode ?? 'Réponse masquée après examen du signalement.', $request),
+                ModerationActionType::UNPUBLISH_SERVICE => $this->serviceModerationManager->moderate($target->target, $actor, 'hide', $note ?? 'Service masqué après examen du signalement.'),
                 ModerationActionType::SUSPEND_USER => $this->userService->suspend($target->target, $actor, $request),
                 ModerationActionType::SUSPEND_PROFESSIONAL => $this->professionalService->suspend($target->target, $actor, $request),
             };
@@ -272,8 +277,8 @@ class AdminReportManagementService
     {
         $permission = match ($actionType) {
             ModerationActionType::WARNING => 'reports.manage',
-            ModerationActionType::HIDE_REVIEW => 'reviews.moderate',
-            ModerationActionType::UNPUBLISH_SERVICE => 'services.manage',
+            ModerationActionType::HIDE_REVIEW, ModerationActionType::HIDE_REVIEW_RESPONSE => 'reviews.moderate',
+            ModerationActionType::UNPUBLISH_SERVICE => 'admin.services.moderate',
             ModerationActionType::SUSPEND_USER => 'admin.users.suspend',
             ModerationActionType::SUSPEND_PROFESSIONAL => 'admin.professionals.suspend',
         };
@@ -293,8 +298,10 @@ class AdminReportManagementService
             ModerationActionType::WARNING => $target instanceof User
                 || $target instanceof ProfessionalProfile
                 || $target instanceof Service
-                || $target instanceof Review,
+                || $target instanceof Review
+                || $target instanceof ReviewResponse,
             ModerationActionType::HIDE_REVIEW => $target instanceof Review,
+            ModerationActionType::HIDE_REVIEW_RESPONSE => $target instanceof ReviewResponse,
             ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service,
             ModerationActionType::SUSPEND_USER => $target instanceof User,
             ModerationActionType::SUSPEND_PROFESSIONAL => $target instanceof ProfessionalProfile,
@@ -307,20 +314,4 @@ class AdminReportManagementService
         }
     }
 
-    private function hideReview(Review $review, User $actor, Request $request): void
-    {
-        $review->forceFill([
-            'status' => 'hidden',
-            'moderated_by' => $actor->getKey(),
-            'moderated_at' => now(),
-        ])->save();
-
-        $this->auditLogService->record(
-            'admin.review.hidden',
-            $review,
-            $actor,
-            [],
-            $request,
-        );
-    }
 }

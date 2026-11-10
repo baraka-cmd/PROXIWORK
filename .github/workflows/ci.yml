@@ -63,9 +63,6 @@ jobs:
       - name: Discover Laravel packages
         run: php artisan package:discover --ansi
 
-      - name: Run test suite
-        run: vendor/bin/phpunit
-
       # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
       - name: Check code style for changed PHP files
         shell: bash
@@ -84,6 +81,19 @@ jobs:
           fi
 
           printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
+
+      - name: Run Phase 6 moderation and dispute regression tests
+        run: >-
+          vendor/bin/phpunit
+          tests/Feature/Disputes/OrderDisputeWorkflowTest.php
+          tests/Feature/Admin/Moderation/ModerationTest.php
+          tests/Feature/Admin/ReportControllerTest.php
+          tests/Feature/Support/SupportTicketTest.php
+
+      - name: Run test suite
+        run: vendor/bin/phpunit
+
+
 
   mysql-migrations:
     name: Fresh MySQL migration

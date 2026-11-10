@@ -7,7 +7,6 @@ namespace App\Services\Admin\Moderation;
 use App\Enums\ModerationActionType;
 use App\Enums\ReportPriority;
 use App\Enums\ReportStatus;
-use App\Enums\ReviewStatus;
 use App\Models\Message;
 use App\Models\ModerationAction;
 use App\Models\ProfessionalProfile;
@@ -17,9 +16,8 @@ use App\Models\Review;
 use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\User;
+use App\Services\Admin\Report\AdminReportManagementService;
 use App\Services\Audit\AuditLogService;
-use App\Services\ProfessionalService\ServiceModerationManager;
-use App\Services\Review\ReviewService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,9 +26,8 @@ use Illuminate\Validation\ValidationException;
 class ModerationService
 {
     public function __construct(
-        private AuditLogService $audit,
-        private ReviewService $reviewService,
-        private ServiceModerationManager $serviceModerationManager,
+        private readonly AuditLogService $audit,
+        private readonly AdminReportManagementService $reportManagement,
     ) {}
 
     public function resolveTarget(string $type, int $id): Model
@@ -45,19 +42,13 @@ class ModerationService
         ];
 
         $class = $map[$type] ?? null;
-
         if ($class === null) {
-            throw ValidationException::withMessages([
-                'target_type' => 'Cible de signalement non supportée.',
-            ]);
+            throw ValidationException::withMessages(['target_type' => 'Cible de signalement non supportée.']);
         }
 
         $target = $class::query()->find($id);
-
         if ($target === null) {
-            throw ValidationException::withMessages([
-                'target_id' => 'La cible demandée est introuvable.',
-            ]);
+            throw ValidationException::withMessages(['target_id' => 'La cible demandée est introuvable.']);
         }
 
         return $target;
@@ -71,156 +62,79 @@ class ModerationService
         ?string $description,
         Request $request,
     ): Report {
-        $target = $this->resolveTarget($type, $id);
+        return DB::transaction(function () use ($reporter, $type, $id, $reason, $description, $request): Report {
+            $target = $this->resolveTarget($type, $id);
+            $lockedTarget = $target->newQuery()->lockForUpdate()->findOrFail($target->getKey());
 
-        if ($this->ownsTarget($reporter, $target)) {
-            throw ValidationException::withMessages([
-                'target_id' => 'Vous ne pouvez pas signaler votre propre contenu.',
+            if ($this->ownsTarget($reporter, $lockedTarget)) {
+                throw ValidationException::withMessages(['target_id' => 'Vous ne pouvez pas signaler votre propre contenu.']);
+            }
+
+            if (
+                $lockedTarget instanceof Message
+                && $lockedTarget->conversation()->whereHas('participants', fn ($q) => $q->whereKey($reporter->getKey()))->exists() === false
+            ) {
+                throw ValidationException::withMessages(['target_id' => 'Vous n’êtes pas autorisé à signaler ce message.']);
+            }
+
+            $existingOpenReport = Report::query()
+                ->where('reporter_id', $reporter->getKey())
+                ->where('target_type', $lockedTarget->getMorphClass())
+                ->where('target_id', $lockedTarget->getKey())
+                ->whereIn('status', [ReportStatus::PENDING->value, ReportStatus::UNDER_REVIEW->value])
+                ->exists();
+
+            if ($existingOpenReport) {
+                throw ValidationException::withMessages(['target_id' => 'Un signalement est déjà en cours pour ce contenu.']);
+            }
+
+            $report = Report::create([
+                'reporter_id' => $reporter->getKey(),
+                'target_type' => $lockedTarget->getMorphClass(),
+                'target_id' => $lockedTarget->getKey(),
+                'reason_code' => $reason,
+                'description' => $description,
+                'status' => ReportStatus::PENDING,
+                'priority' => ReportPriority::NORMAL,
             ]);
-        }
 
-        $existingOpenReport = Report::query()
-            ->where('reporter_id', $reporter->getKey())
-            ->where('target_type', $target->getMorphClass())
-            ->where('target_id', $target->getKey())
-            ->whereIn('status', [ReportStatus::PENDING->value, ReportStatus::UNDER_REVIEW->value])
-            ->exists();
-
-        if ($existingOpenReport) {
-            throw ValidationException::withMessages([
-                'target_id' => 'Un signalement est déjà en cours pour ce contenu.',
-            ]);
-        }
-
-        if (
-            $target instanceof Message
-            && $target->conversation->participants()->whereKey($reporter->getKey())->exists() === false
-        ) {
-            throw ValidationException::withMessages([
-                'target_id' => 'Vous n’êtes pas autorisé à signaler ce message.',
-            ]);
-        }
-
-        $report = Report::create([
-            'reporter_id' => $reporter->id,
-            'target_type' => $target->getMorphClass(),
-            'target_id' => $target->getKey(),
-            'reason_code' => $reason,
-            'description' => $description,
-            'status' => ReportStatus::PENDING,
-            'priority' => ReportPriority::NORMAL,
-        ]);
-
-        $this->audit->record(
-            'report.created',
-            $report,
-            $reporter,
-            [
+            $this->audit->record('report.created', $report, $reporter, [
                 'reason_code' => $reason,
                 'target_type' => $report->target_type,
                 'target_id' => $report->target_id,
-            ],
-            $request,
-        );
+            ], $request);
 
-        return $report->load(['reporter', 'target']);
+            return $report->load(['reporter', 'target']);
+        }, attempts: 3);
     }
 
     public function assign(User $actor, Report $report, User $assignee, Request $request): Report
     {
-        if ($assignee->isActive() === false || $assignee->hasPermissionTo('reports.manage') === false) {
-            throw ValidationException::withMessages([
-                'assigned_to' => 'Le destinataire doit être un modérateur actif autorisé.',
-            ]);
-        }
-
-        return DB::transaction(function () use ($actor, $report, $assignee, $request): Report {
-            $report = Report::query()->lockForUpdate()->findOrFail($report->id);
-
-            if (in_array($report->status, [ReportStatus::RESOLVED, ReportStatus::DISMISSED], true)) {
-                throw ValidationException::withMessages([
-                    'status' => 'Un signalement clôturé ne peut plus être assigné.',
-                ]);
-            }
-
-            $report->update(['assigned_to' => $assignee->id]);
-
-            $this->audit->record(
-                'report.assigned',
-                $report,
-                $actor,
-                ['assigned_to' => $assignee->id],
-                $request,
-            );
-
-            return $report->fresh(['reporter', 'assignee', 'target']);
-        });
+        return $this->reportManagement->assign($report, $assignee, $actor, $request);
     }
 
     public function start(User $actor, Report $report, Request $request): Report
     {
-        return DB::transaction(function () use ($actor, $report, $request): Report {
-            $report = Report::query()->lockForUpdate()->findOrFail($report->id);
-
-            if ($report->status !== ReportStatus::PENDING) {
-                throw ValidationException::withMessages([
-                    'status' => 'Seuls les signalements en attente peuvent être mis en revue.',
-                ]);
-            }
-
-            $report->update(['status' => ReportStatus::UNDER_REVIEW]);
-
-            $this->audit->record('report.review_started', $report, $actor, [], $request);
-
-            return $report->fresh(['reporter', 'assignee', 'target']);
-        });
+        return $this->reportManagement->startReview($report, $actor, $request);
     }
 
-    public function finish(
-        User $actor,
-        Report $report,
-        ReportStatus $status,
-        ?string $note,
-        Request $request,
-    ): Report {
-        if (in_array($status, [ReportStatus::RESOLVED, ReportStatus::DISMISSED], true) === false) {
-            throw ValidationException::withMessages([
-                'status' => 'Statut final invalide.',
-            ]);
-        }
-
-        return DB::transaction(function () use ($actor, $report, $status, $note, $request): Report {
-            $report = Report::query()->lockForUpdate()->findOrFail($report->id);
-
-            if ($report->status !== ReportStatus::UNDER_REVIEW) {
-                throw ValidationException::withMessages([
-                    'status' => 'Le signalement doit être en revue avant clôture.',
-                ]);
-            }
-
-            $report->update([
-                'status' => $status,
-                'resolved_by' => $actor->id,
-                'resolved_at' => now(),
-                'resolution_note' => $note,
-            ]);
-
-            $this->audit->record(
-                'report.'.($status === ReportStatus::RESOLVED ? 'resolved' : 'dismissed'),
+    public function finish(User $actor, Report $report, ReportStatus $status, ?string $note, Request $request): Report
+    {
+        return match ($status) {
+            ReportStatus::RESOLVED => $this->reportManagement->resolve(
                 $report,
+                $note ?? '',
                 $actor,
-                ['resolution_note' => $note],
                 $request,
-            );
-
-            return $report->fresh([
-                'reporter',
-                'assignee',
-                'resolver',
-                'target',
-                'moderationActions',
-            ]);
-        });
+            ),
+            ReportStatus::DISMISSED => $this->reportManagement->dismiss(
+                $report,
+                $note ?? '',
+                $actor,
+                $request,
+            ),
+            default => throw ValidationException::withMessages(['status' => 'Statut final invalide.']),
+        };
     }
 
     public function act(
@@ -231,138 +145,26 @@ class ModerationService
         ?string $note,
         Request $request,
     ): ModerationAction {
-        return DB::transaction(function () use ($actor, $report, $type, $reason, $note, $request): ModerationAction {
-            $report = Report::query()->lockForUpdate()->with('target')->findOrFail($report->id);
-
-            if ($report->status !== ReportStatus::UNDER_REVIEW) {
-                throw ValidationException::withMessages([
-                    'status' => 'Le signalement doit être en revue avant une action.',
-                ]);
-            }
-
-            if ($report->moderationActions()->where('action_type', $type->value)->exists()) {
-                throw ValidationException::withMessages([
-                    'action_type' => 'Cette action a déjà été appliquée à ce signalement.',
-                ]);
-            }
-
-            $target = $report->target;
-            $this->apply($type, $target, $actor, $reason, $note, $request);
-
-            $action = $report->moderationActions()->create([
-                'moderator_id' => $actor->id,
-                'action_type' => $type,
-                'reason_code' => $reason,
-                'note' => $note,
-                'target_type' => $report->target_type,
-                'target_id' => $report->target_id,
-            ]);
-
-            $this->audit->record(
-                'moderation.action_created',
-                $action,
-                $actor,
-                ['action_type' => $type->value, 'report_id' => $report->id],
-                $request,
-            );
-
-            return $action->load(['moderator', 'target']);
-        });
-    }
-
-    private function apply(
-        ModerationActionType $type,
-        Model $target,
-        User $actor,
-        ?string $reason,
-        ?string $note,
-        ?Request $request = null,
-    ): void {
-        match ($type) {
-            ModerationActionType::WARNING => null,
-            ModerationActionType::HIDE_REVIEW => $target instanceof Review
-                ? $this->reviewService->moderate(
-                    $target,
-                    $actor,
-                    ReviewStatus::HIDDEN,
-                    $reason ?? $note ?? 'Avis masqué à la suite d’une décision de modération.',
-                    $request,
-                )
-                : throw ValidationException::withMessages([
-                    'action_type' => 'Cette action exige un avis.',
-                ]),
-            ModerationActionType::HIDE_REVIEW_RESPONSE => $target instanceof ReviewResponse
-                ? $this->reviewService->moderateResponse(
-                    $target,
-                    $actor,
-                    ReviewStatus::HIDDEN,
-                    $reason ?? $note ?? 'Réponse masquée à la suite d’une décision de modération.',
-                    $request,
-                )
-                : throw ValidationException::withMessages([
-                    'action_type' => 'Cette action exige une réponse à un avis.',
-                ]),
-            ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service
-                ? $this->serviceModerationManager->moderate(
-                    $target,
-                    $actor,
-                    'hide',
-                    $this->resolveServiceModerationReason($reason, $note),
-                )
-                : throw ValidationException::withMessages([
-                    'action_type' => 'Cette action exige un service.',
-                ]),
-            ModerationActionType::SUSPEND_USER => $this->suspendUser($target),
-            ModerationActionType::SUSPEND_PROFESSIONAL => $this->suspendProfessional($target),
-        };
-    }
-
-    private function resolveServiceModerationReason(?string $reason, ?string $note): string
-    {
-        $note = trim((string) $note);
-
-        if (mb_strlen($note) >= 10) {
-            return $note;
+        if (blank($note) || mb_strlen(trim($note)) < 10) {
+            throw ValidationException::withMessages(['note' => 'Une justification d’au moins 10 caractères est obligatoire.']);
         }
 
-        $reasonLabel = filled($reason) ? trim((string) $reason) : 'signalement traité';
+        $this->reportManagement->moderate($report, $type, $actor, $request, $reason, $note);
 
-        return 'Masquage administratif à la suite du '.$reasonLabel.'.';
-    }
-
-    private function suspendUser(Model $target): void
-    {
-        $user = $target instanceof User ? $target : ($target instanceof Profile ? $target->user : null);
-
-        if ($user === null) {
-            throw ValidationException::withMessages([
-                'action_type' => 'Cette action exige un utilisateur ou un profil.',
-            ]);
-        }
-
-        $user->update(['account_status' => 'suspended']);
-        $user->tokens()->delete();
-    }
-
-    private function suspendProfessional(Model $target): void
-    {
-        if ($target instanceof ProfessionalProfile === false) {
-            throw ValidationException::withMessages([
-                'action_type' => 'Cette action exige un profil professionnel.',
-            ]);
-        }
-
-        $target->user()->update(['account_status' => 'suspended']);
-        $target->user->tokens()->delete();
+        return $report->moderationActions()
+            ->where('action_type', $type->value)
+            ->latest('id')
+            ->firstOrFail()
+            ->load(['moderator', 'target']);
     }
 
     private function ownsTarget(User $user, Model $target): bool
     {
-        return ($target instanceof Profile && $target->user_id === $user->id)
-            || ($target instanceof ProfessionalProfile && $target->user_id === $user->id)
-            || ($target instanceof Service && $target->professionalProfile?->user_id === $user->id)
-            || ($target instanceof Review && $target->client_id === $user->id)
-            || ($target instanceof ReviewResponse && $target->professional?->user_id === $user->id)
-            || ($target instanceof Message && $target->sender_id === $user->id);
+        return ($target instanceof Profile && (int) $target->user_id === (int) $user->getKey())
+            || ($target instanceof ProfessionalProfile && (int) $target->user_id === (int) $user->getKey())
+            || ($target instanceof Service && (int) ($target->professionalProfile?->user_id) === (int) $user->getKey())
+            || ($target instanceof Review && (int) $target->client_id === (int) $user->getKey())
+            || ($target instanceof ReviewResponse && (int) ($target->professional?->user_id) === (int) $user->getKey())
+            || ($target instanceof Message && (int) $target->sender_id === (int) $user->getKey());
     }
 }

@@ -85,6 +85,7 @@ class ReportControllerTest extends TestCase
         $this->actingAs($moderator)
             ->post(route('admin.reports.moderate', $report), [
                 'action_type' => 'suspend_user',
+                'note' => 'Suspension demandée après vérification des éléments.',
             ])
             ->assertSessionHasErrors('action_type');
 

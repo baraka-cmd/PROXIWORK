@@ -20,7 +20,7 @@ class AdminReportActionRequest extends FormRequest
         return [
             'action_type' => ['required', Rule::enum(ModerationActionType::class)],
             'reason_code' => ['nullable', 'string', 'max:64'],
-            'note' => ['nullable', 'string', 'max:2000'],
+            'note' => ['required', 'string', 'min:10', 'max:2000'],
         ];
     }
 }
