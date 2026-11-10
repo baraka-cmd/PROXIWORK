@@ -177,6 +177,10 @@ class TransactionalNotificationService
         ?int $conversationId = null,
         int $emailDelaySeconds = 0,
     ): void {
+        $rendered = app(NotificationTemplateRenderer::class)->render($recipient, $action, $url, $title, $message);
+        $title = $rendered['title'];
+        $message = $rendered['message'];
+
         // URLs identify the underlying business resource when available. Callers
         // should pass an explicit event key for events without a stable resource URL.
         $eventKey = $idempotencyKey ?? $url;
@@ -194,6 +198,7 @@ class TransactionalNotificationService
             $deduplicationKey,
             $conversationId,
             $emailDelaySeconds,
+            $rendered,
         ): void {
             // Serialize concurrent attempts for the same recipient so the
             // deduplication lookup and insert cannot race each other.
@@ -211,6 +216,11 @@ class TransactionalNotificationService
                     'data' => [
                         'title' => $title,
                         'message' => trim($message),
+                        'email_subject' => $rendered['email_subject'],
+                        'email_message' => $rendered['email_message'],
+                        'sms_message' => $rendered['sms_message'],
+                        'push_title' => $rendered['push_title'],
+                        'push_message' => $rendered['push_message'],
                         'action' => $action,
                         'url' => $url,
                         'priority' => $priority,

@@ -37,6 +37,7 @@ use App\Http\Controllers\Web\Professional\ServiceRealizationController as Profes
 use App\Http\Controllers\Web\Professional\ServiceRequestController as ProfessionalServiceRequestController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
+use App\Http\Controllers\Web\PublicContentController;
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\PublicServiceRealizationController;
 use App\Http\Controllers\Web\RbacDashboardController;
@@ -47,6 +48,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomePageController::class, 'index'])->name('home');
+Route::get('/sitemap.xml', [PublicContentController::class, 'sitemap'])->name('public.sitemap');
+Route::get('/announcements', [PublicContentController::class, 'announcements'])->name('public.announcements');
+Route::get('/pages/{slug}', [PublicContentController::class, 'page'])->where('slug', '[a-z0-9-]+')->name('public.pages.show');
+Route::get('/faq', [PublicContentController::class, 'faq'])->name('public.faq');
+Route::post('/faq/{article}/feedback', [PublicContentController::class, 'feedback'])->middleware('throttle:10,1')->name('public.faq.feedback');
+Route::get('/legal/{slug}', [PublicContentController::class, 'document'])->where('slug', '[a-z0-9-]+')->name('public.legal.show');
+Route::post('/legal/{slug}/accept', [PublicContentController::class, 'acceptDocument'])->middleware(['auth', 'active.account', 'throttle:10,1'])->name('public.legal.accept');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
 Route::get('/service-realizations/{realization}/image', [PublicServiceRealizationController::class, 'image'])->name('public.service-realizations.image');
 Route::get('/services/{service:slug}', [PublicSearchController::class, 'service'])->name('public.services.show');

@@ -16,6 +16,17 @@
 @endpush
 
 @section('content')
+    @if($announcements->isNotEmpty())
+        <section class="page-container" aria-label="Annonces importantes">
+            @foreach($announcements as $announcement)
+                <article class="home-announcement home-announcement--{{ $announcement->type }}">
+                    <strong>{{ $announcement->title }}</strong>
+                    @if($announcement->summary)<p>{{ $announcement->summary }}</p>@endif
+                    <a href="{{ route('public.announcements') }}">Lire l’annonce</a>
+                </article>
+            @endforeach
+        </section>
+    @endif
     <section class="home-hero home-hero--dynamic" aria-labelledby="home-hero-title" data-home-carousel>
         <div class="page-container">
             @if ($slides->isNotEmpty())

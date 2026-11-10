@@ -80,6 +80,21 @@
                 ],
             ],
             [
+                'title' => 'Communication et contenus',
+                'icon' => 'fa-bullhorn',
+                'items' => [
+                    ['label' => 'Centre de notifications', 'route' => 'admin.notifications.index', 'permission' => 'admin.notifications.view', 'icon' => 'fa-bell', 'active' => ['admin.notifications.index', 'admin.notifications.show']],
+                    ['label' => 'Historique des livraisons', 'route' => 'admin.notifications.deliveries.index', 'permission' => 'admin.notifications.view', 'icon' => 'fa-envelope-open-text', 'active' => ['admin.notifications.deliveries.*']],
+                    ['label' => 'Modèles de notifications', 'route' => 'admin.communication.templates.index', 'permission' => 'notification_templates.view', 'icon' => 'fa-file-lines', 'active' => ['admin.communication.templates.*']],
+                    ['label' => 'Annonces', 'route' => 'admin.communication.announcements.index', 'permission' => 'announcements.view', 'icon' => 'fa-bullhorn', 'active' => ['admin.communication.announcements.*']],
+                    ['label' => 'Campagnes ciblées', 'route' => 'admin.communication.campaigns.index', 'permission' => 'communication_campaigns.view', 'icon' => 'fa-paper-plane', 'active' => ['admin.communication.campaigns.*']],
+                    ['label' => 'Pages publiques', 'route' => 'admin.communication.pages.index', 'permission' => 'cms_pages.view', 'icon' => 'fa-file-lines', 'active' => ['admin.communication.pages.*']],
+                    ['label' => 'FAQ', 'route' => 'admin.communication.faq.index', 'permission' => 'faq.view', 'icon' => 'fa-circle-question', 'active' => ['admin.communication.faq.*']],
+                    ['label' => 'Documents institutionnels', 'route' => 'admin.communication.documents.index', 'permission' => 'institutional_documents.view', 'icon' => 'fa-scale-balanced', 'active' => ['admin.communication.documents.*']],
+                    ['label' => 'Médiathèque', 'route' => 'admin.communication.media.index', 'permission' => 'cms_media.view', 'icon' => 'fa-images', 'active' => ['admin.communication.media.*']],
+                ],
+            ],
+            [
                 'title' => 'Rapports et statistiques',
                 'icon' => 'fa-chart-column',
                 'items' => [

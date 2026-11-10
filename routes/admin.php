@@ -2,12 +2,21 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Web\Admin\AdminNotificationController;
 use App\Http\Controllers\Web\Admin\AnalyticsController;
+use App\Http\Controllers\Web\Admin\AnnouncementController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
+use App\Http\Controllers\Web\Admin\CmsPageController;
+use App\Http\Controllers\Web\Admin\CommunicationCampaignController;
+use App\Http\Controllers\Web\Admin\FaqController;
 use App\Http\Controllers\Web\Admin\FinanceController;
 use App\Http\Controllers\Web\Admin\FinancialOperationsController;
+use App\Http\Controllers\Web\Admin\InstitutionalDocumentController;
+use App\Http\Controllers\Web\Admin\MediaAssetController;
 use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\NotificationDeliveryController;
+use App\Http\Controllers\Web\Admin\NotificationTemplateController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
@@ -245,4 +254,97 @@ Route::middleware(['auth', 'active.account', 'permission:reviews.moderate'])->gr
 Route::middleware(['auth', 'active.account', 'permission:moderation.history.view'])->group(function (): void {
     Route::get('moderation/history', [ModerationCenterController::class, 'history'])->name('moderation.history');
     Route::get('moderation/resolutions', [ModerationCenterController::class, 'resolutions'])->name('moderation.resolutions');
+});
+
+// Phase 7 — supervision du centre de notifications et de son historique de livraison.
+
+Route::middleware(['auth', 'active.account', 'permission:admin.notifications.view'])->group(function (): void {
+    Route::get('notifications/deliveries', [NotificationDeliveryController::class, 'index'])->name('notifications.deliveries.index');
+    Route::get('notifications/deliveries/{delivery}', [NotificationDeliveryController::class, 'show'])->whereNumber('delivery')->name('notifications.deliveries.show');
+    Route::get('notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/{notification}', [AdminNotificationController::class, 'show'])->name('notifications.show');
+});
+
+// Phase 7 — gestion des communications et contenus éditoriaux.
+Route::middleware(['auth', 'active.account', 'permission:notification_templates.view'])->group(function (): void {
+    Route::get('communication/templates', [NotificationTemplateController::class, 'index'])->name('communication.templates.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:notification_templates.manage'])->group(function (): void {
+    Route::post('communication/templates', [NotificationTemplateController::class, 'store'])->name('communication.templates.store');
+    Route::put('communication/templates/{template}', [NotificationTemplateController::class, 'update'])->name('communication.templates.update');
+    Route::post('communication/templates/{template}/revise', [NotificationTemplateController::class, 'revise'])->name('communication.templates.revise');
+});
+Route::middleware(['auth', 'active.account', 'permission:announcements.view'])->group(function (): void {
+    Route::get('communication/announcements', [AnnouncementController::class, 'index'])->name('communication.announcements.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:announcements.manage'])->group(function (): void {
+    Route::post('communication/announcements', [AnnouncementController::class, 'store'])->name('communication.announcements.store');
+    Route::put('communication/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('communication.announcements.update');
+    Route::post('communication/announcements/{announcement}/archive', [AnnouncementController::class, 'archive'])->name('communication.announcements.archive');
+});
+Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.view'])->group(function (): void {
+    Route::get('communication/campaigns', [CommunicationCampaignController::class, 'index'])->name('communication.campaigns.index');
+    Route::get('communication/campaigns/{campaign}', [CommunicationCampaignController::class, 'show'])->name('communication.campaigns.show');
+    Route::get('communication/campaigns/{campaign}/preview', [CommunicationCampaignController::class, 'preview'])->name('communication.campaigns.preview');
+});
+Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.manage'])->group(function (): void {
+    Route::post('communication/segments', [CommunicationCampaignController::class, 'storeSegment'])->name('communication.segments.store');
+    Route::post('communication/campaigns', [CommunicationCampaignController::class, 'store'])->name('communication.campaigns.store');
+});
+Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.approve'])->group(function (): void {
+    Route::post('communication/campaigns/{campaign}/approve', [CommunicationCampaignController::class, 'approve'])->name('communication.campaigns.approve');
+});
+Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.send'])->group(function (): void {
+    Route::post('communication/campaigns/{campaign}/dispatch', [CommunicationCampaignController::class, 'dispatch'])->middleware('throttle:5,1')->name('communication.campaigns.dispatch');
+});
+Route::middleware(['auth', 'active.account', 'permission:cms_pages.view'])->group(function (): void {
+    Route::get('communication/pages', [CmsPageController::class, 'index'])->name('communication.pages.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:cms_pages.manage'])->group(function (): void {
+    Route::post('communication/pages', [CmsPageController::class, 'store'])->name('communication.pages.store');
+    Route::put('communication/pages/{page}', [CmsPageController::class, 'update'])->name('communication.pages.update');
+});
+Route::middleware(['auth', 'active.account', 'permission:cms_pages.publish'])->group(function (): void {
+    Route::post('communication/pages/{page}/publish', [CmsPageController::class, 'publish'])->name('communication.pages.publish');
+});
+Route::middleware(['auth', 'active.account', 'permission:faq.view'])->group(function (): void {
+    Route::get('communication/faq', [FaqController::class, 'index'])->name('communication.faq.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:faq.manage'])->group(function (): void {
+    Route::post('communication/faq/categories', [FaqController::class, 'storeCategory'])->name('communication.faq.categories.store');
+    Route::post('communication/faq', [FaqController::class, 'store'])->name('communication.faq.store');
+    Route::put('communication/faq/{article}', [FaqController::class, 'update'])->name('communication.faq.update');
+});
+Route::middleware(['auth', 'active.account', 'permission:faq.publish'])->group(function (): void {
+    Route::post('communication/faq/{article}/publish', [FaqController::class, 'publish'])->name('communication.faq.publish');
+});
+Route::middleware(['auth', 'active.account', 'permission:institutional_documents.view'])->group(function (): void {
+    Route::get('communication/documents', [InstitutionalDocumentController::class, 'index'])->name('communication.documents.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:institutional_documents.manage'])->group(function (): void {
+    Route::post('communication/documents', [InstitutionalDocumentController::class, 'store'])->name('communication.documents.store');
+    Route::post('communication/documents/{document}/versions', [InstitutionalDocumentController::class, 'revise'])->name('communication.documents.revise');
+});
+Route::middleware(['auth', 'active.account', 'permission:institutional_documents.approve'])->group(function (): void {
+    Route::post('communication/document-versions/{version}/approve', [InstitutionalDocumentController::class, 'approve'])->name('communication.documents.approve');
+});
+Route::middleware(['auth', 'active.account', 'permission:institutional_documents.publish'])->group(function (): void {
+    Route::post('communication/document-versions/{version}/publish', [InstitutionalDocumentController::class, 'publish'])->name('communication.documents.publish');
+});
+Route::middleware(['auth', 'active.account', 'permission:cms_media.view'])->group(function (): void {
+    Route::get('communication/media', [MediaAssetController::class, 'index'])->name('communication.media.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:cms_media.manage'])->group(function (): void {
+    Route::post('communication/media', [MediaAssetController::class, 'store'])->name('communication.media.store');
+});
+
+Route::middleware(['auth', 'active.account', 'permission:admin.notifications.retry'])->group(function (): void {
+    Route::post('notifications/deliveries/{delivery}/retry', [NotificationDeliveryController::class, 'retry'])->whereNumber('delivery')->middleware('throttle:5,1')->name('notifications.deliveries.retry');
+});
+
+Route::middleware(['auth', 'active.account', 'permission:notification_templates.publish'])->group(function (): void {
+    Route::post('communication/templates/{template}/publish', [NotificationTemplateController::class, 'publish'])->name('communication.templates.publish');
+});
+Route::middleware(['auth', 'active.account', 'permission:announcements.publish'])->group(function (): void {
+    Route::post('communication/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->name('communication.announcements.publish');
 });
