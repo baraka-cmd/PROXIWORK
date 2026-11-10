@@ -8,8 +8,6 @@ use App\Enums\OrderStatus;
 use App\Enums\QuotationOfferActor;
 use App\Enums\QuotationStatus;
 use App\Enums\ServiceRequestStatus;
-use App\Models\CommissionRule;
-use App\Models\Currency;
 use App\Models\Order;
 use App\Models\OrderAddressSnapshot;
 use App\Models\OrderStatusHistory;
@@ -108,17 +106,16 @@ class OrderService
             }
 
             $now = now();
-            if (! Currency::query()->whereKey(strtoupper($acceptedOffer->currency))->where('is_active', true)->exists()) {
-                throw ValidationException::withMessages([
-                    'currency' => 'La devise de cette offre est inactive sur la plateforme.',
-                ]);
-            }
-            $commissionRule = CommissionRule::query()
+            $commissionRule = DB::table('commission_rules')
                 ->where('effective_at', '<=', $lockedQuotation->accepted_at ?? $now)
                 ->orderByDesc('effective_at')
                 ->orderByDesc('id')
-                ->first()
-                ?? CommissionRule::query()->orderBy('effective_at')->orderBy('id')->firstOrFail();
+                ->first(['id', 'rate'])
+                ?? DB::table('commission_rules')->orderBy('effective_at')->orderBy('id')->first(['id', 'rate']);
+
+            if ($commissionRule === null) {
+                throw new \LogicException('Aucune règle de commission initiale n’est disponible.');
+            }
 
             $order = Order::query()->forceCreate([
                 'service_request_id' => $request->getKey(),
@@ -131,7 +128,7 @@ class OrderService
                 'subtotal' => $acceptedOffer->amount,
                 'total' => $acceptedOffer->amount,
                 'commission_rate' => $commissionRule->rate,
-                'commission_rule_id' => $commissionRule->getKey(),
+                'commission_rule_id' => $commissionRule->id,
                 'accepted_at' => $lockedQuotation->accepted_at ?? $now,
                 'created_at' => $now,
                 'updated_at' => $now,
