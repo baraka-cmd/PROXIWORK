@@ -22,6 +22,20 @@ return new class extends Migration
             $table->index('correlation_id');
         });
 
+        // Classify existing events without fabricating missing history.
+        DB::table('audit_logs')
+            ->where('action', 'like', 'admin.%')
+            ->update(['category' => 'administrative']);
+        DB::table('audit_logs')
+            ->where(function ($query): void {
+                $query->where('action', 'like', 'auth.%')
+                    ->orWhereIn('action', ['login', 'logout', 'password_changed', 'password_reset']);
+            })
+            ->update(['category' => 'authentication']);
+        DB::table('audit_logs')
+            ->where('action', 'like', 'security.%')
+            ->update(['category' => 'security']);
+
         Schema::create('security_alerts', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
