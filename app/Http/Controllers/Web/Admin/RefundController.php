@@ -134,6 +134,7 @@ class RefundController extends Controller
                 'payment_id' => $updated->payment_id,
                 'status' => $updated->status->value,
                 'note_hash' => hash('sha256', trim($note)),
+                'reason' => mb_substr(trim($note), 0, 1000),
             ], $request);
         }, attempts: 3);
 
