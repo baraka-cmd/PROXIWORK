@@ -22,7 +22,7 @@ class NotificationTemplateController extends Controller
     public function index(): View
     {
         return view('admin.communication.templates.index', [
-            'templates' => NotificationTemplate::query()->latest()->paginate(20),
+            'templates' => NotificationTemplate::query()->withCount('versions')->latest()->paginate(20),
             'events' => self::EVENTS,
         ]);
     }
