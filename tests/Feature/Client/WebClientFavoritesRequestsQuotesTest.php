@@ -11,6 +11,7 @@ use App\Models\Favorite;
 use App\Models\Order;
 use App\Models\AuditLog;
 use App\Models\ProfessionalProfile;
+use Illuminate\Support\Str;
 use App\Models\Quotation;
 use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
@@ -264,7 +265,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'status' => 'published',
             'published_at' => now(),
         ]);
-        $idempotencyKey = (string) \Illuminate\Support\Str::uuid();
+        $idempotencyKey = (string) Str::uuid();
         $payload = [
             'service_id' => $service->id,
             'title' => 'Demande avec soumission répétée',
