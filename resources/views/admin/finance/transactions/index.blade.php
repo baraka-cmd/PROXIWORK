@@ -1,5 +1,9 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/finance.css')@endunless@endpush
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/finance.css')
+    @endunless
+@endpush
 @section('page_eyebrow', 'FINANCES · TRAÇABILITÉ')
 @section('page_title', 'Transactions de paiement')
 @section('page_description', 'Consultez les opérations techniques associées aux paiements. Cet écran est en lecture seule.')
