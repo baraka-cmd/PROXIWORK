@@ -288,6 +288,7 @@ Route::middleware(['auth', 'active.account', 'permission:faq.view'])->group(func
     Route::get('communication/faq', [FaqController::class, 'index'])->name('communication.faq.index');
 });
 Route::middleware(['auth', 'active.account', 'permission:faq.manage'])->group(function (): void {
+    Route::post('communication/faq/categories', [FaqController::class, 'storeCategory'])->name('communication.faq.categories.store');
     Route::post('communication/faq', [FaqController::class, 'store'])->name('communication.faq.store');
     Route::put('communication/faq/{article}', [FaqController::class, 'update'])->name('communication.faq.update');
 });
