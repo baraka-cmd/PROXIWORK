@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FaqArticle extends Model
 {
@@ -20,6 +21,11 @@ class FaqArticle extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(FaqCategory::class, 'faq_category_id');
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(FaqArticleVersion::class);
     }
 
     public function scopePublished(Builder $query): Builder
