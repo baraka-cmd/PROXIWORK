@@ -101,7 +101,13 @@ class SendNotificationSms implements ShouldQueue
             'order' => 'Mise à jour de commande',
             default => 'Alerte importante',
         };
-        $body = mb_substr('PROXIWORK : '.$title.'. Connectez-vous à votre compte pour consulter les détails.', 0, 300);
+        $body = mb_substr(
+            is_string($data['sms_message'] ?? null) && trim($data['sms_message']) !== ''
+                ? $data['sms_message']
+                : 'PROXIWORK : '.$title.'. Connectez-vous à votre compte pour consulter les détails.',
+            0,
+            300,
+        );
 
         try {
             $response = Http::asForm()
