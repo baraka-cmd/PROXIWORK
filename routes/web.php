@@ -112,8 +112,6 @@ Route::middleware('auth')->group(function (): void {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('orders/{order}/disputes', [OrderDisputeParticipantController::class, 'store'])->middleware('throttle:5,1')->name('orders.disputes.store');
         Route::get('disputes/{dispute}', [OrderDisputeParticipantController::class, 'show'])->name('disputes.show');
-    Route::post('disputes/{dispute}/attachments', [OrderDisputeParticipantController::class, 'upload'])->middleware('throttle:10,1')->name('disputes.attachments.store');
-    Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeParticipantController::class, 'download'])->name('disputes.attachments.download');
         Route::post('disputes/{dispute}/attachments', [OrderDisputeParticipantController::class, 'upload'])->middleware('throttle:10,1')->name('disputes.attachments.store');
         Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeParticipantController::class, 'download'])->name('disputes.attachments.download');
         Route::post('disputes/{dispute}/messages', [OrderDisputeParticipantController::class, 'message'])->middleware('throttle:10,1')->name('disputes.messages.store');
@@ -242,6 +240,8 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('orders/{order}', [ProfessionalOrderController::class, 'show'])->name('orders.show');
     Route::post('orders/{order}/disputes', [OrderDisputeParticipantController::class, 'store'])->middleware('throttle:5,1')->name('orders.disputes.store');
     Route::get('disputes/{dispute}', [OrderDisputeParticipantController::class, 'show'])->name('disputes.show');
+    Route::post('disputes/{dispute}/attachments', [OrderDisputeParticipantController::class, 'upload'])->middleware('throttle:10,1')->name('disputes.attachments.store');
+    Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeParticipantController::class, 'download'])->name('disputes.attachments.download');
     Route::post('disputes/{dispute}/messages', [OrderDisputeParticipantController::class, 'message'])->middleware('throttle:10,1')->name('disputes.messages.store');
     Route::get('orders/{order}/delivery-attachments/{attachment}', [OrderDeliveryAttachmentController::class, 'download'])->name('orders.delivery-attachments.download');
     Route::post('orders/{order}/schedule', [ProfessionalOrderController::class, 'proposeSchedule'])->middleware('throttle:10,1')->name('orders.schedule');
