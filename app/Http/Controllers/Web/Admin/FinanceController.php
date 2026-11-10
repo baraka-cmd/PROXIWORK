@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\Finance\AdminFinanceFilterRequest;
 use App\Models\Commission;
 use App\Models\Wallet;
 use App\Services\Admin\Finance\AdminFinanceQueryService;
+use App\Services\Commission\CommissionRuleService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,6 +18,7 @@ class FinanceController extends Controller
 {
     public function __construct(
         private readonly AdminFinanceQueryService $finance,
+        private readonly CommissionRuleService $commissionRules,
     ) {}
 
     public function overview(AdminFinanceFilterRequest $request): View
@@ -61,7 +63,7 @@ class FinanceController extends Controller
         return view('admin.finance.commissions.index', [
             'commissions' => $this->finance->commissions($filters),
             'filters' => $filters,
-            'configuredRate' => config('commission.rate', '10.00'),
+            'configuredRate' => $this->commissionRules->currentRule()->rate,
         ]);
     }
 

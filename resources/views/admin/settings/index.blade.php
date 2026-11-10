@@ -34,6 +34,11 @@
         </section>
 
         <section class="dashboard-card">
+            <div class="dashboard-card__header"><div><h2>Commissions</h2><p>Chaque modification crée une nouvelle version. Les commandes déjà créées conservent le taux capturé au moment de leur acceptation.</p></div></div>
+            <label class="form-field"><span>Taux global de commission (%)</span><input type="number" name="settings[commission][rate]" min="0.01" max="99.99" step="0.01" value="{{ old('settings.commission.rate', $settings['commission.rate']) }}" required></label>
+        </section>
+
+        <section class="dashboard-card">
             <div class="dashboard-card__header"><div><h2>Publication des services</h2><p>Ces seuils complètent les contrôles obligatoires de vérification, de modération et d'éligibilité.</p></div></div>
             <div class="form-grid">
                 <label class="form-field"><span>Description minimale (caractères)</span><input type="number" name="settings[publication][minimum_description_length]" min="20" max="1000" value="{{ old('settings.publication.minimum_description_length', $settings['publication.minimum_description_length']) }}" required></label>

@@ -15,11 +15,14 @@ use App\Models\Quotation;
 use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Services\Commission\CommissionRuleService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public function __construct(private readonly CommissionRuleService $commissionRules) {}
+
     public function createFromAcceptedQuotation(Quotation $quotation, User $actor): Order
     {
         return DB::transaction(function () use ($quotation, $actor): Order {
@@ -106,6 +109,7 @@ class OrderService
             }
 
             $now = now();
+            $commissionRule = $this->commissionRules->ruleForDate($lockedQuotation->accepted_at ?? $now);
 
             $order = Order::query()->forceCreate([
                 'service_request_id' => $request->getKey(),
@@ -117,6 +121,8 @@ class OrderService
                 'currency' => strtoupper($acceptedOffer->currency),
                 'subtotal' => $acceptedOffer->amount,
                 'total' => $acceptedOffer->amount,
+                'commission_rate' => $commissionRule->rate,
+                'commission_rule_id' => $commissionRule->getKey(),
                 'accepted_at' => $lockedQuotation->accepted_at ?? $now,
                 'created_at' => $now,
                 'updated_at' => $now,

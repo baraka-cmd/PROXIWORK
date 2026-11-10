@@ -36,6 +36,7 @@ class PlatformSettingsTest extends TestCase
             ->put(route('admin.settings.update'), [
                 'settings' => [
                     'platform' => ['name' => 'PROXIWORK RDC', 'support_email' => 'support@example.test'],
+                    'commission' => ['rate' => '12.50'],
                     'publication' => [
                         'minimum_description_length' => 35,
                         'maximum_title_length' => 140,
@@ -49,6 +50,7 @@ class PlatformSettingsTest extends TestCase
 
         $settings = app(PlatformSettingService::class);
         $this->assertSame('PROXIWORK RDC', $settings->get('platform.name'));
+        $this->assertSame('12.50', (string) $settings->get('commission.rate'));
         $this->assertSame(35, $settings->get('publication.minimum_description_length'));
         $this->assertSame(6, $settings->get('publication.maximum_images'));
         $this->assertFalse($settings->get('notifications.sms_enabled'));
@@ -94,6 +96,7 @@ class PlatformSettingsTest extends TestCase
             ->put(route('admin.settings.update'), [
                 'settings' => [
                     'platform' => ['name' => 'Valid name', 'support_email' => 'not-an-email'],
+                    'commission' => ['rate' => '12.50'],
                     'publication' => [
                         'minimum_description_length' => 5,
                         'maximum_title_length' => 140,

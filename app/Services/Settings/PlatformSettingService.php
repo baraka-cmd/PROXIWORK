@@ -7,6 +7,7 @@ namespace App\Services\Settings;
 use App\Models\PlatformSetting;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\Commission\CommissionRuleService;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -21,6 +22,7 @@ class PlatformSettingService
     private const DEFINITIONS = [
         'platform.name' => ['default' => 'PROXIWORK', 'rules' => 'required|string|max:120'],
         'platform.support_email' => ['default' => '', 'rules' => 'nullable|email:rfc|max:190'],
+        'commission.rate' => ['default' => (string) config('commission.rate', '10.00'), 'rules' => 'required|numeric|gt:0|lt:100|decimal:0,2'],
         'publication.minimum_description_length' => ['default' => 20, 'rules' => 'required|integer|min:20|max:1000'],
         'publication.maximum_title_length' => ['default' => 160, 'rules' => 'required|integer|min:3|max:160'],
         'publication.maximum_images' => ['default' => 8, 'rules' => 'required|integer|min:1|max:8'],
@@ -34,6 +36,7 @@ class PlatformSettingService
     public function __construct(
         private readonly DatabaseManager $database,
         private readonly AuditLogService $auditLogs,
+        private readonly CommissionRuleService $commissionRules,
     ) {}
 
     /** @return array<string, mixed> */
@@ -51,6 +54,8 @@ class PlatformSettingService
                     $values[$setting->key] = $setting->value;
                 }
             }
+
+            $values['commission.rate'] = (string) $this->commissionRules->currentRule()->rate;
 
             return $values;
         });
@@ -96,7 +101,10 @@ class PlatformSettingService
             $changes[$key] = $value;
         }
 
-        $this->database->transaction(function () use ($changes, $actor, $request): void {
+        $commissionRate = $changes['commission.rate'] ?? null;
+        unset($changes['commission.rate']);
+
+        $this->database->transaction(function () use ($changes, $commissionRate, $actor, $request): void {
             $changedKeys = [];
 
             foreach ($changes as $key => $value) {
@@ -116,6 +124,11 @@ class PlatformSettingService
                 );
 
                 $changedKeys[] = $key;
+            }
+
+            if ($commissionRate !== null) {
+                $this->commissionRules->changeRate((string) $commissionRate, $actor, $request);
+                $changedKeys[] = 'commission.rate';
             }
 
             if ($changedKeys !== []) {
