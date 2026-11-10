@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InstitutionalDocument extends Model
 {
-    protected $fillable = ['title','slug','document_type','status','current_version','requires_acceptance'];
+    protected $fillable = ['title', 'slug', 'document_type', 'status', 'current_version', 'requires_acceptance'];
 
     protected function casts(): array
     {
