@@ -6,7 +6,6 @@ namespace App\Services\Admin\Communication;
 
 use App\Jobs\Notifications\DispatchCommunicationCampaign;
 use App\Models\CommunicationCampaign;
-use App\Services\Admin\Communication\CommunicationAudienceService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +13,10 @@ use Illuminate\Support\Str;
 
 class CommunicationCampaignService
 {
-    public function __construct(private readonly AuditLogService $audit, private readonly CommunicationAudienceService $audience) {}
+    public function __construct(
+        private readonly AuditLogService $audit,
+        private readonly CommunicationAudienceService $audience,
+    ) {}
 
     public function create(array $data, Request $request): CommunicationCampaign
     {
