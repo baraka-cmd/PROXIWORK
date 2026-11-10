@@ -289,7 +289,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->assertSessionHas('success', 'Une demande existante a été retrouvée. Consultez son état actuel avant de continuer.');
 
         $this->assertDatabaseCount('service_requests', 1);
-        $this->assertSame(1, \\App\\Models\\AuditLog::query()->where('action', 'service_request_created')->count());
+        $this->assertSame(1, \App\Models\AuditLog::query()->where('action', 'service_request_created')->count());
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'service_request_created',
             'subject_id' => $firstRequestId,
