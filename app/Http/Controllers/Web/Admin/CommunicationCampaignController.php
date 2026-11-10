@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendCommunicationCampaign;
 use App\Models\CommunicationCampaign;
 use App\Models\CommunicationCampaignRecipient;
+use App\Models\CommunicationSegment;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ class CommunicationCampaignController extends Controller
     {
         return view('admin.communication.campaigns.index', [
             'campaigns' => CommunicationCampaign::query()->latest()->paginate(20),
-            'segments' => \\App\\Models\\CommunicationSegment::query()->latest()->get(),
+            'segments' => CommunicationSegment::query()->latest()->get(),
         ]);
     }
 
@@ -41,7 +42,7 @@ class CommunicationCampaignController extends Controller
             'body' => $data['body'],
             'channel' => 'database',
             'audience_rules' => isset($data['segment_id'])
-                ? \\App\\Models\\CommunicationSegment::query()->findOrFail($data['segment_id'])->rules
+                ? CommunicationSegment::query()->findOrFail($data['segment_id'])->rules
                 : ['audience' => ($data['audience'] ?? 'all'), 'account_status' => 'active'],
             'communication_segment_id' => $data['segment_id'] ?? null,
             'status' => 'draft',
@@ -58,7 +59,7 @@ class CommunicationCampaignController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'audience' => ['required', 'in:all,client,professional'],
         ]);
-        $segment = \\App\\Models\\CommunicationSegment::query()->create([
+        $segment = CommunicationSegment::query()->create([
             'name' => $data['name'],
             'rules' => ['audience' => $data['audience'], 'account_status' => 'active'],
             'created_by' => $request->user()->id,
