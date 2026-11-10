@@ -331,7 +331,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->get(route('professional.revenues.export', ['period' => '30d']))
             ->assertOk()
             ->assertHeader('content-type', 'text/csv; charset=UTF-8')
-            ->assertHeader('cache-control', 'max-age=0, no-store, private')
+            ->assertHeader('cache-control', 'must-revalidate, no-cache, no-store, private')
             ->assertHeader('x-content-type-options', 'nosniff');
     }
 
