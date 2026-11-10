@@ -40,7 +40,7 @@ class WebProfessionalWalletWithdrawalsTest extends TestCase
             ->get(route('professional.wallet'))
             ->assertOk()
             ->assertViewIs('professional.wallet.index')
-            ->assertSee('Disponible');
+            ->assertSee('Solde disponible');
     }
 
     public function test_client_cannot_access_wallet(): void
