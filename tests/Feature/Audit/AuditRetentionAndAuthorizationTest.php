@@ -46,6 +46,69 @@ class AuditRetentionAndAuthorizationTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['action' => 'recent']);
     }
 
+    public function test_retention_command_prunes_expired_security_history_but_keeps_open_alerts(): void
+    {
+        $user = User::factory()->create();
+        $cutoff = now()->subDays(181);
+
+        $expiredSession = SecuritySession::query()->create([
+            'user_id' => $user->id,
+            'guard' => 'sanctum',
+            'identifier_hash' => hash('sha256', 'expired-session'),
+            'token_id' => 999991,
+            'last_seen_at' => $cutoff,
+            'expires_at' => $cutoff,
+            'revoked_at' => $cutoff,
+        ]);
+
+        $activeSession = SecuritySession::query()->create([
+            'user_id' => $user->id,
+            'guard' => 'sanctum',
+            'identifier_hash' => hash('sha256', 'active-session'),
+            'token_id' => 999992,
+            'last_seen_at' => now(),
+            'expires_at' => now()->addDay(),
+        ]);
+
+        $oldIntervention = SensitiveIntervention::query()->create([
+            'actor_id' => $user->id,
+            'domain' => 'user',
+            'action' => 'admin.user.suspended',
+            'result' => 'succeeded',
+            'created_at' => $cutoff,
+        ]);
+
+        $oldResolvedAlert = SecurityAlert::query()->create([
+            'rule_key' => 'old.resolved',
+            'fingerprint' => hash('sha256', 'old-resolved'),
+            'severity' => 'low',
+            'status' => 'resolved',
+            'title' => 'Old resolved alert',
+            'occurrences' => 1,
+            'first_seen_at' => $cutoff,
+            'last_seen_at' => $cutoff,
+        ]);
+
+        $openAlert = SecurityAlert::query()->create([
+            'rule_key' => 'open.investigation',
+            'fingerprint' => hash('sha256', 'open-investigation'),
+            'severity' => 'high',
+            'status' => 'investigating',
+            'title' => 'Open investigation',
+            'occurrences' => 1,
+            'first_seen_at' => $cutoff,
+            'last_seen_at' => $cutoff,
+        ]);
+
+        $this->artisan('audit:prune --days=180')->assertExitCode(0);
+
+        $this->assertDatabaseMissing('security_sessions', ['id' => $expiredSession->id]);
+        $this->assertDatabaseHas('security_sessions', ['id' => $activeSession->id]);
+        $this->assertDatabaseMissing('sensitive_interventions', ['id' => $oldIntervention->id]);
+        $this->assertDatabaseMissing('security_alerts', ['id' => $oldResolvedAlert->id]);
+        $this->assertDatabaseHas('security_alerts', ['id' => $openAlert->id]);
+    }
+
     public function test_client_cannot_read_a_specific_audit_log(): void
     {
         $client = User::factory()->create();
