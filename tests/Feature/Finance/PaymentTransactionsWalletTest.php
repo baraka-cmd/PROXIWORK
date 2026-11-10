@@ -498,7 +498,7 @@ class PaymentTransactionsWalletTest extends TestCase
             professional: $professional,
             amount: '800.00',
             currency: 'USD',
-            provider: 'fake',
+            provider: 'mobile_money',
             destination: '0000000000',
             idempotencyKey: 'withdrawal-000001',
         );
@@ -509,7 +509,7 @@ class PaymentTransactionsWalletTest extends TestCase
             professional: $professional,
             amount: '300.00',
             currency: 'USD',
-            provider: 'fake',
+            provider: 'mobile_money',
             destination: '0000000000',
             idempotencyKey: 'withdrawal-000002',
         );
@@ -539,7 +539,7 @@ class PaymentTransactionsWalletTest extends TestCase
             professional: $professional,
             amount: '300.00',
             currency: 'USD',
-            provider: 'fake',
+            provider: 'mobile_money',
             destination: '0000000000',
             idempotencyKey: 'withdrawal-retry-0001',
         );
@@ -548,7 +548,7 @@ class PaymentTransactionsWalletTest extends TestCase
             professional: $professional,
             amount: '300.00',
             currency: 'USD',
-            provider: 'fake',
+            provider: 'mobile_money',
             destination: '0000000000',
             idempotencyKey: 'withdrawal-retry-0001',
         );
@@ -581,14 +581,14 @@ class PaymentTransactionsWalletTest extends TestCase
             professional: $professional,
             amount: '300.00',
             currency: 'USD',
-            provider: 'fake',
+            provider: 'mobile_money',
             destination: '0000000000',
             idempotencyKey: 'withdrawal-fingerprint-0001',
         );
 
         foreach ([
             ['provider' => 'fake', 'destination' => '9999999999'],
-            ['provider' => 'another-provider', 'destination' => '0000000000'],
+            ['provider' => 'bank_transfer', 'destination' => '0000000000'],
         ] as $changedRequest) {
             try {
                 $withdrawalService->request(
@@ -636,7 +636,7 @@ class PaymentTransactionsWalletTest extends TestCase
             professional: $professional,
             amount: '300.00',
             currency: 'USD',
-            provider: 'fake',
+            provider: 'mobile_money',
             destination: '0000000000',
             idempotencyKey: 'withdrawal-failure-0001',
         );
