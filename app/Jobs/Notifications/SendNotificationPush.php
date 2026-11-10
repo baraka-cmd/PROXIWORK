@@ -91,10 +91,11 @@ class SendNotificationPush implements ShouldQueue
         }
 
         $action = (string) ($data['action'] ?? 'notification');
-        $title = (string) ($data['title'] ?? 'PROXIWORK');
-        $body = $action === 'message'
+        $title = (string) ($data['push_title'] ?? $data['title'] ?? 'PROXIWORK');
+        $fallbackBody = $action === 'message'
             ? 'Vous avez reçu un nouveau message. Ouvrez PROXIWORK pour le consulter.'
-            : mb_substr((string) ($data['message'] ?? 'Vous avez une nouvelle notification.'), 0, 160);
+            : (string) ($data['message'] ?? 'Vous avez une nouvelle notification.');
+        $body = mb_substr((string) ($data['push_message'] ?? $fallbackBody), 0, 160);
         $payload = [
             'title' => mb_substr($title, 0, 80),
             'body' => $body,
