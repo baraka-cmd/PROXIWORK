@@ -248,6 +248,8 @@ Route::middleware(['auth', 'active.account', 'permission:notification_templates.
 });
 Route::middleware(['auth', 'active.account', 'permission:notification_templates.manage'])->group(function (): void {
     Route::post('communication/templates', [NotificationTemplateController::class, 'store'])->name('communication.templates.store');
+    Route::put('communication/templates/{template}', [NotificationTemplateController::class, 'update'])->name('communication.templates.update');
+    Route::post('communication/templates/{template}/revise', [NotificationTemplateController::class, 'revise'])->name('communication.templates.revise');
     Route::post('communication/templates/{template}/publish', [NotificationTemplateController::class, 'publish'])->name('communication.templates.publish');
 });
 Route::middleware(['auth', 'active.account', 'permission:announcements.view'])->group(function (): void {
