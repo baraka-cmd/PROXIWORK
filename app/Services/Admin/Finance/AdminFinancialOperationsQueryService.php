@@ -212,12 +212,12 @@ class AdminFinancialOperationsQueryService
 
     private function period(array $filters): array
     {
-        $from = isset($filters['from'])
-            ? CarbonImmutable::parse($filters['from'])->startOfDay()
-            : CarbonImmutable::now()->subDays(29)->startOfDay();
         $to = isset($filters['to'])
             ? CarbonImmutable::parse($filters['to'])->endOfDay()
             : CarbonImmutable::now()->endOfDay();
+        $from = isset($filters['from'])
+            ? CarbonImmutable::parse($filters['from'])->startOfDay()
+            : $to->subDays(29)->startOfDay();
 
         return [$from, $to];
     }

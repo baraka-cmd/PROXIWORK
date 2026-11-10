@@ -32,6 +32,8 @@ class AdminFinancialOperationsTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.finance.reports'))
             ->assertOk()->assertViewIs('admin.finance.reports.index');
+
+        $this->assertDatabaseHas('audit_logs', ['action' => 'admin.finance.report.viewed', 'user_id' => $admin->id]);
     }
 
     public function test_client_cannot_open_administrative_financial_operations(): void

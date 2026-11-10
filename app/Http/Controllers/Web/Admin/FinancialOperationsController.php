@@ -50,7 +50,7 @@ class FinancialOperationsController extends Controller
         return view('admin.finance.movements.show', compact('movement'));
     }
 
-    public function reports(Request $request, AdminFinancialOperationsQueryService $queries): View
+    public function reports(Request $request, AdminFinancialOperationsQueryService $queries, AuditLogService $audit): View
     {
         $filters = $request->validate([
             'from' => ['nullable', 'date_format:Y-m-d'],
@@ -59,6 +59,7 @@ class FinancialOperationsController extends Controller
             'professional_id' => ['nullable', 'integer', 'exists:professional_profiles,id'],
         ]);
         $filters['currency'] = isset($filters['currency']) ? strtoupper($filters['currency']) : null;
+        $audit->record('admin.finance.report.viewed', null, $request->user(), $filters, $request);
 
         return view('admin.finance.reports.index', [
             'report' => $queries->reports($filters),
@@ -87,9 +88,9 @@ class FinancialOperationsController extends Controller
         return response()->streamDownload(function () use ($queries, $filters): void {
             $output = fopen('php://output', 'wb');
             fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, ['Date', 'Type', 'Référence', 'Client / professionnel', 'Montant', 'Devise', 'Statut', 'Référence source'], ';');
+            fputcsv($output, ['Date', 'Type', 'Référence', 'Client / professionnel', 'Montant', 'Devise', 'Statut', 'Référence source'], ';', '"', '');
             foreach ($queries->exportRows($filters) as $row) {
-                fputcsv($output, array_map([$this, 'safeCsv'], $row), ';');
+                fputcsv($output, array_map([$this, 'safeCsv'], $row), ';', '"', '');
             }
             fclose($output);
         }, 'proxiwork-rapport-financier-'.now()->format('Ymd-His').'.csv', [
