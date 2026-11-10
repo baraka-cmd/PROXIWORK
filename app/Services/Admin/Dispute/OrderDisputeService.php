@@ -31,7 +31,7 @@ class OrderDisputeService
     public function paginate(array $filters): LengthAwarePaginator
     {
         $query = OrderDispute::query()->with([
-            'order:id,order_number,status,total,currency',
+            'order:id,order_number,status',
             'client:id,name,email',
             'professional:id,user_id,business_name',
             'professional.user:id,name,email',
