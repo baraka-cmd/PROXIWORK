@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CommunicationCampaign extends Model
 {
-    protected $fillable = ['name','subject','body','channel','audience_rules','status','recipient_count','sent_count','failed_count','scheduled_at','started_at','completed_at','created_by','approved_by'];
+    protected $fillable = ['name', 'subject', 'body', 'channel', 'audience_rules', 'status', 'recipient_count', 'sent_count', 'failed_count', 'scheduled_at', 'started_at', 'completed_at', 'created_by', 'approved_by'];
 
     protected function casts(): array
     {
