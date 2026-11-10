@@ -24,20 +24,15 @@ class DispatchScheduledCommunicationCampaigns extends Command
             ->orderBy('id')
             ->chunkById(100, function ($campaigns): void {
                 foreach ($campaigns as $campaign) {
-                    $dispatch = DB::transaction(function () use ($campaign): bool {
+                    DB::transaction(function () use ($campaign): void {
                         $locked = CommunicationCampaign::query()->lockForUpdate()->find($campaign->id);
                         if ($locked === null || $locked->status !== 'scheduled' || $locked->scheduled_at?->isFuture()) {
-                            return false;
+                            return;
                         }
 
                         $locked->update(['status' => 'queued']);
 
-                        return true;
                     });
-
-                    if ($dispatch) {
-                        SendCommunicationCampaign::dispatch($campaign->id)->afterCommit();
-                    }
                 }
             });
 
