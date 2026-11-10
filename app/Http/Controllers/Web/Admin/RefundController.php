@@ -127,7 +127,7 @@ class RefundController extends Controller
 
     private function perform(Request $request, PaymentRefund $refund, AuditLogService $audit, string $action, callable $operation, string $note, string $message): RedirectResponse
     {
-        DB::transaction(function () use ($request, $refund, $audit, $action, $operation, $note): void {
+        DB::transaction(function () use ($request, $audit, $action, $operation, $note): void {
             $updated = $operation();
             $audit->record($action, $updated, $request->user(), [
                 'refund_id' => $updated->getKey(),
