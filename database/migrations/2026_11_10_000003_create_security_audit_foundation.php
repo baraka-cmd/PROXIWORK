@@ -28,6 +28,9 @@ return new class extends Migration
             ->where('action', 'like', 'admin.%')
             ->update(['category' => 'administrative']);
         DB::table('audit_logs')
+            ->where('action', 'like', 'admin.auth.%')
+            ->update(['category' => 'authentication']);
+        DB::table('audit_logs')
             ->where(function ($query): void {
                 $query->where('action', 'like', 'auth.%')
                     ->orWhereIn('action', ['login', 'logout', 'password_changed', 'password_reset']);
