@@ -17,9 +17,7 @@ use Illuminate\View\View;
 
 class ContentManagementController extends Controller
 {
-    public function __construct(private readonly AuditLogService $audit)
-    {
-    }
+    public function __construct(private readonly AuditLogService $audit) {}
 
     public function pages(): View
     {
