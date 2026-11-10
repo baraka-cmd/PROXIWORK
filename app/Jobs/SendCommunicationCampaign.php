@@ -59,6 +59,7 @@ class SendCommunicationCampaign implements ShouldBeUnique, ShouldQueue
                     try {
                         DB::transaction(function () use ($recipient, $campaign): void {
                             $locked = CommunicationCampaignRecipient::query()->lockForUpdate()->find($recipient->id);
+
                             if ($locked === null || $locked->status !== 'pending') {
                                 return;
                             }
@@ -66,6 +67,7 @@ class SendCommunicationCampaign implements ShouldBeUnique, ShouldQueue
                             $user = $locked->user()->first();
                             if ($user === null || $user->account_status->value !== 'active') {
                                 $locked->update(['status' => 'skipped', 'error_code' => 'RecipientUnavailable', 'processed_at' => now()]);
+
                                 return;
                             }
 
