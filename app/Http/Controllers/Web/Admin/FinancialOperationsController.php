@@ -33,7 +33,7 @@ class FinancialOperationsController extends Controller
         return view('admin.finance.movements.index', [
             'movements' => $queries->movements($filters),
             'filters' => $filters,
-            'currencies' => Payment::query()->distinct()->orderBy('currency')->pluck('currency')->merge(WalletTransaction::query()->distinct()->orderBy('currency')->pluck('currency'))->unique()->sort()->values(),
+            'currencies' => WalletTransaction::query()->distinct()->orderBy('currency')->pluck('currency'),
         ]);
     }
 
@@ -63,7 +63,7 @@ class FinancialOperationsController extends Controller
         return view('admin.finance.reports.index', [
             'report' => $queries->reports($filters),
             'filters' => $filters,
-            'currencies' => WalletTransaction::query()->distinct()->orderBy('currency')->pluck('currency'),
+            'currencies' => Payment::query()->distinct()->orderBy('currency')->pluck('currency')->merge(WalletTransaction::query()->distinct()->orderBy('currency')->pluck('currency'))->unique()->sort()->values(),
         ]);
     }
 

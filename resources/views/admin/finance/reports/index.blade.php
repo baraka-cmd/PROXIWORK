@@ -8,6 +8,7 @@
 @endunless
 @endpush
 @section('content')
+@php($reportLabels = ['payments' => 'Paiements confirmés', 'refunds' => 'Remboursements réussis', 'commission' => 'Commissions comptabilisées', 'withdrawals' => 'Retraits réussis', 'wallet_balances' => 'Soldes actuels des portefeuilles'])
 <div class="admin-financial-operations">
     <section class="admin-card">
         <div class="admin-card__header"><h3>Paramètres du rapport</h3>
@@ -37,6 +38,6 @@
         <div class="admin-empty-state"><h3>Aucune donnée financière pour cette période</h3><p>Essayez une autre période ou retirez le filtre professionnel.</p></div>
     @endforelse
     </section>
-    <section class="admin-card"><h3>Définitions des indicateurs</h3><ul class="admin-report-definitions">@foreach($report['definitions'] as $label=>$definition)<li><strong>{{ ucfirst(str_replace('_',' ',$label)) }} :</strong> {{ $definition }}</li>@endforeach</ul></section>
+    <section class="admin-card"><h3>Définitions des indicateurs</h3><ul class="admin-report-definitions">@foreach($report['definitions'] as $label=>$definition)<li><strong>{{ $reportLabels[$label] ?? ucfirst(str_replace('_',' ',$label)) }} :</strong> {{ $definition }}</li>@endforeach</ul></section>
 </div>
 @endsection

@@ -50,7 +50,8 @@ class RefundController extends Controller
             ->when($filters['currency'] ?? null, fn ($q, string $currency) => $q->where('currency', $currency))
             ->when($filters['from'] ?? null, fn ($q, string $from) => $q->where('requested_at', '>=', $from.' 00:00:00'))
             ->when($filters['to'] ?? null, fn ($q, string $to) => $q->where('requested_at', '<', date('Y-m-d', strtotime($to.' +1 day')).' 00:00:00'))
-            ->latest('requested_at')->latest('id');
+            ->orderByRaw("CASE status WHEN 'requested' THEN 0 WHEN 'processing' THEN 1 ELSE 2 END")
+            ->orderBy('requested_at')->orderBy('id');
 
         $statusCounts = PaymentRefund::query()
             ->selectRaw('status, COUNT(*) as aggregate')

@@ -17,7 +17,6 @@ use App\Models\Withdrawal;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class AdminFinancialOperationsQueryService
 {

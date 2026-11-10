@@ -9,14 +9,16 @@
 @endunless
 @endpush
 @section('content')
+@php($movementTypeLabels = ['earning' => 'Revenu professionnel', 'commission' => 'Commission', 'withdrawal' => 'Retrait', 'refund' => 'Remboursement', 'adjustment' => 'Ajustement', 'reversal' => 'Contre-écriture'])
+@php($bucketLabels = ['available' => 'Disponible', 'pending' => 'En attente', 'locked' => 'Bloqué'])
 <div class="admin-financial-operations">
     <section class="admin-card"><div class="admin-card__header"><div><span class="admin-card__eyebrow">ÉCRITURE #{{ $movement->id }}</span><h3>{{ \App\Support\MoneyFormatter::format((string)$movement->amount) }} {{ $movement->currency }}</h3></div><span class="admin-page-badge">{{ $movement->direction->value === 'credit' ? 'Crédit' : 'Débit' }}</span></div>
     <dl class="admin-financial-details">
         <div><dt>Date</dt><dd>{{ $movement->created_at?->format('d/m/Y H:i:s') }}</dd></div>
         <div><dt>Professionnel</dt><dd>{{ $movement->wallet?->professional?->user?->name ?? '—' }} · {{ $movement->wallet?->professional?->user?->email ?? '—' }}</dd></div>
         <div><dt>Portefeuille</dt><dd>#{{ $movement->wallet_id }} · {{ $movement->currency }}</dd></div>
-        <div><dt>Type</dt><dd>{{ $movement->type->value }}</dd></div>
-        <div><dt>Compartiment</dt><dd>{{ $movement->balance_bucket ?? '—' }}</dd></div>
+        <div><dt>Type</dt><dd>{{ $movementTypeLabels[$movement->type->value] ?? $movement->type->value }}</dd></div>
+        <div><dt>Compartiment</dt><dd>{{ $bucketLabels[$movement->balance_bucket] ?? '—' }}</dd></div>
         <div><dt>Montant</dt><dd>{{ \App\Support\MoneyFormatter::format((string)$movement->amount) }} {{ $movement->currency }}</dd></div>
         <div><dt>Solde avant</dt><dd>{{ \App\Support\MoneyFormatter::format((string)$movement->balance_before) }} {{ $movement->currency }}</dd></div>
         <div><dt>Solde après</dt><dd>{{ \App\Support\MoneyFormatter::format((string)$movement->balance_after) }} {{ $movement->currency }}</dd></div>

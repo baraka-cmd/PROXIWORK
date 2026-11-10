@@ -37,8 +37,11 @@ class WithdrawalController extends Controller
             ->with(['professional.user', 'wallet'])
             ->when($filters['search'] ?? null, function ($query, string $search): void {
                 $query->where(function ($nested) use ($search): void {
+                    $referenceId = preg_replace('/^WD-0*/i', '', $search) ?? '';
                     if (ctype_digit($search)) {
                         $nested->orWhere('id', (int) $search);
+                    } elseif (ctype_digit($referenceId)) {
+                        $nested->orWhere('id', (int) $referenceId);
                     }
                     $nested->orWhereHas('professional.user', fn ($user) => $user->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
                         ->orWhere('provider_transaction_id', 'like', "%{$search}%");
@@ -49,7 +52,8 @@ class WithdrawalController extends Controller
             ->when($filters['provider'] ?? null, fn ($query, string $provider) => $query->where('provider', $provider))
             ->when($filters['from'] ?? null, fn ($query, string $from) => $query->where('requested_at', '>=', $from.' 00:00:00'))
             ->when($filters['to'] ?? null, fn ($query, string $to) => $query->where('requested_at', '<', date('Y-m-d', strtotime($to.' +1 day')).' 00:00:00'))
-            ->latest('requested_at')->latest('id');
+            ->orderByRaw("CASE status WHEN 'review_required' THEN 0 WHEN 'requested' THEN 1 WHEN 'processing' THEN 2 ELSE 3 END")
+            ->orderBy('requested_at')->orderBy('id');
 
         $statusCounts = Withdrawal::query()
             ->selectRaw('status, COUNT(*) as aggregate')
@@ -76,7 +80,7 @@ class WithdrawalController extends Controller
     public function show(Request $request, Withdrawal $withdrawal, AuditLogService $auditLogs): View
     {
         $withdrawal->load(['professional.user', 'wallet', 'statusHistories.actor']);
-        $canViewDestination = $request->user()->can('withdrawals.destination.view');
+        $canViewDestination = $request->user()->hasPermissionTo('withdrawals.destination.view');
 
         $auditLogs->record(
             action: 'admin.withdrawal.viewed',

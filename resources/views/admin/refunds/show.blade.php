@@ -9,18 +9,19 @@
 @endunless
 @endpush
 @section('content')
+@php($refundStatusLabels = ['requested' => 'À examiner', 'processing' => 'En traitement', 'succeeded' => 'Réussi', 'failed' => 'Échec', 'rejected' => 'Refusé', 'cancelled' => 'Annulé'])
 <div class="admin-financial-operations">
     @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
     @if($errors->any())<div class="admin-alert admin-alert--error" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
     <div class="admin-alert admin-alert--warning" role="note"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i><div><strong>Rapprochement manuel</strong><p>Ne confirmez pas un remboursement simulé comme un transfert réel. Le succès exige une preuve externe et une référence vérifiable.</p></div></div>
     <section class="admin-card">
-        <div class="admin-card__header"><div><span class="admin-card__eyebrow">{{ $refund->reference }}</span><h3>{{ \App\Support\MoneyFormatter::format((string)$refund->amount) }} {{ $refund->currency }}</h3></div><span class="admin-refund-status admin-refund-status--{{ $refund->status->value }}">{{ ucfirst($refund->status->value) }}</span></div>
+        <div class="admin-card__header"><div><span class="admin-card__eyebrow">{{ $refund->reference }}</span><h3>{{ \App\Support\MoneyFormatter::format((string)$refund->amount) }} {{ $refund->currency }}</h3></div><span class="admin-refund-status admin-refund-status--{{ $refund->status->value }}" >{{ $refundStatusLabels[$refund->status->value] ?? $refund->status->value }}</span></div>
         <dl class="admin-financial-details">
             <div><dt>Client</dt><dd>{{ $refund->client?->name ?? '—' }} · {{ $refund->client?->email ?? '—' }}</dd></div>
             <div><dt>Commande</dt><dd>{{ $refund->payment?->order?->order_number ?? '—' }}</dd></div>
             <div><dt>Professionnel</dt><dd>{{ $refund->payment?->order?->professional?->user?->name ?? '—' }}</dd></div>
             <div><dt>Paiement initial</dt><dd>#{{ $refund->payment_id }} · {{ \App\Support\MoneyFormatter::format((string)$refund->payment?->amount) }} {{ $refund->payment?->currency }}</dd></div>
-            <div><dt>Statut du paiement</dt><dd>{{ $refund->payment?->status?->value ?? '—' }}</dd></div>
+            <div><dt>Statut du paiement</dt><dd>{{ $refund->payment?->status?->value === 'succeeded' ? 'Confirmé' : ($refund->payment?->status?->value ?? '—') }}</dd></div>
             <div><dt>Demandé le</dt><dd>{{ $refund->requested_at?->format('d/m/Y H:i:s') ?? '—' }}</dd></div>
             <div><dt>Motif du client</dt><dd>{{ $refund->reason }}</dd></div>
             <div><dt>Référence externe</dt><dd>{{ $refund->provider_reference ?: 'Non renseignée' }}</dd></div>
@@ -46,7 +47,7 @@
     </section>
     <section class="admin-card"><h3>Événements du remboursement</h3>
         @forelse($refund->payment?->events ?? [] as $event)
-            <div class="admin-financial-event"><strong>{{ $event->event_type }}</strong><span>{{ $event->from_status ?? '—' }} → {{ $event->to_status }} · {{ $event->source }} · {{ $event->occurred_at?->format('d/m/Y H:i:s') }}</span></div>
+            <div class="admin-financial-event"><strong>{{ $refundStatusLabels[str_replace('refund.', '', $event->event_type)] ?? str_replace('refund.', '', $event->event_type) }}</strong><span>{{ $refundStatusLabels[$event->from_status] ?? '—' }} → {{ $refundStatusLabels[$event->to_status] ?? $event->to_status }} · {{ $event->source }} · {{ $event->occurred_at?->format('d/m/Y H:i:s') }}</span></div>
         @empty<p>Aucun événement spécifique n’est disponible.</p>@endforelse
     </section>
 </div>

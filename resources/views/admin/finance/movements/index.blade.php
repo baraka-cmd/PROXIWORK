@@ -8,6 +8,8 @@
 @endunless
 @endpush
 @section('content')
+@php($movementTypeLabels = ['earning' => 'Revenu professionnel', 'commission' => 'Commission', 'withdrawal' => 'Retrait', 'refund' => 'Remboursement', 'adjustment' => 'Ajustement', 'reversal' => 'Contre-écriture'])
+@php($bucketLabels = ['available' => 'Disponible', 'pending' => 'En attente', 'locked' => 'Bloqué'])
 <div class="admin-financial-operations">
     <div class="admin-alert admin-alert--warning" role="note"><i class="fa-solid fa-lock" aria-hidden="true"></i><div><strong>Registre en lecture seule</strong><p>Les écritures ne peuvent être ni modifiées ni supprimées. Une correction doit créer une nouvelle écriture traçable via le processus métier autorisé.</p></div></div>
     <section class="admin-card">
@@ -28,7 +30,7 @@
     @else
     <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Date</th><th>Professionnel</th><th>Type / compartiment</th><th>Sens</th><th>Montant</th><th>Solde après</th><th>Référence source</th><th></th></tr></thead><tbody>
     @foreach($movements as $movement)
-        <tr><td>{{ $movement->created_at?->format('d/m/Y H:i:s') }}</td><td>{{ $movement->wallet?->professional?->user?->name ?? '—' }}</td><td>{{ $movement->type->value }}<small>{{ $movement->balance_bucket ?? '—' }}</small></td><td>{{ $movement->direction->value === 'credit' ? 'Crédit' : 'Débit' }}</td><td><strong>{{ \App\Support\MoneyFormatter::format((string)$movement->amount) }} {{ $movement->currency }}</strong></td><td>{{ \App\Support\MoneyFormatter::format((string)$movement->balance_after) }} {{ $movement->currency }}</td><td>{{ class_basename($movement->reference_type ?? '') }} #{{ $movement->reference_id ?? '—' }}</td><td><a class="button button--secondary button--small" href="{{ route('admin.finance.movements.show',$movement) }}">Détail</a></td></tr>
+        <tr><td>{{ $movement->created_at?->format('d/m/Y H:i:s') }}</td><td>{{ $movement->wallet?->professional?->user?->name ?? '—' }}</td><td>{{ $movementTypeLabels[$movement->type->value] ?? $movement->type->value }}<small>{{ $bucketLabels[$movement->balance_bucket] ?? '—' }}</small></td><td>{{ $movement->direction->value === 'credit' ? 'Crédit' : 'Débit' }}</td><td><strong>{{ \App\Support\MoneyFormatter::format((string)$movement->amount) }} {{ $movement->currency }}</strong></td><td>{{ \App\Support\MoneyFormatter::format((string)$movement->balance_after) }} {{ $movement->currency }}</td><td>{{ class_basename($movement->reference_type ?? '') }} #{{ $movement->reference_id ?? '—' }}</td><td><a class="button button--secondary button--small" href="{{ route('admin.finance.movements.show',$movement) }}">Détail</a></td></tr>
     @endforeach
     </tbody></table></div><div class="admin-pagination">{{ $movements->links() }}</div>
     @endif
