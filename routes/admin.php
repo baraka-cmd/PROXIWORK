@@ -70,17 +70,23 @@ Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->g
     Route::put('categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
     Route::post('categories/{category}/archive', [CategoryController::class, 'archive'])->name('categories.archive');
 });
-Route::middleware(['auth', 'active.account', 'permission:categories.manage'])->group(function (): void {
+Route::middleware(['auth', 'active.account', 'permission:skills.view'])->group(function (): void {
     Route::get('skills', [SkillController::class, 'index'])->name('skills.index');
+    Route::get('skills/{skill}/edit', [SkillController::class, 'edit'])->middleware('permission:skills.manage')->name('skills.edit');
+});
+Route::middleware(['auth', 'active.account', 'permission:skills.manage'])->group(function (): void {
     Route::get('skills/create', [SkillController::class, 'create'])->name('skills.create');
     Route::post('skills', [SkillController::class, 'store'])->name('skills.store');
-    Route::get('skills/{skill}/edit', [SkillController::class, 'edit'])->name('skills.edit');
     Route::put('skills/{skill}', [SkillController::class, 'update'])->name('skills.update');
+    Route::post('skills/{skill}/archive', [SkillController::class, 'archive'])->name('skills.archive');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {
     Route::get('services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:admin.services.moderate'])->group(function (): void {
+    Route::post('services/{service}/moderate', [ServiceController::class, 'moderate'])->name('services.moderate');
 });
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {
     Route::get('service-realizations/{realization}/file', [AdminServiceRealizationController::class, 'file'])->name('service-realizations.file');
@@ -92,7 +98,6 @@ Route::middleware(['auth', 'active.account', 'permission:admin.service_realizati
 
 Route::middleware(['auth', 'active.account'])->group(function (): void {
     Route::post('services/{service}/publish', [ServiceController::class, 'publish'])->middleware('permission:admin.services.manage')->name('services.publish');
-    Route::post('services/{service}/unpublish', [ServiceController::class, 'unpublish'])->middleware('permission:admin.services.manage')->name('services.unpublish');
     Route::post('services/{service}/archive', [ServiceController::class, 'archive'])->middleware('permission:admin.services.manage')->name('services.archive');
 });
 
