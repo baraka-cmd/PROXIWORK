@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FaqCategory extends Model
 {
-    protected $fillable = ['name','slug','sort_order','is_active'];
+    protected $fillable = ['name', 'slug', 'sort_order', 'is_active'];
 
     protected function casts(): array
     {
