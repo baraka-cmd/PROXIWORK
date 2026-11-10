@@ -32,6 +32,7 @@ class FaqController extends Controller
         return view('admin.communication.faq.index', [
             'articles' => FaqArticle::query()
                 ->with('category')
+                ->withCount('versions')
                 ->withCount(['versions as draft_versions_count' => fn ($query) => $query->where('status', 'draft')])
                 ->latest()
                 ->paginate(20),
