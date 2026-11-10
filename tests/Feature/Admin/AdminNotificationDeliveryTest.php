@@ -49,6 +49,36 @@ class AdminNotificationDeliveryTest extends TestCase
             ->assertSee('Message de test');
     }
 
+    public function test_each_provider_attempt_is_preserved_with_its_final_result(): void
+    {
+        $user = User::factory()->create();
+        $delivery = NotificationDelivery::query()->create([
+            'user_id' => $user->id,
+            'recipient_hint' => 'b***@example.test',
+            'channel' => 'mail',
+            'status' => 'PENDING',
+            'attempts' => 0,
+        ]);
+
+        $delivery->update([
+            'status' => 'PROCESSING',
+            'attempts' => 1,
+            'processing_at' => now(),
+        ]);
+        $delivery->update([
+            'status' => 'FAILED',
+            'processing_at' => null,
+            'last_error_code' => 'ProviderRejected',
+        ]);
+
+        $this->assertDatabaseHas('notification_delivery_attempts', [
+            'notification_delivery_id' => $delivery->id,
+            'attempt_number' => 1,
+            'status' => 'FAILED',
+            'error_code' => 'ProviderRejected',
+        ]);
+    }
+
     public function test_user_without_notification_permission_cannot_consult_delivery_history(): void
     {
         $this->seed(RbacSeeder::class);
