@@ -12,6 +12,7 @@ use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\Audit\SecuritySessionService;
 use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Auth\Events\PasswordReset;
@@ -30,6 +31,7 @@ class AuthController extends Controller
     public function __construct(
         private readonly AuditLogService $auditLogService,
         private readonly TransactionalNotificationService $notificationService,
+        private readonly SecuritySessionService $securitySessions,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -145,7 +147,7 @@ class AuthController extends Controller
             }
 
             $user->update(['password' => $request->string('password')->toString()]);
-            $user->tokens()->delete();
+            $this->securitySessions->revokeAllForUser($user, $user, 'Mot de passe modifié.', $request);
 
             $this->auditLogService->recordEvent(
                 'auth.password.changed',
@@ -212,7 +214,7 @@ class AuthController extends Controller
                         'password' => Hash::make($password),
                         'remember_token' => Str::random(60),
                     ])->save();
-                    $user->tokens()->delete();
+                    $this->securitySessions->revokeAllForUser($user, $user, 'Mot de passe réinitialisé.', $request);
 
                     event(new PasswordReset($user));
                     $this->notificationService->securityAlert(
