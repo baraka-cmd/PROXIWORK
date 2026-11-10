@@ -1,0 +1,139 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Audit;
+
+use App\Models\AuditLog;
+use App\Models\SecurityAlert;
+use App\Models\SecuritySession;
+use App\Models\SensitiveIntervention;
+use App\Models\User;
+use App\Services\Audit\AuditLogService;
+use App\Services\Audit\SecuritySessionService;
+use Database\Seeders\RbacSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use LogicException;
+use Tests\TestCase;
+
+class PhaseNineSecurityFoundationTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RbacSeeder::class);
+    }
+
+    public function test_authentication_failures_are_redacted_and_create_a_deduplicated_alert(): void
+    {
+        $request = Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '192.0.2.10']);
+        $service = app(AuditLogService::class);
+
+        for ($i = 0; $i < 10; $i++) {
+            $service->recordAuthenticationFailure('private@example.test', $request);
+        }
+
+        $this->assertDatabaseCount('audit_logs', 10);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'auth.login.failed',
+            'category' => 'authentication',
+            'outcome' => 'failure',
+            'ip_address' => '192.0.2.10',
+        ]);
+
+        $event = AuditLog::query()->where('action', 'auth.login.failed')->firstOrFail();
+        $this->assertArrayNotHasKey('email', $event->metadata ?? []);
+        $this->assertNotSame('private@example.test', $event->metadata['identifier_hash'] ?? null);
+
+        $this->assertDatabaseCount('security_alerts', 1);
+        $alert = SecurityAlert::query()->firstOrFail();
+        $this->assertSame('auth.failed-login.burst', $alert->rule_key);
+        $this->assertSame('high', $alert->severity);
+    }
+
+    public function test_administrative_actions_are_projected_to_interventions_with_safe_changes(): void
+    {
+        $actor = User::factory()->create();
+        $actor->assignRole('admin');
+        $target = User::factory()->create();
+        $request = Request::create('/', 'POST', [], [], [], ['REMOTE_ADDR' => '192.0.2.11']);
+
+        app(AuditLogService::class)->record(
+            'admin.user.suspended',
+            $target,
+            $actor,
+            [
+                'previous_status' => 'active',
+                'new_status' => 'suspended',
+                'password' => 'must-not-be-stored',
+                'reason' => 'Signalement vérifié par le support.',
+            ],
+            $request,
+        );
+
+        $intervention = SensitiveIntervention::query()->firstOrFail();
+        $this->assertSame($actor->id, $intervention->actor_id);
+        $this->assertSame('user', $intervention->domain);
+        $this->assertSame('admin.user.suspended', $intervention->action);
+        $this->assertSame('active', $intervention->changes['before']['status']);
+        $this->assertSame('suspended', $intervention->changes['after']['status']);
+        $this->assertNotNull($intervention->reason_hash);
+        $this->assertDatabaseMissing('audit_logs', ['metadata->password' => 'must-not-be-stored']);
+    }
+
+    public function test_audit_events_cannot_be_updated_or_deleted_through_eloquent(): void
+    {
+        $event = AuditLog::query()->create(['action' => 'immutable.test']);
+
+        try {
+            $event->update(['action' => 'tampered']);
+            $this->fail('Audit log update should be rejected.');
+        } catch (LogicException) {
+            $this->assertSame('immutable.test', $event->fresh()->action);
+        }
+
+        try {
+            $event->delete();
+            $this->fail('Audit log deletion should be rejected.');
+        } catch (LogicException) {
+            $this->assertDatabaseHas('audit_logs', ['id' => $event->id]);
+        }
+    }
+
+    public function test_revoking_a_sanctum_session_deletes_the_real_personal_access_token(): void
+    {
+        $actor = User::factory()->create();
+        $actor->assignRole('admin');
+        $owner = User::factory()->create();
+        $createdToken = $owner->createToken('android-device');
+        $token = $createdToken->accessToken;
+
+        $session = SecuritySession::query()->create([
+            'user_id' => $owner->id,
+            'guard' => 'sanctum',
+            'identifier_hash' => hash_hmac('sha256', 'sanctum:'.$token->id, (string) config('app.key')),
+            'token_id' => $token->id,
+            'device_name' => 'android-device',
+            'last_seen_at' => now(),
+        ]);
+
+        app(SecuritySessionService::class)->revoke($session, $actor, 'Appareil déclaré perdu.');
+
+        $this->assertDatabaseMissing('personal_access_tokens', ['id' => $token->id]);
+        $this->assertNotNull($session->fresh()->revoked_at);
+        $this->assertSame($actor->id, $session->fresh()->revoked_by);
+    }
+
+    public function test_client_cannot_open_admin_security_pages(): void
+    {
+        $client = User::factory()->create();
+        $client->assignRole('client');
+
+        $this->actingAs($client)
+            ->get('/admin/security/events')
+            ->assertForbidden();
+    }
+}
