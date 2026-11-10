@@ -41,6 +41,17 @@ class DispatchScheduledCommunicationCampaigns extends Command
                 }
             });
 
+        // Recover campaigns already marked as queued if the original request could not
+        // reach the queue backend. Recipient-level locks make duplicate jobs safe.
+        CommunicationCampaign::query()
+            ->where('status', 'queued')
+            ->orderBy('id')
+            ->chunkById(100, function ($campaigns): void {
+                foreach ($campaigns as $campaign) {
+                    SendCommunicationCampaign::dispatch($campaign->id)->afterCommit();
+                }
+            });
+
         return self::SUCCESS;
     }
 }
