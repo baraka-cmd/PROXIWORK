@@ -38,7 +38,9 @@
             <tr><td colspan="8"><div class="admin-empty">Aucune transaction trouvée.</div></td></tr>
         @endforelse
         </tbody></table></div>
-        @if($transactions->hasPages())<div class="admin-pagination">{{ $transactions->links() }}</div>@endif
+        @if ($transactions->hasPages())
+            <div class="admin-pagination">{{ $transactions->links() }}</div>
+        @endif
     </section>
 </div>
 @endsection
