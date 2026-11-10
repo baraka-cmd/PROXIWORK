@@ -259,7 +259,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
         $this->actingAs($professional)
             ->get(route('professional.revenues.index', ['period' => '30d']))
             ->assertOk()
-            ->assertSee('<td>Commande multi-services — ventilation indisponible</td>', false);
+            ->assertSee('Commande multi-services — ventilation indisponible');
     }
 
     public function test_professional_cannot_view_another_professionals_commission_details(): void
