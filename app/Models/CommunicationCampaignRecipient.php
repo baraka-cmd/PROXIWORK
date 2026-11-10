@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CommunicationCampaignRecipient extends Model
 {
-    protected $fillable = ['campaign_id','user_id','status','error_code','processed_at'];
+    protected $fillable = ['campaign_id', 'user_id', 'status', 'error_code', 'processed_at'];
 
     protected function casts(): array
     {
