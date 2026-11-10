@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Finance\AdminFinanceFilterRequest;
 use App\Models\Commission;
-use App\Models\PaymentTransaction;
 use App\Models\Wallet;
 use App\Services\Admin\Finance\AdminFinanceQueryService;
 use App\Services\Audit\AuditLogService;
