@@ -9,6 +9,7 @@ use App\Models\FaqArticle;
 use App\Models\FaqCategory;
 use App\Models\InstitutionalDocument;
 use App\Models\InstitutionalDocumentVersion;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
