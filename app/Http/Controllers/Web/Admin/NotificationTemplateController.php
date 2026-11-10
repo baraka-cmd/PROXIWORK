@@ -47,7 +47,7 @@ class NotificationTemplateController extends Controller
             $template = NotificationTemplate::query()->create([
                 ...$data,
                 'status' => 'draft',
-                'version' => $nextVersion,
+                'version' => 1,
                 'created_by' => $request->user()->id,
                 'updated_by' => $request->user()->id,
             ]);
@@ -110,7 +110,7 @@ class NotificationTemplateController extends Controller
                 'title' => $locked->title,
                 'body' => $locked->body,
                 'status' => 'draft',
-                'version' => 1,
+                'version' => $nextVersion,
                 'created_by' => $request->user()->id,
                 'updated_by' => $request->user()->id,
             ]);
