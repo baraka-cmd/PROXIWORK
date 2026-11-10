@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Jobs\Notifications\SendNotificationEmail;
 use App\Models\NotificationDelivery;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
