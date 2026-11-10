@@ -10,6 +10,7 @@ use App\Models\Withdrawal;
 use App\Services\Audit\AuditLogService;
 use App\Services\Wallet\WithdrawalService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -80,7 +81,6 @@ class WithdrawalController extends Controller
     public function show(Request $request, Withdrawal $withdrawal, AuditLogService $auditLogs): View
     {
         $withdrawal->load(['professional.user', 'wallet', 'statusHistories.actor']);
-        $canViewDestination = $request->user()->hasPermissionTo('withdrawals.destination.view');
 
         $auditLogs->record(
             action: 'admin.withdrawal.viewed',
@@ -90,17 +90,26 @@ class WithdrawalController extends Controller
             request: $request,
         );
 
-        if ($canViewDestination) {
-            $auditLogs->record(
-                action: 'admin.withdrawal.destination.viewed',
-                subject: $withdrawal,
-                user: $request->user(),
-                metadata: ['withdrawal_id' => $withdrawal->getKey()],
-                request: $request,
-            );
-        }
+        return view('admin.withdrawals.show', compact('withdrawal'));
+    }
 
-        return view('admin.withdrawals.show', compact('withdrawal', 'canViewDestination'));
+    public function destination(Request $request, Withdrawal $withdrawal, AuditLogService $auditLogs): Response
+    {
+        $withdrawal->load('professional.user');
+
+        $auditLogs->record(
+            action: 'admin.withdrawal.destination.viewed',
+            subject: $withdrawal,
+            user: $request->user(),
+            metadata: ['withdrawal_id' => $withdrawal->getKey()],
+            request: $request,
+        );
+
+        return response()
+            ->view('admin.withdrawals.destination', compact('withdrawal'))
+            ->header('Cache-Control', 'private, no-store')
+            ->header('Pragma', 'no-cache')
+            ->header('X-Content-Type-Options', 'nosniff');
     }
 
     public function startProcessing(

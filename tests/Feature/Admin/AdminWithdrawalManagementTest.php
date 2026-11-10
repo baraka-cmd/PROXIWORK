@@ -121,8 +121,21 @@ class AdminWithdrawalManagementTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.withdrawals.show', $withdrawal))
             ->assertOk()
-            ->assertSee('Destination complète')
-            ->assertSee('243970123456');
+            ->assertSee('Destination masquée')
+            ->assertSee('Révéler la destination complète')
+            ->assertDontSee('243970123456');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $admin->id,
+            'action' => 'admin.withdrawal.viewed',
+            'subject_id' => $withdrawal->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.withdrawals.destination', $withdrawal))
+            ->assertOk()
+            ->assertSee('243970123456')
+            ->assertHeader('cache-control', 'private, no-store');
 
         $this->assertDatabaseHas('audit_logs', [
             'user_id' => $admin->id,
@@ -153,6 +166,10 @@ class AdminWithdrawalManagementTest extends TestCase
             ->assertSee('Destination masquée')
             ->assertSee('3456')
             ->assertDontSee('243970123456');
+
+        $this->actingAs($admin)
+            ->get(route('admin.withdrawals.destination', $withdrawal))
+            ->assertForbidden();
     }
 
     private function createWithdrawal(): array
