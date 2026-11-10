@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Admin\Audit;
 
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AdminAuditService
