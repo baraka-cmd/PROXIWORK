@@ -75,6 +75,11 @@ class PublicContentController extends Controller
                 ->orWhere('answer', 'like', '%'.$search.'%')))
             ->orderBy('sort_order')->paginate(20)->withQueryString();
 
+        $visibleArticleIds = $articles->getCollection()->modelKeys();
+        if ($visibleArticleIds !== []) {
+            FaqArticle::query()->whereIn('id', $visibleArticleIds)->increment('views_count');
+        }
+
         return view('public.content.faq', ['articles' => $articles, 'search' => $search]);
     }
 
