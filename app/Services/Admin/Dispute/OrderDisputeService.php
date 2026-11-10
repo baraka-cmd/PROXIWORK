@@ -361,7 +361,7 @@ class OrderDisputeService
 
                 return $attachment->load('uploader');
             });
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             if ($path !== null) {
                 Storage::disk('local')->delete($path);
             }
