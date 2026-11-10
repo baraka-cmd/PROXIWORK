@@ -6,7 +6,9 @@
 @endpush
 @section('page_title', 'Transaction TX-'.$transaction->id)
 @section('page_description', 'Détail en lecture seule et événements de traçabilité associés.')
-@section('page_actions')<a class="button button--secondary" href="{{ route('admin.finance.transactions') }}">Retour aux transactions</a>@endsection
+@section('page_actions')
+    <a class="button button--secondary" href="{{ route('admin.finance.transactions') }}">Retour aux transactions</a>
+@endsection
 @section('content')
 <div class="admin-finance admin-finance__detail-grid">
     <section class="admin-card"><h3>Transaction</h3><dl class="admin-finance__details">
@@ -31,7 +33,9 @@
     <section class="admin-card admin-finance__full"><h3>Événements enregistrés</h3><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Événement</th><th>Transition</th><th>Source</th><th>Date</th></tr></thead><tbody>
         @forelse($transaction->adminEvents as $event)
             <tr><td>{{ $event->event_type }}</td><td>{{ $event->from_status ?: '—' }} → {{ $event->to_status }}</td><td>{{ $event->source }}</td><td>{{ $event->occurred_at?->format('d/m/Y H:i:s') }}</td></tr>
-        @empty<tr><td colspan="4"><div class="admin-empty">Aucun événement associé.</div></td></tr>@endforelse
+        @empty
+                            <tr><td colspan="4"><div class="admin-empty">Aucun événement associé.</div></td></tr>
+                        @endforelse
     </tbody></table></div></section>
 </div>
 @endsection
