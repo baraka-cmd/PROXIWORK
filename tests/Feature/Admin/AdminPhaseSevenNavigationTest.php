@@ -22,6 +22,7 @@ class AdminPhaseSevenNavigationTest extends TestCase
         $admin->assignRole('admin');
 
         foreach ([
+            'admin.notifications.index',
             'admin.notifications.deliveries.index',
             'admin.communication.templates.index',
             'admin.communication.announcements.index',
