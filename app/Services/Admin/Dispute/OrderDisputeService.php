@@ -10,11 +10,14 @@ use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderDispute;
 use App\Models\OrderDisputeMessage;
+use App\Models\OrderDisputeAttachment;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 class OrderDisputeService
@@ -222,6 +225,54 @@ class OrderDisputeService
                 'financial_action_required' => $resolutionCode === 'financial_review_required',
             ], $request);
             return $locked->fresh(['resolver', 'events.actor']);
+        });
+    }
+
+
+    public function addAttachment(OrderDispute $dispute, User $actor, UploadedFile $file, Request $request): OrderDisputeAttachment
+    {
+        return DB::transaction(function () use ($dispute, $actor, $file, $request): OrderDisputeAttachment {
+            $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
+            $isAdmin = $actor->hasPermissionTo('disputes.manage');
+            $isParty = (int) $locked->client_id === (int) $actor->getKey()
+                || (int) $locked->professional()->value('user_id') === (int) $actor->getKey();
+
+            if (! $isAdmin && ! $isParty) {
+                abort(403);
+            }
+            if (! $locked->status->isActive()) {
+                throw ValidationException::withMessages(['file' => 'Un dossier clôturé ne peut plus recevoir de preuve.']);
+            }
+
+            $path = $file->store('order-disputes/'.$locked->getKey(), 'local');
+            try {
+                $attachment = $locked->attachments()->create([
+                    'uploaded_by' => $actor->getKey(),
+                    'disk' => 'local',
+                    'path' => $path,
+                    'original_name' => mb_substr(basename($file->getClientOriginalName()), 0, 255),
+                    'mime_type' => (string) $file->getMimeType(),
+                    'size' => $file->getSize(),
+                ]);
+            } catch (\\Throwable $exception) {
+                Storage::disk('local')->delete($path);
+                throw $exception;
+            }
+
+            $locked->events()->create([
+                'actor_id' => $actor->getKey(),
+                'event_type' => 'evidence_uploaded',
+                'reason' => 'Une pièce justificative a été ajoutée.',
+                'metadata' => ['attachment_id' => $attachment->getKey()],
+                'created_at' => now(),
+            ]);
+            $this->audit->record('order_dispute.evidence_uploaded', $locked, $actor, [
+                'attachment_id' => $attachment->getKey(),
+                'mime_type' => $attachment->mime_type,
+                'size' => $attachment->size,
+            ], $request);
+
+            return $attachment->load('uploader');
         });
     }
 
