@@ -10,7 +10,7 @@
 <label>Contenu <textarea name="content" rows="6" maxlength="50000" required></textarea></label><label>Motif du changement <input name="change_reason" maxlength="500" required></label><button>Créer la version brouillon</button></form></details>
 @foreach($document->versions as $version)<div><p>Version {{ $version->version }} — {{ $version->status }} — {{ $version->acceptances_count }} acceptation(s) — créée le {{ $version->created_at->format('d/m/Y H:i') }}</p>
 @if($version->status === 'draft')@if(auth()->user()?->hasPermissionTo('institutional_documents.approve'))<form method="POST" action="{{ route('admin.communication.documents.approve',$version) }}">@csrf<button>Approuver (autre administrateur)</button></form>@endif@endif
-@if($version->status === 'approved')<form method="POST" action="{{ route('admin.communication.documents.publish',$version) }}">@csrf<button>Publier cette version</button></form>@endif
+@if($version->status === 'approved')@if(auth()->user()?->hasPermissionTo('institutional_documents.publish'))<form method="POST" action="{{ route('admin.communication.documents.publish',$version) }}">@csrf<button>Publier cette version</button></form>@endif@endif
 </div>@endforeach</article><hr>@empty<p>Aucun document institutionnel.</p>@endforelse
 {{ $documents->links() }}</section></div>
 @endsection
