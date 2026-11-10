@@ -44,7 +44,7 @@ class AnalyticsController extends Controller
                 return;
             }
 
-            fwrite($output, "\xEF\xBB\xBF");
+            fwrite($output, chr(239).chr(187).chr(191));
             $rows = [
                 ['Rapport PROXIWORK', 'Analytics'],
                 ['Période du', $from->toDateString()],
@@ -97,7 +97,7 @@ class AnalyticsController extends Controller
 
                     return preg_match('/^[=+\-@\t\r]/u', $value) === 1 ? "'".$value : $value;
                 }, $row);
-                fputcsv($output, $safe, ';', '"', "\\");
+                fputcsv($output, $safe, ';', '"', '\\');
             }
 
             fclose($output);
