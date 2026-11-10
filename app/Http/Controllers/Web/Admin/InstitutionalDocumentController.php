@@ -19,7 +19,7 @@ class InstitutionalDocumentController extends Controller
     public function index(): View
     {
         return view('admin.communication.documents.index', [
-            'documents' => InstitutionalDocument::query()->with('versions')->latest()->paginate(20),
+            'documents' => InstitutionalDocument::query()->with(['versions' => fn ($query) => $query->withCount('acceptances')->latest('version')])->latest()->paginate(20),
         ]);
     }
 
@@ -56,6 +56,33 @@ class InstitutionalDocumentController extends Controller
         $audit->record('institutional_document_created', $document, $request->user(), ['version' => 1], $request);
 
         return back()->with('success', 'Document créé avec sa première version en brouillon.');
+    }
+
+    public function revise(Request $request, InstitutionalDocument $document, AuditLogService $audit): RedirectResponse
+    {
+        $data = $request->validate([
+            'content' => ['required', 'string', 'max:50000'],
+            'change_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        $version = DB::transaction(function () use ($document, $data, $request): InstitutionalDocumentVersion {
+            $locked = InstitutionalDocument::query()->lockForUpdate()->findOrFail($document->id);
+            $nextVersion = (int) $locked->versions()->max('version') + 1;
+
+            return $locked->versions()->create([
+                'version' => $nextVersion,
+                'content' => $data['content'],
+                'change_reason' => $data['change_reason'],
+                'status' => 'draft',
+                'created_by' => $request->user()->id,
+            ]);
+        });
+        $audit->record('institutional_document_revision_created', $version, $request->user(), [
+            'document_id' => $document->id,
+            'version' => $version->version,
+        ], $request);
+
+        return back()->with('success', 'Nouvelle version institutionnelle créée en brouillon.');
     }
 
     public function approve(Request $request, InstitutionalDocumentVersion $version, AuditLogService $audit): RedirectResponse
