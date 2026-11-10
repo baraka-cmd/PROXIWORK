@@ -9,7 +9,6 @@ use App\Models\MediaAsset;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class MediaAssetController extends Controller
