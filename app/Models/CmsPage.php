@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CmsPage extends Model
 {
-    protected $fillable = ['title','slug','excerpt','body','status','seo_title','meta_description','og_image_path','canonical_url','is_indexable','created_by','published_by','published_at'];
+    protected $fillable = ['title', 'slug', 'excerpt', 'body', 'status', 'seo_title', 'meta_description', 'og_image_path', 'canonical_url', 'is_indexable', 'created_by', 'published_by', 'published_at'];
 
     protected function casts(): array
     {
