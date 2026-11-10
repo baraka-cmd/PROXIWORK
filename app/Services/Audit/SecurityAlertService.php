@@ -45,7 +45,7 @@ class SecurityAlertService
         if ($event->ip_address !== null) {
             $query->where('ip_address', $event->ip_address);
         } elseif (is_string($identifierHash)) {
-            $query->where('metadata->identifier_hash', $identifierHash);
+            $query->where('identifier_hash', $identifierHash);
         } else {
             return;
         }
