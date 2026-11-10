@@ -98,12 +98,14 @@ class RefundController extends Controller
     public function processing(Request $request, PaymentRefund $refund, PaymentRefundAdminService $service, AuditLogService $audit): RedirectResponse
     {
         $data = $request->validate(['note' => ['required', 'string', 'min:10', 'max:2000']]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.processing', fn () => $service->startProcessing($refund, (int) $request->user()->id, $data['note']), $data['note'], 'La demande est prise en charge.');
     }
 
     public function reject(Request $request, PaymentRefund $refund, PaymentRefundAdminService $service, AuditLogService $audit): RedirectResponse
     {
         $data = $request->validate(['note' => ['required', 'string', 'min:10', 'max:2000']]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.rejected', fn () => $service->reject($refund, (int) $request->user()->id, $data['note']), $data['note'], 'La demande a été refusée.');
     }
 
@@ -113,6 +115,7 @@ class RefundController extends Controller
             'provider_reference' => ['required', 'string', 'max:191'],
             'note' => ['required', 'string', 'min:10', 'max:2000'],
         ]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.succeeded', fn () => $service->markSucceeded($refund, (int) $request->user()->id, $data['provider_reference'], $data['note']), $data['note'], 'Le résultat du remboursement a été enregistré avec sa référence externe.');
     }
 
@@ -122,18 +125,20 @@ class RefundController extends Controller
             'provider_reference' => ['nullable', 'string', 'max:191'],
             'note' => ['required', 'string', 'min:10', 'max:2000'],
         ]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.failed', fn () => $service->markFailed($refund, (int) $request->user()->id, $data['note'], $data['provider_reference'] ?? null), $data['note'], 'L’échec du remboursement a été enregistré.');
     }
 
     private function perform(Request $request, PaymentRefund $refund, AuditLogService $audit, string $action, callable $operation, string $note, string $message): RedirectResponse
     {
-        DB::transaction(function () use ($request, $refund, $audit, $action, $operation, $note): void {
+        DB::transaction(function () use ($request, $audit, $action, $operation, $note): void {
             $updated = $operation();
             $audit->record($action, $updated, $request->user(), [
                 'refund_id' => $updated->getKey(),
                 'payment_id' => $updated->payment_id,
                 'status' => $updated->status->value,
                 'note_hash' => hash('sha256', trim($note)),
+                'reason' => mb_substr(trim($note), 0, 1000),
             ], $request);
         }, attempts: 3);
 

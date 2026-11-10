@@ -21,7 +21,7 @@ class AuditController extends Controller
         $this->authorize('viewAny', AuditLog::class);
 
         return view('admin.audit.index', [
-            'logs' => $this->auditService->paginate($request->validated()),
+            'logs' => $this->auditService->paginate($request->validated(), $request->user()),
             'filters' => $request->validated(),
         ]);
     }

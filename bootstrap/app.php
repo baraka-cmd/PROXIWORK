@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddSecurityHeaders;
-use App\Http\Middleware\EnsureWebGuard;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureWebGuard;
+use App\Http\Middleware\RecordSecuritySession;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -34,7 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AddSecurityHeaders::class);
-        $middleware->web(append: [EnsureWebGuard::class, AuthenticateSession::class]);
+        $middleware->web(append: [EnsureWebGuard::class, AuthenticateSession::class, RecordSecuritySession::class]);
+        $middleware->api(append: [RecordSecuritySession::class]);
 
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
@@ -51,7 +54,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 
         $exceptions->render(function (ValidationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if ($isApi($request) === false) {
                 return null;
             }
 
@@ -62,7 +65,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if ($isApi($request) === false) {
                 return null;
             }
 
@@ -73,7 +76,22 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            try {
+                app(AuditLogService::class)->recordEvent(
+                    'security.authorization.denied',
+                    null,
+                    $request->user(),
+                    ['route' => $request->route()?->getName(), 'method' => $request->method(), 'path' => $request->path()],
+                    $request,
+                    category: 'security',
+                    outcome: 'denied',
+                    severity: 'low',
+                );
+            } catch (Throwable) {
+                // A failed audit write must not change the authorization decision.
+            }
+
+            if ($isApi($request) === false) {
                 return null;
             }
 
@@ -84,7 +102,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if ($isApi($request) === false) {
                 return null;
             }
 
@@ -95,11 +113,28 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
-                return null;
+            $status = $e->getStatusCode();
+
+            if ($status === 403) {
+                try {
+                    app(AuditLogService::class)->recordEvent(
+                        'security.authorization.denied',
+                        null,
+                        $request->user(),
+                        ['route' => $request->route()?->getName(), 'method' => $request->method(), 'path' => $request->path()],
+                        $request,
+                        category: 'security',
+                        outcome: 'denied',
+                        severity: 'low',
+                    );
+                } catch (Throwable) {
+                    // A failed audit write must not change the authorization decision.
+                }
             }
 
-            $status = $e->getStatusCode();
+            if ($isApi($request) === false) {
+                return null;
+            }
 
             if (in_array($status, [400, 401, 403, 404, 405, 409, 429], true)) {
                 return response()->json([
@@ -112,7 +147,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $e, Request $request) use ($isApi) {
-            if (! $isApi($request)) {
+            if ($isApi($request) === false) {
                 return null;
             }
 

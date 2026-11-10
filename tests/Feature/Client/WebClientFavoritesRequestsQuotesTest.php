@@ -6,6 +6,7 @@ namespace Tests\Feature\Client;
 
 use App\Enums\ServiceExecutionMode;
 use App\Models\Address;
+use App\Models\AuditLog;
 use App\Models\Conversation;
 use App\Models\Favorite;
 use App\Models\Order;
@@ -20,6 +21,7 @@ use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class WebClientFavoritesRequestsQuotesTest extends TestCase
@@ -263,7 +265,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             'status' => 'published',
             'published_at' => now(),
         ]);
-        $idempotencyKey = (string) \Illuminate\Support\Str::uuid();
+        $idempotencyKey = (string) Str::uuid();
         $payload = [
             'service_id' => $service->id,
             'title' => 'Demande avec soumission répétée',
@@ -289,7 +291,7 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
             ->assertSessionHas('success', 'Une demande existante a été retrouvée. Consultez son état actuel avant de continuer.');
 
         $this->assertDatabaseCount('service_requests', 1);
-        $this->assertDatabaseCount('audit_logs', 1);
+        $this->assertSame(1, AuditLog::query()->where('action', 'service_request_created')->count());
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'service_request_created',
             'subject_id' => $firstRequestId,

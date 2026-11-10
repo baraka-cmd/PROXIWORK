@@ -17,6 +17,9 @@
 
     <dl class="admin-detail-list">
         <div><dt>Date</dt><dd>{{ $log->created_at?->format('d/m/Y H:i:s T') }}</dd></div>
+        <div><dt>Catégorie / résultat / gravité</dt><dd>{{ $log->category }} · {{ $log->outcome }} · {{ $log->severity }}</dd></div>
+        <div><dt>Corrélation</dt><dd>{{ $log->correlation_id ?? '—' }}</dd></div>
+        <div><dt>Motif</dt><dd>{{ $log->reason ?? '—' }}</dd></div>
         <div><dt>Acteur</dt><dd>{{ $log->user?->name ?? 'Système' }} · {{ $log->user?->email ?? '—' }}</dd></div>
         <div><dt>Cible</dt><dd>{{ $log->subject_type ? class_basename($log->subject_type).' #'.$log->subject_id : '—' }}</dd></div>
         <div><dt>Adresse IP</dt><dd>{{ $log->ip_address ?? '—' }}</dd></div>
@@ -32,4 +35,11 @@
         <p class="admin-muted">Aucune métadonnée enregistrée.</p>
     @endif
 </section>
+
+@if($log->changes)
+<section class="admin-card">
+    <div class="admin-card__header"><div><span class="admin-card__eyebrow">Changements filtrés</span><h3>Avant / après</h3></div></div>
+    <pre class="admin-code-block">{{ json_encode($log->changes, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</pre>
+</section>
+@endif
 @endsection

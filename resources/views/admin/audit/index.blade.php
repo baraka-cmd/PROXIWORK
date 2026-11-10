@@ -23,6 +23,33 @@
             <input type="text" name="action" value="{{ $filters['action'] ?? '' }}" placeholder="admin.support.replied">
         </label>
         <label class="admin-field">
+            <span>Catégorie</span>
+            <select name="category">
+                <option value="">Toutes</option>
+                @foreach(['administrative' => 'Administration', 'authentication' => 'Authentification', 'security' => 'Sécurité', 'general' => 'Général'] as $value => $label)
+                    <option value="{{ $value }}" @selected(($filters['category'] ?? '') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </label>
+        <label class="admin-field">
+            <span>Résultat</span>
+            <select name="outcome">
+                <option value="">Tous</option>
+                @foreach(['success' => 'Réussi', 'failure' => 'Échec', 'denied' => 'Refusé', 'error' => 'Erreur'] as $value => $label)
+                    <option value="{{ $value }}" @selected(($filters['outcome'] ?? '') === $value)>{{ $label }}</option>
+                @endforeach
+            </select>
+        </label>
+        <label class="admin-field">
+            <span>Gravité</span>
+            <select name="severity">
+                <option value="">Toutes</option>
+                @foreach(['info', 'low', 'medium', 'high', 'critical'] as $value)
+                    <option value="{{ $value }}" @selected(($filters['severity'] ?? '') === $value)>{{ ucfirst($value) }}</option>
+                @endforeach
+            </select>
+        </label>
+        <label class="admin-field">
             <span>Utilisateur ID</span>
             <input type="number" name="user_id" min="1" value="{{ $filters['user_id'] ?? '' }}">
         </label>
@@ -55,19 +82,22 @@
 <section class="admin-card">
     <div class="admin-table-wrap">
         <table class="admin-table">
-            <thead><tr><th>Date</th><th>Acteur</th><th>Action</th><th>Cible</th><th>IP</th><th></th></tr></thead>
+            <thead><tr><th>Date</th><th>Acteur</th><th>Action</th><th>Catégorie</th><th>Résultat</th><th>Gravité</th><th>Cible</th><th>IP</th><th></th></tr></thead>
             <tbody>
             @forelse($logs as $log)
                 <tr>
                     <td>{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
                     <td>{{ $log->user?->name ?? 'Système' }}<small class="admin-table__muted">{{ $log->user?->email ?? '—' }}</small></td>
                     <td><strong>{{ $log->action }}</strong></td>
+                    <td>{{ $log->category }}</td>
+                    <td>{{ $log->outcome }}</td>
+                    <td>{{ $log->severity }}</td>
                     <td>{{ $log->subject_type ? class_basename($log->subject_type).' #'.$log->subject_id : '—' }}</td>
                     <td>{{ $log->ip_address ?? '—' }}</td>
                     <td><a class="admin-icon-button" href="{{ route('admin.audit.show', $log) }}" aria-label="Voir le détail de l’audit"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a></td>
                 </tr>
             @empty
-                <tr><td colspan="6"><div class="admin-empty"><i class="fa-solid fa-clock-rotate-left"></i><strong>Aucun événement</strong><span>Aucun journal ne correspond aux critères.</span></div></td></tr>
+                <tr><td colspan="9"><div class="admin-empty"><i class="fa-solid fa-clock-rotate-left"></i><strong>Aucun événement</strong><span>Aucun journal ne correspond aux critères.</span></div></td></tr>
             @endforelse
             </tbody>
         </table>

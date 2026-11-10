@@ -91,6 +91,10 @@
                 'icon' => 'fa-shield-halved',
                 'items' => [
                     ['label' => 'Journal des activités', 'route' => 'admin.audit.index', 'permission' => 'audit.view', 'icon' => 'fa-clock-rotate-left', 'active' => ['admin.audit.*']],
+                    ['label' => 'Événements de sécurité', 'route' => 'admin.security.events', 'permission' => 'security.events.view', 'icon' => 'fa-shield-halved', 'active' => ['admin.security.events']],
+                    ['label' => 'Anomalies et alertes', 'route' => 'admin.security.anomalies', 'permission' => 'security.alerts.view', 'icon' => 'fa-triangle-exclamation', 'active' => ['admin.security.anomalies']],
+                    ['label' => 'Sessions et appareils', 'route' => 'admin.security.sessions', 'permission' => 'security.sessions.view', 'icon' => 'fa-mobile-screen-button', 'active' => ['admin.security.sessions']],
+                    ['label' => 'Interventions sensibles', 'route' => 'admin.audit.interventions', 'permission' => 'audit.interventions.view', 'icon' => 'fa-clipboard-check', 'active' => ['admin.audit.interventions']],
                 ],
             ],
         ];

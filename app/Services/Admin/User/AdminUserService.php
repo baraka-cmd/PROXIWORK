@@ -11,6 +11,7 @@ use App\Models\Quotation;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Audit\SecuritySessionService;
 use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class AdminUserService
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly SecuritySessionService $securitySessions,
     ) {}
 
     public function paginate(array $filters)
@@ -130,6 +132,10 @@ class AdminUserService
                 'reviews' => $user->professionalProfile->rating_count,
                 'availability' => $user->professionalProfile->availability_status?->value,
             ] : null,
+            'last_login' => AuditLog::query()->where('subject_type', User::class)
+                ->where('subject_id', $user->getKey())
+                ->whereIn('action', ['login', 'auth.login.succeeded', 'admin.auth.login'])
+                ->latest('created_at')->value('created_at'),
             'activity' => AuditLog::query()->where('subject_type', User::class)
                 ->where('subject_id', $user->getKey())->latest()->limit(20)->get(),
         ];
@@ -154,7 +160,7 @@ class AdminUserService
             $target->account_status = UserAccountStatus::SUSPENDED->value;
             $target->save();
             $changed = true;
-            $target->tokens()->delete();
+            $this->securitySessions->revokeAllForUser($target, $actor, 'Compte suspendu par l’administration.', $request);
 
             $this->auditLogService->record(
                 'admin.user.suspended',
