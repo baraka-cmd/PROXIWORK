@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NotificationTemplateVersion extends Model
 {
-    protected $fillable = ['notification_template_id','version','content','created_by'];
+    protected $fillable = ['notification_template_id', 'version', 'content', 'created_by'];
 
     protected function casts(): array
     {
