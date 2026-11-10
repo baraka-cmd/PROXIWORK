@@ -19,10 +19,10 @@
         <button class="button button--secondary button--small" type="button" data-analytics-custom>Personnalisée</button>
     </div>
     <div class="admin-analytics-period__custom" data-analytics-custom-fields @if($range !== 'custom') hidden @endif>
-        <input type="date" name="from" value="{{ $from->toDateString() }}" aria-label="Date de début">
+        <input type="date" name="from" value="{{ $from->toDateString() }}" aria-label="Date de début" @if($range !== 'custom') disabled @endif>
         <span>→</span>
-        <input type="date" name="to" value="{{ $to->toDateString() }}" aria-label="Date de fin">
-        <input type="hidden" name="range" value="custom">
+        <input type="date" name="to" value="{{ $to->toDateString() }}" aria-label="Date de fin" @if($range !== 'custom') disabled @endif>
+        <input type="hidden" name="range" value="custom" @if($range !== 'custom') disabled @endif>
         <button class="button button--primary button--small" type="submit">Actualiser</button>
     </div>
 </form>
