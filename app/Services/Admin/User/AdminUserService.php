@@ -132,6 +132,10 @@ class AdminUserService
                 'reviews' => $user->professionalProfile->rating_count,
                 'availability' => $user->professionalProfile->availability_status?->value,
             ] : null,
+            'last_login' => AuditLog::query()->where('subject_type', User::class)
+                ->where('subject_id', $user->getKey())
+                ->whereIn('action', ['login', 'auth.login.succeeded', 'admin.auth.login'])
+                ->latest('created_at')->value('created_at'),
             'activity' => AuditLog::query()->where('subject_type', User::class)
                 ->where('subject_id', $user->getKey())->latest()->limit(20)->get(),
         ];
