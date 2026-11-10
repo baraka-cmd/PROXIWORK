@@ -20,7 +20,7 @@ class NotificationDeliveryController extends Controller
     public function index(Request $request): View
     {
         $filters = $request->validate([
-            'status' => ['nullable', 'string', 'in:PENDING,RETRYING,PROCESSING,SENT,DELIVERED,FAILED,UNKNOWN'],
+            'status' => ['nullable', 'string', 'in:PENDING,RETRYING,PROCESSING,SENT,DELIVERED,FAILED,UNKNOWN,SIMULATED,SKIPPED'],
             'channel' => ['nullable', 'string', 'in:mail,sms,push'],
             'search' => ['nullable', 'string', 'max:120'],
             'per_page' => ['nullable', 'integer', 'in:15,30,50'],
