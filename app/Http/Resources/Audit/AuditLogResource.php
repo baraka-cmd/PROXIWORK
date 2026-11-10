@@ -12,10 +12,10 @@ class AuditLogResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'actor' => $this->whenLoaded('user', fn () => [
+            'actor' => $this->whenLoaded('user', fn () => $this->user ? [
                 'id' => $this->user->id,
                 'name' => $this->user->name,
-            ]),
+            ] : null),
             'actor_id' => $this->user_id,
             'action' => $this->action,
             'category' => $this->category,
