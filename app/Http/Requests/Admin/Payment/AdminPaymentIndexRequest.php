@@ -31,7 +31,7 @@ class AdminPaymentIndexRequest extends FormRequest
             'status' => ['nullable', Rule::enum(PaymentStatus::class)],
             'transaction_status' => ['nullable', Rule::enum(PaymentTransactionStatus::class)],
             'provider' => ['nullable', Rule::enum(PaymentProvider::class)],
-            'currency' => ['nullable', 'string', 'regex:/^[A-Za-z]{3}$/'],
+            'currency' => ['nullable', 'string', 'regex:/^[A-Za-z]{3}$/', 'required_with:min_amount,max_amount'],
             'min_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
             'max_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99', 'gte:min_amount'],
             'from' => ['nullable', 'date', 'required_with:to'],
