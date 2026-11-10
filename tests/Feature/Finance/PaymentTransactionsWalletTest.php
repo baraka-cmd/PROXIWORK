@@ -587,7 +587,7 @@ class PaymentTransactionsWalletTest extends TestCase
         );
 
         foreach ([
-            ['provider' => 'fake', 'destination' => '9999999999'],
+            ['provider' => 'mobile_money', 'destination' => '9999999999'],
             ['provider' => 'bank_transfer', 'destination' => '0000000000'],
         ] as $changedRequest) {
             try {
