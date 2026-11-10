@@ -51,6 +51,7 @@ Route::get('/', [HomePageController::class, 'index'])->name('home');
 Route::get('/announcements', [PublicContentController::class, 'announcements'])->name('public.announcements');
 Route::get('/pages/{slug}', [PublicContentController::class, 'page'])->where('slug', '[a-z0-9-]+')->name('public.pages.show');
 Route::get('/faq', [PublicContentController::class, 'faq'])->name('public.faq');
+Route::post('/faq/{article}/feedback', [PublicContentController::class, 'feedback'])->middleware('throttle:10,1')->name('public.faq.feedback');
 Route::get('/legal/{slug}', [PublicContentController::class, 'document'])->where('slug', '[a-z0-9-]+')->name('public.legal.show');
 Route::post('/legal/{slug}/accept', [PublicContentController::class, 'acceptDocument'])->middleware(['auth', 'active.account', 'throttle:10,1'])->name('public.legal.accept');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
