@@ -42,6 +42,7 @@ class CommunicationCampaignController extends Controller
             'body' => ['required', 'string', 'max:10000'],
             'audience' => ['nullable', 'in:all,client,professional'],
             'segment_id' => ['nullable', 'integer', 'exists:communication_segments,id'],
+            'scheduled_at' => ['nullable', 'date', 'after:now'],
         ]);
 
         $campaign = CommunicationCampaign::query()->create([
@@ -53,6 +54,7 @@ class CommunicationCampaignController extends Controller
                 ? CommunicationSegment::query()->findOrFail($data['segment_id'])->rules
                 : ['audience' => ($data['audience'] ?? 'all'), 'account_status' => 'active'],
             'communication_segment_id' => $data['segment_id'] ?? null,
+            'scheduled_at' => $data['scheduled_at'] ?? null,
             'status' => 'draft',
             'created_by' => $request->user()->id,
         ]);
@@ -94,7 +96,7 @@ class CommunicationCampaignController extends Controller
     {
         abort_unless($campaign->status === 'draft', 409);
 
-        $recipientCount = DB::transaction(function () use ($campaign, $request): int {
+        $dispatchInfo = DB::transaction(function () use ($campaign): array {
             $locked = CommunicationCampaign::query()->lockForUpdate()->findOrFail($campaign->id);
             abort_unless($locked->status === 'draft', 409);
 
@@ -122,21 +124,29 @@ class CommunicationCampaignController extends Controller
                 'Une campagne de plus de 100 destinataires doit être approuvée par une autre personne.',
             );
 
+            $scheduledAt = $locked->scheduled_at?->isFuture() ? $locked->scheduled_at : null;
             $locked->update([
-                'status' => 'queued',
+                'status' => $scheduledAt ? 'scheduled' : 'queued',
                 'recipient_count' => $actualCount,
                 'started_at' => now(),
             ]);
 
-            return $actualCount;
+            return ['recipient_count' => $actualCount, 'scheduled_at' => $scheduledAt];
         });
 
-        SendCommunicationCampaign::dispatch($campaign->id)->afterCommit();
+        $pendingDispatch = SendCommunicationCampaign::dispatch($campaign->id);
+        if ($dispatchInfo['scheduled_at'] !== null) {
+            $pendingDispatch->delay($dispatchInfo['scheduled_at']);
+        }
+        $pendingDispatch->afterCommit();
         $audit->record('communication_campaign_queued', $campaign, $request->user(), [
-            'recipient_count' => $recipientCount,
+            'recipient_count' => $dispatchInfo['recipient_count'],
+            'scheduled_at' => $dispatchInfo['scheduled_at']?->toIso8601String(),
         ], $request);
 
-        return back()->with('success', 'Campagne mise en file d’attente. Les destinataires ont été figés pour cette campagne.');
+        return back()->with('success', $dispatchInfo['scheduled_at']
+            ? 'Campagne programmée. Les destinataires ont été figés.'
+            : 'Campagne mise en file d’attente. Les destinataires ont été figés.');
     }
 
     public function approve(Request $request, CommunicationCampaign $campaign, AuditLogService $audit): RedirectResponse
