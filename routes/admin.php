@@ -161,7 +161,7 @@ Route::middleware(['auth', 'active.account', 'permission:financial_reports.view'
     Route::get('financial-reports', [FinancialOperationsController::class, 'reports'])->name('finance.reports');
 });
 Route::middleware(['auth', 'active.account', 'permission:financial_reports.export'])->group(function (): void {
-    Route::get('financial-reports/export', [FinancialOperationsController::class, 'export'])->name('finance.reports.export');
+    Route::get('financial-reports/export', [FinancialOperationsController::class, 'export'])->middleware('throttle:5,1')->name('finance.reports.export');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:support.manage'])->group(function (): void {
