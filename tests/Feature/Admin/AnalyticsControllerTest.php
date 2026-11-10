@@ -41,6 +41,19 @@ class AnalyticsControllerTest extends TestCase
             ->assertSessionHasErrors('to');
     }
 
+    public function test_admin_can_export_aggregate_analytics_as_csv(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole(Role::query()->where('name', 'admin')->firstOrFail());
+
+        $this->actingAs($admin)
+            ->get(route('admin.analytics.export', ['range' => '7d']))
+            ->assertOk()
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8')
+            ->assertHeader('cache-control', 'private, no-store, max-age=0');
+    }
+
     public function test_non_admin_cannot_access_analytics(): void
     {
         $this->seed(RbacSeeder::class);

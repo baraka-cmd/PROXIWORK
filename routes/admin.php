@@ -184,6 +184,9 @@ Route::middleware(['auth', 'active.account', 'permission:audit.view'])->group(fu
 Route::middleware(['auth', 'active.account', 'permission:admin.dashboard.view'])->group(function (): void {
     Route::get('analytics', [AnalyticsController::class, 'index'])->name('analytics');
 });
+Route::middleware(['auth', 'active.account', 'permission:analytics.export'])->group(function (): void {
+    Route::get('analytics/export', [AnalyticsController::class, 'export'])->middleware('throttle:5,1')->name('analytics.export');
+});
 
 Route::middleware(['auth', 'active.account', 'permission:admin.professionals.view'])->group(function (): void {
     Route::get('verification', [VerificationController::class, 'index'])->name('verification.index');
