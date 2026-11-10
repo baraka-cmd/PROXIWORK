@@ -106,12 +106,10 @@ class OrderDisputeService
                 throw ValidationException::withMessages(['order' => 'Cette commande ne peut pas faire l’objet d’un litige dans son état actuel.']);
             }
 
-            $active = OrderDispute::query()->where('order_id', $lockedOrder->getKey())
-                ->whereNotIn('status', [OrderDisputeStatus::RESOLVED->value, OrderDisputeStatus::CLOSED->value])
-                ->exists();
+            $existingDispute = OrderDispute::query()->where('order_id', $lockedOrder->getKey())->exists();
 
-            if ($active) {
-                throw ValidationException::withMessages(['order' => 'Un litige actif existe déjà pour cette commande.']);
+            if ($existingDispute) {
+                throw ValidationException::withMessages(['order' => 'Un dossier de litige existe déjà pour cette commande. Consultez ce dossier au lieu d’en créer un second.']);
             }
 
             $dispute = OrderDispute::create([
