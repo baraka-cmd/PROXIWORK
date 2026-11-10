@@ -174,7 +174,6 @@ class CommunicationCampaignController extends Controller
 
         return User::query()
             ->where('account_status', 'active')
-            ->whereIn('id', $userIds)
-;
+            ->whereIn('id', $userIds);
     }
 }
