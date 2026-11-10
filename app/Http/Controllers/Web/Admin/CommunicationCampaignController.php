@@ -82,31 +82,48 @@ class CommunicationCampaignController extends Controller
     public function dispatch(Request $request, CommunicationCampaign $campaign, AuditLogService $audit): RedirectResponse
     {
         abort_unless($campaign->status === 'draft', 409);
-        $count = $this->audienceQuery($campaign)->count();
-        abort_if($count === 0, 422, 'Aucun destinataire actif ne correspond à ce segment.');
-        abort_if($count > 100 && ($campaign->approved_by === null || $campaign->approved_by === $campaign->created_by), 409, 'Une campagne de plus de 100 destinataires doit être approuvée par une autre personne.');
 
-        DB::transaction(function () use ($campaign, $request, $count): void {
+        $recipientCount = DB::transaction(function () use ($campaign, $request): int {
             $locked = CommunicationCampaign::query()->lockForUpdate()->findOrFail($campaign->id);
             abort_unless($locked->status === 'draft', 409);
+
             $query = $this->audienceQuery($locked);
-            $query->select('users.id as id')->orderBy('users.id')->chunkById(500, function ($users) use ($locked): void {
-                $rows = $users->map(function ($user) use ($locked): array {
-                    return [
-                        'campaign_id' => $locked->id,
-                        'user_id' => $user->id,
-                        'status' => 'pending',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                })->all();
-                CommunicationCampaignRecipient::query()->insertOrIgnore($rows);
-            }, 'users.id', 'id');
-            $locked->update(['status' => 'queued', 'recipient_count' => $count, 'started_at' => now()]);
+            $query->select('users.id as id')
+                ->orderBy('users.id')
+                ->chunkById(500, function ($users) use ($locked): void {
+                    $rows = $users->map(function ($user) use ($locked): array {
+                        return [
+                            'campaign_id' => $locked->id,
+                            'user_id' => $user->id,
+                            'status' => 'pending',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    })->all();
+                    CommunicationCampaignRecipient::query()->insertOrIgnore($rows);
+                }, 'users.id', 'id');
+
+            $actualCount = $locked->recipients()->count();
+            abort_if($actualCount === 0, 422, 'Aucun destinataire actif ne correspond à ce segment.');
+            abort_if(
+                $actualCount > 100 && ($locked->approved_by === null || $locked->approved_by === $locked->created_by),
+                409,
+                'Une campagne de plus de 100 destinataires doit être approuvée par une autre personne.',
+            );
+
+            $locked->update([
+                'status' => 'queued',
+                'recipient_count' => $actualCount,
+                'started_at' => now(),
+            ]);
+
+            return $actualCount;
         });
 
         SendCommunicationCampaign::dispatch($campaign->id)->afterCommit();
-        $audit->record('communication_campaign_queued', $campaign, $request->user(), ['recipient_count' => $count], $request);
+        $audit->record('communication_campaign_queued', $campaign, $request->user(), [
+            'recipient_count' => $recipientCount,
+        ], $request);
 
         return back()->with('success', 'Campagne mise en file d’attente. Les destinataires ont été figés pour cette campagne.');
     }
