@@ -78,6 +78,8 @@ class AuditLogService
         ?string $correlationId = null,
     ): AuditLog {
         $category ??= $this->categoryFor($action);
+        $identifierHash = is_string($metadata['identifier_hash'] ?? null) ? $metadata['identifier_hash'] : null;
+        unset($metadata['identifier_hash']);
         $correlationId = $correlationId && Str::isUuid($correlationId)
             ? $correlationId
             : (string) Str::uuid();
@@ -98,7 +100,7 @@ class AuditLogService
             'subject_type' => $subject?->getMorphClass(),
             'subject_id' => $subject?->getKey(),
             'ip_address' => $request?->ip(),
-            'identifier_hash' => is_string($safeMetadata['identifier_hash'] ?? null) ? $safeMetadata['identifier_hash'] : null,
+            'identifier_hash' => $identifierHash,
             'user_agent' => $request?->userAgent() === null ? null : mb_substr($request->userAgent(), 0, 1000),
             'metadata' => $safeMetadata,
         ]);
