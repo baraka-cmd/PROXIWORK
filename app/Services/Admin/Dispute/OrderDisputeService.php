@@ -109,6 +109,9 @@ class OrderDisputeService
         ]);
     }
 
+    /**
+     * Opens the canonical dispute dossier for an eligible order participant.
+     */
     public function openForOrder(Order $order, User $actor, string $reasonCode, string $description, Request $request): OrderDispute
     {
         return DB::transaction(function () use ($order, $actor, $reasonCode, $description, $request): OrderDispute {
