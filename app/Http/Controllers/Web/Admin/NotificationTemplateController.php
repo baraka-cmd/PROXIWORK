@@ -92,7 +92,7 @@ class NotificationTemplateController extends Controller
         }
 
         if (str_contains($content, '<script') || str_contains($content, '<?')) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'body' => 'Le contenu doit rester du texte et ne peut contenir de code exécutable.',
             ]);
         }
