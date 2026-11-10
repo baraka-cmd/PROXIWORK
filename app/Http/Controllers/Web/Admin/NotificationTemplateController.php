@@ -34,7 +34,7 @@ class NotificationTemplateController extends Controller
             'code' => ['required', 'alpha_dash', 'max:120'],
             'event_key' => ['required', 'in:'.implode(',', self::EVENTS)],
             'category' => ['required', 'in:account,requests,quotes,orders,payments,messages,reviews'],
-            'channel' => ['required', 'in:database,mail'],
+            'channel' => ['required', 'in:database,mail,sms,push'],
             'locale' => ['required', 'in:fr,en'],
             'subject' => ['nullable', 'required_if:channel,mail', 'string', 'max:180'],
             'title' => ['required', 'string', 'max:180'],
