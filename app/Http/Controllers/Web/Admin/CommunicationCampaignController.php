@@ -60,12 +60,13 @@ class CommunicationCampaignController extends Controller
         abort_unless($campaign->status === 'draft', 409);
         $count = $this->audienceQuery($campaign)->count();
         abort_if($count === 0, 422, 'Aucun destinataire actif ne correspond à ce segment.');
+        abort_if($count > 100 && ($campaign->approved_by === null || $campaign->approved_by === $campaign->created_by), 409, 'Une campagne de plus de 100 destinataires doit être approuvée par une autre personne.');
 
         DB::transaction(function () use ($campaign, $request, $count): void {
             $locked = CommunicationCampaign::query()->lockForUpdate()->findOrFail($campaign->id);
             abort_unless($locked->status === 'draft', 409);
             $query = $this->audienceQuery($locked);
-            $query->select('users.id')->orderBy('users.id')->chunkById(500, function ($users) use ($locked): void {
+            $query->select('users.id as id')->orderBy('users.id')->chunkById(500, function ($users) use ($locked): void {
                 $rows = $users->map(fn ($user) => [
                     'campaign_id' => $locked->id,
                     'user_id' => $user->id,
@@ -74,7 +75,7 @@ class CommunicationCampaignController extends Controller
                     'updated_at' => now(),
                 ])->all();
                 CommunicationCampaignRecipient::query()->insertOrIgnore($rows);
-            }, 'users.id');
+            }, 'users.id', 'id');
             $locked->update(['status' => 'queued', 'recipient_count' => $count, 'started_at' => now()]);
         });
 
