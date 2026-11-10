@@ -175,6 +175,25 @@ Route::middleware(['auth', 'active.account', 'permission:support.manage'])->grou
     Route::post('support/{ticket}/close', [SupportController::class, 'close'])->name('support.close');
 });
 
+Route::middleware(['auth', 'active.account', 'permission:security.events.view'])->group(function (): void {
+    Route::get('security/events', [SecurityCenterController::class, 'events'])->name('security.events');
+});
+Route::middleware(['auth', 'active.account', 'permission:security.alerts.view'])->group(function (): void {
+    Route::get('security/anomalies', [SecurityCenterController::class, 'anomalies'])->name('security.anomalies');
+});
+Route::middleware(['auth', 'active.account', 'permission:security.alerts.manage'])->group(function (): void {
+    Route::post('security/alerts/{securityAlert}/resolve', [SecurityCenterController::class, 'resolveAlert'])->name('security.alerts.resolve');
+});
+Route::middleware(['auth', 'active.account', 'permission:security.sessions.view'])->group(function (): void {
+    Route::get('security/sessions', [SecurityCenterController::class, 'sessions'])->name('security.sessions');
+});
+Route::middleware(['auth', 'active.account', 'permission:security.sessions.revoke'])->group(function (): void {
+    Route::post('security/sessions/{securitySession}/revoke', [SecurityCenterController::class, 'revokeSession'])->name('security.sessions.revoke');
+});
+Route::middleware(['auth', 'active.account', 'permission:audit.interventions.view'])->group(function (): void {
+    Route::get('audit/interventions', [SecurityCenterController::class, 'interventions'])->name('audit.interventions');
+});
+
 Route::middleware(['auth', 'active.account', 'permission:audit.view'])->group(function (): void {
     Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
     Route::get('audit/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
