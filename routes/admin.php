@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
+use App\Http\Controllers\Web\Admin\FinanceController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\PaymentController;
 use App\Http\Controllers\Web\Admin\PermissionController;
