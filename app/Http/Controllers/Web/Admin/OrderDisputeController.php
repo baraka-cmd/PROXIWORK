@@ -69,6 +69,14 @@ class OrderDisputeController extends Controller
         return back()->with('success', 'Le statut du litige a été actualisé.');
     }
 
+    public function reopen(Request $request, OrderDispute $dispute): RedirectResponse
+    {
+        $this->authorize('manage', $dispute);
+        $data = $request->validate(['reason' => ['required', 'string', 'min:20', 'max:2000']]);
+        $this->service->reopen($dispute, $data['reason'], $request->user(), $request);
+        return back()->with('success', 'Le litige a été rouvert avec une justification enregistrée.');
+    }
+
     public function decide(Request $request, OrderDispute $dispute): RedirectResponse
     {
         $this->authorize('decide', $dispute);
