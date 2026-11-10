@@ -13,6 +13,10 @@ class SupportTicketResource extends JsonResource
         return [
             'id' => $this->id,
             'subject' => $this->subject,
+            'context' => $this->when($this->context_type !== null, fn () => [
+                'type' => class_basename($this->context_type),
+                'id' => $this->context_id,
+            ]),
             'category' => $this->category?->value,
             'priority' => $this->priority->value,
             'status' => $this->status->value,
