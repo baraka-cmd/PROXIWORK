@@ -112,6 +112,10 @@ Route::middleware('auth')->group(function (): void {
         Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::post('orders/{order}/disputes', [OrderDisputeParticipantController::class, 'store'])->middleware('throttle:5,1')->name('orders.disputes.store');
         Route::get('disputes/{dispute}', [OrderDisputeParticipantController::class, 'show'])->name('disputes.show');
+    Route::post('disputes/{dispute}/attachments', [OrderDisputeParticipantController::class, 'upload'])->middleware('throttle:10,1')->name('disputes.attachments.store');
+    Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeParticipantController::class, 'download'])->name('disputes.attachments.download');
+        Route::post('disputes/{dispute}/attachments', [OrderDisputeParticipantController::class, 'upload'])->middleware('throttle:10,1')->name('disputes.attachments.store');
+        Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeParticipantController::class, 'download'])->name('disputes.attachments.download');
         Route::post('disputes/{dispute}/messages', [OrderDisputeParticipantController::class, 'message'])->middleware('throttle:10,1')->name('disputes.messages.store');
         Route::post('orders/{order}/review', [ClientReviewController::class, 'store'])->middleware('throttle:5,1')->name('orders.review.store');
         Route::post('orders/{order}/review-response/report', [ClientReviewController::class, 'reportResponse'])->middleware('throttle:5,1')->name('orders.review-response.report');
