@@ -58,6 +58,7 @@ class RbacSeeder extends Seeder
             'audit.view' => ['Audit - consulter', 'audit', 'Consulter les journaux d’audit.'],
             'admin.dashboard.view' => ['Dashboard administrateur - consulter', 'admin', 'Consulter les statistiques administratives.'],
             'admin.notifications.view' => ['Notifications - superviser', 'admin.communication', 'Consulter les notifications et leur historique de livraison sans modifier les événements métier.'],
+            'admin.notifications.retry' => ['Notifications - relancer', 'admin.communication', 'Relancer uniquement les livraisons définitivement échouées dans les limites de tentatives prévues.'],
             'notification_templates.view' => ['Modèles de notifications - consulter', 'admin.communication', 'Consulter les modèles de notifications.'],
             'notification_templates.manage' => ['Modèles de notifications - administrer', 'admin.communication', 'Créer et modifier les brouillons de modèles.'],
             'announcements.view' => ['Annonces - consulter', 'admin.communication', 'Consulter les annonces.'],
