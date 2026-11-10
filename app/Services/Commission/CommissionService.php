@@ -8,6 +8,7 @@ use App\Enums\CommissionStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\WalletTransactionType;
 use App\Models\Commission;
+use App\Models\CommissionRule;
 use App\Models\Payment;
 use App\Models\PaymentTransaction;
 use App\Services\Wallet\WalletService;
@@ -19,7 +20,6 @@ class CommissionService
     public function __construct(
         private readonly WalletService $walletService,
         private readonly DatabaseManager $database,
-        private readonly CommissionRuleService $commissionRules,
     ) {}
 
     public function postForPayment(Payment $payment, PaymentTransaction $transaction): Commission
@@ -61,7 +61,16 @@ class CommissionService
             }
 
             $gross = $this->minor((string) $lockedPayment->amount);
-            $rate = $this->rateMinor((string) ($order->commission_rate ?? $this->commissionRules->rateForOrderDate($order->accepted_at ?? $order->created_at)));
+            $rateValue = $order->commission_rate;
+            if ($rateValue === null) {
+                $rateValue = CommissionRule::query()
+                    ->where('effective_at', '<=', $order->accepted_at ?? $order->created_at)
+                    ->orderByDesc('effective_at')
+                    ->orderByDesc('id')
+                    ->value('rate') ?? config('commission.rate', '10.00');
+            }
+
+            $rate = $this->rateMinor((string) $rateValue);
 
             if ($rate <= 0 || $rate >= 10000) {
                 throw ValidationException::withMessages([
