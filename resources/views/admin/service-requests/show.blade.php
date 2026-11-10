@@ -61,7 +61,7 @@
                         @if ($request->status->value === 'requested')
                             <form method="POST" action="{{ route('admin.service-requests.reject', $request) }}" data-confirm="Rejeter administrativement cette demande ?">
                                 @csrf
-                                <input type="hidden" name="reason" value="Décision administrative">
+                                <label class="admin-field"><span>Motif obligatoire</span><textarea name="reason" rows="3" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea></label>
                                 <button class="button button--secondary" type="submit">Rejeter</button>
                             </form>
                         @endif
