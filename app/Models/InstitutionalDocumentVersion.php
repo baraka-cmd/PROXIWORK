@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class InstitutionalDocumentVersion extends Model
 {
@@ -14,6 +15,11 @@ class InstitutionalDocumentVersion extends Model
     protected function casts(): array
     {
         return ['version' => 'integer', 'effective_at' => 'datetime', 'published_at' => 'datetime'];
+    }
+
+    public function acceptances(): HasMany
+    {
+        return $this->hasMany(InstitutionalDocumentAcceptance::class, 'institutional_document_version_id');
     }
 
     public function document(): BelongsTo
