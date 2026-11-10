@@ -36,7 +36,7 @@ class NotificationTemplateController extends Controller
             'category' => ['required', 'in:account,requests,quotes,orders,payments,messages,reviews'],
             'channel' => ['required', 'in:database,mail'],
             'locale' => ['required', 'in:fr,en'],
-            'subject' => ['nullable', 'string', 'max:180'],
+            'subject' => ['nullable', 'required_if:channel,mail', 'string', 'max:180'],
             'title' => ['required', 'string', 'max:180'],
             'body' => ['required', 'string', 'max:10000'],
         ]);
@@ -70,7 +70,7 @@ class NotificationTemplateController extends Controller
         abort_unless($template->status === 'draft', 409, 'Un modèle publié doit d’abord être révisé.');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'subject' => ['nullable', 'string', 'max:180'],
+            'subject' => [$template->channel === 'mail' ? 'required' : 'nullable', 'string', 'max:180'],
             'title' => ['required', 'string', 'max:180'],
             'body' => ['required', 'string', 'max:10000'],
         ]);
