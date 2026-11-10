@@ -52,7 +52,7 @@ class NotificationDelivery extends Model
         ];
     }
 
-    public function attempts(): HasMany
+    public function deliveryAttempts(): HasMany
     {
         return $this->hasMany(NotificationDeliveryAttempt::class, 'notification_delivery_id')->orderBy('attempt_number');
     }
