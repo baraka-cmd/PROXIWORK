@@ -16,7 +16,7 @@
 <label class="admin-field"><span>Nom</span><input name="name" value="{{ $template->name }}" required></label><label class="admin-field"><span>Langue</span><select name="locale"><option value="fr" @selected($template->locale==='fr')>Français</option><option value="en" @selected($template->locale==='en')>English</option></select></label>
 <label class="admin-field"><span>Titre</span><input name="title" value="{{ $template->title }}" required></label><label class="admin-field"><span>Corps</span><textarea name="body" rows="3" required>{{ $template->body }}</textarea></label>
 @foreach(['prenom','nom','email','plateforme'] as $variable)<label><input type="checkbox" name="variables[]" value="{{ $variable }}" @checked(in_array($variable,$template->variables??[],true))> {{ $variable }}</label>@endforeach
-<button class="button button--secondary">Enregistrer une nouvelle version</button></form></details></td></tr>
+<button class="button button--secondary">Enregistrer une nouvelle version</button></form><hr><strong>Historique des versions</strong>@foreach($template->versions as $version)<div class="admin-version-row"><span>Version {{ $version->version }} · {{ $version->created_at?->format('d/m/Y H:i') }}</span><form method="POST" action="{{ route('admin.communication.templates.restore',[$template,$version]) }}">@csrf<button class="button button--secondary button--sm">Restaurer en brouillon</button></form></div>@endforeach</details></td></tr>
 @empty<tr><td colspan="7">Aucun modèle.</td></tr>@endforelse
 </tbody></table></div>{{ $templates->links() }}</section>
 @endsection

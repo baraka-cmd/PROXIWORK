@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationTemplate;
+use App\Models\NotificationTemplateVersion;
 use App\Services\Audit\AuditLogService;
 use App\Services\Notification\NotificationTemplateRenderer;
 use Illuminate\Http\RedirectResponse;
@@ -105,7 +106,7 @@ class NotificationAdminController extends Controller
     public function templates(): View
     {
         return view('admin.communication.templates.index', [
-            'templates' => NotificationTemplate::query()->withCount('versions')->orderBy('key')->paginate(25),
+            'templates' => NotificationTemplate::query()->with(['versions' => fn ($query) => $query->latest('version')])->withCount('versions')->orderBy('key')->paginate(25),
         ]);
     }
 
@@ -170,6 +171,39 @@ class NotificationAdminController extends Controller
         });
 
         return back()->with('success', 'Le modèle a été versionné. Les notifications déjà créées ne sont pas modifiées.');
+    }
+
+    public function restoreTemplate(Request $request, NotificationTemplate $template, NotificationTemplateVersion $version): RedirectResponse
+    {
+        $version = $template->versions()->whereKey($version->getKey())->firstOrFail();
+        $snapshot = $version->snapshot ?? [];
+
+        DB::transaction(function () use ($snapshot, $template, $request): void {
+            $template->fill([
+                'name' => $snapshot['name'] ?? $template->name,
+                'locale' => $snapshot['locale'] ?? 'fr',
+                'subject' => $snapshot['subject'] ?? null,
+                'title' => $snapshot['title'] ?? $template->title,
+                'body' => $snapshot['body'] ?? $template->body,
+                'variables' => $snapshot['variables'] ?? [],
+                'status' => 'draft',
+            ]);
+            $template->version = $template->version + 1;
+            $template->updated_by = $request->user()->getAuthIdentifier();
+            $template->save();
+            $template->versions()->create([
+                'version' => $template->version,
+                'snapshot' => $template->only(['key', 'name', 'channel', 'locale', 'subject', 'title', 'body', 'variables', 'status']),
+                'created_by' => $request->user()->getAuthIdentifier(),
+                'created_at' => now(),
+            ]);
+            $this->audit->record('notification_template_version_restored', $template, $request->user(), [
+                'restored_from_version' => $version->version,
+                'new_version' => $template->version,
+            ], $request);
+        });
+
+        return back()->with('success', 'Ancienne version restaurée en brouillon. Activez-la après vérification.');
     }
 
     public function activateTemplate(Request $request, NotificationTemplate $template): RedirectResponse

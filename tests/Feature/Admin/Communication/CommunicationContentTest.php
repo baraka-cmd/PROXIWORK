@@ -103,6 +103,54 @@ class CommunicationContentTest extends TestCase
         $response->assertDontSee('<script>alert(1)</script>', false);
     }
 
+    public function test_public_page_version_restore_creates_a_new_draft_version(): void
+    {
+        $page = PublicPage::create([
+            'title' => 'À propos',
+            'slug' => 'a-propos',
+            'body' => 'Contenu initial',
+            'status' => 'draft',
+            'created_by' => $this->admin->id,
+        ]);
+        $page->versions()->create([
+            'version' => 1,
+            'snapshot' => [
+                'title' => 'À propos',
+                'slug' => 'a-propos',
+                'excerpt' => null,
+                'body' => 'Contenu initial',
+                'seo_title' => null,
+                'seo_description' => null,
+                'status' => 'draft',
+            ],
+            'created_by' => $this->admin->id,
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin)->put(route('admin.content.pages.update', $page), [
+            'title' => 'À propos modifié',
+            'excerpt' => null,
+            'body' => 'Nouveau contenu',
+            'seo_title' => null,
+            'seo_description' => null,
+        ])->assertRedirect();
+
+        $versionOne = $page->versions()->where('version', 1)->firstOrFail();
+
+        $this->post(route('admin.content.pages.restore', [$page, $versionOne]))->assertRedirect();
+
+        $this->assertDatabaseHas('public_pages', [
+            'id' => $page->id,
+            'slug' => 'a-propos',
+            'body' => 'Contenu initial',
+            'status' => 'draft',
+        ]);
+        $this->assertDatabaseHas('public_page_versions', [
+            'public_page_id' => $page->id,
+            'version' => 3,
+        ]);
+    }
+
     public function test_faq_filters_items_by_audience(): void
     {
         $category = FaqCategory::create(['name' => 'Professionnels', 'slug' => 'professionnels', 'is_active' => true]);

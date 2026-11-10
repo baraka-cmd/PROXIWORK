@@ -199,6 +199,7 @@ Route::middleware(['auth', 'active.account', 'permission:notification_templates.
 });
 Route::post('communication/templates', [NotificationAdminController::class, 'storeTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.manage', 'throttle:10,1'])->name('communication.templates.store');
 Route::put('communication/templates/{template}', [NotificationAdminController::class, 'updateTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.manage', 'throttle:10,1'])->name('communication.templates.update');
+Route::post('communication/templates/{template}/versions/{version}/restore', [NotificationAdminController::class, 'restoreTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.manage'])->name('communication.templates.restore');
 Route::post('communication/templates/{template}/activate', [NotificationAdminController::class, 'activateTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.publish'])->name('communication.templates.activate');
 
 Route::middleware(['auth', 'active.account', 'permission:announcements.view'])->group(function (): void {
@@ -220,6 +221,7 @@ Route::middleware(['auth', 'active.account', 'permission:public_pages.view'])->g
 });
 Route::post('content/pages', [ContentManagementController::class, 'storePage'])->middleware(['auth', 'active.account', 'permission:public_pages.manage'])->name('content.pages.store');
 Route::put('content/pages/{page}', [ContentManagementController::class, 'updatePage'])->middleware(['auth', 'active.account', 'permission:public_pages.manage'])->name('content.pages.update');
+Route::post('content/pages/{page}/versions/{version}/restore', [ContentManagementController::class, 'restorePage'])->middleware(['auth', 'active.account', 'permission:public_pages.manage'])->name('content.pages.restore');
 Route::post('content/pages/{page}/publish', [ContentManagementController::class, 'publishPage'])->middleware(['auth', 'active.account', 'permission:public_pages.publish'])->name('content.pages.publish');
 
 Route::middleware(['auth', 'active.account', 'permission:faq.view'])->group(function (): void {
@@ -235,6 +237,7 @@ Route::middleware(['auth', 'active.account', 'permission:institutional_content.v
 });
 Route::post('content/institutional', [ContentManagementController::class, 'storeInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.manage'])->name('content.institutional.store');
 Route::put('content/institutional/{content}', [ContentManagementController::class, 'updateInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.manage'])->name('content.institutional.update');
+Route::post('content/institutional/{content}/versions/{version}/restore', [ContentManagementController::class, 'restoreInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.manage'])->name('content.institutional.restore');
 Route::post('content/institutional/{content}/publish', [ContentManagementController::class, 'publishInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.publish'])->name('content.institutional.publish');
 
 Route::middleware(['auth', 'active.account', 'permission:homepage_slides.view'])->group(function (): void {

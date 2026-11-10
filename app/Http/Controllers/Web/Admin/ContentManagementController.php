@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\FaqCategory;
 use App\Models\FaqItem;
 use App\Models\InstitutionalContent;
+use App\Models\InstitutionalContentVersion;
 use App\Models\PublicPage;
+use App\Models\PublicPageVersion;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +23,7 @@ class ContentManagementController extends Controller
 
     public function pages(): View
     {
-        return view('admin.content.pages', ['pages' => PublicPage::query()->latest('updated_at')->paginate(25)]);
+        return view('admin.content.pages', ['pages' => PublicPage::query()->with(['versions' => fn ($query) => $query->latest('version')])->withCount('versions')->latest('updated_at')->paginate(25)]);
     }
 
     public function storePage(Request $request): RedirectResponse
@@ -64,6 +66,39 @@ class ContentManagementController extends Controller
         });
 
         return back()->with('success', 'Page modifiée et nouvelle version conservée.');
+    }
+
+    public function restorePage(Request $request, PublicPage $page, PublicPageVersion $version): RedirectResponse
+    {
+        $version = $page->versions()->whereKey($version->getKey())->firstOrFail();
+        $snapshot = $version->snapshot ?? [];
+
+        DB::transaction(function () use ($snapshot, $page, $request, $version): void {
+            $page->fill([
+                'title' => $snapshot['title'] ?? $page->title,
+                'excerpt' => $snapshot['excerpt'] ?? null,
+                'body' => $snapshot['body'] ?? $page->body,
+                'seo_title' => $snapshot['seo_title'] ?? null,
+                'seo_description' => $snapshot['seo_description'] ?? null,
+                'status' => 'draft',
+                'published_at' => null,
+                'updated_by' => $request->user()->getAuthIdentifier(),
+            ]);
+            $page->save();
+            $newVersion = (int) $page->versions()->max('version') + 1;
+            $page->versions()->create([
+                'version' => $newVersion,
+                'snapshot' => $page->only(['title', 'slug', 'excerpt', 'body', 'seo_title', 'seo_description', 'status']),
+                'created_by' => $request->user()->getAuthIdentifier(),
+                'created_at' => now(),
+            ]);
+            $this->audit->record('public_page_version_restored', $page, $request->user(), [
+                'restored_from_version' => $version->version,
+                'new_version' => $newVersion,
+            ], $request);
+        });
+
+        return back()->with('success', 'Ancienne version restaurée en brouillon. Republiez la page après vérification.');
     }
 
     public function publishPage(Request $request, PublicPage $page): RedirectResponse
@@ -131,7 +166,7 @@ class ContentManagementController extends Controller
 
     public function institutional(): View
     {
-        return view('admin.content.institutional', ['contents' => InstitutionalContent::query()->latest('updated_at')->paginate(25)]);
+        return view('admin.content.institutional', ['contents' => InstitutionalContent::query()->with(['versions' => fn ($query) => $query->latest('version')])->withCount('versions')->latest('updated_at')->paginate(25)]);
     }
 
     public function storeInstitutional(Request $request): RedirectResponse
@@ -166,6 +201,36 @@ class ContentManagementController extends Controller
         });
 
         return back()->with('success', 'Contenu modifié et version précédente conservée.');
+    }
+
+    public function restoreInstitutional(Request $request, InstitutionalContent $content, InstitutionalContentVersion $version): RedirectResponse
+    {
+        $version = $content->versions()->whereKey($version->getKey())->firstOrFail();
+        $snapshot = $version->snapshot ?? [];
+
+        DB::transaction(function () use ($snapshot, $content, $request, $version): void {
+            $content->fill([
+                'title' => $snapshot['title'] ?? $content->title,
+                'body' => $snapshot['body'] ?? $content->body,
+                'effective_at' => $snapshot['effective_at'] ?? null,
+                'status' => 'draft',
+            ]);
+            $content->version = $content->version + 1;
+            $content->updated_by = $request->user()->getAuthIdentifier();
+            $content->save();
+            $content->versions()->create([
+                'version' => $content->version,
+                'snapshot' => $content->only(['key', 'title', 'body', 'status', 'effective_at']),
+                'created_by' => $request->user()->getAuthIdentifier(),
+                'created_at' => now(),
+            ]);
+            $this->audit->record('institutional_content_version_restored', $content, $request->user(), [
+                'restored_from_version' => $version->version,
+                'new_version' => $content->version,
+            ], $request);
+        });
+
+        return back()->with('success', 'Ancienne version restaurée en brouillon. Republiez après vérification.');
     }
 
     public function publishInstitutional(Request $request, InstitutionalContent $content): RedirectResponse
