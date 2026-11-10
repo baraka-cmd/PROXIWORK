@@ -136,6 +136,7 @@ Route::middleware(['auth', 'active.account', 'permission:support.manage'])->grou
 Route::middleware(['auth', 'active.account', 'permission:disputes.view'])->group(function (): void {
     Route::get('disputes', [OrderDisputeController::class, 'index'])->name('disputes.index');
     Route::get('disputes/{dispute}', [OrderDisputeController::class, 'show'])->name('disputes.show');
+    Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeController::class, 'downloadAttachment'])->name('disputes.attachments.download');
     Route::post('disputes/{dispute}/message', [OrderDisputeController::class, 'message'])->name('disputes.message');
 });
 Route::middleware(['auth', 'active.account', 'permission:disputes.manage'])->group(function (): void {
