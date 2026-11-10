@@ -18,7 +18,7 @@ class AnnouncementController extends Controller
     public function index(): View
     {
         return view('admin.communication.announcements.index', [
-            'announcements' => Announcement::query()->latest()->paginate(20),
+            'announcements' => Announcement::query()->withCount('versions')->latest()->paginate(20),
         ]);
     }
 
