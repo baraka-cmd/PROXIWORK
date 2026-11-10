@@ -14,8 +14,8 @@ Cette phase enrichit le service AdminAnalyticsService déjà présent. Elle ne c
 
 ### Demandes, devis et commandes
 
-- Les demandes draft sont exclues des volumes commerciaux.
-- Les demandes sont attribuées à la période par service_requests.created_at.
+- Les demandes draft sont exclues des volumes commerciaux. Une demande est attribuée à la période par requested_at, renseigné au moment où le client l’envoie réellement au professionnel; la date de création du brouillon n’est pas utilisée.
+- Les demandes sont attribuées à la période par service_requests.requested_at.
 - Les devis sont attribués à la période par quotations.created_at; un devis accepté est identifié par son état accepted.
 - Les commandes créées sont attribuées par orders.created_at.
 - Les commandes terminées sont attribuées par orders.completed_at, pas par leur date de création.
@@ -31,8 +31,8 @@ Cette phase enrichit le service AdminAnalyticsService déjà présent. Elle ne c
 
 ### Finances
 
-- Les paiements agrégés proviennent uniquement des transactions succeeded ayant processed_at.
-- Les commissions sont agrégées uniquement au statut posted, à partir de posted_at.
+- Les paiements agrégés proviennent de la table Payment, uniquement au statut succeeded avec paid_at. Payment est la source métier canonique du paiement confirmé; PaymentTransaction décrit les tentatives techniques et peut inclure des reprises, donc ses montants ne sont pas additionnés comme revenus.
+- Les commissions sont agrégées uniquement au statut posted, à partir de posted_at; les commissions reversed sont exclues.
 - Les remboursements sont agrégés uniquement au statut succeeded, à partir de processed_at.
 - Aucune somme n’additionne plusieurs devises. Chaque devise constitue une ligne/série séparée.
 - Les analytics sont en lecture seule : aucune écriture, correction, recalcul ou mutation de portefeuille, paiement, commission ou remboursement n’est déclenchée.

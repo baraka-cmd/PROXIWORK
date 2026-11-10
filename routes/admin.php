@@ -6,15 +6,13 @@ use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
 use App\Http\Controllers\Web\Admin\FinanceController;
+use App\Http\Controllers\Web\Admin\RefundController;
 use App\Http\Controllers\Web\Admin\FinancialOperationsController;
-use App\Http\Controllers\Web\Admin\ModerationCenterController;
 use App\Http\Controllers\Web\Admin\OrderController;
-use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
 use App\Http\Controllers\Web\Admin\PermissionController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
 use App\Http\Controllers\Web\Admin\ProfessionalDocumentController;
-use App\Http\Controllers\Web\Admin\RefundController;
 use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
@@ -24,6 +22,8 @@ use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
+use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active.account', 'permission:admin.users.view'])->group(function (): void {
@@ -141,6 +141,7 @@ Route::middleware(['auth', 'active.account', 'permission:wallets.view'])->group(
     Route::get('wallets', [FinanceController::class, 'wallets'])->name('finance.wallets');
     Route::get('wallets/{wallet}', [FinanceController::class, 'wallet'])->whereNumber('wallet')->name('finance.wallets.show');
 });
+
 
 Route::middleware(['auth', 'active.account', 'permission:refunds.view'])->group(function (): void {
     Route::get('refunds', [RefundController::class, 'index'])->name('finance.refunds');

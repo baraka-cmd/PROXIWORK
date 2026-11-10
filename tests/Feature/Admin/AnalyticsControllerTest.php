@@ -56,6 +56,16 @@ class AnalyticsControllerTest extends TestCase
             ->assertHeader('cache-control', 'private, no-store, max-age=0');
     }
 
+    public function test_non_admin_cannot_export_analytics(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('admin.analytics.export', ['range' => '7d']))
+            ->assertForbidden();
+    }
+
     public function test_non_admin_cannot_access_analytics(): void
     {
         $this->seed(RbacSeeder::class);

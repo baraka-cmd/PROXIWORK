@@ -63,7 +63,7 @@
     </section>
     <section class="admin-analytics__card">
         <div class="admin-analytics__card-header"><span class="admin-analytics__eyebrow">Catalogue</span><h2>Performance des catégories</h2></div>
-        <div class="table-responsive"><table class="admin-table"><thead><tr><th>Catégorie</th><th>Services</th><th>Demandes</th><th>Commandes</th></tr></thead><tbody>
+        <div class="table-responsive"><table class="admin-table"><thead><tr><th>Catégorie</th><th>Services éligibles</th><th>Demandes</th><th>Commandes</th></tr></thead><tbody>
         @forelse($analytics['catalog']['categories'] as $category)
             <tr><td>{{ $category['name'] }}</td><td>{{ number_format($category['services']) }}</td><td>{{ number_format($category['requests']) }}</td><td>{{ number_format($category['orders']) }}</td></tr>
         @empty
@@ -86,7 +86,7 @@
         <div class="admin-analytics__card-header"><span class="admin-analytics__eyebrow">Géographie</span><h2>Répartition de l’offre professionnelle</h2></div>
         <div class="table-responsive"><table class="admin-table"><thead><tr><th>Province</th><th>Ville</th><th>Professionnels publics</th><th>Demandes</th><th>Commandes</th></tr></thead><tbody>
         @forelse($analytics['geography']['professional_base_locations'] as $location)
-            <tr><td>{{ $location['province'] }}</td><td>{{ $location['city'] }}</td><td>{{ $location['suppressed'] ? 'Données masquées' : number_format($location['professionals']) }}</td><td>{{ number_format($location['requests']) }}</td><td>{{ number_format($location['orders']) }}</td></tr>
+            <tr><td>{{ $location['province'] }}</td><td>{{ $location['city'] }}</td><td>{{ number_format($location['professionals']) }}</td><td>{{ number_format($location['requests']) }}</td><td>{{ number_format($location['orders']) }}</td></tr>
         @empty
             <tr><td colspan="5">Aucune localisation professionnelle exploitable.</td></tr>
         @endforelse
