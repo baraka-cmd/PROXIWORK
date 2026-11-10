@@ -84,7 +84,7 @@ class NotificationDelivery extends Model
             'status' => $this->status,
             'provider_reference' => $this->provider_reference,
             'error_code' => $this->last_error_code,
-            'finished_at' => $this->processing_at === null ? now() : null,
+            'finished_at' => now(),
         ]);
     }
 
