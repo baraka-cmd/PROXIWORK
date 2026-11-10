@@ -23,23 +23,22 @@ class NotificationTemplateRenderer
             'action_url' => $url ?? '',
         ];
 
-        $databaseTemplate = NotificationTemplate::query()
-            ->where('event_key', $eventKey)
-            ->where('channel', 'database')
-            ->whereIn('locale', $locales)
-            ->where('status', 'published')
-            ->orderByRaw('CASE WHEN locale = ? THEN 0 ELSE 1 END', [$locale])
-            ->latest('id')
-            ->first();
+        $templates = [];
+        foreach (['database', 'mail', 'sms', 'push'] as $channel) {
+            $templates[$channel] = NotificationTemplate::query()
+                ->where('event_key', $eventKey)
+                ->where('channel', $channel)
+                ->whereIn('locale', $locales)
+                ->where('status', 'published')
+                ->orderByRaw('CASE WHEN locale = ? THEN 0 ELSE 1 END', [$locale])
+                ->latest('id')
+                ->first();
+        }
 
-        $mailTemplate = NotificationTemplate::query()
-            ->where('event_key', $eventKey)
-            ->where('channel', 'mail')
-            ->whereIn('locale', $locales)
-            ->where('status', 'published')
-            ->orderByRaw('CASE WHEN locale = ? THEN 0 ELSE 1 END', [$locale])
-            ->latest('id')
-            ->first();
+        $databaseTemplate = $templates['database'];
+        $mailTemplate = $templates['mail'];
+        $smsTemplate = $templates['sms'];
+        $pushTemplate = $templates['push'];
 
         return [
             'title' => $databaseTemplate
@@ -53,6 +52,15 @@ class NotificationTemplateRenderer
                 : null,
             'email_message' => $mailTemplate
                 ? $this->replaceVariables($mailTemplate->body, $variables)
+                : null,
+            'sms_message' => $smsTemplate
+                ? $this->replaceVariables($smsTemplate->body, $variables)
+                : null,
+            'push_title' => $pushTemplate
+                ? $this->replaceVariables($pushTemplate->title, $variables)
+                : null,
+            'push_message' => $pushTemplate
+                ? $this->replaceVariables($pushTemplate->body, $variables)
                 : null,
         ];
     }
