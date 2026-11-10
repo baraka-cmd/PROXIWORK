@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\Notifications\SendNotificationEmail;
+use App\Jobs\Notifications\SendNotificationPush;
+use App\Jobs\Notifications\SendNotificationSms;
 use App\Models\NotificationDelivery;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class NotificationDeliveryController extends Controller
 {
@@ -53,6 +58,37 @@ class NotificationDeliveryController extends Controller
                 'attention' => (clone $base)->whereIn('status', ['FAILED', 'UNKNOWN'])->count(),
             ],
         ]);
+    }
+
+    public function retry(Request $request, NotificationDelivery $delivery, AuditLogService $audit): RedirectResponse
+    {
+        abort_unless($delivery->status === 'FAILED', 409, 'Seules les livraisons définitivement échouées peuvent être relancées.');
+        abort_if($delivery->attempts >= 5, 409, 'Le nombre maximal de tentatives est atteint.');
+
+        DB::transaction(function () use ($delivery): void {
+            $locked = NotificationDelivery::query()->lockForUpdate()->findOrFail($delivery->id);
+            abort_unless($locked->status === 'FAILED' && $locked->attempts < 5, 409);
+            $locked->update([
+                'status' => 'RETRYING',
+                'available_at' => now(),
+                'queued_at' => null,
+                'processing_at' => null,
+                'last_error_code' => null,
+            ]);
+        });
+
+        $delivery->refresh();
+        match ($delivery->channel) {
+            'sms' => SendNotificationSms::dispatch($delivery->id)->afterCommit(),
+            'push' => SendNotificationPush::dispatch($delivery->id)->afterCommit(),
+            default => SendNotificationEmail::dispatch($delivery->id)->afterCommit(),
+        };
+        $audit->record('notification_delivery_retried', $delivery, $request->user(), [
+            'channel' => $delivery->channel,
+            'attempts' => $delivery->attempts,
+        ], $request);
+
+        return back()->with('success', 'Nouvelle tentative de livraison mise en file.');
     }
 
     public function show(NotificationDelivery $delivery): View
