@@ -10,15 +10,31 @@ use App\Models\FaqCategory;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class FaqController extends Controller
 {
+    private const CONTENT_FIELDS = [
+        'faq_category_id',
+        'question',
+        'slug',
+        'answer',
+        'audience',
+        'locale',
+        'sort_order',
+    ];
+
     public function index(): View
     {
         return view('admin.communication.faq.index', [
-            'articles' => FaqArticle::query()->with('category')->latest()->paginate(20),
+            'articles' => FaqArticle::query()
+                ->with('category')
+                ->withCount(['versions as draft_versions_count' => fn ($query) => $query->where('status', 'draft')])
+                ->latest()
+                ->paginate(20),
             'categories' => FaqCategory::query()->where('is_active', true)->orderBy('sort_order')->get(),
         ]);
     }
@@ -26,14 +42,19 @@ class FaqController extends Controller
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $this->validated($request);
-        $article = FaqArticle::query()->create([
-            ...$data,
-            'slug' => Str::slug($data['slug'] ?: $data['question']).'-'.Str::lower(Str::random(5)),
-            'status' => 'draft',
-            'created_by' => $request->user()->id,
-            'updated_by' => $request->user()->id,
-        ]);
-        $this->snapshot($article, $request->user()->id);
+        $data['slug'] = Str::slug($data['slug'] ?: $data['question']).'-'.Str::lower(Str::random(5));
+
+        $article = DB::transaction(function () use ($data, $request): FaqArticle {
+            $article = FaqArticle::query()->create([
+                ...$data,
+                'status' => 'draft',
+                'created_by' => $request->user()->id,
+                'updated_by' => $request->user()->id,
+            ]);
+            $this->snapshot($article, $data, $request->user()->id);
+
+            return $article;
+        });
         $audit->record('faq_article_created', $article, $request->user(), [], $request);
 
         return back()->with('success', 'Question enregistrée en brouillon.');
@@ -43,28 +64,48 @@ class FaqController extends Controller
     {
         abort_unless($article->status !== 'archived', 409);
         $data = $this->validated($request);
-        $article->update([...$data, 'slug' => Str::slug($data['slug'] ?: $data['question']).'-'.Str::lower(Str::random(5)), 'updated_by' => $request->user()->id]);
-        $this->snapshot($article, $request->user()->id);
-        $audit->record('faq_article_updated', $article, $request->user(), [], $request);
+        $data['slug'] = Str::slug($data['slug'] ?: $data['question']).'-'.Str::lower(Str::random(5));
 
-        return back()->with('success', 'Question mise à jour.');
+        DB::transaction(function () use ($article, $data, $request): void {
+            $locked = FaqArticle::query()->lockForUpdate()->findOrFail($article->id);
+            if ($locked->status !== 'published') {
+                $locked->update([...$data, 'updated_by' => $request->user()->id]);
+            }
+            $this->snapshot($locked, $data, $request->user()->id);
+        });
+        $audit->record('faq_article_revision_created', $article, $request->user(), [], $request);
+
+        return back()->with('success', 'Nouvelle version enregistrée en brouillon.');
     }
 
     public function publish(Request $request, FaqArticle $article, AuditLogService $audit): RedirectResponse
     {
-        $article->update(['status' => 'published', 'published_at' => now()]);
+        DB::transaction(function () use ($article): void {
+            $locked = FaqArticle::query()->lockForUpdate()->findOrFail($article->id);
+            $version = $locked->versions()
+                ->where('status', 'draft')
+                ->latest('version')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $content = Arr::only($version->content, self::CONTENT_FIELDS);
+
+            $locked->update([...$content, 'status' => 'published', 'published_at' => now()]);
+            $locked->versions()->where('status', 'published')->update(['status' => 'superseded']);
+            $version->update(['status' => 'published', 'published_at' => now()]);
+        });
         $audit->record('faq_article_published', $article, $request->user(), [], $request);
 
-        return back()->with('success', 'Question publiée.');
+        return back()->with('success', 'La nouvelle version de la réponse est publiée.');
     }
 
-    private function snapshot(FaqArticle $article, int $userId): void
+    private function snapshot(FaqArticle $article, array $content, int $userId): void
     {
         $version = (int) $article->versions()->max('version') + 1;
         $article->versions()->create([
             'version' => $version,
-            'content' => $article->only(['faq_category_id', 'question', 'slug', 'answer', 'audience', 'locale', 'status', 'sort_order']),
+            'content' => Arr::only($content, self::CONTENT_FIELDS),
             'created_by' => $userId,
+            'status' => 'draft',
         ]);
     }
 
