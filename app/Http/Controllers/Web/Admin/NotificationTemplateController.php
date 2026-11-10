@@ -65,6 +65,52 @@ class NotificationTemplateController extends Controller
         return back()->with('success', 'Le modèle a été enregistré en brouillon.');
     }
 
+    public function update(Request $request, NotificationTemplate $template, AuditLogService $audit): RedirectResponse
+    {
+        abort_unless($template->status === 'draft', 409, 'Un modèle publié doit d’abord être révisé.');
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'subject' => ['nullable', 'string', 'max:180'],
+            'title' => ['required', 'string', 'max:180'],
+            'body' => ['required', 'string', 'max:10000'],
+        ]);
+        $this->validateVariables($data['title'].' '.$data['body'].' '.($data['subject'] ?? ''));
+
+        DB::transaction(function () use ($template, $data, $request): void {
+            $locked = NotificationTemplate::query()->lockForUpdate()->findOrFail($template->id);
+            abort_unless($locked->status === 'draft', 409);
+            $version = $locked->version + 1;
+            $locked->update([...$data, 'version' => $version, 'updated_by' => $request->user()->id]);
+            $locked->versions()->create([
+                'version' => $version,
+                'content' => collect($data)->only(['subject', 'title', 'body'])->all(),
+                'created_by' => $request->user()->id,
+            ]);
+        });
+        $audit->record('notification_template_updated', $template, $request->user(), ['version' => $template->version + 1], $request);
+
+        return back()->with('success', 'Nouvelle version du brouillon enregistrée.');
+    }
+
+    public function revise(Request $request, NotificationTemplate $template, AuditLogService $audit): RedirectResponse
+    {
+        abort_unless($template->status === 'published', 409);
+        DB::transaction(function () use ($template, $request): void {
+            $locked = NotificationTemplate::query()->lockForUpdate()->findOrFail($template->id);
+            abort_unless($locked->status === 'published', 409);
+            $version = $locked->version + 1;
+            $locked->update(['status' => 'draft', 'version' => $version, 'published_at' => null, 'updated_by' => $request->user()->id]);
+            $locked->versions()->create([
+                'version' => $version,
+                'content' => $locked->only(['subject', 'title', 'body']),
+                'created_by' => $request->user()->id,
+            ]);
+        });
+        $audit->record('notification_template_revision_started', $template, $request->user(), ['version' => $template->version + 1], $request);
+
+        return back()->with('success', 'Une nouvelle version brouillon est ouverte. La version publiée précédente reste historisée.');
+    }
+
     public function publish(Request $request, NotificationTemplate $template, AuditLogService $audit): RedirectResponse
     {
         abort_unless($template->status === 'draft', 409, 'Seuls les brouillons peuvent être publiés.');
