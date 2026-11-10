@@ -57,6 +57,7 @@ class RbacSeeder extends Seeder
             'support.manage' => ['Support - administrer', 'support', 'Gérer les tickets de support.'],
             'audit.view' => ['Audit - consulter', 'audit', 'Consulter les journaux d’audit.'],
             'admin.dashboard.view' => ['Dashboard administrateur - consulter', 'admin', 'Consulter les statistiques administratives.'],
+            'admin.notifications.view' => ['Notifications - superviser', 'admin.communication', 'Consulter les notifications et leur historique de livraison sans modifier les événements métier.'],
             'analytics.export' => ['Analytics - exporter', 'admin.analytics', 'Exporter les indicateurs analytiques agrégés au format CSV.'],
             'admin.users.view' => ['Administration - utilisateurs consulter', 'admin.users', 'Consulter, rechercher et filtrer les utilisateurs.'],
             'admin.users.suspend' => ['Administration - utilisateurs suspendre', 'admin.users', 'Suspendre un compte utilisateur.'],

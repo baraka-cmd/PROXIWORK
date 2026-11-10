@@ -80,6 +80,13 @@
                 ],
             ],
             [
+                'title' => 'Communication et contenus',
+                'icon' => 'fa-bullhorn',
+                'items' => [
+                    ['label' => 'Notifications et livraisons', 'route' => 'admin.notifications.deliveries.index', 'permission' => 'admin.notifications.view', 'icon' => 'fa-bell', 'active' => ['admin.notifications.*']],
+                ],
+            ],
+            [
                 'title' => 'Rapports et statistiques',
                 'icon' => 'fa-chart-column',
                 'items' => [

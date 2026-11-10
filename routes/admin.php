@@ -226,3 +226,12 @@ Route::middleware(['auth', 'active.account', 'permission:moderation.history.view
     Route::get('moderation/history', [ModerationCenterController::class, 'history'])->name('moderation.history');
     Route::get('moderation/resolutions', [ModerationCenterController::class, 'resolutions'])->name('moderation.resolutions');
 });
+
+
+// Phase 7 — supervision du centre de notifications et de son historique de livraison.
+use App\\Http\\Controllers\\Web\\Admin\\NotificationDeliveryController;
+
+Route::middleware(['auth', 'active.account', 'permission:admin.notifications.view'])->group(function (): void {
+    Route::get('notifications/deliveries', [NotificationDeliveryController::class, 'index'])->name('notifications.deliveries.index');
+    Route::get('notifications/deliveries/{delivery}', [NotificationDeliveryController::class, 'show'])->whereNumber('delivery')->name('notifications.deliveries.show');
+});
