@@ -57,7 +57,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return response()->json(['message' => 'Les données fournies sont invalides.', 'errors' => $e->errors()], 422);
+            return response()->json([
+                'message' => 'Les données fournies sont invalides.',
+                'errors' => $e->errors(),
+            ], 422);
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) use ($isApi) {
@@ -65,7 +68,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return response()->json(['message' => 'Authentification échouée ou requise.', 'errors' => []], 401);
+            return response()->json([
+                'message' => 'Authentification échouée ou requise.',
+                'errors' => [],
+            ], 401);
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
@@ -73,7 +79,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return response()->json(['message' => 'Action non autorisée.', 'errors' => []], 403);
+            return response()->json([
+                'message' => 'Action non autorisée.',
+                'errors' => [],
+            ], 403);
         });
 
         $exceptions->render(function (ModelNotFoundException $e, Request $request) use ($isApi) {
@@ -81,7 +90,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return response()->json(['message' => 'Ressource introuvable.', 'errors' => []], 404);
+            return response()->json([
+                'message' => 'Ressource introuvable.',
+                'errors' => [],
+            ], 404);
         });
 
         $exceptions->render(function (HttpExceptionInterface $e, Request $request) use ($isApi) {
@@ -106,7 +118,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            return response()->json(['message' => 'Une erreur interne est survenue.', 'errors' => []], 500);
+            return response()->json([
+                'message' => 'Une erreur interne est survenue.',
+                'errors' => [],
+            ], 500);
         });
     })
     ->create();
