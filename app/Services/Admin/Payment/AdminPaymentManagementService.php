@@ -48,12 +48,9 @@ class AdminPaymentManagementService
         return $payment->load([
             'order.client',
             'order.professional.user',
-            'order.items',
             'client',
-            'intent',
             'transactions',
             'events',
-            'receipt',
             'commission',
         ]);
     }
