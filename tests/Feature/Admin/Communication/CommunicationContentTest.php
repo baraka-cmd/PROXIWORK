@@ -11,6 +11,9 @@ use App\Models\Profile;
 use App\Models\PublicPage;
 use App\Models\User;
 use App\Services\Notification\NotificationTemplateRenderer;
+use Database\Seeders\RbacSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class CommunicationContentTest extends TestCase
 {
