@@ -83,7 +83,7 @@ class FaqController extends Controller
     {
         abort_unless($article->status !== 'archived', 409);
         $data = $this->validated($request);
-        $data['slug'] = Str::slug($data['slug'] ?: $data['question']).'-'.Str::lower(Str::random(5));
+        $data['slug'] = Str::slug(($data['slug'] ?? '') ?: $data['question']).'-'.Str::lower(Str::random(5));
 
         DB::transaction(function () use ($article, $data, $request): void {
             $locked = FaqArticle::query()->lockForUpdate()->findOrFail($article->id);
