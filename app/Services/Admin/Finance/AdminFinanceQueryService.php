@@ -122,6 +122,7 @@ class AdminFinanceQueryService
             'confirmed_payments' => $confirmedPayments,
             'commissions' => $commissions,
             'wallets' => $wallets,
+            'charts' => $this->trendCharts($from, $to),
             'alerts' => [
                 'unknown_transactions' => $unknownTransactions,
                 'payments_missing_commission' => $missingCommissionCount,
@@ -312,6 +313,80 @@ class AdminFinanceQueryService
             : CarbonImmutable::now()->endOfDay();
 
         return [$from, $to];
+    }
+
+    private function trendCharts(CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        // Keep the chart bounded even when an administrator selects a long
+        // reporting period. The KPI totals above still use the full period.
+        $chartFrom = $to->startOfDay()->subDays(89);
+        if ($chartFrom->lt($from->startOfDay())) {
+            $chartFrom = $from->startOfDay();
+        }
+
+        $paymentRows = Payment::query()
+            ->where('status', PaymentStatus::SUCCEEDED->value)
+            ->whereNotNull('paid_at')
+            ->whereBetween('paid_at', [$chartFrom, $to])
+            ->selectRaw('DATE(paid_at) AS bucket, currency, SUM(amount) AS total')
+            ->groupBy('bucket', 'currency')
+            ->get();
+
+        $commissionRows = Commission::query()
+            ->where('status', CommissionStatus::POSTED->value)
+            ->whereBetween('posted_at', [$chartFrom, $to])
+            ->selectRaw('DATE(posted_at) AS bucket, currency, SUM(commission_amount) AS total')
+            ->groupBy('bucket', 'currency')
+            ->get();
+
+        $paymentValues = [];
+        $commissionValues = [];
+        $currencies = [];
+
+        foreach ($paymentRows as $row) {
+            $currency = (string) $row->currency;
+            $currencies[$currency] = true;
+            $paymentValues[$currency][(string) $row->bucket] = (float) $row->total;
+        }
+
+        foreach ($commissionRows as $row) {
+            $currency = (string) $row->currency;
+            $currencies[$currency] = true;
+            $commissionValues[$currency][(string) $row->bucket] = (float) $row->total;
+        }
+
+        $labels = [];
+        $dateKeys = [];
+        $cursor = $chartFrom;
+        $lastDay = $to->startOfDay();
+
+        while ($cursor->lte($lastDay)) {
+            $dateKeys[] = $cursor->toDateString();
+            $labels[] = $cursor->format('d/m');
+            $cursor = $cursor->addDay();
+        }
+
+        $series = [];
+        foreach (array_keys($currencies) as $currency) {
+            $series[$currency] = [
+                'payments' => array_map(
+                    static fn (string $date): float => (float) ($paymentValues[$currency][$date] ?? 0),
+                    $dateKeys,
+                ),
+                'commissions' => array_map(
+                    static fn (string $date): float => (float) ($commissionValues[$currency][$date] ?? 0),
+                    $dateKeys,
+                ),
+            ];
+        }
+
+        return [
+            'labels' => $labels,
+            'currencies' => $series,
+            'from' => $chartFrom->toDateString(),
+            'to' => $lastDay->toDateString(),
+            'is_limited' => $chartFrom->gt($from->startOfDay()),
+        ];
     }
 
     private function sumByCurrency(Builder $query, string $column): array
