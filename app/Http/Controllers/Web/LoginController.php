@@ -49,6 +49,8 @@ class LoginController
         if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE) {
             $this->auditLogs->recordAuthenticationFailure($credentials['email'], $request, $user, 'account_inactive');
             Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
             throw ValidationException::withMessages([
                 'email' => 'Impossible de vous connecter avec ce compte.',
