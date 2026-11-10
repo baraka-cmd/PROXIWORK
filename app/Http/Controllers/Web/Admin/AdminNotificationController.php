@@ -93,6 +93,6 @@ class AdminNotificationController extends Controller
     {
         return DB::table('notifications')
             ->join('users', 'users.id', '=', 'notifications.notifiable_id')
-            ->where('notifications.notifiable_type', (new User())->getMorphClass());
+            ->where('notifications.notifiable_type', (new User)->getMorphClass());
     }
 }
