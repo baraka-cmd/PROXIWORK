@@ -196,8 +196,12 @@ class AdminAnalyticsService
     {
         // Only public professional base locations are used. Client addresses,
         // address snapshots and precise GPS coordinates are deliberately excluded.
-        $grouped = ProfessionalProfile::query()
+        $visibleProfessionalIds = ProfessionalProfile::query()
             ->publiclyVisible()
+            ->select('professional_profiles.id');
+
+        $grouped = DB::table('professional_profiles')
+            ->whereIn('professional_profiles.id', $visibleProfessionalIds)
             ->leftJoin('service_requests', function ($join) use ($from, $to): void {
                 $join->on('service_requests.professional_id', '=', 'professional_profiles.id')
                     ->where('service_requests.status', '<>', ServiceRequestStatus::DRAFT->value)
