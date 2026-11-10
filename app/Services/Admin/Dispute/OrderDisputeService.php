@@ -199,6 +199,34 @@ class OrderDisputeService
         });
     }
 
+    public function reopen(OrderDispute $dispute, string $reason, User $actor, Request $request): OrderDispute
+    {
+        return DB::transaction(function () use ($dispute, $reason, $actor, $request): OrderDispute {
+            $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
+            if ($locked->status !== OrderDisputeStatus::CLOSED) {
+                throw ValidationException::withMessages(['status' => 'Seul un dossier clôturé peut être rouvert.']);
+            }
+            $locked->update([
+                'status' => OrderDisputeStatus::REOPENED,
+                'resolved_by' => null,
+                'resolved_at' => null,
+                'closed_at' => null,
+                'resolution_code' => null,
+                'resolution_note' => null,
+            ]);
+            $locked->events()->create([
+                'actor_id' => $actor->getKey(),
+                'event_type' => 'reopened',
+                'from_status' => OrderDisputeStatus::CLOSED->value,
+                'to_status' => OrderDisputeStatus::REOPENED->value,
+                'reason' => $reason,
+                'created_at' => now(),
+            ]);
+            $this->audit->record('order_dispute.reopened', $locked, $actor, ['reason' => $reason], $request);
+            return $locked->fresh(['events.actor', 'assignee']);
+        });
+    }
+
     public function decide(OrderDispute $dispute, string $resolutionCode, string $resolutionNote, User $actor, Request $request): OrderDispute
     {
         return DB::transaction(function () use ($dispute, $resolutionCode, $resolutionNote, $actor, $request): OrderDispute {
