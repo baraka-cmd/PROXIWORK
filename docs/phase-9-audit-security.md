@@ -8,7 +8,7 @@ Les sept points sont regroupés autour de `audit_logs`, table déjà présente d
 - **63 — Connexions :** les échecs de connexion sont journalisés sans conserver l'adresse e-mail en clair ; les connexions et déconnexions déjà tracées restent dans le même journal.
 - **64 — Événements de sécurité :** événements sécurité/authentification consultables dans le centre Admin.
 - **65 — Actions sensibles :** métadonnées assainies et comparaison des champs autorisés ; les actions administratives existantes sont projetées dans `sensitive_interventions`.
-- **66 — Sessions :** suivi séparé des sessions web Laravel et des jetons Sanctum. Les identifiants de session web sont chiffrés au repos et leur empreinte HMAC est utilisée pour l'indexation. La révocation supprime réellement la session database ou le jeton Sanctum.
+- **66 — Sessions :** suivi séparé des sessions web Laravel et des jetons Sanctum. Les identifiants de session web sont chiffrés au repos et leur empreinte HMAC est utilisée pour l'indexation. La révocation supprime réellement la session via le handler Laravel configuré (file/database/redis selon son support de destruction) ou le jeton Sanctum.
 - **67 — Anomalies :** première règle déterministe : au moins dix échecs de connexion dans une fenêtre de cinq minutes, regroupés par IP ; l'alerte est dédupliquée par empreinte et reste à examiner humainement.
 - **68 — Interventions :** les actions `admin.*` existantes sont reliées à une table dédiée, sans remplacer les historiques de paiements, remboursements, retraits ou le registre du portefeuille.
 
