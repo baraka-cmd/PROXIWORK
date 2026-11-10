@@ -99,6 +99,7 @@ class InstitutionalDocumentController extends Controller
     public function publish(Request $request, InstitutionalDocumentVersion $version, AuditLogService $audit): RedirectResponse
     {
         abort_unless($version->status === 'approved', 409, 'Seule une version approuvée peut être publiée.');
+        abort_unless($version->version === $version->document()->firstOrFail()->versions()->max('version'), 409, 'Une version plus récente existe.');
         DB::transaction(function () use ($version): void {
             $locked = InstitutionalDocumentVersion::query()->lockForUpdate()->findOrFail($version->id);
             abort_unless($locked->status === 'approved', 409);
