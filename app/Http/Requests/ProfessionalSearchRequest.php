@@ -25,7 +25,7 @@ class ProfessionalSearchRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:120'],
             'category' => ['nullable', 'string', 'max:180', Rule::exists('categories', 'slug')->where('status', 'active')],
             'skills' => ['sometimes', 'array', 'max:10'],
-            'skills.*' => ['string', 'max:180', 'distinct', Rule::exists('skills', 'slug')->where('status', 'active')],
+            'skills.*' => ['string', 'max:180', 'distinct', Rule::exists('skills', 'slug')],
             'skills_mode' => ['sometimes', Rule::in(['any', 'all'])],
             'skill' => ['nullable', 'string', 'max:180', Rule::exists('skills', 'slug')->where('status', 'active')],
             'city' => ['nullable', 'string', 'max:120'],
