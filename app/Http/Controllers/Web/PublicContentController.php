@@ -10,12 +10,53 @@ use App\Models\CmsPage;
 use App\Models\FaqArticle;
 use App\Models\InstitutionalDocument;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PublicContentController extends Controller
 {
+    public function sitemap(): Response
+    {
+        $urls = collect([
+            ['loc' => route('home'), 'lastmod' => now()->toAtomString()],
+            ['loc' => route('public.announcements'), 'lastmod' => now()->toAtomString()],
+            ['loc' => route('public.faq'), 'lastmod' => now()->toAtomString()],
+        ]);
+
+        CmsPage::query()->published()->where('is_indexable', true)->get()->each(function (CmsPage $page) use ($urls): void {
+            $urls->push([
+                'loc' => $page->canonical_url ?: route('public.pages.show', $page->slug),
+                'lastmod' => ($page->updated_at ?? $page->published_at)->toAtomString(),
+            ]);
+        });
+
+        FaqArticle::query()->published()->get()->each(function (FaqArticle $article) use ($urls): void {
+            $urls->push([
+                'loc' => route('public.faq').'#faq-'.$article->id,
+                'lastmod' => ($article->updated_at ?? $article->published_at)->toAtomString(),
+            ]);
+        });
+
+        InstitutionalDocument::query()->where('status', 'published')->get()->each(function (InstitutionalDocument $document) use ($urls): void {
+            $urls->push([
+                'loc' => route('public.legal.show', $document->slug),
+                'lastmod' => $document->updated_at->toAtomString(),
+            ]);
+        });
+
+        Announcement::query()->visible()->where('placement', 'announcements')->get()->each(function (Announcement $announcement) use ($urls): void {
+            $urls->push([
+                'loc' => route('public.announcements').'#announcement-'.$announcement->id,
+                'lastmod' => ($announcement->updated_at ?? $announcement->published_at)->toAtomString(),
+            ]);
+        });
+
+        return response()->view('public.content.sitemap', ['urls' => $urls])
+            ->header('Content-Type', 'application/xml; charset=UTF-8');
+    }
+
     public function announcements(): View
     {
         return view('public.content.announcements', [
