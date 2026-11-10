@@ -98,6 +98,7 @@ class AuditLogService
             'subject_type' => $subject?->getMorphClass(),
             'subject_id' => $subject?->getKey(),
             'ip_address' => $request?->ip(),
+            'identifier_hash' => is_string($safeMetadata['identifier_hash'] ?? null) ? $safeMetadata['identifier_hash'] : null,
             'user_agent' => $request?->userAgent() === null ? null : mb_substr($request->userAgent(), 0, 1000),
             'metadata' => $safeMetadata,
         ]);
