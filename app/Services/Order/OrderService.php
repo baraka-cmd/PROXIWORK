@@ -22,7 +22,6 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-
     public function createFromAcceptedQuotation(Quotation $quotation, User $actor): Order
     {
         return DB::transaction(function () use ($quotation, $actor): Order {
@@ -109,7 +108,7 @@ class OrderService
             }
 
             $now = now();
-            if (! Currency::query()->whereKey(strtoupper($acceptedOffer->currency))->where('is_active', true)->exists()) {
+            if (!Currency::query()->whereKey(strtoupper($acceptedOffer->currency))->where('is_active', true)->exists()) {
                 throw ValidationException::withMessages([
                     'currency' => 'La devise de cette offre est inactive sur la plateforme.',
                 ]);
