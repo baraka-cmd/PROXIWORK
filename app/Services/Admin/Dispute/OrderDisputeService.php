@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Coordinates the lifecycle and audit trail of order-bound commercial disputes.
+ */
 class OrderDisputeService
 {
 
