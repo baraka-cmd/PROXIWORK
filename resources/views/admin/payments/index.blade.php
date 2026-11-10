@@ -82,7 +82,7 @@
                     @forelse($payments as $payment)
                         <tr>
                             <td><a href="{{ route('admin.payments.show', $payment) }}">PAY-{{ $payment->id }}</a><small>{{ $payment->created_at?->format('d/m/Y H:i') }}</small></td>
-                            <td><a href="{{ route('admin.orders.show', $payment->order) }}">{{ $payment->order?->order_number ?? '—' }}</a></td>
+                            <td>@if(auth()->user()?->hasPermissionTo('orders.view'))<a href="{{ route('admin.orders.show', $payment->order) }}">{{ $payment->order?->order_number ?? '—' }}</a>@else{{ $payment->order?->order_number ?? '—' }}@endif</td>
                             <td>{{ $payment->client?->name ?? '—' }}</td>
                             <td>{{ $payment->order?->professional?->user?->name ?? '—' }}</td>
                             <td>{{ number_format((float) $payment->amount, 2, ',', ' ') }} {{ $payment->currency }}</td>
