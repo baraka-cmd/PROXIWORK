@@ -54,7 +54,7 @@
                     <div class="admin-action-row">
                         <form method="POST" action="{{ route('admin.service-requests.cancel', $request) }}" data-confirm="Annuler administrativement cette demande ?">
                             @csrf
-                            <input type="hidden" name="reason" value="Décision administrative">
+                            <label class="admin-field"><span>Motif obligatoire</span><textarea name="reason" rows="3" minlength="10" maxlength="2000" required>{{ old('reason') }}</textarea></label>
                             <button class="button button--secondary" type="submit">Annuler</button>
                         </form>
 
@@ -98,7 +98,7 @@
     </div>
 
         @if ($request->quotation)
-            <section class="admin-card" style="margin-top:1rem">
+            <section class="admin-card admin-request-quotation">
                 <div class="admin-card__header">
                     <div>
                         <span class="admin-card__eyebrow">Négociation commerciale</span>
