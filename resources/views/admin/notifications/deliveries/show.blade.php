@@ -12,7 +12,7 @@
         <a href="{{ route('admin.notifications.deliveries.index') }}">Retour à l’historique</a>
     </div>
 
-    @if($delivery->status === 'FAILED' && $delivery->attempts < 5 && auth()->user()?->hasPermissionTo('admin.notifications.retry'))
+    @if($delivery->status === 'FAILED' && $delivery->attempts < 5 && $retryable && auth()->user()?->hasPermissionTo('admin.notifications.retry'))
         <section class="admin-card"><h2>Relancer la livraison</h2><p>Une nouvelle tentative est possible car le résultat est connu comme échoué. Les états incertains ne sont jamais relancés automatiquement.</p><form method="POST" action="{{ route('admin.notifications.deliveries.retry', $delivery) }}">@csrf<button type="submit">Relancer une tentative</button></form></section>
     @endif
     <section class="admin-card">
