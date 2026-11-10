@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class NotificationTemplate extends Model
 {
-    protected $fillable = ['name','code','event_key','category','channel','locale','subject','title','body','status','version','created_by','updated_by','published_at'];
+    protected $fillable = ['name', 'code', 'event_key', 'category', 'channel', 'locale', 'subject', 'title', 'body', 'status', 'version', 'created_by', 'updated_by', 'published_at'];
 
     protected function casts(): array
     {
