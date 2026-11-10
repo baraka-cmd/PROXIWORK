@@ -37,6 +37,7 @@ use App\Http\Controllers\Web\Professional\ServiceRealizationController as Profes
 use App\Http\Controllers\Web\Professional\ServiceRequestController as ProfessionalServiceRequestController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
+use App\Http\Controllers\Web\PublicContentController;
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\PublicServiceRealizationController;
 use App\Http\Controllers\Web\RbacDashboardController;
@@ -47,6 +48,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomePageController::class, 'index'])->name('home');
+Route::get('/faq', [PublicContentController::class, 'faq'])->name('public.faq');
+Route::get('/announcements', [PublicContentController::class, 'announcements'])->name('public.announcements');
+Route::get('/pages/{slug}', [PublicContentController::class, 'page'])->where('slug', '[A-Za-z0-9_-]+')->name('public.pages.show');
+Route::get('/institutional/{key}', [PublicContentController::class, 'institutional'])->where('key', '[A-Za-z0-9_-]+')->name('public.institutional.show');
 Route::get('/search', [PublicSearchController::class, 'search'])->name('public.search');
 Route::get('/service-realizations/{realization}/image', [PublicServiceRealizationController::class, 'image'])->name('public.service-realizations.image');
 Route::get('/services/{service:slug}', [PublicSearchController::class, 'service'])->name('public.services.show');

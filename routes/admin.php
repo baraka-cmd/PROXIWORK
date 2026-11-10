@@ -5,7 +5,11 @@ declare(strict_types=1);
 use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
+use App\Http\Controllers\Web\Admin\CommunicationController;
+use App\Http\Controllers\Web\Admin\ContentManagementController;
+use App\Http\Controllers\Web\Admin\HomepageSlideController;
 use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\NotificationAdminController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
@@ -183,3 +187,63 @@ Route::middleware(['auth', 'active.account', 'permission:reports.manage'])->grou
     Route::post('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
     Route::post('reports/{report}/dismiss', [ReportController::class, 'dismiss'])->name('reports.dismiss');
 });
+
+Route::middleware(['auth', 'active.account', 'permission:notifications.view'])->group(function (): void {
+    Route::get('communication/notifications', [NotificationAdminController::class, 'index'])->name('communication.notifications');
+    Route::get('communication/notifications/{delivery}', [NotificationAdminController::class, 'show'])->name('communication.notifications.show');
+});
+Route::post('communication/notifications/{delivery}/retry', [NotificationAdminController::class, 'retry'])->middleware(['auth', 'active.account', 'permission:notifications.retry', 'throttle:10,1'])->name('communication.notifications.retry');
+
+Route::middleware(['auth', 'active.account', 'permission:notification_templates.view'])->group(function (): void {
+    Route::get('communication/templates', [NotificationAdminController::class, 'templates'])->name('communication.templates');
+});
+Route::post('communication/templates', [NotificationAdminController::class, 'storeTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.manage', 'throttle:10,1'])->name('communication.templates.store');
+Route::put('communication/templates/{template}', [NotificationAdminController::class, 'updateTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.manage', 'throttle:10,1'])->name('communication.templates.update');
+Route::post('communication/templates/{template}/versions/{version}/restore', [NotificationAdminController::class, 'restoreTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.manage'])->name('communication.templates.restore');
+Route::post('communication/templates/{template}/activate', [NotificationAdminController::class, 'activateTemplate'])->middleware(['auth', 'active.account', 'permission:notification_templates.publish'])->name('communication.templates.activate');
+
+Route::middleware(['auth', 'active.account', 'permission:announcements.view'])->group(function (): void {
+    Route::get('communication/announcements', [CommunicationController::class, 'announcements'])->name('communication.announcements');
+});
+Route::post('communication/announcements', [CommunicationController::class, 'storeAnnouncement'])->middleware(['auth', 'active.account', 'permission:announcements.manage'])->name('communication.announcements.store');
+Route::put('communication/announcements/{announcement}', [CommunicationController::class, 'updateAnnouncement'])->middleware(['auth', 'active.account', 'permission:announcements.manage'])->name('communication.announcements.update');
+Route::post('communication/announcements/{announcement}/publish', [CommunicationController::class, 'publishAnnouncement'])->middleware(['auth', 'active.account', 'permission:announcements.publish'])->name('communication.announcements.publish');
+Route::post('communication/announcements/{announcement}/archive', [CommunicationController::class, 'archiveAnnouncement'])->middleware(['auth', 'active.account', 'permission:announcements.archive'])->name('communication.announcements.archive');
+
+Route::middleware(['auth', 'active.account', 'permission:communications.view'])->group(function (): void {
+    Route::get('communication/campaigns', [CommunicationController::class, 'campaigns'])->name('communication.campaigns');
+});
+Route::post('communication/campaigns', [CommunicationController::class, 'storeCampaign'])->middleware(['auth', 'active.account', 'permission:communications.manage', 'throttle:5,1'])->name('communication.campaigns.store');
+Route::post('communication/campaigns/{campaign}/dispatch', [CommunicationController::class, 'dispatchCampaign'])->middleware(['auth', 'active.account', 'permission:communications.publish', 'throttle:5,1'])->name('communication.campaigns.dispatch');
+
+Route::middleware(['auth', 'active.account', 'permission:public_pages.view'])->group(function (): void {
+    Route::get('content/pages', [ContentManagementController::class, 'pages'])->name('content.pages');
+});
+Route::post('content/pages', [ContentManagementController::class, 'storePage'])->middleware(['auth', 'active.account', 'permission:public_pages.manage'])->name('content.pages.store');
+Route::put('content/pages/{page}', [ContentManagementController::class, 'updatePage'])->middleware(['auth', 'active.account', 'permission:public_pages.manage'])->name('content.pages.update');
+Route::post('content/pages/{page}/versions/{version}/restore', [ContentManagementController::class, 'restorePage'])->middleware(['auth', 'active.account', 'permission:public_pages.manage'])->name('content.pages.restore');
+Route::post('content/pages/{page}/publish', [ContentManagementController::class, 'publishPage'])->middleware(['auth', 'active.account', 'permission:public_pages.publish'])->name('content.pages.publish');
+
+Route::middleware(['auth', 'active.account', 'permission:faq.view'])->group(function (): void {
+    Route::get('content/faq', [ContentManagementController::class, 'faq'])->name('content.faq');
+});
+Route::post('content/faq/categories', [ContentManagementController::class, 'storeFaqCategory'])->middleware(['auth', 'active.account', 'permission:faq.manage'])->name('content.faq.categories.store');
+Route::post('content/faq', [ContentManagementController::class, 'storeFaq'])->middleware(['auth', 'active.account', 'permission:faq.manage'])->name('content.faq.store');
+Route::put('content/faq/{item}', [ContentManagementController::class, 'updateFaq'])->middleware(['auth', 'active.account', 'permission:faq.manage'])->name('content.faq.update');
+Route::post('content/faq/{item}/toggle', [ContentManagementController::class, 'toggleFaq'])->middleware(['auth', 'active.account', 'permission:faq.manage'])->name('content.faq.toggle');
+
+Route::middleware(['auth', 'active.account', 'permission:institutional_content.view'])->group(function (): void {
+    Route::get('content/institutional', [ContentManagementController::class, 'institutional'])->name('content.institutional');
+});
+Route::post('content/institutional', [ContentManagementController::class, 'storeInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.manage'])->name('content.institutional.store');
+Route::put('content/institutional/{content}', [ContentManagementController::class, 'updateInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.manage'])->name('content.institutional.update');
+Route::post('content/institutional/{content}/versions/{version}/restore', [ContentManagementController::class, 'restoreInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.manage'])->name('content.institutional.restore');
+Route::post('content/institutional/{content}/publish', [ContentManagementController::class, 'publishInstitutional'])->middleware(['auth', 'active.account', 'permission:institutional_content.publish'])->name('content.institutional.publish');
+
+Route::middleware(['auth', 'active.account', 'permission:homepage_slides.view'])->group(function (): void {
+    Route::get('content/homepage-slides', [HomepageSlideController::class, 'index'])->name('content.homepage-slides');
+});
+Route::post('content/homepage-slides', [HomepageSlideController::class, 'store'])->middleware(['auth', 'active.account', 'permission:homepage_slides.manage'])->name('content.homepage-slides.store');
+Route::put('content/homepage-slides/{slide}', [HomepageSlideController::class, 'update'])->middleware(['auth', 'active.account', 'permission:homepage_slides.manage'])->name('content.homepage-slides.update');
+Route::post('content/homepage-slides/{slide}/publish', [HomepageSlideController::class, 'publish'])->middleware(['auth', 'active.account', 'permission:homepage_slides.publish'])->name('content.homepage-slides.publish');
+Route::post('content/homepage-slides/{slide}/archive', [HomepageSlideController::class, 'archive'])->middleware(['auth', 'active.account', 'permission:homepage_slides.manage'])->name('content.homepage-slides.archive');

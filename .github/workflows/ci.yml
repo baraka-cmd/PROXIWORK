@@ -90,6 +90,9 @@ jobs:
           tests/Feature/Admin/ReportControllerTest.php
           tests/Feature/Support/SupportTicketTest.php
 
+      - name: Run Phase 7 communication and content regression tests
+        run: vendor/bin/phpunit tests/Feature/Admin/Communication/CommunicationContentTest.php
+
       - name: Run test suite
         run: vendor/bin/phpunit
 

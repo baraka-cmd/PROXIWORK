@@ -128,6 +128,10 @@
                     <span>PROXIWORK</span>
                 </a>
                 <p>Une plateforme pour connecter les clients aux professionnels de confiance.</p>
+                <nav class="public-footer__links" aria-label="Informations publiques">
+                    <a href="{{ route('public.faq') }}">FAQ</a>
+                    <a href="{{ route('public.announcements') }}">Annonces</a>
+                </nav>
                 <small>&copy; {{ now()->year }} PROXIWORK. Tous droits réservés.</small>
             </div>
         </footer>
