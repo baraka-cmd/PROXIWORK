@@ -12,7 +12,6 @@ use App\Models\PaymentRefund;
 use App\Models\PaymentTransaction;
 use App\Models\User;
 use App\Notifications\PaymentRefundStatusChanged;
-use App\Services\Payment\PaymentEventService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

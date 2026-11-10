@@ -29,16 +29,18 @@
             @if($refund->review_note)<div><dt>Note administrative</dt><dd>{{ $refund->review_note }}</dd></div>@endif
         </dl>
     </section>
-    @if($refund->status === \App\Enums\PaymentRefundStatus::REQUESTED)
+    @if($refund->status === \App\Enums\PaymentRefundStatus::REQUESTED && auth()->user()?->hasPermissionTo('refunds.manage'))
     <section class="admin-card"><h3>Prendre une décision</h3><div class="admin-financial-actions">
         <form method="POST" action="{{ route('admin.finance.refunds.processing',$refund) }}">@csrf<h4>Prendre en charge</h4><label class="admin-field"><span>Note d'examen obligatoire</span><textarea name="note" minlength="10" maxlength="2000" required></textarea></label><button class="button button--primary" type="submit">Démarrer l'examen</button></form>
         <form method="POST" action="{{ route('admin.finance.refunds.reject',$refund) }}">@csrf<h4>Refuser la demande</h4><label class="admin-field"><span>Motif du refus obligatoire</span><textarea name="note" minlength="10" maxlength="2000" required></textarea></label><button class="button button--danger" type="submit">Refuser</button></form>
     </div></section>
-    @elseif($refund->status === \App\Enums\PaymentRefundStatus::PROCESSING)
+    @elseif($refund->status === \App\Enums\PaymentRefundStatus::PROCESSING && auth()->user()?->hasPermissionTo('refunds.execute'))
     <section class="admin-card"><h3>Enregistrer le résultat vérifié</h3><div class="admin-financial-actions">
         <form method="POST" action="{{ route('admin.finance.refunds.succeeded',$refund) }}">@csrf<h4>Confirmer le remboursement</h4><label class="admin-field"><span>Référence externe obligatoire</span><input name="provider_reference" maxlength="191" required></label><label class="admin-field"><span>Preuve et note de rapprochement</span><textarea name="note" minlength="10" maxlength="2000" required></textarea></label><button class="button button--primary" type="submit">Confirmer le résultat</button></form>
         <form method="POST" action="{{ route('admin.finance.refunds.failed',$refund) }}">@csrf<h4>Confirmer un échec</h4><label class="admin-field"><span>Référence externe éventuelle</span><input name="provider_reference" maxlength="191"></label><label class="admin-field"><span>Motif vérifié</span><textarea name="note" minlength="10" maxlength="2000" required></textarea></label><button class="button button--danger" type="submit">Enregistrer l'échec</button></form>
     </div></section>
+    @elseif($refund->status->isOpen())
+    <div class="admin-alert" role="status">Vous disposez d’un accès en consultation. Les décisions de remboursement nécessitent une permission financière distincte.</div>
     @endif
     <section class="admin-card"><h3>Transaction initiale confirmée</h3>
         @forelse($refund->payment?->transactions ?? [] as $transaction)
