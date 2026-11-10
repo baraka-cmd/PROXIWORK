@@ -15,7 +15,7 @@ use App\Services\Review\ReviewService;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Admin\Professional\AdminProfessionalService;
-use App\Services\Admin\Service\AdminServiceManagementService;
+use App\Services\ProfessionalService\ServiceModerationManager;
 use App\Services\Admin\User\AdminUserService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -29,7 +29,7 @@ class AdminReportManagementService
         private readonly AuditLogService $auditLogService,
         private readonly AdminUserService $userService,
         private readonly AdminProfessionalService $professionalService,
-        private readonly AdminServiceManagementService $serviceService,
+        private readonly ServiceModerationManager $serviceModerationManager,
         private readonly ReviewService $reviewService,
     ) {}
 
@@ -211,7 +211,7 @@ class AdminReportManagementService
                 ModerationActionType::WARNING => null,
                 ModerationActionType::HIDE_REVIEW => $this->reviewService->moderate($target->target, $actor, ReviewStatus::HIDDEN, $note ?? $reasonCode ?? 'Avis masqué après examen du signalement.', $request),
                 ModerationActionType::HIDE_REVIEW_RESPONSE => $this->reviewService->moderateResponse($target->target, $actor, ReviewStatus::HIDDEN, $note ?? $reasonCode ?? 'Réponse masquée après examen du signalement.', $request),
-                ModerationActionType::UNPUBLISH_SERVICE => $this->serviceService->unpublish($target->target, $actor),
+                ModerationActionType::UNPUBLISH_SERVICE => $this->serviceModerationManager->moderate($target->target, $actor, 'hide', $note ?? 'Service masqué après examen du signalement.'),
                 ModerationActionType::SUSPEND_USER => $this->userService->suspend($target->target, $actor, $request),
                 ModerationActionType::SUSPEND_PROFESSIONAL => $this->professionalService->suspend($target->target, $actor, $request),
             };
@@ -278,7 +278,7 @@ class AdminReportManagementService
         $permission = match ($actionType) {
             ModerationActionType::WARNING => 'reports.manage',
             ModerationActionType::HIDE_REVIEW, ModerationActionType::HIDE_REVIEW_RESPONSE => 'reviews.moderate',
-            ModerationActionType::UNPUBLISH_SERVICE => 'services.manage',
+            ModerationActionType::UNPUBLISH_SERVICE => 'admin.services.moderate',
             ModerationActionType::SUSPEND_USER => 'admin.users.suspend',
             ModerationActionType::SUSPEND_PROFESSIONAL => 'admin.professionals.suspend',
         };
