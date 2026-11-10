@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 @section('title', 'Campagnes ciblées')
 @section('content')
-<div class="admin-page"><h1>Communication ciblée</h1><p>Les campagnes envoient des notifications internes aux comptes actifs et vérifiés. Les e-mails, SMS et push promotionnels ne sont pas activés par défaut.</p>
+<div class="admin-page"><h1>Communication ciblée</h1><p>Les campagnes envoient des notifications internes aux comptes actifs ciblés. Les préférences de communication optionnelle restent distinctes des alertes transactionnelles. Les e-mails, SMS et push promotionnels ne sont pas activés par défaut.</p>
 <section class="admin-card"><h2>Segments enregistrés</h2><form method="POST" action="{{ route('admin.communication.segments.store') }}">@csrf<label>Nom du segment <input name="name" maxlength="120" required></label><label>Audience <select name="audience"><option value="all">Tous</option><option value="client">Clients</option><option value="professional">Professionnels</option></select></label><button>Enregistrer le segment</button></form><ul>@foreach($segments as $segment)<li>{{ $segment->name }}</li>@endforeach</ul></section>
 <section class="admin-card"><h2>Créer une campagne</h2><form method="POST" action="{{ route('admin.communication.campaigns.store') }}">@csrf
 <label>Nom interne <input name="name" maxlength="160" required></label><label>Titre affiché <input name="subject" maxlength="180" required></label><label>Message <textarea name="body" maxlength="10000" rows="5" required></textarea></label>
