@@ -6,6 +6,7 @@ namespace Tests\Feature\Notification;
 
 use App\Jobs\SendCommunicationCampaign;
 use App\Models\CommunicationCampaign;
+use App\Models\CommunicationSegment;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,6 +16,45 @@ use Tests\TestCase;
 class CommunicationCampaignDeliveryTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_admin_freezes_recipients_from_a_saved_segment_before_campaign_queueing(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $client = User::factory()->create(['email_verified_at' => now()]);
+        $client->assignRole('client');
+        $segment = CommunicationSegment::query()->create([
+            'name' => 'Clients actifs',
+            'rules' => ['audience' => 'client', 'account_status' => 'active'],
+            'created_by' => $admin->id,
+        ]);
+        $campaign = CommunicationCampaign::query()->create([
+            'name' => 'Information ciblée',
+            'subject' => 'Mise à jour',
+            'body' => 'Une information est disponible.',
+            'channel' => 'database',
+            'audience_rules' => $segment->rules,
+            'communication_segment_id' => $segment->id,
+            'status' => 'draft',
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.communication.campaigns.dispatch', $campaign))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('communication_campaigns', [
+            'id' => $campaign->id,
+            'status' => 'queued',
+            'recipient_count' => 1,
+        ]);
+        $this->assertDatabaseHas('communication_campaign_recipients', [
+            'campaign_id' => $campaign->id,
+            'user_id' => $client->id,
+            'status' => 'pending',
+        ]);
+    }
 
     public function test_scheduler_queues_campaigns_when_their_scheduled_time_is_due(): void
     {
