@@ -6,7 +6,7 @@ namespace App\Jobs\Notifications;
 
 use App\Models\CommunicationCampaign;
 use App\Models\NotificationDelivery;
-use App\Models\User;
+use App\Services\Admin\Communication\CommunicationAudienceService;
 use App\Services\Notification\NotificationTemplateRenderer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,7 +27,7 @@ class DispatchCommunicationCampaign implements ShouldQueue
 
     public function __construct(public readonly int $campaignId) {}
 
-    public function handle(NotificationTemplateRenderer $renderer): void
+    public function handle(NotificationTemplateRenderer $renderer, CommunicationAudienceService $audienceService): void
     {
         $campaign = CommunicationCampaign::query()->findOrFail($this->campaignId);
         if (in_array($campaign->status, ['dispatching', 'scheduled'], true) === false) {
@@ -36,14 +36,7 @@ class DispatchCommunicationCampaign implements ShouldQueue
 
         $campaign->update(['status' => 'dispatching', 'started_at' => $campaign->started_at ?? now()]);
         $audience = $campaign->audience ?? [];
-        $role = $audience['role'] ?? 'all';
-
-        $users = User::query()
-            ->where('account_status', 'active')
-            ->whereNotNull('email_verified_at')
-            ->when(in_array($role, ['client', 'professional'], true), fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $role)))
-            ->when(($audience['recent_days'] ?? null) !== null, fn ($q) => $q->where('created_at', '>=', now()->subDays((int) $audience['recent_days'])))
-            ->orderBy('id');
+        $users = $audienceService->query($audience)->orderBy('id');
 
         $created = 0;
         $failed = 0;

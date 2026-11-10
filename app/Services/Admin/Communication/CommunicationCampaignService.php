@@ -6,7 +6,7 @@ namespace App\Services\Admin\Communication;
 
 use App\Jobs\Notifications\DispatchCommunicationCampaign;
 use App\Models\CommunicationCampaign;
-use App\Models\User;
+use App\Services\Admin\Communication\CommunicationAudienceService;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,18 +14,12 @@ use Illuminate\Support\Str;
 
 class CommunicationCampaignService
 {
-    public function __construct(private readonly AuditLogService $audit) {}
+    public function __construct(private readonly AuditLogService $audit, private readonly CommunicationAudienceService $audience) {}
 
     public function create(array $data, Request $request): CommunicationCampaign
     {
         $audience = $data['audience'] ?? ['role' => 'all'];
-        $role = $audience['role'] ?? 'all';
-        $audienceCount = User::query()
-            ->where('account_status', 'active')
-            ->whereNotNull('email_verified_at')
-            ->when(in_array($role, ['client', 'professional'], true), fn ($q) => $q->whereHas('roles', fn ($r) => $r->where('name', $role)))
-            ->when(($audience['recent_days'] ?? null) !== null, fn ($q) => $q->where('created_at', '>=', now()->subDays((int) $audience['recent_days'])))
-            ->count();
+        $audienceCount = $this->audience->count($audience);
 
         return DB::transaction(function () use ($data, $request, $audience, $audienceCount): CommunicationCampaign {
             $campaign = CommunicationCampaign::create([
