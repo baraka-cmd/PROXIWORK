@@ -27,7 +27,7 @@ class AdminAuditService
             });
         }
 
-        foreach (['user_id', 'action', 'subject_type', 'subject_id', 'ip_address'] as $filter) {
+        foreach (['user_id', 'action', 'category', 'outcome', 'severity', 'subject_type', 'subject_id', 'ip_address'] as $filter) {
             if (($value = $filters[$filter] ?? null) !== null && $value !== '') {
                 $query->where($filter, $value);
             }
