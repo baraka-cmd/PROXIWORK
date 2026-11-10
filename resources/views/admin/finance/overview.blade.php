@@ -27,7 +27,7 @@
     </div>
 
     <section class="admin-finance__section">
-        <div class="admin-finance__section-heading"><div><h2>Activité des paiements</h2><p>Les montants ci-dessous ne comprennent que les paiements confirmés et datés.</p></div><a href="{{ route('admin.payments.index') }}">Consulter les paiements</a></div>
+        <div class="admin-finance__section-heading"><div><h2>Activité des paiements</h2><p>Les montants ci-dessous ne comprennent que les paiements confirmés et datés.</p></div>@if(auth()->user()?->hasPermissionTo('payments.view'))<a href="{{ route('admin.payments.index') }}">Consulter les paiements</a>@endif</div>
         <div class="admin-finance__kpis">
             <article class="admin-finance__kpi"><span>Paiements initiés</span><strong>{{ number_format($overview['payment_statuses']['initiated'] ?? 0) }}</strong></article>
             <article class="admin-finance__kpi"><span>Paiements en attente</span><strong>{{ number_format(($overview['payment_statuses']['pending'] ?? 0) + ($overview['payment_statuses']['processing'] ?? 0)) }}</strong></article>
@@ -44,7 +44,7 @@
     </section>
 
     <section class="admin-finance__section">
-        <div class="admin-finance__section-heading"><div><h2>Revenus de la plateforme</h2><p>Les commissions sont présentées séparément des sommes revenant aux professionnels.</p></div><a href="{{ route('admin.finance.commissions') }}">Voir les commissions</a></div>
+        <div class="admin-finance__section-heading"><div><h2>Revenus de la plateforme</h2><p>Les commissions sont présentées séparément des sommes revenant aux professionnels.</p></div>@if(auth()->user()?->hasPermissionTo('commissions.view'))<a href="{{ route('admin.finance.commissions') }}">Voir les commissions</a>@endif</div>
         <div class="admin-finance__currency-grid">
             @forelse($overview['commissions'] as $currency => $totals)
                 <article class="admin-finance__currency-card">
@@ -76,7 +76,7 @@
     </section>
 
     <section class="admin-finance__section">
-        <div class="admin-finance__section-heading"><div><h2>Situation des portefeuilles professionnels</h2><p>Soldes actuels, indépendamment de la période sélectionnée.</p></div><a href="{{ route('admin.finance.wallets') }}">Superviser les portefeuilles</a></div>
+        <div class="admin-finance__section-heading"><div><h2>Situation des portefeuilles professionnels</h2><p>Soldes actuels, indépendamment de la période sélectionnée.</p></div>@if(auth()->user()?->hasPermissionTo('wallets.view'))<a href="{{ route('admin.finance.wallets') }}">Superviser les portefeuilles</a>@endif</div>
         <div class="admin-finance__currency-grid">
             @forelse($overview['wallets'] as $currency => $totals)
                 <article class="admin-finance__currency-card">
@@ -95,17 +95,17 @@
     <section class="admin-finance__section">
         <div class="admin-finance__section-heading"><div><h2>Alertes à examiner</h2><p>Indicateurs techniques nécessitant une vérification, sans correction automatique.</p></div></div>
         <div class="admin-finance__alerts">
-            <a href="{{ route('admin.finance.transactions', ['status' => 'unknown']) }}"><span><strong>Transactions au résultat incertain</strong><small>Une confirmation fiable n'a pas été obtenue.</small></span><b>{{ number_format($overview['alerts']['unknown_transactions']) }}</b></a>
-            <a href="{{ route('admin.payments.index', ['status' => 'succeeded']) }}"><span><strong>Paiements confirmés sans commission associée</strong><small>À examiner avant toute intervention sur les soldes.</small></span><b>{{ number_format($overview['alerts']['payments_missing_commission']) }}</b></a>
+            @if(auth()->user()?->hasPermissionTo('transactions.view'))<a href="{{ route('admin.finance.transactions', ['status' => 'unknown']) }}"><span><strong>Transactions au résultat incertain</strong><small>Une confirmation fiable n'a pas été obtenue.</small></span><b>{{ number_format($overview['alerts']['unknown_transactions']) }}</b></a>@else<div class="admin-finance__alerts"><span><strong>Transactions au résultat incertain</strong><small>Une confirmation fiable n'a pas été obtenue.</small></span><b>{{ number_format($overview['alerts']['unknown_transactions']) }}</b></div>@endif
+            @if(auth()->user()?->hasPermissionTo('payments.view'))<a href="{{ route('admin.payments.index', ['status' => 'succeeded']) }}"><span><strong>Paiements confirmés sans commission associée</strong><small>À examiner avant toute intervention sur les soldes.</small></span><b>{{ number_format($overview['alerts']['payments_missing_commission']) }}</b></a>@else<div><span><strong>Paiements confirmés sans commission associée</strong><small>À examiner avant toute intervention sur les soldes.</small></span><b>{{ number_format($overview['alerts']['payments_missing_commission']) }}</b></div>@endif
         </div>
     </section>
 
     <section class="admin-finance__section">
-        <div class="admin-finance__section-heading"><div><h2>Transactions récentes</h2><p>Aperçu des dernières transactions de paiement de la période.</p></div><a href="{{ route('admin.finance.transactions') }}">Toutes les transactions</a></div>
+        <div class="admin-finance__section-heading"><div><h2>Transactions récentes</h2><p>Aperçu des dernières transactions de paiement de la période.</p></div>@if(auth()->user()?->hasPermissionTo('transactions.view'))<a href="{{ route('admin.finance.transactions') }}">Toutes les transactions</a>@endif</div>
         <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Référence</th><th>Commande</th><th>Client</th><th>Professionnel</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead><tbody>
             @forelse($overview['recent_transactions'] as $transaction)
                 <tr>
-                    <td><a href="{{ route('admin.finance.transactions.show', $transaction) }}">TX-{{ $transaction->id }}</a></td>
+                    <td>@if(auth()->user()?->hasPermissionTo('transactions.view'))<a href="{{ route('admin.finance.transactions.show', $transaction) }}">TX-{{ $transaction->id }}</a>@else TX-{{ $transaction->id }}@endif</td>
                     <td>{{ $transaction->payment?->order?->order_number ?? '—' }}</td>
                     <td>{{ $transaction->payment?->client?->name ?? '—' }}</td>
                     <td>{{ $transaction->payment?->order?->professional?->user?->name ?? '—' }}</td>
