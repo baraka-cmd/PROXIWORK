@@ -93,10 +93,6 @@ class SupportTicketService
         return DB::transaction(function () use ($user, $data, $request): SupportTicket {
             $context = $this->resolveOwnedContext($user, $data);
             $category = SupportTicketCategory::from($data['category']);
-            if (in_array($category, [SupportTicketCategory::ORDER, SupportTicketCategory::PAYMENT], true) && $context === null) {
-                throw ValidationException::withMessages(['context_id' => 'Une réclamation de commande ou de paiement doit être rattachée à l’opération concernée.']);
-            }
-
             $ticket = SupportTicket::create([
                 'user_id' => $user->id,
                 'withdrawal_id' => $data['withdrawal_id'] ?? null,
