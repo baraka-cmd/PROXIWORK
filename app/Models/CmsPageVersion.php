@@ -9,11 +9,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CmsPageVersion extends Model
 {
-    protected $fillable = ['cms_page_id', 'version', 'content', 'created_by'];
+    protected $fillable = ['cms_page_id', 'version', 'content', 'created_by', 'status', 'published_at'];
 
     protected function casts(): array
     {
-        return ['content' => 'array', 'version' => 'integer'];
+        return ['content' => 'array', 'version' => 'integer', 'published_at' => 'datetime'];
     }
 
     public function page(): BelongsTo
