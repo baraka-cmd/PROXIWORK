@@ -39,6 +39,20 @@
                             <span>Services</span>
                         </a>
                     @endif
+                    @if (Route::has('public.announcements'))
+                        <a class="public-nav-link" data-nav-link href="{{ route('public.announcements') }}">
+                            <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+                            <span>Annonces</span>
+                        </a>
+                    @endif
+
+                    @if (Route::has('public.faq'))
+                        <a class="public-nav-link" data-nav-link href="{{ route('public.faq') }}">
+                            <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                            <span>FAQ</span>
+                        </a>
+                    @endif
+
                 </div>
 
                 <div class="public-nav-actions">
@@ -97,6 +111,20 @@
                             <span>Services</span>
                         </a>
                     @endif
+
+                        @if (Route::has('public.announcements'))
+                            <a class="public-nav-link" data-nav-link href="{{ route('public.announcements') }}">
+                                <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+                                <span>Annonces</span>
+                            </a>
+                        @endif
+
+                        @if (Route::has('public.faq'))
+                            <a class="public-nav-link" data-nav-link href="{{ route('public.faq') }}">
+                                <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                                <span>FAQ</span>
+                            </a>
+                        @endif
 
                     @auth
                         <a class="public-nav-link" data-nav-link href="{{ url('/dashboard') }}">
