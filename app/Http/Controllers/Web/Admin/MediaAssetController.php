@@ -30,14 +30,16 @@ class MediaAssetController extends Controller
         $path = $file->store('communication', 'public');
         abort_if($path === false, 500, 'Le fichier n’a pas pu être enregistré.');
 
+        $dimensions = $file->dimensions() ?: [null, null];
+
         $asset = MediaAsset::query()->create([
             'disk' => 'public',
             'path' => $path,
             'original_name' => mb_substr($file->getClientOriginalName(), 0, 255),
             'mime_type' => (string) $file->getMimeType(),
             'size_bytes' => (int) $file->getSize(),
-            'width' => $file->getWidth(),
-            'height' => $file->getHeight(),
+            'width' => $dimensions[0],
+            'height' => $dimensions[1],
             'alt_text' => $data['alt_text'],
             'uploaded_by' => $request->user()->id,
         ]);
