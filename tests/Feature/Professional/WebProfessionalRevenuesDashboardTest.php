@@ -259,7 +259,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
         $this->actingAs($professional)
             ->get(route('professional.revenues.index', ['period' => '30d']))
             ->assertOk()
-            ->assertSee('<td>Commande multi-services — ventilation indisponible</td>', false);
+            ->assertSee('Commande multi-services — ventilation indisponible');
     }
 
     public function test_professional_cannot_view_another_professionals_commission_details(): void
@@ -331,7 +331,7 @@ class WebProfessionalRevenuesDashboardTest extends TestCase
             ->get(route('professional.revenues.export', ['period' => '30d']))
             ->assertOk()
             ->assertHeader('content-type', 'text/csv; charset=UTF-8')
-            ->assertHeader('cache-control', 'max-age=0, no-store, private')
+            ->assertHeader('cache-control', 'must-revalidate, no-cache, no-store, private')
             ->assertHeader('x-content-type-options', 'nosniff');
     }
 

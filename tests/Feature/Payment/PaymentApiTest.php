@@ -328,7 +328,7 @@ class PaymentApiTest extends TestCase
 
         $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->get('/client/payments?status=succeeded&currency=USD')
             ->assertOk()
             ->assertSee('Mode simulation')
@@ -341,11 +341,11 @@ class PaymentApiTest extends TestCase
 
         $otherClient = $this->client();
 
-        $this->actingAs($otherClient)
+        $this->actingAs($otherClient, 'web')
             ->get(route('client.payments.show', $payment))
             ->assertNotFound();
 
-        $this->actingAs($otherClient)
+        $this->actingAs($otherClient, 'web')
             ->get(route('client.payments.receipt', $payment))
             ->assertNotFound();
     }
@@ -370,7 +370,7 @@ class PaymentApiTest extends TestCase
         $payload['amount'] = '1.00';
         $receipt->forceFill(['payload' => $payload])->save();
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->get(route('client.payments.receipt', $payment))
             ->assertStatus(409);
     }
@@ -403,7 +403,7 @@ class PaymentApiTest extends TestCase
             'processed_at' => now(),
         ]);
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->post(route('client.payments.refunds.store', $payment), [
                 'reason' => 'Je demande l’examen du solde restant à rembourser.',
             ])
@@ -452,7 +452,7 @@ class PaymentApiTest extends TestCase
         $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
         $url = route('client.payments.refunds.store', $payment);
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->post($url, ['reason' => 'La prestation ne correspond pas aux conditions convenues.'])
             ->assertRedirect(route('client.payments.show', $payment));
 

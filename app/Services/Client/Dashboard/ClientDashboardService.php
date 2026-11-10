@@ -35,21 +35,23 @@ class ClientDashboardService
     {
         $user->loadMissing('profile');
 
-        $addressesCount = $user->addresses()->count();
+        $addresses = $user->addresses()->get([
+            'id',
+            'label',
+            'recipient_name',
+            'contact_phone',
+            'province',
+            'city',
+            'commune',
+            'neighborhood',
+            'address_line_1',
+            'is_default',
+        ]);
+        $addressesCount = $addresses->count();
         /** @var Address|null $defaultAddress */
-        $defaultAddress = $user->addresses()
-            ->where('is_default', true)
-            ->first([
-                'id',
-                'label',
-                'recipient_name',
-                'contact_phone',
-                'province',
-                'city',
-                'commune',
-                'neighborhood',
-                'address_line_1',
-            ]);
+        $defaultAddress = $addresses->first(
+            static fn (Address $address): bool => $address->is_default,
+        );
 
         $clientId = (int) $user->getKey();
         $favoritesCount = $user->favorites()->count();
@@ -94,6 +96,8 @@ class ClientDashboardService
             $paymentRequiredOrders,
             $deliveryReviewOrders,
             $unreadConversations,
+            ! filled($user->profile?->first_name) || ! filled($user->profile?->last_name),
+            $addressesCount === 0,
         );
 
         $profilePhotoPath = $user->profile?->avatar_path;
@@ -146,6 +150,8 @@ class ClientDashboardService
         Builder $paymentRequiredOrders,
         Builder $deliveryReviewOrders,
         Builder $unreadConversations,
+        bool $needsProfile,
+        bool $needsAddress,
     ): array {
         $quoteActions = (clone $pendingQuotes)
             ->with(['serviceRequest.service', 'serviceRequest.professional.user'])
@@ -199,7 +205,23 @@ class ClientDashboardService
                 'url' => route('client.messages.show', $conversation),
             ]);
 
-        return $quoteActions
+        $profileActions = $needsProfile ? [[
+            'type' => 'profile',
+            'title' => 'Complétez votre profil',
+            'description' => 'Ajoutez vos informations personnelles pour faciliter vos échanges.',
+            'url' => route('client.profile'),
+        ]] : [];
+
+        $addressActions = $needsAddress ? [[
+            'type' => 'addresses',
+            'title' => 'Ajoutez votre adresse principale',
+            'description' => 'Enregistrez une adresse pour simplifier vos prochaines demandes.',
+            'url' => route('client.addresses.create'),
+        ]] : [];
+
+        return collect($profileActions)
+            ->concat($addressActions)
+            ->concat($quoteActions)
             ->concat($paymentActions)
             ->concat($deliveryActions)
             ->concat($messageActions)

@@ -9,6 +9,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Payment\AdminPaymentIndexRequest;
 use App\Models\Payment;
 use App\Services\Admin\Payment\AdminPaymentManagementService;
+use App\Services\Audit\AuditLogService;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -29,10 +31,18 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function show(Payment $payment): View
+    public function show(Payment $payment, Request $request, AuditLogService $auditLogs): View
     {
-        return view('admin.payments.show', [
-            'payment' => $this->paymentManager->show($payment),
-        ]);
+        $payment = $this->paymentManager->show($payment);
+
+        $auditLogs->record(
+            action: 'admin.payment.viewed',
+            subject: $payment,
+            user: $request->user(),
+            metadata: ['payment_id' => $payment->getKey(), 'status' => $payment->status->value, 'currency' => $payment->currency],
+            request: $request,
+        );
+
+        return view('admin.payments.show', compact('payment'));
     }
 }

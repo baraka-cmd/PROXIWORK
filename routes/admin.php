@@ -5,9 +5,10 @@ declare(strict_types=1);
 use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
-use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\FinanceController;
+use App\Http\Controllers\Web\Admin\RefundController;
+use App\Http\Controllers\Web\Admin\FinancialOperationsController;
 use App\Http\Controllers\Web\Admin\OrderController;
-use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
 use App\Http\Controllers\Web\Admin\PermissionController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
@@ -21,6 +22,8 @@ use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
+use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active.account', 'permission:admin.users.view'])->group(function (): void {
@@ -123,6 +126,46 @@ Route::middleware(['auth', 'active.account', 'permission:payments.view'])->group
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
 });
 
+Route::middleware(['auth', 'active.account', 'permission:finance.view'])->group(function (): void {
+    Route::get('finance', [FinanceController::class, 'overview'])->name('finance.overview');
+});
+Route::middleware(['auth', 'active.account', 'permission:transactions.view'])->group(function (): void {
+    Route::get('transactions', [FinanceController::class, 'transactions'])->name('finance.transactions');
+    Route::get('transactions/{transaction}', [FinanceController::class, 'transaction'])->whereNumber('transaction')->name('finance.transactions.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:commissions.view'])->group(function (): void {
+    Route::get('commissions', [FinanceController::class, 'commissions'])->name('finance.commissions');
+    Route::get('commissions/{commission}', [FinanceController::class, 'commission'])->whereNumber('commission')->name('finance.commissions.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:wallets.view'])->group(function (): void {
+    Route::get('wallets', [FinanceController::class, 'wallets'])->name('finance.wallets');
+    Route::get('wallets/{wallet}', [FinanceController::class, 'wallet'])->whereNumber('wallet')->name('finance.wallets.show');
+});
+
+
+Route::middleware(['auth', 'active.account', 'permission:refunds.view'])->group(function (): void {
+    Route::get('refunds', [RefundController::class, 'index'])->name('finance.refunds');
+    Route::get('refunds/{refund}', [RefundController::class, 'show'])->whereNumber('refund')->name('finance.refunds.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:refunds.manage'])->group(function (): void {
+    Route::post('refunds/{refund}/processing', [RefundController::class, 'processing'])->middleware('throttle:10,1')->name('finance.refunds.processing');
+    Route::post('refunds/{refund}/reject', [RefundController::class, 'reject'])->middleware('throttle:10,1')->name('finance.refunds.reject');
+});
+Route::middleware(['auth', 'active.account', 'permission:refunds.execute'])->group(function (): void {
+    Route::post('refunds/{refund}/succeeded', [RefundController::class, 'succeeded'])->middleware('throttle:5,1')->name('finance.refunds.succeeded');
+    Route::post('refunds/{refund}/failed', [RefundController::class, 'failed'])->middleware('throttle:5,1')->name('finance.refunds.failed');
+});
+Route::middleware(['auth', 'active.account', 'permission:financial_movements.view'])->group(function (): void {
+    Route::get('financial-movements', [FinancialOperationsController::class, 'movements'])->name('finance.movements');
+    Route::get('financial-movements/{movement}', [FinancialOperationsController::class, 'movement'])->whereNumber('movement')->name('finance.movements.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:financial_reports.view'])->group(function (): void {
+    Route::get('financial-reports', [FinancialOperationsController::class, 'reports'])->name('finance.reports');
+});
+Route::middleware(['auth', 'active.account', 'permission:financial_reports.export'])->group(function (): void {
+    Route::get('financial-reports/export', [FinancialOperationsController::class, 'export'])->middleware('throttle:5,1')->name('finance.reports.export');
+});
+
 Route::middleware(['auth', 'active.account', 'permission:support.manage'])->group(function (): void {
     Route::get('support', [SupportController::class, 'index'])->name('support.index');
     Route::get('support/{ticket}', [SupportController::class, 'show'])->name('support.show');
@@ -131,33 +174,6 @@ Route::middleware(['auth', 'active.account', 'permission:support.manage'])->grou
     Route::post('support/{ticket}/message', [SupportController::class, 'message'])->name('support.message');
     Route::post('support/{ticket}/resolve', [SupportController::class, 'resolve'])->name('support.resolve');
     Route::post('support/{ticket}/close', [SupportController::class, 'close'])->name('support.close');
-});
-
-Route::middleware(['auth', 'active.account', 'permission:disputes.view'])->group(function (): void {
-    Route::get('disputes', [OrderDisputeController::class, 'index'])->name('disputes.index');
-    Route::get('disputes/{dispute}', [OrderDisputeController::class, 'show'])->name('disputes.show');
-    Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeController::class, 'downloadAttachment'])->name('disputes.attachments.download');
-});
-Route::middleware(['auth', 'active.account', 'permission:disputes.manage'])->group(function (): void {
-    Route::post('disputes/{dispute}/assign', [OrderDisputeController::class, 'assign'])->name('disputes.assign');
-    Route::post('disputes/{dispute}/transition', [OrderDisputeController::class, 'transition'])->name('disputes.transition');
-    Route::post('disputes/{dispute}/reopen', [OrderDisputeController::class, 'reopen'])->name('disputes.reopen');
-    Route::post('disputes/{dispute}/message', [OrderDisputeController::class, 'message'])->name('disputes.message');
-});
-Route::middleware(['auth', 'active.account', 'permission:disputes.decide'])->group(function (): void {
-    Route::post('disputes/{dispute}/decide', [OrderDisputeController::class, 'decide'])->name('disputes.decide');
-});
-Route::middleware(['auth', 'active.account', 'permission:reviews.moderate'])->group(function (): void {
-    Route::get('moderation/reviews', [ModerationCenterController::class, 'reviews'])->name('moderation.reviews');
-    Route::post('moderation/reviews/{review}', [ModerationCenterController::class, 'moderateReview'])->name('moderation.reviews.update');
-    Route::post('moderation/review-responses/{response}', [ModerationCenterController::class, 'moderateResponse'])->name('moderation.responses.update');
-});
-Route::middleware(['auth', 'active.account', 'permission:reports.manage'])->group(function (): void {
-    Route::get('moderation/reported-reviews', [ModerationCenterController::class, 'reportedReviews'])->name('moderation.reported-reviews');
-});
-Route::middleware(['auth', 'active.account', 'permission:moderation.history.view'])->group(function (): void {
-    Route::get('moderation/history', [ModerationCenterController::class, 'history'])->name('moderation.history');
-    Route::get('moderation/resolutions', [ModerationCenterController::class, 'resolutions'])->name('moderation.resolutions');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:audit.view'])->group(function (): void {
@@ -182,4 +198,29 @@ Route::middleware(['auth', 'active.account', 'permission:reports.manage'])->grou
     Route::post('reports/{report}/moderate', [ReportController::class, 'moderate'])->name('reports.moderate');
     Route::post('reports/{report}/resolve', [ReportController::class, 'resolve'])->name('reports.resolve');
     Route::post('reports/{report}/dismiss', [ReportController::class, 'dismiss'])->name('reports.dismiss');
+});
+
+// Existing moderation and dispute workflows from main-proxiwork.
+Route::middleware(['auth', 'active.account', 'permission:disputes.view'])->group(function (): void {
+    Route::get('disputes', [OrderDisputeController::class, 'index'])->name('disputes.index');
+    Route::get('disputes/{dispute}', [OrderDisputeController::class, 'show'])->name('disputes.show');
+    Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeController::class, 'downloadAttachment'])->name('disputes.attachments.download');
+});
+Route::middleware(['auth', 'active.account', 'permission:disputes.manage'])->group(function (): void {
+    Route::post('disputes/{dispute}/assign', [OrderDisputeController::class, 'assign'])->name('disputes.assign');
+    Route::post('disputes/{dispute}/transition', [OrderDisputeController::class, 'transition'])->name('disputes.transition');
+    Route::post('disputes/{dispute}/reopen', [OrderDisputeController::class, 'reopen'])->name('disputes.reopen');
+    Route::post('disputes/{dispute}/message', [OrderDisputeController::class, 'message'])->name('disputes.message');
+});
+Route::middleware(['auth', 'active.account', 'permission:disputes.decide'])->group(function (): void {
+    Route::post('disputes/{dispute}/decide', [OrderDisputeController::class, 'decide'])->name('disputes.decide');
+});
+Route::middleware(['auth', 'active.account', 'permission:reviews.moderate'])->group(function (): void {
+    Route::get('moderation/reviews', [ModerationCenterController::class, 'reviews'])->name('moderation.reviews');
+    Route::post('moderation/reviews/{review}', [ModerationCenterController::class, 'moderateReview'])->name('moderation.reviews.update');
+    Route::post('moderation/review-responses/{response}', [ModerationCenterController::class, 'moderateResponse'])->name('moderation.responses.update');
+});
+Route::middleware(['auth', 'active.account', 'permission:moderation.history.view'])->group(function (): void {
+    Route::get('moderation/history', [ModerationCenterController::class, 'history'])->name('moderation.history');
+    Route::get('moderation/resolutions', [ModerationCenterController::class, 'resolutions'])->name('moderation.resolutions');
 });

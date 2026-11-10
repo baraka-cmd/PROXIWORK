@@ -64,6 +64,6 @@ class WebClientDashboardTest extends TestCase
             ->get(route('client.dashboard'))
             ->assertOk()
             ->assertSeeText('Chez moi')
-            ->assertSeeText('Adresses enregistrées');
+            ->assertSeeText('Adresse principale');
     }
 }
