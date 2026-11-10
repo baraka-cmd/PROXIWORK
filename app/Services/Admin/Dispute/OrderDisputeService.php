@@ -23,11 +23,16 @@ use Illuminate\Validation\ValidationException;
 
 class OrderDisputeService
 {
+    private readonly AuditLogService $audit;
+
+    private readonly TransactionalNotificationService $notifications;
 
     public function __construct(
-        private readonly AuditLogService $audit,
-        private readonly TransactionalNotificationService $notifications,
+        AuditLogService $audit,
+        TransactionalNotificationService $notifications,
     ) {
+        $this->audit = $audit;
+        $this->notifications = $notifications;
     }
 
     public function paginate(array $filters): LengthAwarePaginator
