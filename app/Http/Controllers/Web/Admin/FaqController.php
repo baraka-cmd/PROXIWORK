@@ -42,7 +42,7 @@ class FaqController extends Controller
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $this->validated($request);
-        $data['slug'] = Str::slug(($data['slug'] ?? '') ?: $data['question' ]).'-'.Str::lower(Str::random(5));
+        $data['slug'] = Str::slug(($data['slug'] ?? '') ?: $data['question']).'-'.Str::lower(Str::random(5));
 
         $article = DB::transaction(function () use ($data, $request): FaqArticle {
             $article = FaqArticle::query()->create([
