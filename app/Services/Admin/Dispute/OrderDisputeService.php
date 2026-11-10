@@ -26,7 +26,8 @@ class OrderDisputeService
     public function __construct(
         private readonly AuditLogService $audit,
         private readonly TransactionalNotificationService $notifications,
-    ) {}
+    ) {
+    }
 
     public function paginate(array $filters): LengthAwarePaginator
     {
