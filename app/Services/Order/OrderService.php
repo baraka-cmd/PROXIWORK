@@ -43,7 +43,7 @@ class OrderService
             $isClientActor = $request->client_id === $actor->getKey();
             $isProfessionalActor = $request->professional?->user_id === $actor->getKey();
 
-            if (! $isClientActor && ! $isProfessionalActor) {
+            if (!$isClientActor && !$isProfessionalActor) {
                 throw ValidationException::withMessages([
                     'quotation' => 'Vous ne pouvez pas créer une commande pour ce devis.',
                 ]);
@@ -108,7 +108,7 @@ class OrderService
             }
 
             $now = now();
-            if (!Currency::query()->whereKey(strtoupper($acceptedOffer->currency))->where('is_active', true)->exists()) {
+            if (! Currency::query()->whereKey(strtoupper($acceptedOffer->currency))->where('is_active', true)->exists()) {
                 throw ValidationException::withMessages([
                     'currency' => 'La devise de cette offre est inactive sur la plateforme.',
                 ]);
