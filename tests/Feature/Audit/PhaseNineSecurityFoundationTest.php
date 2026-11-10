@@ -199,6 +199,36 @@ class PhaseNineSecurityFoundationTest extends TestCase
         $this->assertNotNull($session->fresh()->revoked_at);
     }
 
+    public function test_security_audit_permission_cannot_read_administrative_audit_events(): void
+    {
+        $viewer = User::factory()->create();
+        $viewer->givePermissionTo('security.events.view');
+
+        $securityEvent = AuditLog::query()->create([
+            'action' => 'security.authorization.denied',
+            'category' => 'security',
+            'outcome' => 'denied',
+        ]);
+        $adminEvent = AuditLog::query()->create([
+            'action' => 'admin.user.suspended',
+            'category' => 'administrative',
+        ]);
+
+        $this->actingAs($viewer, 'sanctum')
+            ->getJson('/api/v1/audit/logs')
+            ->assertOk()
+            ->assertJsonFragment(['action' => 'security.authorization.denied'])
+            ->assertJsonMissing(['action' => 'admin.user.suspended']);
+
+        $this->actingAs($viewer, 'sanctum')
+            ->getJson('/api/v1/audit/logs/'.$adminEvent->id)
+            ->assertForbidden();
+
+        $this->actingAs($viewer, 'sanctum')
+            ->getJson('/api/v1/audit/logs/'.$securityEvent->id)
+            ->assertOk();
+    }
+
     public function test_client_cannot_open_admin_security_pages(): void
     {
         $client = User::factory()->create();
