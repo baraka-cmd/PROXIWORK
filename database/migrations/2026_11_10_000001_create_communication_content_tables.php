@@ -33,7 +33,7 @@ return new class extends Migration
 
         Schema::create('notification_template_versions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('notification_template_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('notification_template_id')->constrained('notification_templates', 'id', 'ntv_template_fk')->cascadeOnDelete();
             $table->unsignedInteger('version');
             $table->json('content');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
@@ -84,7 +84,7 @@ return new class extends Migration
 
         Schema::create('communication_campaign_recipients', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('campaign_id')->constrained('communication_campaigns')->cascadeOnDelete();
+            $table->foreignId('campaign_id')->constrained('communication_campaigns', 'id', 'ccr_campaign_fk')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('status', 20)->default('pending');
             $table->string('error_code', 120)->nullable();
@@ -166,7 +166,7 @@ return new class extends Migration
 
         Schema::create('institutional_document_versions', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('institutional_document_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('institutional_document_id')->constrained('institutional_documents', 'id', 'idv_document_fk')->cascadeOnDelete();
             $table->unsignedInteger('version');
             $table->longText('content');
             $table->string('change_reason', 500)->nullable();
@@ -181,7 +181,7 @@ return new class extends Migration
 
         Schema::create('institutional_document_acceptances', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('institutional_document_version_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('institutional_document_version_id')->constrained('institutional_document_versions', 'id', 'ida_version_fk')->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamp('accepted_at');
             $table->string('source', 30)->default('web');

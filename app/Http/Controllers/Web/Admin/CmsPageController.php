@@ -83,7 +83,7 @@ class CmsPageController extends Controller
         $version = (int) $page->versions()->max('version') + 1;
         $page->versions()->create([
             'version' => $version,
-            'content' => $page->only(['title','slug','excerpt','body','seo_title','meta_description','canonical_url','is_indexable']),
+            'content' => $page->only(['title', 'slug', 'excerpt', 'body', 'seo_title', 'meta_description', 'canonical_url', 'is_indexable']),
             'created_by' => $userId,
         ]);
     }

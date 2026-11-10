@@ -100,13 +100,11 @@ class CommunicationCampaignController extends Controller
 
         return User::query()
             ->where('account_status', 'active')
-            ->whereHas('roles', function ($roles) use ($audience): void {
-                $roles->whereIn('name', match ($audience) {
-                    'client' => ['client'],
-                    'professional' => ['professional'],
-                    default => ['client', 'professional'],
-                });
-            })
+            ->whereHas('roles', fn ($roles) => $roles->whereIn('name', match ($audience) {
+                'client' => ['client'],
+                'professional' => ['professional'],
+                default => ['client', 'professional'],
+            }))
             ->whereNotNull('email_verified_at');
     }
 }

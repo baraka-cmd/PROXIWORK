@@ -10,6 +10,7 @@ use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class NotificationTemplateController extends Controller
@@ -84,7 +85,7 @@ class NotificationTemplateController extends Controller
         preg_match_all('/\{\{\s*([a-z_]+)\s*\}\}/', $content, $matches);
         foreach (array_unique($matches[1] ?? []) as $variable) {
             if (! in_array($variable, self::VARIABLES, true)) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
+                throw ValidationException::withMessages([
                     'body' => 'Variable non autorisée : '.$variable,
                 ]);
             }

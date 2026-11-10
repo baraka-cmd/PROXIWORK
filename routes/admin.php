@@ -2,37 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\Admin\AnnouncementController;
-use App\Http\Controllers\Web\Admin\CmsPageController;
-use App\Http\Controllers\Web\Admin\CommunicationCampaignController;
-use App\Http\Controllers\Web\Admin\FaqController;
-use App\Http\Controllers\Web\Admin\InstitutionalDocumentController;
-use App\Http\Controllers\Web\Admin\MediaAssetController;
-use App\Http\Controllers\Web\Admin\NotificationTemplateController;
-use App\Http\Controllers\Web\Admin\AnalyticsController;
-use App\Http\Controllers\Web\Admin\AuditController;
-use App\Http\Controllers\Web\Admin\CategoryController;
-use App\Http\Controllers\Web\Admin\FinanceController;
-use App\Http\Controllers\Web\Admin\FinancialOperationsController;
-use App\Http\Controllers\Web\Admin\ModerationCenterController;
-use App\Http\Controllers\Web\Admin\NotificationDeliveryController;
-use App\Http\Controllers\Web\Admin\OrderController;
-use App\Http\Controllers\Web\Admin\OrderDisputeController;
-use App\Http\Controllers\Web\Admin\PaymentController;
-use App\Http\Controllers\Web\Admin\PermissionController;
-use App\Http\Controllers\Web\Admin\ProfessionalController;
-use App\Http\Controllers\Web\Admin\ProfessionalDocumentController;
-use App\Http\Controllers\Web\Admin\RefundController;
-use App\Http\Controllers\Web\Admin\ReportController;
-use App\Http\Controllers\Web\Admin\RoleController;
-use App\Http\Controllers\Web\Admin\ServiceController;
-use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
-use App\Http\Controllers\Web\Admin\ServiceRequestController;
-use App\Http\Controllers\Web\Admin\SkillController;
-use App\Http\Controllers\Web\Admin\SupportController;
-use App\Http\Controllers\Web\Admin\UserController;
-use App\Http\Controllers\Web\Admin\VerificationController;
-use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active.account', 'permission:admin.users.view'])->group(function (): void {
     Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -241,7 +210,6 @@ Route::middleware(['auth', 'active.account', 'permission:admin.notifications.vie
     Route::get('notifications/deliveries', [NotificationDeliveryController::class, 'index'])->name('notifications.deliveries.index');
     Route::get('notifications/deliveries/{delivery}', [NotificationDeliveryController::class, 'show'])->whereNumber('delivery')->name('notifications.deliveries.show');
 });
-
 
 // Phase 7 — gestion des communications et contenus éditoriaux.
 Route::middleware(['auth', 'active.account', 'permission:notification_templates.view'])->group(function (): void {
