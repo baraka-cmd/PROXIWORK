@@ -45,6 +45,31 @@ class NotificationTemplateRenderingTest extends TestCase
             'version' => 1,
         ]);
 
+        NotificationTemplate::query()->create([
+            'name' => 'SMS compte',
+            'code' => 'account-sms',
+            'event_key' => 'account',
+            'category' => 'account',
+            'channel' => 'sms',
+            'locale' => 'fr',
+            'title' => 'Information',
+            'body' => 'Bonjour {{ user_name }}, votre compte est prêt.',
+            'status' => 'published',
+            'version' => 1,
+        ]);
+        NotificationTemplate::query()->create([
+            'name' => 'Push compte',
+            'code' => 'account-push',
+            'event_key' => 'account',
+            'category' => 'account',
+            'channel' => 'push',
+            'locale' => 'fr',
+            'title' => 'Alerte pour {{ user_name }}',
+            'body' => 'Ouvrez votre espace : {{ action_url }}',
+            'status' => 'published',
+            'version' => 1,
+        ]);
+
         app(TransactionalNotificationService::class)->accountActivity(
             $recipient,
             'Titre de secours',
@@ -58,5 +83,8 @@ class NotificationTemplateRenderingTest extends TestCase
         $this->assertSame('Consultez votre espace : /client', $notification->data['message']);
         $this->assertSame('Information pour Aline', $notification->data['email_subject']);
         $this->assertSame('Votre compte est prêt, Aline.', $notification->data['email_message']);
+        $this->assertSame('Bonjour Aline, votre compte est prêt.', $notification->data['sms_message']);
+        $this->assertSame('Alerte pour Aline', $notification->data['push_title']);
+        $this->assertSame('Ouvrez votre espace : /client', $notification->data['push_message']);
     }
 }
