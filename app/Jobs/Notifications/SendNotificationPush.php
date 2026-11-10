@@ -59,6 +59,7 @@ class SendNotificationPush implements ShouldQueue
         }
 
         $delivery->refresh();
+        $delivery->recordAttemptStart();
         $data = is_array($delivery->notification?->data) ? $delivery->notification->data : [];
         $priority = (string) ($data['priority'] ?? 'normal');
         $preferences = $delivery->user?->notificationPreference;
