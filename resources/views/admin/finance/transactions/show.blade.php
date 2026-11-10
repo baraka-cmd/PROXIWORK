@@ -24,7 +24,16 @@
         <div><dt>Motif d'échec</dt><dd>{{ $transaction->failure_message ?: '—' }}</dd></div>
     </dl></section>
     <section class="admin-card"><h3>Contexte commercial</h3><dl class="admin-finance__details">
-        <div><dt>Paiement</dt><dd>@if(auth()->user()?->hasPermissionTo('payments.view'))<a href="{{ route('admin.payments.show', $transaction->payment) }}">#{{ $transaction->payment_id }}</a>@else#{{ $transaction->payment_id }}@endif</dd></div>
+        <div>
+            <dt>Paiement</dt>
+            <dd>
+                @if (auth()->user()?->hasPermissionTo('payments.view'))
+                    <a href="{{ route('admin.payments.show', $transaction->payment) }}">#{{ $transaction->payment_id }}</a>
+                @else
+                    #{{ $transaction->payment_id }}
+                @endif
+            </dd>
+        </div>
         <div><dt>Commande</dt><dd>{{ $transaction->payment?->order?->order_number ?? '—' }}</dd></div>
         <div><dt>Client</dt><dd>{{ $transaction->payment?->client?->name ?? '—' }}</dd></div>
         <div><dt>Professionnel</dt><dd>{{ $transaction->payment?->order?->professional?->user?->name ?? '—' }}</dd></div>
