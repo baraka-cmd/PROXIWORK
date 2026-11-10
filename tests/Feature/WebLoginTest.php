@@ -31,7 +31,7 @@ class WebLoginTest extends TestCase
             ->assertOk()
             ->assertViewIs('auth.login')
             ->assertSee('Ravi de vous revoir')
-            ->assertSee('Continuer avec Google');
+            ->assertSee('Se connecter');
     }
 
     public function test_user_can_login_with_valid_credentials(): void
@@ -124,7 +124,7 @@ class WebLoginTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('logout'))
-            ->assertRedirect(route('login'));
+            ->assertRedirect(route('home'));
 
         $this->assertGuest();
     }
