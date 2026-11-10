@@ -47,7 +47,7 @@
     </section>
     <section class="admin-card"><h3>Événements du remboursement</h3>
         @forelse($refund->payment?->events ?? [] as $event)
-            <div class="admin-financial-event"><strong>{{ $refundStatusLabels[str_replace('refund.', '', $event->event_type)] ?? str_replace('refund.', '', $event->event_type) }}</strong><span>{{ $refundStatusLabels[$event->from_status] ?? '—' }} → {{ $refundStatusLabels[$event->to_status] ?? $event->to_status }} · {{ $event->source }} · {{ $event->occurred_at?->format('d/m/Y H:i:s') }}@if($event->admin_user_id) · Administrateur #{{ data_get($event->metadata, 'admin_user_id') }}@endif</span>@if($event->review_note)<p>{{ data_get($event->metadata, 'review_note') }}</p>@endif</div>
+            <div class="admin-financial-event"><strong>{{ $refundStatusLabels[str_replace('refund.', '', $event->event_type)] ?? str_replace('refund.', '', $event->event_type) }}</strong><span>{{ $refundStatusLabels[$event->from_status] ?? '—' }} → {{ $refundStatusLabels[$event->to_status] ?? $event->to_status }} · {{ $event->source }} · {{ $event->occurred_at?->format('d/m/Y H:i:s') }}@if(data_get($event->metadata, 'admin_user_id')) · Administrateur #{{ data_get($event->metadata, 'admin_user_id') }}@endif</span>@if(data_get($event->metadata, 'review_note'))<p>{{ data_get($event->metadata, 'review_note') }}</p>@endif</div>
         @empty<p>Aucun événement spécifique n’est disponible.</p>@endforelse
     </section>
 </div>

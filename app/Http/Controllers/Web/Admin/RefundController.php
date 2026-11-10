@@ -82,9 +82,7 @@ class RefundController extends Controller
                 'payment.order.professional:id,user_id',
                 'payment.order.professional.user:id,name,email',
                 'payment.transactions' => fn ($q) => $q->select(['id', 'payment_id', 'provider', 'status', 'provider_transaction_id', 'provider_reference', 'amount', 'currency', 'processed_at', 'created_at'])->where('status', 'succeeded')->latest('processed_at'),
-                'payment.events' => fn ($q) => $q->select(['id', 'payment_id', 'payment_transaction_id', 'event_key', 'event_type', 'from_status', 'to_status', 'source', 'occurred_at'])
-                    ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.review_note')) as review_note")
-                    ->selectRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, '$.admin_user_id')) as admin_user_id")
+                'payment.events' => fn ($q) => $q->select(['id', 'payment_id', 'payment_transaction_id', 'event_key', 'event_type', 'from_status', 'to_status', 'source', 'metadata', 'occurred_at'])
                     ->where('event_type', 'like', 'refund.%')->latest('occurred_at'),
             ])->findOrFail($refund->getKey());
 
