@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstitutionalDocumentVersion extends Model
 {
-    protected $fillable = ['institutional_document_id','version','content','change_reason','status','created_by','approved_by','effective_at','published_at'];
+    protected $fillable = ['institutional_document_id', 'version', 'content', 'change_reason', 'status', 'created_by', 'approved_by', 'effective_at', 'published_at'];
 
     protected function casts(): array
     {
