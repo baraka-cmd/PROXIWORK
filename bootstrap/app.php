@@ -135,7 +135,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 }
             }
 
-            if (in_array($status, [400, 401, 403, 404, 405, 409, 429], true))
+            if (in_array($status, [400, 401, 403, 404, 405, 409, 429], true)) {
                 return response()->json([
                     'message' => $e->getMessage() !== '' ? $e->getMessage() : 'Requête impossible.',
                     'errors' => [],
