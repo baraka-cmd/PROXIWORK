@@ -18,4 +18,13 @@
 <button type="submit">Envoyer</button></form>
 @else<p>Ce dossier est clôturé. Il n’accepte plus de nouveaux messages.</p>@endif
 </section>
+
+<section class="dashboard-card"><h2>Pièces justificatives</h2>
+<ul>@forelse($dispute->attachments as $attachment)<li><a href="{{ route($prefix.'disputes.attachments.download', [$dispute, $attachment]) }}">{{ $attachment->original_name }}</a> — {{ number_format($attachment->size / 1024, 1) }} Ko · ajouté par {{ $attachment->uploader?->name }}</li>@empty<li>Aucune pièce justificative.</li>@endforelse</ul>
+@if(!in_array($dispute->status->value,['resolved','closed'],true))
+<form method="POST" enctype="multipart/form-data" action="{{ route($prefix.'disputes.attachments.store',$dispute) }}">@csrf
+<label for="evidence">Ajouter une preuve (PDF, JPG, PNG ou WebP, 10 Mo maximum)</label><input id="evidence" type="file" name="evidence" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+<button type="submit">Téléverser la preuve</button></form>@endif
+</section>
+
 @endsection
