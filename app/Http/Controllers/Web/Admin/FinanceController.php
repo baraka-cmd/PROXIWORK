@@ -40,7 +40,7 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function transaction(PaymentTransaction $transaction, Request $request, AuditLogService $auditLogs): View
+    public function transaction(int $transaction, Request $request, AuditLogService $auditLogs): View
     {
         $transaction = $this->finance->transaction($transaction);
 
