@@ -11,6 +11,7 @@ use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AdminNotificationDeliveryTest extends TestCase
@@ -54,7 +55,7 @@ class AdminNotificationDeliveryTest extends TestCase
     public function test_each_provider_attempt_is_preserved_with_its_final_result(): void
     {
         $user = User::factory()->create();
-        $user->notify(new AccountActivityNotification('Tentative', 'Historique', 'test'));
+        Notification::sendNow([$user], new AccountActivityNotification('Tentative', 'Historique', 'test'));
         $notification = $user->notifications()->firstOrFail();
         $delivery = NotificationDelivery::query()->create([
             'notification_id' => $notification->id,
@@ -99,7 +100,7 @@ class AdminNotificationDeliveryTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $recipient = User::factory()->create();
-        $recipient->notify(new AccountActivityNotification('Tentative', 'Historique', 'test'));
+        Notification::sendNow([$recipient], new AccountActivityNotification('Tentative', 'Historique', 'test'));
         $notification = $recipient->notifications()->firstOrFail();
         $delivery = NotificationDelivery::query()->create([
             'notification_id' => $notification->id,
