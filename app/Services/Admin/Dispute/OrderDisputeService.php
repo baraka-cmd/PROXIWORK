@@ -13,6 +13,7 @@ use App\Models\OrderDisputeMessage;
 use App\Models\OrderDisputeAttachment;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderDisputeService
 {
-    public function __construct(private readonly AuditLogService $audit) {}
+    public function __construct(
+        private readonly AuditLogService $audit,
+        private readonly TransactionalNotificationService $notifications,
+    ) {}
 
     public function paginate(array $filters): LengthAwarePaginator
     {
@@ -137,6 +141,24 @@ class OrderDisputeService
             ]);
 
             $this->audit->record('order_dispute.opened', $dispute, $actor, ['order_id' => $lockedOrder->getKey(), 'reason_code' => $reasonCode], $request);
+            DB::afterCommit(function () use ($dispute, $lockedOrder, $actor): void {
+                $client = $lockedOrder->client()->first();
+                $professionalUser = $lockedOrder->professional()->with('user')->first()?->user;
+                $recipient = (int) $actor->getKey() === (int) $lockedOrder->client_id ? $professionalUser : $client;
+                if ($recipient !== null) {
+                    $url = (int) $recipient->getKey() === (int) $lockedOrder->client_id
+                        ? route('client.disputes.show', $dispute)
+                        : route('professional.disputes.show', $dispute);
+                    $this->notifications->accountActivity(
+                        $recipient,
+                        'Nouveau litige sur une commande',
+                        'Un dossier de litige a été ouvert pour une commande à laquelle vous participez.',
+                        $url,
+                        'order-dispute-opened:'.$dispute->getKey().':'.$recipient->getKey(),
+                        'important',
+                    );
+                }
+            });
 
             return $dispute->load(['order', 'client', 'professional']);
         }, attempts: 3);
@@ -195,6 +217,28 @@ class OrderDisputeService
                 'reason' => $reason, 'created_at' => now(),
             ]);
             $this->audit->record('order_dispute.status_changed', $locked, $actor, ['from' => $from->value, 'to' => $to->value, 'reason' => $reason], $request);
+            DB::afterCommit(function () use ($locked, $to): void {
+                $client = $locked->client()->first();
+                $professionalUser = $locked->professional()->with('user')->first()?->user;
+                $recipients = match ($to) {
+                    OrderDisputeStatus::AWAITING_CLIENT => array_filter([$client]),
+                    OrderDisputeStatus::AWAITING_PROFESSIONAL => array_filter([$professionalUser]),
+                    default => array_filter([$client, $professionalUser]),
+                };
+                foreach ($recipients as $recipient) {
+                    $url = (int) $recipient->getKey() === (int) $locked->client_id
+                        ? route('client.disputes.show', $locked)
+                        : route('professional.disputes.show', $locked);
+                    $this->notifications->accountActivity(
+                        $recipient,
+                        'Mise à jour de votre litige',
+                        'Le dossier de litige lié à votre commande a changé d’étape.',
+                        $url,
+                        'order-dispute-status:'.$locked->getKey().':'.$to->value.':'.$recipient->getKey(),
+                        'important',
+                    );
+                }
+            });
             return $locked->fresh(['events.actor', 'assignee']);
         });
     }
@@ -252,6 +296,23 @@ class OrderDisputeService
                 'resolution_code' => $resolutionCode,
                 'financial_action_required' => $resolutionCode === 'financial_review_required',
             ], $request);
+            DB::afterCommit(function () use ($locked): void {
+                $client = $locked->client()->first();
+                $professionalUser = $locked->professional()->with('user')->first()?->user;
+                foreach (array_filter([$client, $professionalUser]) as $recipient) {
+                    $url = (int) $recipient->getKey() === (int) $locked->client_id
+                        ? route('client.disputes.show', $locked)
+                        : route('professional.disputes.show', $locked);
+                    $this->notifications->accountActivity(
+                        $recipient,
+                        'Décision rendue sur votre litige',
+                        'L’administration a enregistré une décision motivée. Consultez le dossier pour en prendre connaissance.',
+                        $url,
+                        'order-dispute-decision:'.$locked->getKey().':'.$recipient->getKey(),
+                        'important',
+                    );
+                }
+            });
             return $locked->fresh(['resolver', 'events.actor']);
         });
     }
@@ -334,6 +395,30 @@ class OrderDisputeService
                 'created_at' => now(),
             ]);
             $this->audit->record('order_dispute.message_added', $locked, $sender, ['message_id' => $message->getKey(), 'internal' => $internal], $request);
+            if (! $internal) {
+                DB::afterCommit(function () use ($locked, $sender, $message): void {
+                    $client = $locked->client()->first();
+                    $professionalUser = $locked->professional()->with('user')->first()?->user;
+                    $recipients = (int) $sender->getKey() === (int) $locked->client_id
+                        ? array_filter([$professionalUser])
+                        : ((int) $sender->getKey() === (int) $professionalUser?->getKey()
+                            ? array_filter([$client])
+                            : array_filter([$client, $professionalUser]));
+                    foreach ($recipients as $recipient) {
+                        $url = (int) $recipient->getKey() === (int) $locked->client_id
+                            ? route('client.disputes.show', $locked)
+                            : route('professional.disputes.show', $locked);
+                        $this->notifications->accountActivity(
+                            $recipient,
+                            'Nouveau message sur un litige',
+                            'Un nouveau message est disponible dans le dossier de litige.',
+                            $url,
+                            'order-dispute-message:'.$message->getKey().':'.$recipient->getKey(),
+                            'important',
+                        );
+                    }
+                });
+            }
             return $message->load('sender');
         });
     }
