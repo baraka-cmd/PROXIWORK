@@ -34,7 +34,7 @@
         <label>État
             <select name="status">
                 <option value="">Tous les états</option>
-                @foreach (['PENDING', 'RETRYING', 'PROCESSING', 'SENT', 'DELIVERED', 'FAILED', 'UNKNOWN'] as $status)
+                @foreach (['PENDING', 'RETRYING', 'PROCESSING', 'SENT', 'DELIVERED', 'FAILED', 'UNKNOWN', 'SIMULATED', 'SKIPPED'] as $status)
                     <option value="{{ $status }}" @selected(($filters['status'] ?? '') === $status)>{{ $status }}</option>
                 @endforeach
             </select>
