@@ -9,6 +9,7 @@
 <p><strong>Motif :</strong> {{ $dispute->reason_code }}</p>
 <p>{{ $dispute->description }}</p>
 <p><strong>Commande :</strong> {{ $dispute->order?->order_number ?? '#'.$dispute->order_id }}</p>
+@if($dispute->resolution_note)<div class="dashboard-card"><h2>Décision de l’administration</h2><p><strong>Résultat :</strong> {{ str_replace('_',' ',$dispute->resolution_code ?? 'résolution') }}</p><p>{{ $dispute->resolution_note }}</p><p><small>Décision prise le {{ $dispute->resolved_at?->format('d/m/Y à H:i') ?? '—' }}</small></p></div>@endif
 </section>
 <section class="dashboard-card"><h2>Échanges avec l’autre partie et l’administration</h2>
 @forelse($dispute->messages as $message)<article><strong>{{ $message->sender?->name ?? 'Utilisateur' }}</strong><small>{{ $message->created_at?->format('d/m/Y H:i') }}</small><p>{{ $message->body }}</p></article>@empty<p>Aucun message pour le moment.</p>@endforelse
