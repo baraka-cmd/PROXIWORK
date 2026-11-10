@@ -121,7 +121,10 @@ class AdminNotificationDeliveryTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $recipient = User::factory()->create();
+        $recipient->notify(new AccountActivityNotification('Tentative', 'Historique', 'test'));
+        $notification = $recipient->notifications()->firstOrFail();
         $delivery = NotificationDelivery::query()->create([
+            'notification_id' => $notification->id,
             'user_id' => $recipient->id,
             'recipient_hint' => 'b***@example.test',
             'channel' => 'mail',
