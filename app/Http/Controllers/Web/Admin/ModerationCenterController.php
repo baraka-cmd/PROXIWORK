@@ -91,8 +91,8 @@ class ModerationCenterController extends Controller
     public function reportedReviews(Request $request): View
     {
         abort_unless($request->user()?->hasPermissionTo('reports.manage'), 403);
-        $type = (new Review())->getMorphClass();
-        $reports = Report::query()->where('target_type', $type)
+        $types = [(new Review())->getMorphClass(), (new ReviewResponse())->getMorphClass()];
+        $reports = Report::query()->whereIn('target_type', $types)
             ->with(['reporter:id,name,email', 'assignee:id,name', 'target'])
             ->withCount('moderationActions')
             ->latest('id')->paginate(25)->withQueryString();
