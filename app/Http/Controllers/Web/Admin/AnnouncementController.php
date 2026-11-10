@@ -25,12 +25,17 @@ class AnnouncementController extends Controller
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $this->validated($request);
-        $announcement = Announcement::query()->create([
+        $announcement = DB::transaction(function () use ($data, $request): Announcement {
+            $announcement = Announcement::query()->create([
             ...$data,
             'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(6)),
             'status' => 'draft',
             'created_by' => $request->user()->id,
         ]);
+            $this->snapshot($announcement, $request->user()->id);
+
+            return $announcement;
+        });
         $audit->record('announcement_created', $announcement, $request->user(), [], $request);
 
         return back()->with('success', 'Annonce enregistrée en brouillon.');
@@ -39,7 +44,11 @@ class AnnouncementController extends Controller
     public function update(Request $request, Announcement $announcement, AuditLogService $audit): RedirectResponse
     {
         abort_unless(in_array($announcement->status, ['draft', 'scheduled'], true), 409);
-        $announcement->update($this->validated($request));
+        DB::transaction(function () use ($announcement, $request): void {
+            $locked = Announcement::query()->lockForUpdate()->findOrFail($announcement->id);
+            $locked->update($this->validated($request));
+            $this->snapshot($locked, $request->user()->id);
+        });
         $audit->record('announcement_updated', $announcement, $request->user(), [], $request);
 
         return back()->with('success', 'Annonce mise à jour.');
@@ -69,6 +78,16 @@ class AnnouncementController extends Controller
         $audit->record('announcement_archived', $announcement, $request->user(), [], $request);
 
         return back()->with('success', 'Annonce archivée.');
+    }
+
+    private function snapshot(Announcement $announcement, int $userId): void
+    {
+        $version = (int) $announcement->versions()->max('version') + 1;
+        $announcement->versions()->create([
+            'version' => $version,
+            'content' => $announcement->only(['title', 'slug', 'summary', 'body', 'type', 'placement', 'status', 'is_pinned', 'cta_label', 'cta_url', 'starts_at', 'ends_at']),
+            'created_by' => $userId,
+        ]);
     }
 
     private function validated(Request $request): array
