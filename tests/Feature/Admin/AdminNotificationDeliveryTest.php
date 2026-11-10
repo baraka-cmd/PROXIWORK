@@ -6,9 +6,9 @@ namespace Tests\Feature\Admin;
 
 use App\Jobs\Notifications\SendNotificationEmail;
 use App\Models\NotificationDelivery;
+use App\Models\User;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Str;
-use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
