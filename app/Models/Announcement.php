@@ -24,7 +24,7 @@ class Announcement extends Model
 
     public function scopeVisible(Builder $query): Builder
     {
-        return $query->where('status', 'published')
+        return $query->whereIn('status', ['published', 'scheduled'])
             ->where(fn (Builder $q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
             ->where(fn (Builder $q) => $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()));
     }
