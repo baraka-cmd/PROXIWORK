@@ -157,6 +157,9 @@ class PaymentRefundAdminService
         // Match the client request lock order (payment first, refund second) to reduce deadlocks.
         $paymentId = PaymentRefund::query()->whereKey($refund->getKey())->value('payment_id');
         $payment = Payment::query()->lockForUpdate()->findOrFail($paymentId);
+        if ($payment->status !== PaymentStatus::SUCCEEDED) {
+            throw new PaymentConflictException('Le paiement initial doit être confirmé pour traiter un remboursement.');
+        }
         $locked = PaymentRefund::query()->lockForUpdate()->findOrFail($refund->getKey());
 
         $transaction = PaymentTransaction::query()
