@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CmsPage;
+use App\Models\MediaAsset;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,7 @@ class CmsPageController extends Controller
         'body',
         'seo_title',
         'meta_description',
+        'og_image_path',
         'canonical_url',
         'is_indexable',
     ];
@@ -34,6 +36,7 @@ class CmsPageController extends Controller
                 ->withCount(['versions as draft_versions_count' => fn ($query) => $query->where('status', 'draft')])
                 ->latest()
                 ->paginate(20),
+            'mediaAssets' => MediaAsset::query()->latest()->limit(100)->get(['id', 'path', 'alt_text']),
         ]);
     }
 
@@ -113,6 +116,7 @@ class CmsPageController extends Controller
             'body' => ['required', 'string', 'max:50000'],
             'seo_title' => ['nullable', 'string', 'max:180'],
             'meta_description' => ['nullable', 'string', 'max:320'],
+            'og_image_path' => ['nullable', 'string', 'max:500', 'exists:media_assets,path'],
             'canonical_url' => ['nullable', 'url', 'max:500'],
             'is_indexable' => ['sometimes', 'boolean'],
         ]) + ['is_indexable' => $request->boolean('is_indexable')];
