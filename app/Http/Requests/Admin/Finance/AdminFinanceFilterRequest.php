@@ -35,8 +35,8 @@ class AdminFinanceFilterRequest extends FormRequest
             'provider' => ['nullable', 'string', 'max:32', 'regex:/^[a-z0-9_-]+$/i'],
             'currency' => ['nullable', 'string', 'regex:/^[A-Za-z]{3}$/'],
             'wallet_status' => ['nullable', 'string', 'max:32', 'regex:/^[a-z0-9_-]+$/i'],
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'from' => ['nullable', 'date', 'required_with:to'],
+            'to' => ['nullable', 'date', 'required_with:from', 'after_or_equal:from'],
             'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
         ];
     }
