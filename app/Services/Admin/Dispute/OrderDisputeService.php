@@ -9,16 +9,16 @@ use App\Enums\OrderDisputeStatus;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\OrderDispute;
-use App\Models\OrderDisputeMessage;
 use App\Models\OrderDisputeAttachment;
+use App\Models\OrderDisputeMessage;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use App\Services\Notification\TransactionalNotificationService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -26,7 +26,6 @@ use Illuminate\Validation\ValidationException;
  */
 class OrderDisputeService
 {
-
     private readonly AuditLogService $audit;
 
     private readonly TransactionalNotificationService $notifications;
@@ -250,6 +249,7 @@ class OrderDisputeService
                     );
                 }
             });
+
             return $locked->fresh(['events.actor', 'assignee']);
         });
     }
@@ -324,10 +324,10 @@ class OrderDisputeService
                     );
                 }
             });
+
             return $locked->fresh(['resolver', 'events.actor']);
         });
     }
-
 
     public function addAttachment(OrderDispute $dispute, User $actor, UploadedFile $file, Request $request): OrderDisputeAttachment
     {
@@ -440,8 +440,8 @@ class OrderDisputeService
                     }
                 });
             }
+
             return $message->load('sender');
         });
     }
-
 }
