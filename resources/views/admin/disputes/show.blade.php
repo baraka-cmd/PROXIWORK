@@ -27,10 +27,10 @@
 </div></section>
 <section class="admin-card"><h3>Échanges des parties et notes internes</h3><div class="admin-timeline">
 @foreach($dispute->messages as $message)<article class="admin-timeline__item"><div class="admin-timeline__dot"></div><div><strong>{{ $message->sender?->name }} @if($message->visibility === 'internal')<span class="admin-status">Interne</span>@endif</strong><p>{{ $message->created_at?->format('d/m/Y H:i') }}</p><div class="admin-message">{{ $message->body }}</div></div></article>@endforeach
-</div><form method="POST" action="{{ route('admin.disputes.message',$dispute) }}">@csrf
+</div>@if($dispute->status->isActive())<form method="POST" action="{{ route('admin.disputes.message',$dispute) }}">@csrf
 <label class="admin-field"><span>Message / note</span><textarea name="body" required minlength="2" maxlength="10000" rows="4"></textarea></label>
 <label class="admin-field"><span>Visibilité</span><select name="visibility"><option value="participants">Visible aux deux parties</option><option value="internal">Note interne uniquement</option></select></label>
-<button class="button button--primary">Ajouter au dossier</button></form></section>
+<button class="button button--primary">Ajouter au dossier</button></form>@endif</section>
 @if($dispute->status->value !== 'closed')
 <section class="admin-card"><h3>Faire avancer le dossier</h3><form method="POST" action="{{ route('admin.disputes.transition',$dispute) }}" class="admin-filter-grid">@csrf
 <label class="admin-field"><span>Nouveau statut</span><select name="status" required>@foreach(($dispute->status->value === 'resolved' ? ['closed'] : ['under_review','awaiting_client','awaiting_professional','mediation','decision_pending','closed']) as $s)<option value="{{ $s }}">{{ str_replace('_',' ',$s) }}</option>@endforeach</select></label>
