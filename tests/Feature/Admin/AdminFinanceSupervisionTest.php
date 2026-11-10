@@ -104,6 +104,16 @@ class AdminFinanceSupervisionTest extends TestCase
         ]);
     }
 
+    public function test_payment_amount_filters_require_a_currency(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.payments.index', ['min_amount' => '100.00']))
+            ->assertSessionHasErrors('currency');
+    }
+
     public function test_overview_keeps_wallet_balances_separated_by_currency(): void
     {
         $professionalUser = User::factory()->create();
