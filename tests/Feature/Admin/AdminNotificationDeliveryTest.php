@@ -6,17 +6,29 @@ namespace Tests\Feature\Admin;
 
 use App\Jobs\Notifications\SendNotificationEmail;
 use App\Models\NotificationDelivery;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AdminNotificationDeliveryTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function createDatabaseNotification(User $user): DatabaseNotification
+    {
+        return DatabaseNotification::query()->create([
+            'id' => (string) Str::uuid(),
+            'type' => AccountActivityNotification::class,
+            'notifiable_type' => $user->getMorphClass(),
+            'notifiable_id' => $user->id,
+            'data' => ['title' => 'Tentative', 'message' => 'Historique', 'action' => 'test'],
+        ]);
+    }
 
     public function test_authorized_admin_can_consult_delivery_history_and_details(): void
     {
@@ -55,8 +67,7 @@ class AdminNotificationDeliveryTest extends TestCase
     public function test_each_provider_attempt_is_preserved_with_its_final_result(): void
     {
         $user = User::factory()->create();
-        Notification::sendNow([$user], new AccountActivityNotification('Tentative', 'Historique', 'test'));
-        $notification = $user->notifications()->firstOrFail();
+        $notification = $this->createDatabaseNotification($user);
         $delivery = NotificationDelivery::query()->create([
             'notification_id' => $notification->id,
             'user_id' => $user->id,
@@ -100,8 +111,7 @@ class AdminNotificationDeliveryTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $recipient = User::factory()->create();
-        Notification::sendNow([$recipient], new AccountActivityNotification('Tentative', 'Historique', 'test'));
-        $notification = $recipient->notifications()->firstOrFail();
+        $notification = $this->createDatabaseNotification($recipient);
         $delivery = NotificationDelivery::query()->create([
             'notification_id' => $notification->id,
             'user_id' => $recipient->id,
