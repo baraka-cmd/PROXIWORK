@@ -35,7 +35,7 @@
             ['Nouveaux utilisateurs',$analytics['totals']['users'],'fa-users'],
             ['Nouveaux professionnels',$analytics['totals']['professionals'],'fa-user-tie'],
             ['Services créés',$analytics['totals']['services'],'fa-briefcase'],
-            ['Demandes créées',$analytics['totals']['requests'],'fa-file-lines'],
+            ['Demandes envoyées',$analytics['totals']['requests'],'fa-file-lines'],
             ['Commandes créées',$analytics['totals']['orders'],'fa-cart-shopping'],
             ['Paiements réussis',$analytics['totals']['successful_payments'],'fa-circle-check'],
         ] as [$label,$value,$icon])
