@@ -118,5 +118,11 @@ class AdminFinanceSupervisionTest extends TestCase
             ->assertDontSee('name="available_balance"')
             ->assertDontSee('name="pending_balance"')
             ->assertDontSee('name="locked_balance"');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $admin->getKey(),
+            'action' => 'admin.finance.wallet.viewed',
+            'subject_id' => $wallet->getKey(),
+        ]);
     }
 }
