@@ -320,21 +320,23 @@ class OrderDisputeService
 
     public function addAttachment(OrderDispute $dispute, User $actor, UploadedFile $file, Request $request): OrderDisputeAttachment
     {
-        return DB::transaction(function () use ($dispute, $actor, $file, $request): OrderDisputeAttachment {
-            $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
-            $isAdmin = $actor->hasPermissionTo('disputes.manage');
-            $isParty = (int) $locked->client_id === (int) $actor->getKey()
-                || (int) $locked->professional()->value('user_id') === (int) $actor->getKey();
+        $path = null;
 
-            if (! $isAdmin && ! $isParty) {
-                abort(403);
-            }
-            if (! $locked->status->isActive()) {
-                throw ValidationException::withMessages(['file' => 'Un dossier clôturé ne peut plus recevoir de preuve.']);
-            }
+        try {
+            return DB::transaction(function () use ($dispute, $actor, $file, $request, &$path): OrderDisputeAttachment {
+                $locked = OrderDispute::query()->lockForUpdate()->findOrFail($dispute->getKey());
+                $isAdmin = $actor->hasPermissionTo('disputes.manage');
+                $isParty = (int) $locked->client_id === (int) $actor->getKey()
+                    || (int) $locked->professional()->value('user_id') === (int) $actor->getKey();
 
-            $path = $file->store('order-disputes/'.$locked->getKey(), 'local');
-            try {
+                if (! $isAdmin && ! $isParty) {
+                    abort(403);
+                }
+                if (! $locked->status->isActive()) {
+                    throw ValidationException::withMessages(['file' => 'Un dossier clôturé ne peut plus recevoir de preuve.']);
+                }
+
+                $path = $file->store('order-disputes/'.$locked->getKey(), 'local');
                 $attachment = $locked->attachments()->create([
                     'uploaded_by' => $actor->getKey(),
                     'disk' => 'local',
@@ -343,26 +345,28 @@ class OrderDisputeService
                     'mime_type' => (string) $file->getMimeType(),
                     'size' => $file->getSize(),
                 ]);
-            } catch (\\Throwable $exception) {
+
+                $locked->events()->create([
+                    'actor_id' => $actor->getKey(),
+                    'event_type' => 'evidence_uploaded',
+                    'reason' => 'Une pièce justificative a été ajoutée.',
+                    'metadata' => ['attachment_id' => $attachment->getKey()],
+                    'created_at' => now(),
+                ]);
+                $this->audit->record('order_dispute.evidence_uploaded', $locked, $actor, [
+                    'attachment_id' => $attachment->getKey(),
+                    'mime_type' => $attachment->mime_type,
+                    'size' => $attachment->size,
+                ], $request);
+
+                return $attachment->load('uploader');
+            });
+        } catch (\\Throwable $exception) {
+            if ($path !== null) {
                 Storage::disk('local')->delete($path);
-                throw $exception;
             }
-
-            $locked->events()->create([
-                'actor_id' => $actor->getKey(),
-                'event_type' => 'evidence_uploaded',
-                'reason' => 'Une pièce justificative a été ajoutée.',
-                'metadata' => ['attachment_id' => $attachment->getKey()],
-                'created_at' => now(),
-            ]);
-            $this->audit->record('order_dispute.evidence_uploaded', $locked, $actor, [
-                'attachment_id' => $attachment->getKey(),
-                'mime_type' => $attachment->mime_type,
-                'size' => $attachment->size,
-            ], $request);
-
-            return $attachment->load('uploader');
-        });
+            throw $exception;
+        }
     }
 
     public function message(OrderDispute $dispute, User $sender, string $body, bool $internal, Request $request): OrderDisputeMessage
