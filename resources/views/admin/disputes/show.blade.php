@@ -17,6 +17,7 @@
 <div><dt>Description initiale</dt><dd>{{ $dispute->description }}</dd></div>
 <div><dt>Ouvert par</dt><dd>{{ $dispute->opener?->name }}</dd></div>
 <div><dt>Statut</dt><dd>{{ $dispute->status->value }}</dd></div>
+@if($dispute->resolution_note)<div><dt>Décision</dt><dd>{{ str_replace('_',' ',$dispute->resolution_code ?? 'résolution') }} — {{ $dispute->resolution_note }}<small>par {{ $dispute->resolver?->name ?? 'Administration' }} · {{ $dispute->resolved_at?->format('d/m/Y H:i') }}</small></dd></div>@endif
 </dl></section>
 <section class="admin-card"><h3>Affectation</h3><p>{{ $dispute->assignee?->name ?? 'Non assigné' }}</p>
 <form method="POST" action="{{ route('admin.disputes.assign',$dispute) }}">@csrf
