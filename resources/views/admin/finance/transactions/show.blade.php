@@ -1,5 +1,9 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/finance.css')@endunless@endpush
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/finance.css')
+    @endunless
+@endpush
 @section('page_title', 'Transaction TX-'.$transaction->id)
 @section('page_description', 'Détail en lecture seule et événements de traçabilité associés.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.finance.transactions') }}">Retour aux transactions</a>@endsection
