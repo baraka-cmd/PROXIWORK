@@ -41,7 +41,7 @@ class CmsPageController extends Controller
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $this->validated($request);
-        $data['slug'] = Str::slug($data['slug'] ?: $data['title']);
+        $data['slug'] = Str::slug(($data['slug'] ?? '') ?: $data['title']);
 
         $page = DB::transaction(function () use ($data, $request): CmsPage {
             $page = CmsPage::query()->create([
