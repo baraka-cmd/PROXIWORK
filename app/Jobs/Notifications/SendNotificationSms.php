@@ -59,6 +59,7 @@ class SendNotificationSms implements ShouldQueue
         }
 
         $delivery->refresh();
+        $delivery->recordAttemptStart();
         $notification = $delivery->notification;
         $data = is_array($notification?->data) ? $notification->data : [];
         $priority = (string) ($data['priority'] ?? 'normal');
