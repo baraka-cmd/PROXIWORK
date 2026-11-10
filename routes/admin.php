@@ -5,6 +5,9 @@ declare(strict_types=1);
 use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
+use App\Http\Controllers\Web\Admin\FinanceController;
+use App\Http\Controllers\Web\Admin\RefundController;
+use App\Http\Controllers\Web\Admin\FinancialOperationsController;
 use App\Http\Controllers\Web\Admin\ModerationCenterController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
@@ -121,6 +124,46 @@ Route::middleware(['auth', 'active.account', 'permission:orders.view'])->group(f
 Route::middleware(['auth', 'active.account', 'permission:payments.view'])->group(function (): void {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+});
+
+Route::middleware(['auth', 'active.account', 'permission:finance.view'])->group(function (): void {
+    Route::get('finance', [FinanceController::class, 'overview'])->name('finance.overview');
+});
+Route::middleware(['auth', 'active.account', 'permission:transactions.view'])->group(function (): void {
+    Route::get('transactions', [FinanceController::class, 'transactions'])->name('finance.transactions');
+    Route::get('transactions/{transaction}', [FinanceController::class, 'transaction'])->whereNumber('transaction')->name('finance.transactions.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:commissions.view'])->group(function (): void {
+    Route::get('commissions', [FinanceController::class, 'commissions'])->name('finance.commissions');
+    Route::get('commissions/{commission}', [FinanceController::class, 'commission'])->whereNumber('commission')->name('finance.commissions.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:wallets.view'])->group(function (): void {
+    Route::get('wallets', [FinanceController::class, 'wallets'])->name('finance.wallets');
+    Route::get('wallets/{wallet}', [FinanceController::class, 'wallet'])->whereNumber('wallet')->name('finance.wallets.show');
+});
+
+
+Route::middleware(['auth', 'active.account', 'permission:refunds.view'])->group(function (): void {
+    Route::get('refunds', [RefundController::class, 'index'])->name('finance.refunds');
+    Route::get('refunds/{refund}', [RefundController::class, 'show'])->whereNumber('refund')->name('finance.refunds.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:refunds.manage'])->group(function (): void {
+    Route::post('refunds/{refund}/processing', [RefundController::class, 'processing'])->middleware('throttle:10,1')->name('finance.refunds.processing');
+    Route::post('refunds/{refund}/reject', [RefundController::class, 'reject'])->middleware('throttle:10,1')->name('finance.refunds.reject');
+});
+Route::middleware(['auth', 'active.account', 'permission:refunds.execute'])->group(function (): void {
+    Route::post('refunds/{refund}/succeeded', [RefundController::class, 'succeeded'])->middleware('throttle:5,1')->name('finance.refunds.succeeded');
+    Route::post('refunds/{refund}/failed', [RefundController::class, 'failed'])->middleware('throttle:5,1')->name('finance.refunds.failed');
+});
+Route::middleware(['auth', 'active.account', 'permission:financial_movements.view'])->group(function (): void {
+    Route::get('financial-movements', [FinancialOperationsController::class, 'movements'])->name('finance.movements');
+    Route::get('financial-movements/{movement}', [FinancialOperationsController::class, 'movement'])->whereNumber('movement')->name('finance.movements.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:financial_reports.view'])->group(function (): void {
+    Route::get('financial-reports', [FinancialOperationsController::class, 'reports'])->name('finance.reports');
+});
+Route::middleware(['auth', 'active.account', 'permission:financial_reports.export'])->group(function (): void {
+    Route::get('financial-reports/export', [FinancialOperationsController::class, 'export'])->middleware('throttle:5,1')->name('finance.reports.export');
 });
 
 Route::middleware(['auth', 'active.account', 'permission:support.manage'])->group(function (): void {
