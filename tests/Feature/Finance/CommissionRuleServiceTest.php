@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Finance;
 
-use App\Models\CommissionRule;
 use App\Models\User;
 use App\Services\Commission\CommissionRuleService;
 use Database\Seeders\RbacSeeder;

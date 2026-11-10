@@ -41,7 +41,7 @@ class UpdateServiceRequest extends FormRequest
             'price' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_min' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_max' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:9999999999.99'],
-            'currency' => ['sometimes', 'nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'currency' => ['sometimes', 'nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/', Rule::exists('currencies', 'code')->where('is_active', true)],
             'estimated_duration_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:525600'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
             'skill_ids' => ['sometimes', 'array', 'max:10'],

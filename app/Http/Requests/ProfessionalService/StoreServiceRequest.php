@@ -36,7 +36,7 @@ class StoreServiceRequest extends FormRequest
             'price' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_min' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'price_max' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
-            'currency' => ['nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'currency' => ['nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/', Rule::exists('currencies', 'code')->where('is_active', true)],
             'estimated_duration_minutes' => ['nullable', 'integer', 'min:1', 'max:525600'],
             'sort_order' => ['sometimes', 'integer', 'min:0', 'max:1000000'],
             'skill_ids' => ['sometimes', 'array', 'max:10'],

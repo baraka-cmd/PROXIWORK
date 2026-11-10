@@ -6,6 +6,10 @@ namespace Tests\Feature\Admin\Verification;
 
 use App\Enums\ProfessionalVerificationStatus;
 use App\Models\ProfessionalProfile;
+use App\Models\PlatformSetting;
+use App\Services\Admin\Verification\ProfessionalVerificationService;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,6 +31,33 @@ class ProfessionalVerificationTest extends TestCase
         $admin->assignRole('admin');
 
         return $admin;
+    }
+
+    public function test_configured_required_document_must_be_approved_before_verification(): void
+    {
+        $admin = $this->admin();
+        $professional = ProfessionalProfile::factory()->create([
+            'verification_status' => ProfessionalVerificationStatus::UNDER_REVIEW,
+            'verified_at' => null,
+        ]);
+
+        PlatformSetting::query()->create([
+            'key' => 'verification.require_identity',
+            'value' => true,
+        ]);
+
+        try {
+            app(ProfessionalVerificationService::class)->verify(
+                $professional,
+                $admin,
+                Request::create('/admin/professionals/'.$professional->id.'/verification/verify', 'POST'),
+            );
+            $this->fail('A required identity document should prevent verification.');
+        } catch (ValidationException $exception) {
+            $this->assertArrayHasKey('documents', $exception->errors());
+        }
+
+        $this->assertSame(ProfessionalVerificationStatus::UNDER_REVIEW, $professional->refresh()->verification_status);
     }
 
     public function test_pending_can_move_to_under_review_then_verified(): void

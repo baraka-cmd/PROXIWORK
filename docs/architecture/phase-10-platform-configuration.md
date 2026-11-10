@@ -22,7 +22,7 @@ La table `platform_settings` stocke uniquement des valeurs opérationnelles non 
 
 ## Point 70 — Devises
 
-USD et CDF sont les devises observées dans le périmètre existant. Leur présence ne signifie pas qu'un fournisseur prend en charge les paiements ou retraits dans les deux devises. L'activation opérationnelle, les conversions et les taux ne doivent être autorisés qu'après vérification des contrats fournisseurs et des flux financiers. Aucun montant historique ne doit être converti ou réécrit.
+Un registre `currencies` contient USD et CDF, avec une devise principale unique et un état actif. Une devise ne peut pas être désactivée si elle est principale, utilisée par des services publiés, des demandes ouvertes, des commandes en attente de paiement ou des soldes de portefeuille. Les montants et devises historiques ne sont jamais convertis ou réécrits. Le registre ne prétend pas activer une capacité de paiement/retrait fournisseur non intégrée.
 
 ## Point 71 — Commissions
 
@@ -30,7 +30,7 @@ Le moteur existant calcule les montants en unités mineures entières et conserv
 
 ## Point 72 — Vérification des professionnels
 
-Le service `ProfessionalVerificationService` conserve les transitions PENDING → UNDER_REVIEW → VERIFIED/REJECTED, les verrouillages, l'historique des revues et l'audit. Les règles d'éligibilité des documents doivent être configurées par catégorie uniquement après inventaire des types de documents réellement pris en charge. Aucun paramètre ne doit autoriser une auto-vérification ou contourner une revue manuelle.
+Le service `ProfessionalVerificationService` conserve les transitions PENDING → UNDER_REVIEW → VERIFIED/REJECTED, les verrouillages, l'historique des revues et l'audit. Les exigences documentaires globales configurables (identité, certificat, formation, licence) exigent un document de type correspondant au statut APPROVED avant la transition VERIFIED. Les exigences par catégorie restent un prolongement possible après inventaire métier. Aucun paramètre ne permet l'auto-vérification ou le contournement de la revue humaine.
 
 ## Point 73 — Publication des services
 

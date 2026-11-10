@@ -16,6 +16,7 @@ use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Commission\CommissionRuleService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -109,7 +110,7 @@ class OrderService
             }
 
             $now = now();
-            $commissionRule = $this->commissionRules->ruleForDate($lockedQuotation->accepted_at ?? $now);
+            $commissionRule = $this->commissionRules->ruleForDate(Carbon::parse($lockedQuotation->accepted_at ?? $now));
 
             $order = Order::query()->forceCreate([
                 'service_request_id' => $request->getKey(),

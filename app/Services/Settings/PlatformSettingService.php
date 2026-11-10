@@ -31,6 +31,10 @@ class PlatformSettingService
         'notifications.email_enabled' => ['default' => true, 'rules' => 'required|boolean'],
         'notifications.sms_enabled' => ['default' => true, 'rules' => 'required|boolean'],
         'notifications.push_enabled' => ['default' => true, 'rules' => 'required|boolean'],
+        'verification.require_identity' => ['default' => false, 'rules' => 'required|boolean'],
+        'verification.require_certificate' => ['default' => false, 'rules' => 'required|boolean'],
+        'verification.require_training' => ['default' => false, 'rules' => 'required|boolean'],
+        'verification.require_license' => ['default' => false, 'rules' => 'required|boolean'],
     ];
 
     public function __construct(
@@ -90,7 +94,7 @@ class PlatformSettingService
         $changes = [];
 
         foreach ($validated as $key => $value) {
-            if ($key === 'notifications.email_enabled' || $key === 'notifications.sms_enabled' || $key === 'notifications.push_enabled') {
+            if (str_starts_with($key, 'notifications.') || str_starts_with($key, 'verification.require_')) {
                 $value = (bool) $value;
             }
 

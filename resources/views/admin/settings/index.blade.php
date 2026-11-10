@@ -56,6 +56,19 @@
         </section>
 
         <section class="dashboard-card">
+            <div class="dashboard-card__header"><div><h2>Vérification professionnelle</h2><p>Les exigences documentaires supplémentaires sont globales. La revue humaine et les transitions existantes restent obligatoires.</p></div></div>
+            <div class="form-grid">
+                @foreach (['identity' => 'Pièce d’identité', 'certificate' => 'Certificat professionnel', 'training' => 'Attestation de formation', 'license' => 'Licence ou autorisation'] as $documentType => $label)
+                    <label class="form-field form-field--checkbox">
+                        <input type="hidden" name="settings[verification][require_{{ $documentType }}]" value="0">
+                        <input type="checkbox" name="settings[verification][require_{{ $documentType }}]" value="1" @checked(old('settings.verification.require_'.$documentType, $settings['verification.require_'.$documentType]))>
+                        <span>Exiger : {{ $label }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </section>
+
+        <section class="dashboard-card">
             <div class="dashboard-card__header"><div><h2>Canaux de notification</h2><p>Les événements critiques continuent d'être traités même si un canal facultatif est désactivé.</p></div></div>
             <div class="form-grid">
                 @foreach (['email' => 'E-mail', 'sms' => 'SMS', 'push' => 'Push'] as $channel => $label)

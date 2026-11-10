@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\Settings\PlatformSettingService;
+use App\Services\Settings\CurrencyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -14,14 +15,14 @@ class PlatformSettingController extends Controller
 {
     public function __construct(
         private readonly PlatformSettingService $settings,
+        private readonly CurrencyService $currencies,
     ) {}
 
     public function index(): View
     {
         return view('admin.settings.index', [
             'settings' => $this->settings->all(),
-            'currencies' => ['USD', 'CDF'],
-            'verificationStates' => ['pending', 'under_review', 'verified', 'rejected'],
+            'currencies' => $this->currencies->all(),
             'integrations' => [
                 'mail' => filled(config('mail.default')) && filled(config('mail.mailers.'.config('mail.default').'.transport')),
                 'sms' => filled(config('services.twilio.account_sid')) && filled(config('services.twilio.auth_token')) && filled(config('services.twilio.from')),
@@ -29,6 +30,18 @@ class PlatformSettingController extends Controller
                 'storage' => filled(config('filesystems.default')),
             ],
         ]);
+    }
+
+    public function updateCurrency(Request $request, string $currency): RedirectResponse
+    {
+        $validated = $request->validate([
+            'is_active' => ['required', 'boolean'],
+            'is_default' => ['required', 'boolean'],
+        ]);
+
+        $this->currencies->update($currency, (bool) $validated['is_active'], (bool) $validated['is_default'], $request->user(), $request);
+
+        return redirect()->route('admin.settings.index')->with('success', 'La configuration de la devise a été enregistrée.');
     }
 
     public function update(Request $request): RedirectResponse

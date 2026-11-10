@@ -44,6 +44,7 @@ class PlatformSettingsTest extends TestCase
                     ],
                     'media' => ['maximum_image_kb' => 4096, 'maximum_document_kb' => 8192],
                     'notifications' => ['email_enabled' => 1, 'sms_enabled' => 0, 'push_enabled' => 0],
+                    'verification' => ['require_identity' => 0, 'require_certificate' => 0, 'require_training' => 0, 'require_license' => 0],
                 ],
             ])
             ->assertRedirect(route('admin.settings.index'));
@@ -104,6 +105,7 @@ class PlatformSettingsTest extends TestCase
                     ],
                     'media' => ['maximum_image_kb' => 4096, 'maximum_document_kb' => 8192],
                     'notifications' => ['email_enabled' => 1, 'sms_enabled' => 0, 'push_enabled' => 0],
+                    'verification' => ['require_identity' => 0, 'require_certificate' => 0, 'require_training' => 0, 'require_license' => 0],
                 ],
             ])
             ->assertSessionHasErrors('platform.support_email');

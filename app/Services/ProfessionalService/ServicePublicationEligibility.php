@@ -15,11 +15,12 @@ use App\Models\Category;
 use App\Models\Service;
 use App\Models\Skill;
 use App\Services\Settings\PlatformSettingService;
+use App\Services\Settings\CurrencyService;
 use Illuminate\Validation\ValidationException;
 
 class ServicePublicationEligibility
 {
-    public function __construct(private readonly PlatformSettingService $settings) {}
+    public function __construct(private readonly PlatformSettingService $settings, private readonly CurrencyService $currencies) {}
 
     public function assertProfessionalCanPublish(Service $service): void
     {
@@ -121,6 +122,9 @@ class ServicePublicationEligibility
         }
 
         $this->assertPricingIsCoherent($service);
+        if ($service->currency !== null && ! $this->currencies->isActive((string) $service->currency)) {
+            throw ValidationException::withMessages(['currency' => 'La devise du service est inactive sur la plateforme.']);
+        }
 
         if ($service->images->count() > $maximumImages) {
             throw ValidationException::withMessages(['images' => 'Le nombre d’images dépasse la limite de publication actuellement configurée.']);
