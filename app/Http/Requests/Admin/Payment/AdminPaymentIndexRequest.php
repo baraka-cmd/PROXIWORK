@@ -34,8 +34,8 @@ class AdminPaymentIndexRequest extends FormRequest
             'currency' => ['nullable', 'string', 'regex:/^[A-Za-z]{3}$/'],
             'min_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
             'max_amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99', 'gte:min_amount'],
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'from' => ['nullable', 'date', 'required_with:to'],
+            'to' => ['nullable', 'date', 'required_with:from', 'after_or_equal:from'],
             'per_page' => ['nullable', 'integer', 'min:10', 'max:100'],
         ];
     }
