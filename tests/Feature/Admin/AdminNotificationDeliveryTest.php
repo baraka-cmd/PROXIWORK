@@ -52,7 +52,10 @@ class AdminNotificationDeliveryTest extends TestCase
     public function test_each_provider_attempt_is_preserved_with_its_final_result(): void
     {
         $user = User::factory()->create();
+        $user->notify(new AccountActivityNotification('Tentative', 'Historique', 'test'));
+        $notification = $user->notifications()->firstOrFail();
         $delivery = NotificationDelivery::query()->create([
+            'notification_id' => $notification->id,
             'user_id' => $user->id,
             'recipient_hint' => 'b***@example.test',
             'channel' => 'mail',
@@ -93,7 +96,10 @@ class AdminNotificationDeliveryTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $recipient = User::factory()->create();
+        $recipient->notify(new AccountActivityNotification('Tentative', 'Historique', 'test'));
+        $notification = $recipient->notifications()->firstOrFail();
         $delivery = NotificationDelivery::query()->create([
+            'notification_id' => $notification->id,
             'user_id' => $recipient->id,
             'recipient_hint' => 'b***@example.test',
             'channel' => 'mail',
