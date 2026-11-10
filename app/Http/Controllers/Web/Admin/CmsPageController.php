@@ -64,7 +64,7 @@ class CmsPageController extends Controller
     {
         abort_unless($page->status !== 'archived', 409);
         $data = $this->validated($request);
-        $data['slug'] = Str::slug($data['slug'] ?: $data['title']);
+        $data['slug'] = Str::slug(($data['slug'] ?? '') ?: $data['title']);
 
         DB::transaction(function () use ($page, $data, $request): void {
             $locked = CmsPage::query()->lockForUpdate()->findOrFail($page->id);
