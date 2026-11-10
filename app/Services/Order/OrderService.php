@@ -41,7 +41,7 @@ class OrderService
             $isClientActor = $request->client_id === $actor->getKey();
             $isProfessionalActor = $request->professional?->user_id === $actor->getKey();
 
-            if (!$isClientActor && !$isProfessionalActor) {
+            if (! $isClientActor && ! $isProfessionalActor) {
                 throw ValidationException::withMessages([
                     'quotation' => 'Vous ne pouvez pas créer une commande pour ce devis.',
                 ]);
