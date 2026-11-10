@@ -160,6 +160,10 @@ class ReviewService
         return $this->database->transaction(function () use ($review, $moderator, $status, $reason, $request): Review {
             $lockedReview = Review::query()->lockForUpdate()->findOrFail($review->getKey());
 
+            if ($lockedReview->status === $status) {
+                throw ValidationException::withMessages(['status' => 'Cet avis possède déjà le statut demandé.']);
+            }
+
             $lockedReview->forceFill([
                 'status' => $status,
                 'moderated_by' => $moderator->getKey(),
@@ -194,6 +198,10 @@ class ReviewService
     {
         return $this->database->transaction(function () use ($response, $moderator, $status, $reason, $request): ReviewResponse {
             $lockedResponse = ReviewResponse::query()->lockForUpdate()->findOrFail($response->getKey());
+
+            if ($lockedResponse->status === $status) {
+                throw ValidationException::withMessages(['status' => 'Cette réponse possède déjà le statut demandé.']);
+            }
 
             $lockedResponse->forceFill([
                 'status' => $status,
