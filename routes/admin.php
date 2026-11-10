@@ -301,6 +301,7 @@ Route::middleware(['auth', 'active.account', 'permission:institutional_documents
 });
 Route::middleware(['auth', 'active.account', 'permission:institutional_documents.manage'])->group(function (): void {
     Route::post('communication/documents', [InstitutionalDocumentController::class, 'store'])->name('communication.documents.store');
+    Route::post('communication/documents/{document}/versions', [InstitutionalDocumentController::class, 'revise'])->name('communication.documents.revise');
 });
 Route::middleware(['auth', 'active.account', 'permission:institutional_documents.approve'])->group(function (): void {
     Route::post('communication/document-versions/{version}/approve', [InstitutionalDocumentController::class, 'approve'])->name('communication.documents.approve');
