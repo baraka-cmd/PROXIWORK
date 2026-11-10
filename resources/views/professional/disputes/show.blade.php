@@ -1,5 +1,5 @@
 @extends('layouts.professional')
-@section('page_title','Litige #'.$dispute->id)
+@section('title','Litige #'.$dispute->id)
 @section('page_description','Suivi du dossier associé à la commande '.($dispute->order?->order_number ?? '#'.$dispute->order_id).'.')
 @section('content')
 @if(session('success'))<div role="status" class="alert alert-success">{{ session('success') }}</div>@endif
