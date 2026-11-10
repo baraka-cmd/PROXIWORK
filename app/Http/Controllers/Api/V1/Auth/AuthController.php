@@ -75,10 +75,12 @@ class AuthController extends Controller
         $user = User::where('email', $email)->first();
 
         if (! $user || ! Hash::check($request->string('password')->toString(), $user->password)) {
+            $this->auditLogService->recordAuthenticationFailure($email, $request);
             throw new AuthenticationException('Identifiants invalides.');
         }
 
         if ($user->account_status === UserAccountStatus::SUSPENDED) {
+            $this->auditLogService->recordAuthenticationFailure($email, $request, $user, 'account_suspended');
             throw new AccessDeniedHttpException('Compte suspendu.');
         }
 
@@ -88,7 +90,7 @@ class AuthController extends Controller
             now()->addMinutes((int) config('sanctum.expiration', 43200))
         )->plainTextToken;
 
-        $this->auditLogService->record('login', $user, $user, [], $request);
+        $this->auditLogService->recordEvent('login', $user, $user, [], $request, category: 'authentication');
 
         return response()->json([
             'message' => 'Connexion réussie.',
@@ -103,13 +105,14 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        $token = $request->user()?->currentAccessToken();
+        $user = $request->user();
+        $token = $user?->currentAccessToken();
 
         if ($token) {
             $token->delete();
         }
 
-        $this->auditLogService->record('logout', $request->user(), $request->user(), [], $request);
+        $this->auditLogService->recordEvent('logout', $user, $user, [], $request, category: 'authentication');
 
         return response()->json([
             'message' => 'Déconnexion réussie.',
@@ -141,13 +144,18 @@ class AuthController extends Controller
                 ]);
             }
 
-            $user->update([
-                'password' => $request->string('password')->toString(),
-            ]);
-
+            $user->update(['password' => $request->string('password')->toString()]);
             $user->tokens()->delete();
 
-            $this->auditLogService->record('password_changed', $user, $user, [], $request);
+            $this->auditLogService->recordEvent(
+                'auth.password.changed',
+                $user,
+                $user,
+                [],
+                $request,
+                category: 'authentication',
+                severity: 'medium',
+            );
             $this->notificationService->securityAlert(
                 $user,
                 'Mot de passe modifié',
@@ -167,10 +175,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Mot de passe modifié. Les anciennes sessions ont été révoquées.',
-            'data' => [
-                'token' => $token,
-                'token_type' => 'Bearer',
-            ],
+            'data' => ['token' => $token, 'token_type' => 'Bearer'],
             'meta' => [],
         ]);
     }
@@ -184,9 +189,7 @@ class AuthController extends Controller
         ]);
 
         if ($status !== Password::ResetLinkSent) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+            throw ValidationException::withMessages(['email' => [__($status)]]);
         }
 
         return response()->json([
@@ -205,12 +208,10 @@ class AuthController extends Controller
                 $request->only('email', 'password', 'password_confirmation', 'token'),
                 function (User $user, string $password) use (&$resetUser): void {
                     $resetUser = $user;
-
                     $user->forceFill([
                         'password' => Hash::make($password),
                         'remember_token' => Str::random(60),
                     ])->save();
-
                     $user->tokens()->delete();
 
                     event(new PasswordReset($user));
@@ -226,12 +227,10 @@ class AuthController extends Controller
         });
 
         if ($status !== Password::PasswordReset || ! $resetUser instanceof User) {
-            throw ValidationException::withMessages([
-                'email' => [__($status)],
-            ]);
+            throw ValidationException::withMessages(['email' => [__($status)]]);
         }
 
-        $this->auditLogService->record('password_reset', $resetUser, $resetUser, [], $request);
+        $this->auditLogService->recordEvent('auth.password.reset', $resetUser, $resetUser, [], $request, category: 'authentication', severity: 'medium');
 
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',
@@ -243,34 +242,23 @@ class AuthController extends Controller
     public function resendVerification(Request $request): JsonResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return response()->json([
-                'message' => 'L’adresse e-mail est déjà vérifiée.',
-                'data' => null,
-                'meta' => [],
-            ]);
+            return response()->json(['message' => 'L’adresse e-mail est déjà vérifiée.', 'data' => null, 'meta' => []]);
         }
 
         $request->user()->sendEmailVerificationNotification();
 
-        return response()->json([
-            'message' => 'Un nouveau lien de vérification a été envoyé.',
-            'data' => null,
-            'meta' => [],
-        ]);
+        return response()->json(['message' => 'Un nouveau lien de vérification a été envoyé.', 'data' => null, 'meta' => []]);
     }
 
     public function verifyEmail(Request $request, int $id, string $hash): JsonResponse
     {
         $user = User::findOrFail($id);
 
-        abort_unless(
-            hash_equals(sha1($user->getEmailForVerification()), $hash),
-            403,
-            'Lien de vérification invalide.'
-        );
+        abort_unless(hash_equals(sha1($user->getEmailForVerification()), $hash), 403, 'Lien de vérification invalide.');
 
         if (! $user->hasVerifiedEmail()) {
             $user->markEmailAsVerified();
+            $this->auditLogService->recordEvent('auth.email.verified', $user, $user, [], $request, category: 'authentication');
         }
 
         return response()->json([
