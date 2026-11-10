@@ -254,7 +254,7 @@ class WebProfessionalDashboardTest extends TestCase
         $this->get(route('professional.profile.photo'))
             ->assertOk()
             ->assertHeader('Content-Type', 'image/png')
-            ->assertHeader('Cache-Control', 'no-store, private')
+            ->assertHeader('Cache-Control', 'must-revalidate, no-cache, no-store, private')
             ->assertHeader('X-Content-Type-Options', 'nosniff');
     }
 
