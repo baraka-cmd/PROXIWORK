@@ -40,6 +40,24 @@ class FaqController extends Controller
         ]);
     }
 
+    public function storeCategory(Request $request, AuditLogService $audit): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'slug' => ['nullable', 'string', 'max:140'],
+        ]);
+        $slug = Str::slug(($data['slug'] ?? '') ?: $data['name']);
+        $category = FaqCategory::query()->create([
+            'name' => $data['name'],
+            'slug' => $slug,
+            'sort_order' => ((int) FaqCategory::query()->max('sort_order')) + 10,
+            'is_active' => true,
+        ]);
+        $audit->record('faq_category_created', $category, $request->user(), [], $request);
+
+        return back()->with('success', 'Catégorie FAQ créée.');
+    }
+
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $this->validated($request);
