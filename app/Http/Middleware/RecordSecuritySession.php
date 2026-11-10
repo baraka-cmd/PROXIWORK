@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Models\SecuritySession;
+use App\Services\Audit\SecuritySessionService;
+use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class RecordSecuritySession
 {
-    public function handle(\Illuminate\Http\Request $request, \Closure $next): \Symfony\Component\HttpFoundation\Response
+    public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user() ?? Auth::guard('web')->user();
 
@@ -52,7 +56,7 @@ class RecordSecuritySession
 
         $response = $next($request);
 
-        app(\App\Services\Audit\SecuritySessionService::class)->touch($request);
+        app(SecuritySessionService::class)->touch($request);
 
         return $response;
     }
