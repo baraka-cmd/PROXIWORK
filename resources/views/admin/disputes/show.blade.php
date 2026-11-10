@@ -31,10 +31,16 @@
 <label class="admin-field"><span>Message / note</span><textarea name="body" required minlength="2" maxlength="10000" rows="4"></textarea></label>
 <label class="admin-field"><span>Visibilité</span><select name="visibility"><option value="participants">Visible aux deux parties</option><option value="internal">Note interne uniquement</option></select></label>
 <button class="button button--primary">Ajouter au dossier</button></form></section>
-@if(!in_array($dispute->status->value,['resolved','closed'],true))
+@if($dispute->status->value !== 'closed')
 <section class="admin-card"><h3>Faire avancer le dossier</h3><form method="POST" action="{{ route('admin.disputes.transition',$dispute) }}" class="admin-filter-grid">@csrf
-<label class="admin-field"><span>Nouveau statut</span><select name="status" required>@foreach(['under_review','awaiting_client','awaiting_professional','mediation','decision_pending','closed'] as $s)<option value="{{ $s }}">{{ str_replace('_',' ',$s) }}</option>@endforeach</select></label>
+<label class="admin-field"><span>Nouveau statut</span><select name="status" required>@foreach(($dispute->status->value === 'resolved' ? ['closed'] : ['under_review','awaiting_client','awaiting_professional','mediation','decision_pending','closed']) as $s)<option value="{{ $s }}">{{ str_replace('_',' ',$s) }}</option>@endforeach</select></label>
 <label class="admin-field admin-field--wide"><span>Motif obligatoire</span><textarea name="reason" minlength="10" maxlength="2000" required></textarea></label><button class="button button--secondary">Enregistrer la transition</button></form></section>@endif
+@if($dispute->status->value === 'closed')
+<section class="admin-card"><h3>Réouverture exceptionnelle</h3><p>La réouverture doit être justifiée et restera visible dans l’historique.</p>
+<form method="POST" action="{{ route('admin.disputes.reopen',$dispute) }}">@csrf
+<label class="admin-field"><span>Motif de réouverture</span><textarea name="reason" minlength="20" maxlength="2000" required></textarea></label>
+<button class="button button--secondary">Rouvrir le litige</button></form></section>
+@endif
 @if($dispute->status->value === 'decision_pending')
 <section class="admin-card"><h3>Décision motivée</h3><form method="POST" action="{{ route('admin.disputes.decide',$dispute) }}" class="admin-filter-grid">@csrf
 <label class="admin-field"><span>Résultat</span><select name="resolution_code" required><option value="client_favor">En faveur du client</option><option value="professional_favor">En faveur du professionnel</option><option value="amicable_agreement">Accord amiable</option><option value="no_breach">Aucun manquement établi</option><option value="financial_review_required">Examen financier requis (sans exécution financière)</option><option value="other">Autre</option></select></label>
