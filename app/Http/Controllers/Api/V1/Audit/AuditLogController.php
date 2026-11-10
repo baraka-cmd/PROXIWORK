@@ -16,8 +16,18 @@ class AuditLogController extends Controller
         $this->authorize('viewAny', AuditLog::class);
 
         $perPage = min(max($request->integer('per_page', 25), 1), 100);
+        $allowedCategories = [];
+
+        if ($request->user()->hasPermissionTo('audit.view')) {
+            $allowedCategories = array_merge($allowedCategories, ['general', 'administrative']);
+        }
+
+        if ($request->user()->hasPermissionTo('security.events.view')) {
+            $allowedCategories = array_merge($allowedCategories, ['authentication', 'security']);
+        }
 
         $logs = AuditLog::query()
+            ->whereIn('category', $allowedCategories)
             ->with('user:id,name,email')
             ->when(
                 $request->filled('actor_id'),
