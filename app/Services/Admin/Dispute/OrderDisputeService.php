@@ -335,6 +335,12 @@ class OrderDisputeService
                 if (! $locked->status->isActive()) {
                     throw ValidationException::withMessages(['file' => 'Un dossier clôturé ne peut plus recevoir de preuve.']);
                 }
+                if ($locked->attachments()->count() >= 20) {
+                    throw ValidationException::withMessages(['file' => 'Ce dossier a atteint la limite de 20 pièces justificatives.']);
+                }
+                if ((int) $locked->attachments()->sum('size') + $file->getSize() > 50 * 1024 * 1024) {
+                    throw ValidationException::withMessages(['file' => 'La taille totale des pièces justificatives ne peut pas dépasser 50 Mo par dossier.']);
+                }
 
                 $path = $file->store('order-disputes/'.$locked->getKey(), 'local');
                 $attachment = $locked->attachments()->create([
