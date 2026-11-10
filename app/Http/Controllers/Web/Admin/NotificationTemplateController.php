@@ -95,20 +95,36 @@ class NotificationTemplateController extends Controller
     public function revise(Request $request, NotificationTemplate $template, AuditLogService $audit): RedirectResponse
     {
         abort_unless($template->status === 'published', 409);
-        DB::transaction(function () use ($template, $request): void {
+        $revision = DB::transaction(function () use ($template, $request): NotificationTemplate {
             $locked = NotificationTemplate::query()->lockForUpdate()->findOrFail($template->id);
             abort_unless($locked->status === 'published', 409);
-            $version = $locked->version + 1;
-            $locked->update(['status' => 'draft', 'version' => $version, 'published_at' => null, 'updated_by' => $request->user()->id]);
-            $locked->versions()->create([
-                'version' => $version,
-                'content' => $locked->only(['subject', 'title', 'body']),
+            $nextVersion = $locked->version + 1;
+            $revision = NotificationTemplate::query()->create([
+                'name' => $locked->name,
+                'code' => $locked->code.'-v'.$nextVersion,
+                'event_key' => $locked->event_key,
+                'category' => $locked->category,
+                'channel' => $locked->channel,
+                'locale' => $locked->locale,
+                'subject' => $locked->subject,
+                'title' => $locked->title,
+                'body' => $locked->body,
+                'status' => 'draft',
+                'version' => 1,
+                'created_by' => $request->user()->id,
+                'updated_by' => $request->user()->id,
+            ]);
+            $revision->versions()->create([
+                'version' => 1,
+                'content' => $revision->only(['subject', 'title', 'body']),
                 'created_by' => $request->user()->id,
             ]);
-        });
-        $audit->record('notification_template_revision_started', $template, $request->user(), ['version' => $template->version + 1], $request);
 
-        return back()->with('success', 'Une nouvelle version brouillon est ouverte. La version publiée précédente reste historisée.');
+            return $revision;
+        });
+        $audit->record('notification_template_revision_created', $revision, $request->user(), ['source_template_id' => $template->id], $request);
+
+        return back()->with('success', 'Une nouvelle fiche brouillon a été créée. Le modèle publié reste actif jusqu’à la publication de cette révision.');
     }
 
     public function publish(Request $request, NotificationTemplate $template, AuditLogService $audit): RedirectResponse
