@@ -6,7 +6,9 @@
 @endpush
 @section('page_title', 'Commission COM-'.$commission->id)
 @section('page_description', 'Détail du calcul historique et vérification de son écriture de portefeuille.')
-@section('page_actions')<a class="button button--secondary" href="{{ route('admin.finance.commissions') }}">Retour aux commissions</a>@endsection
+@section('page_actions')
+    <a class="button button--secondary" href="{{ route('admin.finance.commissions') }}">Retour aux commissions</a>
+@endsection
 @section('content')
 <div class="admin-finance admin-finance__detail-grid">
     <section class="admin-card"><h3>Calcul enregistré</h3><dl class="admin-finance__details">
@@ -28,7 +30,9 @@
     <section class="admin-card admin-finance__full"><h3>Écritures de portefeuille associées</h3><p class="admin-finance__muted">Aperçu des écritures de cette commission. Le registre complet sera consultable dans l'espace dédié aux mouvements financiers.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Écriture</th><th>Type</th><th>Direction</th><th>Compartiment</th><th>Montant</th><th>Date</th></tr></thead><tbody>
         @forelse($commission->walletEntries as $entry)
             <tr><td>#{{ $entry->id }}</td><td>{{ $entry->type->value ?? $entry->type }}</td><td>{{ $entry->direction->value ?? $entry->direction }}</td><td>{{ $entry->balance_bucket }}</td><td>{{ number_format((float) $entry->amount, 2, ',', ' ') }} {{ $entry->currency }}</td><td>{{ $entry->created_at?->format('d/m/Y H:i') }}</td></tr>
-        @empty<tr><td colspan="6"><div class="admin-empty">Aucune écriture de portefeuille retrouvée pour cette commission.</div></td></tr>@endforelse
+        @empty
+                            <tr><td colspan="6"><div class="admin-empty">Aucune écriture de portefeuille retrouvée pour cette commission.</div></td></tr>
+                        @endforelse
     </tbody></table></div></section>
 </div>
 @endsection
