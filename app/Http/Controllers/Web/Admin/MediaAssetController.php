@@ -31,17 +31,25 @@ class MediaAssetController extends Controller
 
         $dimensions = $file->dimensions() ?: [null, null];
 
-        $asset = MediaAsset::query()->create([
-            'disk' => 'public',
-            'path' => $path,
-            'original_name' => mb_substr($file->getClientOriginalName(), 0, 255),
-            'mime_type' => (string) $file->getMimeType(),
-            'size_bytes' => (int) $file->getSize(),
-            'width' => $dimensions[0],
-            'height' => $dimensions[1],
-            'alt_text' => $data['alt_text'],
-            'uploaded_by' => $request->user()->id,
-        ]);
+        try {
+            $asset = DB::transaction(function () use ($file, $path, $dimensions, $data, $request): MediaAsset {
+                return MediaAsset::query()->create([
+                    'disk' => 'public',
+                    'path' => $path,
+                    'original_name' => mb_substr($file->getClientOriginalName(), 0, 255),
+                    'mime_type' => (string) $file->getMimeType(),
+                    'size_bytes' => (int) $file->getSize(),
+                    'width' => $dimensions[0],
+                    'height' => $dimensions[1],
+                    'alt_text' => $data['alt_text'],
+                    'uploaded_by' => $request->user()->id,
+                ]);
+            });
+        } catch (Throwable $exception) {
+            Storage::disk('public')->delete($path);
+
+            throw $exception;
+        }
         $audit->record('cms_media_uploaded', $asset, $request->user(), ['mime_type' => $asset->mime_type, 'size_bytes' => $asset->size_bytes], $request);
 
         return back()->with('success', 'Média public téléversé et enregistré dans la médiathèque.');
