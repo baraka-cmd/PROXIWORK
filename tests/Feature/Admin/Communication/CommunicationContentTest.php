@@ -7,7 +7,6 @@ namespace Tests\Feature\Admin\Communication;
 use App\Models\FaqCategory;
 use App\Models\FaqItem;
 use App\Models\NotificationTemplate;
-use App\Models\Profile;
 use App\Models\PublicPage;
 use App\Models\User;
 use App\Services\Notification\NotificationTemplateRenderer;
@@ -50,7 +49,7 @@ class CommunicationContentTest extends TestCase
     public function test_template_renderer_uses_the_recipient_profile_locale(): void
     {
         $recipient = User::factory()->create();
-        Profile::create(['user_id' => $recipient->id, 'locale' => 'en', 'first_name' => 'Alex']);
+        $recipient->profile()->create(['locale' => 'en', 'first_name' => 'Alex']);
         NotificationTemplate::create([
             'key' => 'message',
             'name' => 'Message EN',
