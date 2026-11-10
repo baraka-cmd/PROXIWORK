@@ -7,6 +7,7 @@ on:
       - phase-3/**
       - develop
       - main
+      - main-proxiwork
       - release/**
       - integration/**
       - feature/**
@@ -18,6 +19,7 @@ on:
       - phase-3/**
       - develop
       - main
+      - main-proxiwork
       - release/**
       - integration/**
       - feature/**
