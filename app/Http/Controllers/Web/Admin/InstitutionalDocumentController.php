@@ -89,6 +89,7 @@ class InstitutionalDocumentController extends Controller
     {
         abort_if($version->created_by === $request->user()->id, 403, 'Une personne différente doit approuver cette version.');
         abort_unless($version->status === 'draft', 409);
+        abort_unless($version->version === $version->document()->firstOrFail()->versions()->max('version'), 409, 'Une version plus récente existe.');
         $version->update(['status' => 'approved', 'approved_by' => $request->user()->id]);
         $audit->record('institutional_document_version_approved', $version, $request->user(), ['version' => $version->version], $request);
 
