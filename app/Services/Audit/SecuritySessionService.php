@@ -85,6 +85,25 @@ class SecuritySessionService
         }
     }
 
+    public function revokeAllForUser(User $user, User $actor, string $reason, ?Request $request = null): void
+    {
+        SecuritySession::query()
+            ->where('user_id', $user->getKey())
+            ->whereNull('revoked_at')
+            ->orderBy('id')
+            ->get()
+            ->each(fn (SecuritySession $session) => $this->revoke($session, $actor, $reason, $request));
+
+        if (config('session.driver') === 'database') {
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->getKey())
+                ->delete();
+        }
+
+        // Also invalidate legacy tokens created before session monitoring was enabled.
+        $user->tokens()->delete();
+    }
+
     public function revoke(SecuritySession $session, User $actor, string $reason, ?Request $request = null): void
     {
         if ($session->revoked_at !== null) {
