@@ -137,6 +137,11 @@ class AdminFinanceQueryService
         [$from, $to] = $this->optionalPeriod($filters);
 
         return PaymentTransaction::query()
+            ->select([
+                'id', 'payment_id', 'provider', 'provider_transaction_id', 'provider_reference',
+                'status', 'currency', 'amount', 'failure_code', 'failure_message',
+                'initiated_at', 'processed_at', 'created_at',
+            ])
             ->with([
                 'payment:id,order_id,client_id,amount,currency,status',
                 'payment.order:id,order_number,professional_id',
@@ -168,12 +173,19 @@ class AdminFinanceQueryService
             ->withQueryString();
     }
 
-    public function transaction(PaymentTransaction $transaction): PaymentTransaction
+    public function transaction(int $transactionId): PaymentTransaction
     {
-        $transaction->load([
-            'payment.order.professional.user',
-            'payment.client',
-        ]);
+        $transaction = PaymentTransaction::query()
+            ->select([
+                'id', 'payment_id', 'provider', 'provider_transaction_id', 'provider_reference',
+                'status', 'currency', 'amount', 'failure_code', 'failure_message',
+                'initiated_at', 'processed_at', 'created_at',
+            ])
+            ->with([
+                'payment.order.professional.user',
+                'payment.client',
+            ])
+            ->findOrFail($transactionId);
 
         $transaction->setRelation('adminEvents', PaymentEvent::query()
             ->where('payment_transaction_id', $transaction->getKey())
