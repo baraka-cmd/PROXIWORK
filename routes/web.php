@@ -19,7 +19,6 @@ use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\HomePageController;
-use App\Http\Controllers\Web\PublicContentController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\OrderDeliveryAttachmentController;
@@ -38,6 +37,7 @@ use App\Http\Controllers\Web\Professional\ServiceRealizationController as Profes
 use App\Http\Controllers\Web\Professional\ServiceRequestController as ProfessionalServiceRequestController;
 use App\Http\Controllers\Web\Professional\WalletController as ProfessionalWalletController;
 use App\Http\Controllers\Web\Professional\WithdrawalController as ProfessionalWithdrawalController;
+use App\Http\Controllers\Web\PublicContentController;
 use App\Http\Controllers\Web\PublicSearchController;
 use App\Http\Controllers\Web\PublicServiceRealizationController;
 use App\Http\Controllers\Web\RbacDashboardController;
