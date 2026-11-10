@@ -10,8 +10,8 @@ use App\Models\CmsPage;
 use App\Models\FaqArticle;
 use App\Models\InstitutionalDocument;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
