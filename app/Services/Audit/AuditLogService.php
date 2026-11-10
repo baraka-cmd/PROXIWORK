@@ -102,7 +102,7 @@ class AuditLogService
             'metadata' => $safeMetadata,
         ]);
 
-        if (str_starts_with($action, 'admin.') && ! str_ends_with($action, '.viewed')) {
+        if (str_starts_with($action, 'admin.') && ! str_starts_with($action, 'admin.auth.') && ! str_ends_with($action, '.viewed')) {
             $this->recordInterventionProjection($event, $subject, $user, $action, $metadata, $safeChanges, $safeReason);
         }
 
