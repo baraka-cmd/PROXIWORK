@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AdminNotificationController;
+use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AnnouncementController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
