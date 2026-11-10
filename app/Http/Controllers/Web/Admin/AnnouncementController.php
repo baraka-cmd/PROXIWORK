@@ -97,7 +97,7 @@ class AnnouncementController extends Controller
             'summary' => ['nullable', 'string', 'max:500'],
             'body' => ['required', 'string', 'max:20000'],
             'type' => ['required', 'in:information,alert,official'],
-            'placement' => ['required', 'in:announcements,homepage,client,professional'],
+            'placement' => ['required', 'in:announcements,homepage'],
             'is_pinned' => ['sometimes', 'boolean'],
             'cta_label' => ['nullable', 'string', 'max:80'],
             'cta_url' => ['nullable', 'string', 'max:500', 'regex:/^\/(?!\/)[^\\]*$/'],
