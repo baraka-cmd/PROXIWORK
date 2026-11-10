@@ -10,9 +10,10 @@ use App\Jobs\Notifications\SendNotificationPush;
 use App\Jobs\Notifications\SendNotificationSms;
 use App\Models\NotificationDelivery;
 use App\Services\Audit\AuditLogService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class NotificationDeliveryController extends Controller
 {
