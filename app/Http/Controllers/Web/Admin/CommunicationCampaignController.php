@@ -91,7 +91,7 @@ class CommunicationCampaignController extends Controller
             abort_unless($locked->status === 'draft', 409);
             $query = $this->audienceQuery($locked);
             $query->select('users.id as id')->orderBy('users.id')->chunkById(500, function ($users) use ($locked): void {
-                $rows = $users->map(fn ($user) => [
+                $rows = $users->map(static fn ($user) => [
                     'campaign_id' => $locked->id,
                     'user_id' => $user->id,
                     'status' => 'pending',
@@ -125,7 +125,7 @@ class CommunicationCampaignController extends Controller
 
         return User::query()
             ->where('account_status', 'active')
-            ->whereHas('roles', fn ($roles) => $roles->whereIn('name', match ($audience) {
+            ->whereHas('roles', static fn ($roles) => $roles->whereIn('name', match ($audience) {
                 'client' => ['client'],
                 'professional' => ['professional'],
                 default => ['client', 'professional'],
