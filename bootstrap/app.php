@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddSecurityHeaders;
-use App\Http\Middleware\EnsureWebGuard;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\EnsureWebGuard;
 use App\Http\Middleware\RecordSecuritySession;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -117,7 +117,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($status === 403) {
                 try {
-                    app(\App\Services\Audit\AuditLogService::class)->recordEvent(
+                    app(AuditLogService::class)->recordEvent(
                         'security.authorization.denied',
                         null,
                         $request->user(),
