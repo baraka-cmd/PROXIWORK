@@ -34,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AddSecurityHeaders::class);
-        $middleware->web(prepend: [EnsureWebGuard::class], append: [AuthenticateSession::class]);
+        $middleware->web(append: [EnsureWebGuard::class, AuthenticateSession::class]);
 
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
