@@ -101,7 +101,7 @@ class NotificationTemplateController extends Controller
             $nextVersion = $locked->version + 1;
             $revision = NotificationTemplate::query()->create([
                 'name' => $locked->name,
-                'code' => $locked->code.'-v'.$nextVersion,
+                'code' => mb_substr($locked->code, 0, 108).'-v'.$nextVersion,
                 'event_key' => $locked->event_key,
                 'category' => $locked->category,
                 'channel' => $locked->channel,
