@@ -75,6 +75,21 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
+            try {
+                app(\App\Services\Audit\AuditLogService::class)->recordEvent(
+                    'security.authorization.denied',
+                    null,
+                    $request->user(),
+                    ['route' => $request->route()?->getName(), 'method' => $request->method(), 'path' => $request->path()],
+                    $request,
+                    category: 'security',
+                    outcome: 'denied',
+                    severity: 'low',
+                );
+            } catch (Throwable) {
+                // A failed audit write must not change the authorization decision.
+            }
+
             if (! $isApi($request)) {
                 return null;
             }
@@ -103,7 +118,24 @@ return Application::configure(basePath: dirname(__DIR__))
 
             $status = $e->getStatusCode();
 
-            if (in_array($status, [400, 401, 403, 404, 405, 409, 429], true)) {
+            if ($status === 403) {
+                try {
+                    app(\App\Services\Audit\AuditLogService::class)->recordEvent(
+                        'security.authorization.denied',
+                        null,
+                        $request->user(),
+                        ['route' => $request->route()?->getName(), 'method' => $request->method(), 'path' => $request->path()],
+                        $request,
+                        category: 'security',
+                        outcome: 'denied',
+                        severity: 'low',
+                    );
+                } catch (Throwable) {
+                    // A failed audit write must not change the authorization decision.
+                }
+            }
+
+            if (in_array($status, [400, 401, 403, 404, 405, 409, 429], true))
                 return response()->json([
                     'message' => $e->getMessage() !== '' ? $e->getMessage() : 'Requête impossible.',
                     'errors' => [],
