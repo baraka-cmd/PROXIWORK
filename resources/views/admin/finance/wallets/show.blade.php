@@ -1,5 +1,9 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/finance.css')@endunless@endpush
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/finance.css')
+    @endunless
+@endpush
 @section('page_title', 'Portefeuille WAL-'.$wallet->id)
 @section('page_description', 'Situation actuelle du portefeuille professionnel et aperçu de ses dernières écritures.')
 @section('page_actions')<a class="button button--secondary" href="{{ route('admin.finance.wallets') }}">Retour aux portefeuilles</a>@endsection
