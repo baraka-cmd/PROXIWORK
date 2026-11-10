@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Professional;
 
 use App\Enums\ProfessionalAvailabilityStatus;
+use App\Enums\ServiceModerationStatus;
 use App\Enums\ServiceStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProfessionalProfile\UpdateProfessionalProfileRequest;
@@ -23,6 +24,7 @@ use App\Models\Skill;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
 use App\Services\ProfessionalService\ProfessionalServiceManager;
+use App\Services\ProfessionalService\ServiceModerationManager;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +39,7 @@ class ProfileController extends Controller
     public function __construct(
         private readonly ProfessionalServiceManager $serviceManager,
         private readonly AuditLogService $auditLogService,
+        private readonly ServiceModerationManager $moderationManager,
     ) {}
 
     public function photo(Request $request): BinaryFileResponse
@@ -68,10 +71,7 @@ class ProfileController extends Controller
             ->with(['user.profile', 'skills'])
             ->withCount([
                 'skills',
-                'services as published_services_count' => fn ($query) => $query
-                    ->where('status', ServiceStatus::PUBLISHED->value)
-                    ->whereNotNull('published_at')
-                    ->whereHas('category', fn ($query) => $query->where('status', 'active')),
+                'services as published_services_count' => fn ($query) => $query->requestable(),
             ])
             ->firstOrFail();
 
@@ -79,7 +79,7 @@ class ProfileController extends Controller
         $professional->setRelation(
             'services',
             $professional->services()
-                ->with(['category', 'skills', 'images'])
+                ->with(['category', 'skills.category.parent', 'images'])
                 ->orderBy('sort_order')
                 ->orderByDesc('id')
                 ->limit(6)
@@ -377,8 +377,13 @@ class ProfileController extends Controller
             ->groupBy('status')
             ->pluck('aggregate', 'status');
 
+        $moderationCounts = $profile->services()
+            ->selectRaw('moderation_status, COUNT(*) as aggregate')
+            ->groupBy('moderation_status')
+            ->pluck('aggregate', 'moderation_status');
+
         $services = $profile->services()
-            ->with(['category', 'skills', 'images'])
+            ->with(['category', 'skills.category.parent', 'images'])
             ->withCount('serviceRequests')
             ->withCount(['realizations as pending_realizations_count' => fn ($query) => $query->where('status', ServiceRealization::STATUS_PENDING)])
             ->when($validated['search'] ?? null, function ($query, string $search): void {
@@ -389,6 +394,7 @@ class ProfileController extends Controller
                 });
             })
             ->when($validated['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($validated['moderation_status'] ?? null, fn ($query, string $status) => $query->where('moderation_status', $status))
             ->when($validated['category_id'] ?? null, fn ($query, int $categoryId) => $query->where('category_id', $categoryId))
             ->when($validated['skill_id'] ?? null, fn ($query, int $skillId) => $query->whereHas('skills', fn ($skills) => $skills->whereKey($skillId)))
             ->when(($validated['sort'] ?? 'recent') === 'title', fn ($query) => $query->orderBy('title')->orderByDesc('id'))
@@ -401,8 +407,10 @@ class ProfileController extends Controller
             'services' => $services,
             'filters' => $validated,
             'statuses' => ServiceStatus::cases(),
-            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'moderationStatuses' => ServiceModerationStatus::cases(),
+            'categories' => Category::query()->where('status', 'active')->with('parent')->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'parent_id']),
             'skills' => Skill::query()
+                ->with('category.parent')
                 ->where('status', 'active')
                 ->whereHas('services', fn ($query) => $query->where('professional_profile_id', $profile->getKey()))
                 ->orderBy('name')
@@ -414,12 +422,23 @@ class ProfileController extends Controller
                 'unpublished' => (int) ($serviceCounts[ServiceStatus::UNPUBLISHED->value] ?? 0),
                 'archived' => (int) ($serviceCounts[ServiceStatus::ARCHIVED->value] ?? 0),
                 'pending_realizations' => $pendingRealizationsCount,
+                'under_review' => (int) ($moderationCounts[ServiceModerationStatus::UNDER_REVIEW->value] ?? 0),
+                'changes_requested' => (int) ($moderationCounts[ServiceModerationStatus::CHANGES_REQUESTED->value] ?? 0),
+                'hidden' => (int) ($moderationCounts[ServiceModerationStatus::HIDDEN->value] ?? 0),
+                'rejected' => (int) ($moderationCounts[ServiceModerationStatus::REJECTED->value] ?? 0),
             ],
             'statusLabels' => [
                 ServiceStatus::DRAFT->value => 'Brouillon',
                 ServiceStatus::PUBLISHED->value => 'Publié',
                 ServiceStatus::UNPUBLISHED->value => 'Dépublié',
                 ServiceStatus::ARCHIVED->value => 'Archivé',
+            ],
+            'moderationStatusLabels' => [
+                ServiceModerationStatus::CLEAR->value => 'Normal',
+                ServiceModerationStatus::UNDER_REVIEW->value => 'En examen',
+                ServiceModerationStatus::HIDDEN->value => 'Masqué par l’administration',
+                ServiceModerationStatus::CHANGES_REQUESTED->value => 'Corrections demandées',
+                ServiceModerationStatus::REJECTED->value => 'Refusé',
             ],
         ]);
     }
@@ -430,8 +449,8 @@ class ProfileController extends Controller
 
         return view('professional/services/form', [
             'service' => null,
-            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(),
-            'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(),
+            'categories' => Category::query()->where('status', 'active')->with('parent')->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')->get(),
+            'skills' => Skill::query()->where('status', 'active')->with('category.parent')->orderBy('name')->get(),
         ]);
     }
 
@@ -450,9 +469,9 @@ class ProfileController extends Controller
         abort_if($service->status === ServiceStatus::ARCHIVED, 404);
 
         return view('professional/services/form', [
-            'service' => $service->load(['category', 'skills', 'images', 'realizations']),
-            'categories' => Category::query()->where('status', 'active')->orderBy('name')->get(),
-            'skills' => Skill::query()->where('status', 'active')->orderBy('name')->get(),
+            'service' => $service->load(['category.parent', 'skills.category.parent', 'images', 'realizations']),
+            'categories' => Category::query()->where('status', 'active')->with('parent')->orderBy('parent_id')->orderBy('sort_order')->orderBy('name')->get(),
+            'skills' => Skill::query()->where('status', 'active')->with('category.parent')->orderBy('name')->get(),
         ]);
     }
 
@@ -490,6 +509,23 @@ class ProfileController extends Controller
 
         return redirect()->route('professional.services.index')
             ->with('success', 'Service publié avec succès.');
+    }
+
+    public function submitServiceForReview(Request $request, Service $service): RedirectResponse
+    {
+        $this->authorize('update', $service);
+        $validated = $request->validate([
+            'note' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $this->moderationManager->submitForReview(
+            $service,
+            $request->user(),
+            $validated['note'] ?? null,
+        );
+
+        return redirect()->route('professional.services.index')
+            ->with('success', 'Votre service a été soumis à un nouvel examen.');
     }
 
     public function unpublishService(Request $request, Service $service): RedirectResponse

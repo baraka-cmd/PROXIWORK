@@ -18,6 +18,7 @@ use App\Models\ReviewResponse;
 use App\Models\Service;
 use App\Models\User;
 use App\Services\Audit\AuditLogService;
+use App\Services\ProfessionalService\ServiceModerationManager;
 use App\Services\Review\ReviewService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class ModerationService
     public function __construct(
         private AuditLogService $audit,
         private ReviewService $reviewService,
+        private ServiceModerationManager $serviceModerationManager,
     ) {}
 
     public function resolveTarget(string $type, int $id): Model
@@ -301,16 +303,31 @@ class ModerationService
                     'action_type' => 'Cette action exige une réponse à un avis.',
                 ]),
             ModerationActionType::UNPUBLISH_SERVICE => $target instanceof Service
-                ? $target->forceFill([
-                    'status' => 'unpublished',
-                    'published_at' => null,
-                ])->save()
+                ? $this->serviceModerationManager->moderate(
+                    $target,
+                    $actor,
+                    'hide',
+                    $this->resolveServiceModerationReason($reason, $note),
+                )
                 : throw ValidationException::withMessages([
                     'action_type' => 'Cette action exige un service.',
                 ]),
             ModerationActionType::SUSPEND_USER => $this->suspendUser($target),
             ModerationActionType::SUSPEND_PROFESSIONAL => $this->suspendProfessional($target),
         };
+    }
+
+    private function resolveServiceModerationReason(?string $reason, ?string $note): string
+    {
+        $note = trim((string) $note);
+
+        if (mb_strlen($note) >= 10) {
+            return $note;
+        }
+
+        $reasonLabel = filled($reason) ? trim((string) $reason) : 'signalement traité';
+
+        return 'Masquage administratif à la suite du '.$reasonLabel.'.';
     }
 
     private function suspendUser(Model $target): void

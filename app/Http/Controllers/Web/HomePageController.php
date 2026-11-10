@@ -30,16 +30,11 @@ class HomePageController
                     ->whereNotNull('email_verified_at'));
         };
 
-        $publishedServices = function (Builder $query) use ($visibleProfessional): void {
-            $query
-                ->published()
-                ->whereHas('category', fn (Builder $category) => $category->where('status', 'active'))
-                ->whereHas('professionalProfile', $visibleProfessional);
-        };
+        $publishedServices = fn (Builder $query) => $query->requestable();
 
         $slides = HomepageSlide::query()->published()->get();
         $services = Service::query()
-            ->where($publishedServices)
+            ->requestable()
             ->with(['category:id,name,slug', 'images', 'professionalProfile.user:id,name', 'professionalProfile.user.profile:id,user_id,first_name,last_name'])
             ->latest('published_at')
             ->take(6)
@@ -50,14 +45,23 @@ class HomePageController
             'heroServices' => $services->take(3),
             'categories' => Category::query()
                 ->active()
-                ->whereHas('services', $publishedServices)
+                ->root()
+                ->where('is_featured', true)
+                ->where(fn ($query) => $query
+                    ->whereHas('services', $publishedServices)
+                    ->orWhereHas('children.services', $publishedServices))
                 ->withCount(['services' => $publishedServices])
-                ->orderByDesc('services_count')
+                ->with(['children' => fn ($children) => $children
+                    ->active()
+                    ->whereHas('services', $publishedServices)
+                    ->withCount(['services' => $publishedServices])])
+                ->orderBy('sort_order')
                 ->orderBy('name')
                 ->take(8)
-                ->get(['id', 'name', 'slug', 'description', 'icon', 'image_path']),
+                ->get(['id', 'name', 'slug', 'description', 'icon', 'image_path', 'sort_order']),
             'skills' => Skill::query()
                 ->active()
+                ->whereHas('services', $publishedServices)
                 ->whereHas('professionalProfiles', $visibleProfessional)
                 ->withCount(['professionalProfiles' => $visibleProfessional])
                 ->orderByDesc('professional_profiles_count')

@@ -77,7 +77,7 @@ class ModerationTest extends TestCase
             ->assertUnprocessable();
     }
 
-    public function test_moderator_can_review_and_unpublish_service(): void
+    public function test_moderator_can_review_and_hide_service_without_bypassing_the_moderation_state(): void
     {
         $client = User::factory()->create();
         $client->assignRole('client');
@@ -105,7 +105,8 @@ class ModerationTest extends TestCase
 
         $this->assertDatabaseHas('services', [
             'id' => $service->id,
-            'status' => 'unpublished',
+            'status' => 'draft',
+            'moderation_status' => 'hidden',
         ]);
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'moderation.action_created',

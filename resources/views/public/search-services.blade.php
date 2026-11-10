@@ -83,7 +83,15 @@
                                 @if (filled($filters['search'] ?? null))
                                     <input type="hidden" name="search" value="{{ $filters['search'] }}">
                                 @endif
-                                <div class="form-field"><label class="form-label" for="category">Catégorie</label><select id="category" class="form-control form-select" name="category"><option value="">Toutes les catégories</option>@foreach($categories as $category)<option value="{{ $category->slug }}" @selected(($filters['category'] ?? '') === $category->slug)>{{ $category->name }}</option>@endforeach</select></div>
+                                <div class="form-field"><label class="form-label" for="category">Catégorie</label><select id="category" class="form-control form-select" name="category">
+                                    <option value="">Toutes les catégories</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->slug }}" @selected(($filters['category'] ?? '') === $category->slug)>{{ $category->name }}</option>
+                                        @foreach($category->children as $child)
+                                            <option value="{{ $child->slug }}" @selected(($filters['category'] ?? '') === $child->slug)>— {{ $child->name }}</option>
+                                        @endforeach
+                                    @endforeach
+                                </select></div>
                                 <div class="form-field"><span class="form-label">Compétences (dix maximum)</span><div class="directory-skill-list">@foreach($skills as $skill)<label class="directory-check"><input type="checkbox" name="skills[]" value="{{ $skill->slug }}" @checked(in_array($skill->slug, $filters['skills'] ?? [], true))><span>{{ $skill->name }}</span></label>@endforeach</div></div>
                                 <div class="directory-filter-grid"><div class="form-field"><label class="form-label" for="city">Ville</label><input id="city" class="form-control" name="city" value="{{ $filters['city'] ?? '' }}"></div><div class="form-field"><label class="form-label" for="province">Province</label><input id="province" class="form-control" name="province" value="{{ $filters['province'] ?? '' }}"></div></div>
                                 <div class="form-field"><span class="form-label">Budget</span><div class="directory-filter-grid"><input class="form-control" type="number" min="0" step="0.01" name="min_price" value="{{ $filters['min_price'] ?? '' }}" placeholder="Minimum" aria-label="Tarif minimum dans la devise sélectionnée"><input class="form-control" type="number" min="0" step="0.01" name="max_price" value="{{ $filters['max_price'] ?? '' }}" placeholder="Maximum" aria-label="Tarif maximum dans la devise sélectionnée"></div><small>Le budget et le tri par prix utilisent les tarifs fixes dans la devise choisie.</small></div>
@@ -104,7 +112,7 @@
                         $professionalRouteName = $isClientSearch ? 'client.professionals.show' : 'public.professionals.show';
                         $activeSearchFilters = [];
                         if (filled($filters['category'] ?? null)) {
-                            $activeSearchFilters[] = ['label' => $categories->firstWhere('slug', $filters['category'])?->name ?? $filters['category'], 'key' => 'category'];
+                            $activeSearchFilters[] = ['label' => $categories->flatMap(fn ($category) => collect([$category])->concat($category->children))->firstWhere('slug', $filters['category'])?->name ?? $filters['category'], 'key' => 'category'];
                         }
                         foreach (['city' => 'Ville', 'province' => 'Province', 'min_price' => 'Prix min.', 'max_price' => 'Prix max.', 'currency' => 'Devise', 'pricing_type' => 'Tarification', 'rating' => 'Note min.', 'availability' => 'Disponibilité', 'sort' => 'Tri'] as $key => $label) {
                             if (filled($filters[$key] ?? null)) {

@@ -110,12 +110,25 @@ class PublicSearchController
 
     private function filterOptions(): array
     {
+        $requestableServices = fn ($services) => $services->requestable();
+
         return [
             'categories' => Category::query()
                 ->active()
-                ->whereHas('services', fn ($services) => $services->requestable())
+                ->whereNull('parent_id')
+                ->where(fn ($query) => $query
+                    ->whereHas('services', $requestableServices)
+                    ->orWhereHas('children', fn ($children) => $children
+                        ->active()
+                        ->whereHas('services', $requestableServices)))
+                ->with(['children' => fn ($children) => $children
+                    ->active()
+                    ->whereHas('services', $requestableServices)
+                    ->orderBy('sort_order')
+                    ->orderBy('name')])
+                ->orderBy('sort_order')
                 ->orderBy('name')
-                ->get(['id', 'name', 'slug']),
+                ->get(['id', 'name', 'slug', 'sort_order']),
             'skills' => Skill::query()
                 ->active()
                 ->whereHas('services', fn ($services) => $services->requestable())

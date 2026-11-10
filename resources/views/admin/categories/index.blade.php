@@ -3,12 +3,18 @@
 @section('page_actions')<a class="button button--primary" href="{{ route('admin.categories.create') }}">Nouvelle catégorie</a>@endsection
 @section('content')
 @if(session('success'))<div class="admin-alert admin-alert--success" role="status">{{ session('success') }}</div>@endif
+<div class="admin-stats-grid">
+    <article class="admin-stat-card"><span>Catégories actives</span><strong>{{ $summary['active'] }}</strong></article>
+    <article class="admin-stat-card"><span>Inactives</span><strong>{{ $summary['inactive'] }}</strong></article>
+    <article class="admin-stat-card"><span>Mises en avant</span><strong>{{ $summary['featured'] }}</strong></article>
+    <article class="admin-stat-card"><span>Sous-catégories</span><strong>{{ $summary['subcategories'] }}</strong></article>
+</div>
 <section class="admin-card"><div class="admin-card__header"><h3>Filtrer</h3><a class="admin-link" href="{{ route('admin.categories.index') }}">Réinitialiser</a></div><form method="GET" class="admin-filter-grid">
 <label class="admin-field admin-field--wide"><span>Recherche</span><input type="search" name="search" value="{{ $filters['search']??'' }}" placeholder="Nom ou slug"></label>
 <label class="admin-field"><span>Statut</span><select name="status"><option value="">Tous</option>@foreach(['active'=>'Active','inactive'=>'Inactive','archived'=>'Archivée'] as $v=>$l)<option value="{{ $v }}" @selected(($filters['status']??'')===$v)>{{ $l }}</option>@endforeach</select></label>
 <label class="admin-field"><span>Parent</span><select name="parent_id"><option value="">Racine</option>@foreach($parents as $p)<option value="{{ $p->id }}" @selected((string)($filters['parent_id']??'')===(string)$p->id)>{{ $p->name }}</option>@endforeach</select></label>
 <div class="admin-filter-actions"><button class="button button--primary">Appliquer</button></div></form></section>
-<section class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Catégorie</th><th>Parent</th><th>Statut</th><th>Enfants</th><th>Services</th><th></th></tr></thead><tbody>
-@forelse($categories as $category)<tr><td><a class="admin-user-cell" href="{{ route('admin.categories.show',$category) }}"><span class="admin-avatar"><i class="fa-solid fa-layer-group"></i></span><span><strong>{{ $category->name }}</strong><small>{{ $category->slug }}</small></span></a></td><td>{{ $category->parent?->name??'—' }}</td><td><span class="admin-status admin-status--{{ $category->status->value }}">{{ $category->status->value }}</span></td><td>{{ $category->children_count }}</td><td>{{ $category->services_count }}</td><td><a class="admin-icon-button" href="{{ route('admin.categories.edit',$category) }}"><i class="fa-solid fa-pen"></i></a></td></tr>@empty<tr><td colspan="6"><div class="admin-empty"><strong>Aucune catégorie.</strong></div></td></tr>@endforelse
+<section class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Catégorie</th><th>Parent</th><th>Statut</th><th>Enfants</th><th>Services</th><th>Compétences</th><th>Visibilité</th><th></th></tr></thead><tbody>
+@forelse($categories as $category)<tr><td><a class="admin-user-cell" href="{{ route('admin.categories.show',$category) }}"><span class="admin-avatar"><i class="fa-solid fa-layer-group"></i></span><span><strong>{{ $category->name }}</strong><small>{{ $category->slug }}</small></span></a></td><td>{{ $category->parent?->name??'—' }}</td><td><span class="admin-status admin-status--{{ $category->status->value }}">{{ $category->status->value }}</span></td><td>{{ $category->children_count }}</td><td>{{ $category->services_count }}</td><td>{{ $category->skills_count }}</td><td>{{ $category->is_featured ? 'Mise en avant' : 'Standard' }}</td><td><a class="admin-icon-button" href="{{ route('admin.categories.edit',$category) }}"><i class="fa-solid fa-pen"></i></a></td></tr>@empty<tr><td colspan="8"><div class="admin-empty"><strong>Aucune catégorie.</strong></div></td></tr>@endforelse
 </tbody></table></div>@if($categories->hasPages())<div class="admin-pagination">{{ $categories->links() }}</div>@endif</section>
 @endsection

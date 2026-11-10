@@ -18,6 +18,7 @@ class StoreSkillRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'category_id' => ['sometimes', 'nullable', 'integer', Rule::exists('categories', 'id')->where('status', 'active')],
             'name' => ['required', 'string', 'min:2', 'max:100'],
             'slug' => ['nullable', 'string', 'min:2', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'unique:skills,slug'],
             'description' => ['nullable', 'string', 'max:2000'],

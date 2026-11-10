@@ -37,6 +37,9 @@
             ['label' => 'Brouillons', 'value' => $serviceCounts['draft'], 'icon' => 'fa-file-pen'],
             ['label' => 'Dépubliés', 'value' => $serviceCounts['unpublished'], 'icon' => 'fa-eye-slash'],
             ['label' => 'Archivés', 'value' => $serviceCounts['archived'], 'icon' => 'fa-box-archive'],
+            ['label' => 'En examen', 'value' => $serviceCounts['under_review'], 'icon' => 'fa-hourglass-half'],
+            ['label' => 'Corrections demandées', 'value' => $serviceCounts['changes_requested'], 'icon' => 'fa-pen-to-square'],
+            ['label' => 'Masqués', 'value' => $serviceCounts['hidden'], 'icon' => 'fa-eye-slash'],
             ['label' => 'Preuves en attente', 'value' => $serviceCounts['pending_realizations'], 'icon' => 'fa-hourglass-half'],
         ] as $summary)
             <article class="service-summary-card surface-card">
@@ -57,6 +60,15 @@
                 <option value="">Tous les statuts</option>
                 @foreach($statuses as $status)
                     <option value="{{ $status->value }}" @selected(($filters['status'] ?? '') === $status->value)>{{ $statusLabels[$status->value] }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="service-filter-field">
+            <label class="form-label" for="service-moderation">Modération</label>
+            <select class="form-control form-select" id="service-moderation" name="moderation_status">
+                <option value="">Tous les états</option>
+                @foreach($moderationStatuses as $moderationStatus)
+                    <option value="{{ $moderationStatus->value }}" @selected(($filters['moderation_status'] ?? '') === $moderationStatus->value)>{{ $moderationStatusLabels[$moderationStatus->value] }}</option>
                 @endforeach
             </select>
         </div>
@@ -119,6 +131,9 @@
                             <span><i class="fa-solid fa-image" aria-hidden="true"></i><small>Pas de couverture</small></span>
                         @endif
                         <span class="badge badge--{{ $statusClass }}">{{ $statusLabels[$service->status->value] }}</span>
+                        @if($service->moderation_status->value !== 'clear')
+                            <span class="badge badge--warning">{{ $moderationStatusLabels[$service->moderation_status->value] }}</span>
+                        @endif
                     </div>
                     <div class="service-card__body">
                         <p class="service-card__category">{{ $service->category?->name ?: 'Catégorie non renseignée' }}</p>
@@ -140,6 +155,9 @@
                             </div>
                         @endif
                         <p class="service-card__updated">Dernière modification : {{ $service->updated_at->format('d/m/Y') }}</p>
+                        @if($service->moderation_reason)
+                            <p class="service-card__moderation-reason"><strong>Retour de l’administration :</strong> {{ $service->moderation_reason }}</p>
+                        @endif
                     </div>
                     <div class="service-card__footer">
                         <a class="button button--ghost button--sm" href="{{ route('professional.services.preview', $service) }}">Aperçu</a>
@@ -150,10 +168,17 @@
                                 @csrf
                                 <button class="button button--ghost button--sm" type="submit">Dépublier</button>
                             </form>
-                        @elseif($service->status->value !== 'archived')
+                        @elseif($service->status->value !== 'archived' && $service->moderation_status->value === 'clear')
                             <form method="POST" action="{{ route('professional.services.publish', $service) }}" data-action-form>
                                 @csrf
                                 <button class="button button--primary button--sm" type="submit">Publier</button>
+                            </form>
+                        @endif
+                        @if(in_array($service->moderation_status->value, ['hidden', 'changes_requested', 'rejected'], true) && $service->status->value !== 'archived')
+                            <form method="POST" action="{{ route('professional.services.submit-review', $service) }}" data-action-form>
+                                @csrf
+                                <input type="text" name="note" maxlength="2000" placeholder="Note pour la modération (facultatif)" aria-label="Note pour la modération">
+                                <button class="button button--primary button--sm" type="submit">Soumettre à nouveau</button>
                             </form>
                         @endif
                         @if($service->status->value !== 'archived')

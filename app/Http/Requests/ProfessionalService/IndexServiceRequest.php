@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\ProfessionalService;
 
+use App\Enums\ServiceModerationStatus;
 use App\Enums\ServiceStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,6 +21,7 @@ class IndexServiceRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', Rule::enum(ServiceStatus::class)],
+            'moderation_status' => ['nullable', Rule::enum(ServiceModerationStatus::class)],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'skill_id' => ['nullable', 'integer', 'exists:skills,id'],
             'sort' => ['nullable', Rule::in(['recent', 'title', 'requests'])],

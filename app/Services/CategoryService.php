@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Enums\CategoryStatus;
 use App\Models\Category;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -16,83 +15,101 @@ class CategoryService
     public function create(array $attributes): Category
     {
         return DB::transaction(function () use ($attributes): Category {
-            $parentId = $attributes['parent_id'] ?? null;
-
+            $parentId = isset($attributes['parent_id']) ? (int) $attributes['parent_id'] : null;
             $this->assertParentIsValid($parentId);
+            $attributes['parent_id'] = $parentId;
             $attributes['slug'] = $this->resolveSlug($attributes['slug'] ?? null, $attributes['name']);
             $this->assertSiblingNameIsUnique($attributes['name'], $parentId);
 
-            return Category::create($attributes);
+            if ($parentId !== null && (bool) ($attributes['is_featured'] ?? false)) {
+                throw ValidationException::withMessages([
+                    'is_featured' => 'Seules les catégories principales peuvent être mises en avant.',
+                ]);
+            }
+
+            return Category::query()->create($attributes);
         });
     }
 
     public function update(Category $category, array $attributes): Category
     {
         return DB::transaction(function () use ($category, $attributes): Category {
+            $locked = Category::query()->lockForUpdate()->findOrFail($category->getKey());
             $parentId = array_key_exists('parent_id', $attributes)
-                ? $attributes['parent_id']
-                : $category->parent_id;
+                ? ($attributes['parent_id'] === null ? null : (int) $attributes['parent_id'])
+                : $locked->parent_id;
+            $name = $attributes['name'] ?? $locked->name;
 
-            $name = $attributes['name'] ?? $category->name;
-
-            $this->assertParentIsValid($parentId, $category);
-            $this->assertSiblingNameIsUnique($name, $parentId, $category);
+            $this->assertParentIsValid($parentId, $locked);
+            $this->assertSiblingNameIsUnique($name, $parentId, $locked);
 
             $newStatus = array_key_exists('status', $attributes)
                 ? ($attributes['status'] instanceof CategoryStatus
                     ? $attributes['status']
                     : CategoryStatus::from($attributes['status']))
-                : $category->status;
+                : $locked->status;
 
-            if ($newStatus !== CategoryStatus::ACTIVE && $category->children()
-                ->where('status', CategoryStatus::ACTIVE->value)
-                ->exists()) {
+            if ($newStatus !== CategoryStatus::ACTIVE && $locked->children()
+                ->where('status', CategoryStatus::ACTIVE->value)->exists()) {
                 throw ValidationException::withMessages([
-                    'status' => 'Une catégorie avec des sous-catégories actives ne peut pas être désactivée ou archivée.',
+                    'status' => 'Désactivez, archivez ou réaffectez d’abord les sous-catégories actives.',
                 ]);
             }
 
             if ($newStatus === CategoryStatus::ACTIVE && $parentId !== null) {
-                $parent = Category::query()->findOrFail($parentId);
-
-                if ($parent->status !== CategoryStatus::ACTIVE) {
-                    throw ValidationException::withMessages([
-                        'status' => 'Une sous-catégorie ne peut pas être active lorsque sa catégorie parente est inactive ou archivée.',
-                    ]);
-                }
+                $this->assertParentIsValid($parentId, $locked);
             }
 
-            $category->update($attributes);
+            if ($parentId !== null && (bool) ($attributes['is_featured'] ?? $locked->is_featured)) {
+                throw ValidationException::withMessages([
+                    'is_featured' => 'Seules les catégories principales peuvent être mises en avant.',
+                ]);
+            }
 
-            return $category->refresh();
+            if (array_key_exists('slug', $attributes)) {
+                $attributes['slug'] = $this->resolveSlug($attributes['slug'], $name, $locked);
+            }
+
+            if ($newStatus !== CategoryStatus::ACTIVE) {
+                $attributes['is_featured'] = false;
+            }
+
+            $attributes['parent_id'] = $parentId;
+            $locked->update($attributes);
+
+            return $locked->refresh()->load(['parent', 'children']);
         });
     }
 
     public function archive(Category $category): void
     {
         DB::transaction(function () use ($category): void {
-            if ($category->children()->where('status', CategoryStatus::ACTIVE->value)->exists()) {
+            $locked = Category::query()->lockForUpdate()->findOrFail($category->getKey());
+
+            if ($locked->children()->where('status', CategoryStatus::ACTIVE->value)->exists()) {
                 throw ValidationException::withMessages([
                     'category' => 'Archivez ou réaffectez d’abord les sous-catégories actives.',
                 ]);
             }
 
-            $category->update([
+            $locked->update([
                 'status' => CategoryStatus::ARCHIVED,
                 'is_featured' => false,
             ]);
         });
     }
 
-    private function resolveSlug(?string $slug, string $name): string
+    private function resolveSlug(?string $slug, string $name, ?Category $ignore = null): string
     {
-        $base = $slug !== null && $slug !== '' ? $slug : Str::slug($name);
+        $base = Str::slug(filled($slug) ? $slug : $name) ?: 'categorie';
         $candidate = $base;
         $suffix = 2;
 
-        while (Category::query()->where('slug', $candidate)->exists()) {
-            $candidate = $base.'-'.$suffix;
-            $suffix++;
+        while (Category::query()
+            ->where('slug', $candidate)
+            ->when($ignore, fn ($query) => $query->whereKeyNot($ignore->getKey()))
+            ->exists()) {
+            $candidate = $base.'-'.$suffix++;
         }
 
         return $candidate;
@@ -104,17 +121,13 @@ class CategoryService
             return;
         }
 
-        if ($category !== null && $parentId === $category->getKey()) {
+        if ($category !== null && $parentId === (int) $category->getKey()) {
             throw ValidationException::withMessages([
                 'parent_id' => 'Une catégorie ne peut pas être son propre parent.',
             ]);
         }
 
-        $parent = Category::query()->find($parentId);
-
-        if ($parent === null) {
-            throw (new ModelNotFoundException)->setModel(Category::class, [$parentId]);
-        }
+        $parent = Category::query()->lockForUpdate()->findOrFail($parentId);
 
         if ($parent->status !== CategoryStatus::ACTIVE) {
             throw ValidationException::withMessages([
@@ -130,7 +143,7 @@ class CategoryService
 
         if ($category !== null && $category->parent_id === null && $category->children()->exists()) {
             throw ValidationException::withMessages([
-                'parent_id' => 'Une catégorie ayant des sous-catégories ne peut pas devenir une sous-catégorie.',
+                'parent_id' => 'Une catégorie principale qui possède des sous-catégories ne peut pas devenir une sous-catégorie.',
             ]);
         }
     }
@@ -141,7 +154,7 @@ class CategoryService
             ->where('name', $name)
             ->when($parentId === null, fn ($query) => $query->whereNull('parent_id'))
             ->when($parentId !== null, fn ($query) => $query->where('parent_id', $parentId))
-            ->when($ignore !== null, fn ($query) => $query->where('id', '!=', $ignore->getKey()))
+            ->when($ignore, fn ($query) => $query->whereKeyNot($ignore->getKey()))
             ->exists();
 
         if ($exists) {

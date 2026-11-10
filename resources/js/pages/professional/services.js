@@ -140,3 +140,47 @@ document.querySelectorAll('.service-form [aria-invalid="true"]').forEach((field)
     if (field.id) describedBy.add(`${field.id}-error`);
     field.setAttribute('aria-describedby', [...describedBy].join(' '));
 });
+
+
+const serviceCategorySelect = document.querySelector('#category_id');
+const serviceSkillSelect = document.querySelector('#skill_ids');
+const skillCompatibilityWarning = document.querySelector('[data-skill-compatibility-warning]');
+
+if (serviceCategorySelect && serviceSkillSelect) {
+    const updateCompatibleSkills = () => {
+        const selectedCategory = serviceCategorySelect.selectedOptions[0];
+        const categoryId = selectedCategory?.value || '';
+        const parentId = selectedCategory?.dataset.parentId || '';
+        let hasSelectedIncompatibleSkill = false;
+
+        [...serviceSkillSelect.options].forEach((option) => {
+            const skillCategoryId = option.dataset.categoryId || '';
+            const skillParentId = option.dataset.parentId || '';
+            const compatible = !skillCategoryId
+                || skillCategoryId === categoryId
+                || (parentId !== '' && skillCategoryId === parentId)
+                || (skillParentId !== '' && skillParentId === categoryId);
+
+            if (option.selected && !compatible) {
+                // Keep historical selection visible and submitted so the server can
+                // explain the incompatibility; never remove a user's data silently.
+                option.hidden = false;
+                option.disabled = false;
+                option.dataset.incompatible = 'true';
+                hasSelectedIncompatibleSkill = true;
+                return;
+            }
+
+            option.hidden = !compatible;
+            option.disabled = !compatible;
+            delete option.dataset.incompatible;
+        });
+
+        if (skillCompatibilityWarning) {
+            skillCompatibilityWarning.hidden = !hasSelectedIncompatibleSkill;
+        }
+    };
+
+    serviceCategorySelect.addEventListener('change', updateCompatibleSkills);
+    updateCompatibleSkills();
+}

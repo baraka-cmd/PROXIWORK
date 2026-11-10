@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\PublicServiceSearch;
 
 use App\Enums\ServicePricingType;
+use App\Models\Category;
 use App\Models\ProfessionalProfile;
 use App\Models\Service;
 use App\Models\User;
@@ -97,9 +98,23 @@ class PublicServiceSearchService
 
     private function applyCategory(Builder $query, array $filters): void
     {
-        if (! empty($filters['category'])) {
-            $query->whereHas('category', fn (Builder $category) => $category->where('slug', $filters['category']));
+        if (empty($filters['category'])) {
+            return;
         }
+
+        $category = Category::query()->active()->where('slug', $filters['category'])->first();
+
+        if ($category === null) {
+            return;
+        }
+
+        $query->whereHas('category', function (Builder $serviceCategory) use ($category): void {
+            $serviceCategory->whereKey($category->getKey());
+
+            if ($category->parent_id === null) {
+                $serviceCategory->orWhere('parent_id', $category->getKey());
+            }
+        });
     }
 
     private function applySkills(Builder $query, array $filters): void

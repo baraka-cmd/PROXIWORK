@@ -20,6 +20,7 @@ class UpdateSkillRequest extends FormRequest
         $skill = $this->route('skill');
 
         return [
+            'category_id' => ['sometimes', 'nullable', 'integer', Rule::exists('categories', 'id')->where('status', 'active')],
             'name' => ['sometimes', 'required', 'string', 'min:2', 'max:100'],
             'slug' => ['sometimes', 'required', 'string', 'min:2', 'max:120', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', Rule::unique('skills', 'slug')->ignore($skill?->getKey())],
             'description' => ['sometimes', 'nullable', 'string', 'max:2000'],

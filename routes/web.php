@@ -220,6 +220,7 @@ Route::prefix('professional')->name('professional.')->middleware(['auth', 'activ
     Route::get('services/{service}/preview', [ProfileController::class, 'previewService'])->name('services.preview');
     Route::patch('services/{service}', [ProfileController::class, 'updateService'])->name('services.update');
     Route::post('services/{service}/publish', [ProfileController::class, 'publishService'])->middleware('verified')->name('services.publish');
+    Route::post('services/{service}/submit-review', [ProfileController::class, 'submitServiceForReview'])->middleware('throttle:5,1')->name('services.submit-review');
     Route::post('services/{service}/unpublish', [ProfileController::class, 'unpublishService'])->name('services.unpublish');
     Route::delete('services/{service}', [ProfileController::class, 'archiveService'])->name('services.archive');
     Route::post('services/{service}/images', [ProfileController::class, 'addImage'])->name('services.images.store');
