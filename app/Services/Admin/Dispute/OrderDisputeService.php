@@ -196,6 +196,7 @@ class OrderDisputeService
                 'created_at' => now(),
             ]);
             $this->audit->record('order_dispute.assigned', $locked, $actor, ['assigned_to' => $assignee->getKey()], $request);
+
             return $locked->fresh(['assignee']);
         });
     }
@@ -281,6 +282,7 @@ class OrderDisputeService
                 'created_at' => now(),
             ]);
             $this->audit->record('order_dispute.reopened', $locked, $actor, ['reason' => $reason], $request);
+
             return $locked->fresh(['events.actor', 'assignee']);
         });
     }
