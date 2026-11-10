@@ -31,14 +31,14 @@ class WebClientMessagingTest extends TestCase
         [$client, $professional] = $this->participants();
         $conversation = $this->createConversation($client, $professional);
 
-        $this->actingAs($client)->post(route('client.messages.store', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.store', $conversation), [
             'body' => 'Message conservé côté serveur.',
             'idempotency_key' => (string) Str::uuid(),
         ])->assertRedirect(route('client.messages.show', $conversation));
 
         $messageId = $conversation->messages()->value('id');
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->get(route('client.messages.show', $conversation))
             ->assertOk()
             ->assertSee('Message conservé côté serveur.');
@@ -49,7 +49,7 @@ class WebClientMessagingTest extends TestCase
             'last_read_message_id' => $messageId,
         ]);
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->getJson(route('client.messages.updates', $conversation).'?after_message_id=0&visible=1')
             ->assertOk()
             ->assertJsonPath('data.0.body', 'Message conservé côté serveur.');
@@ -68,7 +68,7 @@ class WebClientMessagingTest extends TestCase
         [$client, $professional] = $this->participants();
         $conversation = $this->createConversation($client, $professional);
 
-        $this->actingAs($client)->post(route('client.messages.store', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.store', $conversation), [
             'body' => 'Plan de la prestation',
             'idempotency_key' => (string) Str::uuid(),
             'attachments' => [UploadedFile::fake()->image('plan.jpg')],
@@ -95,16 +95,16 @@ class WebClientMessagingTest extends TestCase
         [$client, $professional] = $this->participants();
         $conversation = $this->createConversation($client, $professional);
 
-        $this->actingAs($client)->post(route('client.messages.pin', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.pin', $conversation), [
             'pinned' => '1',
         ])->assertRedirect();
 
-        $this->actingAs($client)->post(route('client.messages.store', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.store', $conversation), [
             'body' => 'Historique à conserver.',
             'idempotency_key' => (string) Str::uuid(),
         ])->assertRedirect();
 
-        $this->actingAs($client)->post(route('client.messages.archive', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.archive', $conversation), [
             'archived' => '1',
         ])->assertRedirect();
 
@@ -125,7 +125,7 @@ class WebClientMessagingTest extends TestCase
             'body' => 'Historique à conserver.',
         ]);
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->get(route('client.messages.index', ['archived' => '1']))
             ->assertOk()
             ->assertSee('Historique à conserver.');
@@ -146,7 +146,7 @@ class WebClientMessagingTest extends TestCase
 
         $message = $conversation->messages()->firstOrFail();
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->post(route('client.messages.report', [$conversation, $message]), [
                 'reason_code' => 'SPAM',
                 'description' => 'Message non sollicité.',
@@ -161,7 +161,7 @@ class WebClientMessagingTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->post(route('client.messages.block', $conversation))
             ->assertRedirect(route('client.messages.index'));
 
@@ -183,7 +183,7 @@ class WebClientMessagingTest extends TestCase
         [$client, $professional] = $this->participants();
         $conversation = $this->createConversation($client, $professional);
 
-        $this->actingAs($client)->post(route('client.messages.archive', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.archive', $conversation), [
             'archived' => '1',
         ])->assertRedirect();
 
@@ -211,7 +211,7 @@ class WebClientMessagingTest extends TestCase
         [$client, $professional] = $this->participants();
         $conversation = $this->createConversation($client, $professional);
 
-        $this->actingAs($client)->post(route('client.messages.store', $conversation), [
+        $this->actingAs($client, 'web')->post(route('client.messages.store', $conversation), [
             'body' => 'Référence technique ALPHA-9281',
             'idempotency_key' => (string) Str::uuid(),
         ])->assertRedirect();
@@ -224,7 +224,7 @@ class WebClientMessagingTest extends TestCase
             ])
             ->assertCreated();
 
-        $this->actingAs($client)
+        $this->actingAs($client, 'web')
             ->get(route('client.messages.index', ['q' => 'ALPHA-9281']))
             ->assertOk()
             ->assertSee($professionalUser->name)
