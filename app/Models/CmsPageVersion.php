@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CmsPageVersion extends Model
 {
-    protected $fillable = ['cms_page_id','version','content','created_by'];
+    protected $fillable = ['cms_page_id', 'version', 'content', 'created_by'];
 
     protected function casts(): array
     {
