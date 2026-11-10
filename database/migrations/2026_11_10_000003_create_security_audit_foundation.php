@@ -17,10 +17,13 @@ return new class extends Migration
             $table->string('severity', 16)->default('info')->after('outcome');
             $table->uuid('correlation_id')->nullable()->after('severity');
             $table->string('reason', 1000)->nullable()->after('correlation_id');
+            $table->string('identifier_hash', 64)->nullable()->after('ip_address');
             $table->json('changes')->nullable()->after('reason');
             $table->index(['category', 'created_at']);
             $table->index(['outcome', 'created_at']);
             $table->index('correlation_id');
+            $table->index(['category', 'action', 'ip_address', 'created_at'], 'audit_logs_security_detection_index');
+            $table->index(['category', 'action', 'identifier_hash', 'created_at'], 'audit_logs_identifier_detection_index');
         });
 
         // Classify existing events without fabricating missing history.
@@ -116,7 +119,9 @@ return new class extends Migration
             $table->dropIndex(['category', 'created_at']);
             $table->dropIndex(['outcome', 'created_at']);
             $table->dropIndex(['correlation_id']);
-            $table->dropColumn(['category', 'outcome', 'severity', 'correlation_id', 'reason', 'changes']);
+            $table->dropIndex('audit_logs_security_detection_index');
+            $table->dropIndex('audit_logs_identifier_detection_index');
+            $table->dropColumn(['category', 'outcome', 'severity', 'correlation_id', 'reason', 'identifier_hash', 'changes']);
         });
     }
 };
