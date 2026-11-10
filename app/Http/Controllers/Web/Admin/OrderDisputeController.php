@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Web\Admin;
 use App\Enums\OrderDisputeStatus;
 use App\Http\Controllers\Controller;
 use App\Models\OrderDispute;
+use App\Models\OrderDisputeAttachment;
 use App\Models\User;
 use App\Services\Admin\Dispute\OrderDisputeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OrderDisputeController extends Controller
 {
@@ -75,6 +78,19 @@ class OrderDisputeController extends Controller
         ]);
         $this->service->decide($dispute, $data['resolution_code'], $data['resolution_note'], $request->user(), $request);
         return back()->with('success', 'La décision motivée a été enregistrée. Toute opération financière éventuelle reste à traiter dans le module financier.');
+    }
+
+    public function downloadAttachment(Request $request, OrderDispute $dispute, OrderDisputeAttachment $attachment): BinaryFileResponse
+    {
+        $this->authorize('view', $dispute);
+        abort_unless($attachment->order_dispute_id === $dispute->getKey(), 404);
+        $disk = Storage::disk($attachment->disk);
+        abort_unless($disk->exists($attachment->path), 404);
+        return response()->download($disk->path($attachment->path), $attachment->original_name, [
+            'Content-Type' => $attachment->mime_type,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     public function message(Request $request, OrderDispute $dispute): RedirectResponse
