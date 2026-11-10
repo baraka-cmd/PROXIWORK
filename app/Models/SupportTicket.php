@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class SupportTicket extends Model
 {
@@ -19,6 +20,8 @@ class SupportTicket extends Model
     protected $fillable = [
         'user_id',
         'withdrawal_id',
+        'context_type',
+        'context_id',
         'assigned_to',
         'subject',
         'category',
@@ -54,6 +57,11 @@ class SupportTicket extends Model
     public function withdrawal(): BelongsTo
     {
         return $this->belongsTo(Withdrawal::class);
+    }
+
+    public function context(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function messages(): HasMany
