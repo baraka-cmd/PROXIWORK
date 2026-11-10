@@ -253,8 +253,8 @@ Route::prefix('v1')->group(function (): void {
     });
 
     Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('audit')->group(function (): void {
-        Route::get('logs', [AuditLogController::class, 'index'])->middleware('permission:audit.view');
-        Route::get('logs/{auditLog}', [AuditLogController::class, 'show'])->middleware('permission:audit.view');
+        Route::get('logs', [AuditLogController::class, 'index']);
+        Route::get('logs/{auditLog}', [AuditLogController::class, 'show']);
     });
 
     Route::middleware(['auth:sanctum', 'throttle:api'])->prefix('rbac')->group(function (): void {
