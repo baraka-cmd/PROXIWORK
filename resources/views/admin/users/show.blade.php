@@ -34,7 +34,7 @@
                 <div><dt>E-mail vérifié</dt><dd>{{ $user->email_verified_at ? $user->email_verified_at->format('d/m/Y H:i') : 'Non vérifié' }}</dd></div>
                 <div><dt>Inscription</dt><dd>{{ $user->created_at?->format('d/m/Y H:i') }}</dd></div>
                 <div><dt>Dernière modification</dt><dd>{{ $user->updated_at?->format('d/m/Y H:i') }}</dd></div>
-                <div><dt>Dernière activité</dt><dd>Non disponible : les connexions ne sont pas historisées.</dd></div>
+                <div><dt>Dernière connexion</dt><dd>{{ $details['last_login'] ? \Illuminate\Support\Carbon::parse($details['last_login'])->format('d/m/Y H:i') : 'Aucune connexion historisée' }}</dd></div>
                 <div><dt>Téléphone</dt><dd>{{ $user->profile?->phone ?: 'Non renseigné' }} · vérification téléphonique non prise en charge</dd></div>
                 <div><dt>Prénom et nom</dt><dd>{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: 'Non renseignés' }}</dd></div>
                 <div><dt>Type de compte</dt><dd>{{ $user->roles->pluck('display_name')->join(', ') ?: 'Aucun rôle' }} · lecture seule</dd></div>
