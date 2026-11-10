@@ -47,6 +47,8 @@
                 <div><span>Montant de l'offre acceptée</span><strong>{{ number_format((float) $order->acceptedOffer->amount, 2) }} {{ $order->acceptedOffer->currency }}</strong></div>
                 <div><span>Durée convenue</span><strong>{{ $order->acceptedOffer->duration_value ?? '—' }} {{ $order->acceptedOffer->duration_unit?->value ?? '' }}</strong></div>
                 <div><span>Validité de l'offre</span><strong>{{ $order->acceptedOffer->valid_until?->format('d/m/Y H:i') ?? '—' }}</strong></div>
+                <div><span>Contenu de l'offre acceptée</span><strong>{{ $order->acceptedOffer->description ?: 'Non renseigné' }}</strong></div>
+                <div><span>Conditions convenues</span><strong>{{ $order->acceptedOffer->conditions ?: 'Aucune condition complémentaire' }}</strong></div>
             @endif
         </div>
     </section>
@@ -167,5 +169,45 @@
     @empty
         <p>Aucun événement historique enregistré.</p>
     @endforelse
+
+    @if($order->quotation)
+        <h4>Historique des négociations du devis</h4>
+        @forelse($order->quotation->events as $event)
+            <article class="admin-order-event">
+                <div class="admin-order-event__meta">
+                    <strong>{{ $event->created_at?->format('d/m/Y H:i') ?? 'Date inconnue' }}</strong>
+                    <span>{{ $event->actor?->name ?? 'Acteur non disponible' }}</span>
+                </div>
+                <div>
+                    <strong>{{ str_replace('_', ' ', ucfirst($event->type)) }}</strong>
+                    @if($event->offer_id)
+                        <p>Offre associée : #{{ $event->offer_id }} · version {{ data_get($event->metadata, 'version', '—') }}</p>
+                    @endif
+                </div>
+            </article>
+        @empty
+            <p>Aucun événement de négociation enregistré.</p>
+        @endforelse
+    @endif
+
+    @if($order->payment)
+        <h4>Événements financiers</h4>
+        @forelse($order->payment->events as $event)
+            <article class="admin-order-event">
+                <div class="admin-order-event__meta">
+                    <strong>{{ $event->occurred_at?->format('d/m/Y H:i') ?? 'Date inconnue' }}</strong>
+                    <span>Passerelle / système de paiement</span>
+                </div>
+                <div>
+                    <strong>{{ str_replace('_', ' ', ucfirst($event->type)) }}</strong>
+                    @if(filled(data_get($event->metadata, 'message')))
+                        <p>{{ data_get($event->metadata, 'message') }}</p>
+                    @endif
+                </div>
+            </article>
+        @empty
+            <p>Aucun événement financier complémentaire enregistré.</p>
+        @endforelse
+    @endif
 </section>
 @endsection
