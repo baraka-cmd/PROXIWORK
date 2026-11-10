@@ -26,6 +26,14 @@ class CommunicationCampaignController extends Controller
         ]);
     }
 
+    public function show(CommunicationCampaign $campaign): View
+    {
+        return view('admin.communication.campaigns.show', [
+            'campaign' => $campaign,
+            'recipients' => $campaign->recipients()->with('user:id,name')->latest('id')->paginate(30),
+        ]);
+    }
+
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $request->validate([
