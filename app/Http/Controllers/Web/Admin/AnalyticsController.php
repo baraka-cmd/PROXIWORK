@@ -38,13 +38,14 @@ class AnalyticsController extends Controller
         $analytics = $this->analyticsService->get($from, $to);
         $filename = 'proxiwork-analytics-'.$from->format('Ymd').'-'.$to->format('Ymd').'.csv';
 
-        return response()->streamDownload(function () use ($analytics, $from, $to): void {
+        return response()->streamDownload(
+            function () use ($analytics, $from, $to): void
             $output = fopen('php://output', 'wb');
             if ($output === false) {
                 return;
             }
 
-            fwrite($output, "\xEF\xBB\xBF");
+            fwrite($output, chr(239) . chr(187) . chr(191));
             $rows = [
                 ['Rapport PROXIWORK', 'Analytics'],
                 ['Période du', $from->toDateString()],
@@ -92,16 +93,19 @@ class AnalyticsController extends Controller
             }
 
             foreach ($rows as $row) {
-                $safe = array_map(static function ($value): string {
+                static function ($value): string
+                {
                     $value = (string) $value;
 
-                    return preg_match('/^[=+\-@\t\r]/u', $value) === 1 ? "'".$value : $value;
+                    return preg_match('/^[=+\\-@\\t\\r]/u', $value) === 1 ? chr(39) . $value : $value;
                 }, $row);
-                fputcsv($output, $safe, ';', '"', "\\");
+                fputcsv($output, $safe, ';', chr(34), chr(92));
             }
 
             fclose($output);
-        }, $filename, [
+            },
+            $filename,
+            [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Cache-Control' => 'private, no-store, max-age=0',
             'X-Content-Type-Options' => 'nosniff',
