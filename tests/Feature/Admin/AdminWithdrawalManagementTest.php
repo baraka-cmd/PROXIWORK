@@ -137,6 +137,24 @@ class AdminWithdrawalManagementTest extends TestCase
         $this->assertStringNotContainsString('243970123456', json_encode($log->metadata, JSON_THROW_ON_ERROR));
     }
 
+    public function test_destination_is_masked_without_the_dedicated_reveal_permission(): void
+    {
+        [, $withdrawal] = $this->createWithdrawal();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $adminRole = \App\Models\Role::query()->where('name', 'admin')->firstOrFail();
+        $destinationPermission = \App\Models\Permission::query()->where('name', 'withdrawals.destination.view')->firstOrFail();
+        $adminRole->permissions()->detach($destinationPermission->getKey());
+
+        $this->actingAs($admin)
+            ->get(route('admin.withdrawals.show', $withdrawal))
+            ->assertOk()
+            ->assertSee('Destination masquée')
+            ->assertSee('3456')
+            ->assertDontSee('243970123456');
+    }
+
     private function createWithdrawal(): array
     {
         $professional = User::factory()->create();

@@ -61,6 +61,9 @@
                     ['label' => 'Commissions', 'route' => 'admin.finance.commissions', 'permission' => 'commissions.view', 'icon' => 'fa-percent', 'active' => ['admin.finance.commissions*']],
                     ['label' => 'Portefeuilles professionnels', 'route' => 'admin.finance.wallets', 'permission' => 'wallets.view', 'icon' => 'fa-wallet', 'active' => ['admin.finance.wallets*']],
                     ['label' => 'Retraits', 'route' => 'admin.withdrawals.index', 'permission' => 'admin.withdrawals.manage', 'icon' => 'fa-money-bill-transfer', 'active' => ['admin.withdrawals.*']],
+                    ['label' => 'Remboursements', 'route' => 'admin.finance.refunds', 'permission' => 'refunds.view', 'icon' => 'fa-rotate-left', 'active' => ['admin.finance.refunds*']],
+                    ['label' => 'Mouvements financiers', 'route' => 'admin.finance.movements', 'permission' => 'financial_movements.view', 'icon' => 'fa-list-ol', 'active' => ['admin.finance.movements*']],
+                    ['label' => 'Rapports financiers', 'route' => 'admin.finance.reports', 'permission' => 'financial_reports.view', 'icon' => 'fa-chart-column', 'active' => ['admin.finance.reports*']],
                 ],
             ],
             [
