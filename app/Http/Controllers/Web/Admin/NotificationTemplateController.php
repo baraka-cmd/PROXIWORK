@@ -41,7 +41,7 @@ class NotificationTemplateController extends Controller
             'body' => ['required', 'string', 'max:10000'],
         ]);
 
-        $this->validateVariables($data['title'].' '.$data['body']);
+        $this->validateVariables($data['title'].' '.$data['body'].' '.($data['subject'] ?? ''));
 
         $template = DB::transaction(function () use ($data, $request): NotificationTemplate {
             $template = NotificationTemplate::query()->create([
