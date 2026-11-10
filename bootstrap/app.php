@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\EnsureWebGuard;
 use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -33,7 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AddSecurityHeaders::class);
-        $middleware->web(append: [AuthenticateSession::class]);
+        $middleware->web(prepend: [EnsureWebGuard::class], append: [AuthenticateSession::class]);
 
         $middleware->alias([
             'role' => EnsureUserHasRole::class,

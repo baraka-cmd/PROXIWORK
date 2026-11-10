@@ -295,6 +295,7 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
         });
         Route::prefix('withdrawals')->name('withdrawals.')->middleware('permission:admin.withdrawals.manage')->group(function (): void {
             Route::get('/', [AdminWithdrawalController::class, 'index'])->name('index');
+            Route::get('/{withdrawal}/destination', [AdminWithdrawalController::class, 'destination'])->middleware('permission:withdrawals.destination.view')->name('destination');
             Route::get('/{withdrawal}', [AdminWithdrawalController::class, 'show'])->name('show');
             Route::post('/{withdrawal}/processing', [AdminWithdrawalController::class, 'startProcessing'])->middleware('throttle:10,1')->name('processing');
             Route::post('/{withdrawal}/reject', [AdminWithdrawalController::class, 'reject'])->middleware('throttle:10,1')->name('reject');

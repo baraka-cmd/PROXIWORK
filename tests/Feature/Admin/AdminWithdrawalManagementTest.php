@@ -121,8 +121,22 @@ class AdminWithdrawalManagementTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.withdrawals.show', $withdrawal))
             ->assertOk()
-            ->assertSee('Destination complète')
-            ->assertSee('243970123456');
+            ->assertSee('Destination masquée')
+            ->assertSee('Révéler la destination complète')
+            ->assertDontSee('243970123456');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $admin->id,
+            'action' => 'admin.withdrawal.viewed',
+            'subject_id' => $withdrawal->id,
+        ]);
+
+        $destinationResponse = $this->actingAs($admin)
+            ->get(route('admin.withdrawals.destination', $withdrawal));
+        $destinationResponse->assertOk()->assertSee('243970123456');
+        $cacheControl = (string) $destinationResponse->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('private', $cacheControl);
 
         $this->assertDatabaseHas('audit_logs', [
             'user_id' => $admin->id,
@@ -135,6 +149,28 @@ class AdminWithdrawalManagementTest extends TestCase
             ->firstOrFail();
 
         $this->assertStringNotContainsString('243970123456', json_encode($log->metadata, JSON_THROW_ON_ERROR));
+    }
+
+    public function test_destination_is_masked_without_the_dedicated_reveal_permission(): void
+    {
+        [, $withdrawal] = $this->createWithdrawal();
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $adminRole = \App\Models\Role::query()->where('name', 'admin')->firstOrFail();
+        $destinationPermission = \App\Models\Permission::query()->where('name', 'withdrawals.destination.view')->firstOrFail();
+        $adminRole->permissions()->detach($destinationPermission->getKey());
+
+        $this->actingAs($admin)
+            ->get(route('admin.withdrawals.show', $withdrawal))
+            ->assertOk()
+            ->assertSee('Destination masquée')
+            ->assertSee('3456')
+            ->assertDontSee('243970123456');
+
+        $this->actingAs($admin)
+            ->get(route('admin.withdrawals.destination', $withdrawal))
+            ->assertForbidden();
     }
 
     private function createWithdrawal(): array

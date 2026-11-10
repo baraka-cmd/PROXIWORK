@@ -10,6 +10,7 @@ use App\Models\Withdrawal;
 use App\Services\Audit\AuditLogService;
 use App\Services\Wallet\WithdrawalService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -20,31 +21,60 @@ class WithdrawalController extends Controller
     public function index(Request $request): View
     {
         $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:120'],
             'status' => ['nullable', 'string', Rule::in(array_map(
                 static fn (WithdrawalStatus $status): string => $status->value,
                 WithdrawalStatus::cases(),
             ))],
             'currency' => ['nullable', 'string', 'regex:/^[A-Za-z]{3}$/'],
+            'provider' => ['nullable', 'string', Rule::in(['mobile_money', 'bank_transfer'])],
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'per_page' => ['nullable', 'integer', Rule::in([20, 50, 100])],
         ]);
         $filters['currency'] = isset($filters['currency']) ? strtoupper($filters['currency']) : null;
 
         $query = Withdrawal::query()
             ->with(['professional.user', 'wallet'])
-            ->latest('requested_at')
-            ->latest('id');
+            ->when($filters['search'] ?? null, function ($query, string $search): void {
+                $query->where(function ($nested) use ($search): void {
+                    $referenceId = preg_replace('/^WD-0*/i', '', $search) ?? '';
+                    if (ctype_digit($search)) {
+                        $nested->orWhere('id', (int) $search);
+                    } elseif (ctype_digit($referenceId)) {
+                        $nested->orWhere('id', (int) $referenceId);
+                    }
+                    $nested->orWhereHas('professional.user', fn ($user) => $user->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                        ->orWhere('provider_transaction_id', 'like', "%{$search}%");
+                });
+            })
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($filters['currency'] ?? null, fn ($query, string $currency) => $query->where('currency', $currency))
+            ->when($filters['provider'] ?? null, fn ($query, string $provider) => $query->where('provider', $provider))
+            ->when($filters['from'] ?? null, fn ($query, string $from) => $query->where('requested_at', '>=', $from.' 00:00:00'))
+            ->when($filters['to'] ?? null, fn ($query, string $to) => $query->where('requested_at', '<', date('Y-m-d', strtotime($to.' +1 day')).' 00:00:00'))
+            ->orderByRaw("CASE status WHEN 'review_required' THEN 0 WHEN 'requested' THEN 1 WHEN 'processing' THEN 2 ELSE 3 END")
+            ->orderBy('requested_at')->orderBy('id');
 
-        if (isset($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
+        $statusCounts = Withdrawal::query()
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')->pluck('aggregate', 'status');
 
-        if (isset($filters['currency'])) {
-            $query->where('currency', $filters['currency']);
-        }
+        $reservedTotals = Withdrawal::query()
+            ->whereIn('status', [
+                WithdrawalStatus::REQUESTED->value,
+                WithdrawalStatus::PROCESSING->value,
+                WithdrawalStatus::REVIEW_REQUIRED->value,
+            ])
+            ->selectRaw('currency, COUNT(*) as operation_count, SUM(amount) as amount_total')
+            ->groupBy('currency')->get()->keyBy('currency');
 
         return view('admin.withdrawals.index', [
-            'withdrawals' => $query->paginate(20)->withQueryString(),
+            'withdrawals' => $query->paginate($filters['per_page'] ?? 20)->withQueryString(),
             'filters' => $filters,
             'currencies' => Withdrawal::query()->distinct()->orderBy('currency')->pluck('currency'),
+            'statusCounts' => $statusCounts,
+            'reservedTotals' => $reservedTotals,
         ]);
     }
 
@@ -52,10 +82,8 @@ class WithdrawalController extends Controller
     {
         $withdrawal->load(['professional.user', 'wallet', 'statusHistories.actor']);
 
-        // Only the dedicated financial permission can reach this screen. Log the
-        // access without copying the sensitive destination into audit metadata.
         $auditLogs->record(
-            action: 'admin.withdrawal.destination.viewed',
+            action: 'admin.withdrawal.viewed',
             subject: $withdrawal,
             user: $request->user(),
             metadata: ['withdrawal_id' => $withdrawal->getKey(), 'status' => $withdrawal->status->value],
@@ -63,6 +91,25 @@ class WithdrawalController extends Controller
         );
 
         return view('admin.withdrawals.show', compact('withdrawal'));
+    }
+
+    public function destination(Request $request, Withdrawal $withdrawal, AuditLogService $auditLogs): Response
+    {
+        $withdrawal->load('professional.user');
+
+        $auditLogs->record(
+            action: 'admin.withdrawal.destination.viewed',
+            subject: $withdrawal,
+            user: $request->user(),
+            metadata: ['withdrawal_id' => $withdrawal->getKey()],
+            request: $request,
+        );
+
+        return response()
+            ->view('admin.withdrawals.destination', compact('withdrawal'))
+            ->header('Cache-Control', 'private, no-store')
+            ->header('Pragma', 'no-cache')
+            ->header('X-Content-Type-Options', 'nosniff');
     }
 
     public function startProcessing(
