@@ -102,6 +102,7 @@ class AdminFinanceQueryService
             ->count();
 
         $recentTransactions = PaymentTransaction::query()
+            ->select(['id', 'payment_id', 'provider', 'status', 'currency', 'amount', 'created_at'])
             ->with([
                 'payment:id,order_id,client_id',
                 'payment.order:id,order_number,professional_id',
