@@ -26,7 +26,7 @@ class AdminFinanceQueryService
      */
     public function overview(array $filters): array
     {
-        [$from, $to] = $this->period($filters);
+        [$from, $to] = $this->optionalPeriod($filters);
 
         $paymentStatuses = Payment::query()
             ->whereBetween('created_at', [$from, $to])
@@ -109,7 +109,7 @@ class AdminFinanceQueryService
                 'payment.order.professional.user:id,name',
                 'payment.client:id,name',
             ])
-            ->whereBetween('created_at', [$from, $to])
+            ->when($from !== null && $to !== null, fn (Builder $query) => $query->whereBetween('created_at', [$from, $to]))
             ->latest('created_at')
             ->latest('id')
             ->limit(8)
@@ -133,7 +133,7 @@ class AdminFinanceQueryService
 
     public function transactions(array $filters): LengthAwarePaginator
     {
-        [$from, $to] = $this->period($filters);
+        [$from, $to] = $this->optionalPeriod($filters);
 
         return PaymentTransaction::query()
             ->with([
@@ -208,7 +208,7 @@ class AdminFinanceQueryService
             })
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
             ->when($filters['currency'] ?? null, fn (Builder $query, string $currency) => $query->where('currency', strtoupper($currency)))
-            ->whereBetween('posted_at', [$from, $to])
+            ->when($from !== null && $to !== null, fn (Builder $query) => $query->whereBetween('posted_at', [$from, $to]))
             ->latest('posted_at')
             ->latest('id')
             ->paginate($filters['per_page'] ?? 20)
@@ -273,6 +273,29 @@ class AdminFinanceQueryService
             ->get());
 
         return $wallet;
+    }
+
+    /**
+     * Lists remain complete by default; a date window is applied only when
+     * the administrator explicitly supplies at least one boundary.
+     *
+     * @return array{0: CarbonImmutable|null, 1: CarbonImmutable|null}
+     */
+    private function optionalPeriod(array $filters): array
+    {
+        if (! isset($filters['from']) && ! isset($filters['to'])) {
+            return [null, null];
+        }
+
+        $from = isset($filters['from'])
+            ? CarbonImmutable::parse($filters['from'])->startOfDay()
+            : CarbonImmutable::parse($filters['to'])->startOfDay();
+
+        $to = isset($filters['to'])
+            ? CarbonImmutable::parse($filters['to'])->endOfDay()
+            : CarbonImmutable::now()->endOfDay();
+
+        return [$from, $to];
     }
 
     /**
