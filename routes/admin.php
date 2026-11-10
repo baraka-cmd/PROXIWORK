@@ -121,6 +121,22 @@ Route::middleware(['auth', 'active.account', 'permission:payments.view'])->group
     Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
 });
 
+Route::middleware(['auth', 'active.account', 'permission:finance.view'])->group(function (): void {
+    Route::get('finance', [FinanceController::class, 'overview'])->name('finance.overview');
+});
+Route::middleware(['auth', 'active.account', 'permission:transactions.view'])->group(function (): void {
+    Route::get('transactions', [FinanceController::class, 'transactions'])->name('finance.transactions');
+    Route::get('transactions/{transaction}', [FinanceController::class, 'transaction'])->whereNumber('transaction')->name('finance.transactions.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:commissions.view'])->group(function (): void {
+    Route::get('commissions', [FinanceController::class, 'commissions'])->name('finance.commissions');
+    Route::get('commissions/{commission}', [FinanceController::class, 'commission'])->whereNumber('commission')->name('finance.commissions.show');
+});
+Route::middleware(['auth', 'active.account', 'permission:wallets.view'])->group(function (): void {
+    Route::get('wallets', [FinanceController::class, 'wallets'])->name('finance.wallets');
+    Route::get('wallets/{wallet}', [FinanceController::class, 'wallet'])->whereNumber('wallet')->name('finance.wallets.show');
+});
+
 Route::middleware(['auth', 'active.account', 'permission:support.manage'])->group(function (): void {
     Route::get('support', [SupportController::class, 'index'])->name('support.index');
     Route::get('support/{ticket}', [SupportController::class, 'show'])->name('support.show');
