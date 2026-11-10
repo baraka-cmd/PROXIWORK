@@ -32,7 +32,7 @@
     <section class="admin-card">
         <h3>Parties et commande</h3>
         <dl class="admin-finance__details">
-            <div><dt>Commande</dt><dd><a href="{{ route('admin.orders.show', $payment->order) }}">{{ $payment->order?->order_number ?? '#'.$payment->order_id }}</a></dd></div>
+            <div><dt>Commande</dt><dd>@if(auth()->user()?->hasPermissionTo('orders.view'))<a href="{{ route('admin.orders.show', $payment->order) }}">{{ $payment->order?->order_number ?? '#'.$payment->order_id }}</a>@else{{ $payment->order?->order_number ?? '#'.$payment->order_id }}@endif</dd></div>
             <div><dt>Client</dt><dd>{{ $payment->client?->name ?? '—' }}</dd></div>
             <div><dt>E-mail client</dt><dd>{{ $payment->client?->email ?? '—' }}</dd></div>
             <div><dt>Professionnel</dt><dd>{{ $payment->order?->professional?->user?->name ?? '—' }}</dd></div>
