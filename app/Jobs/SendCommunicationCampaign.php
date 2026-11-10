@@ -21,9 +21,7 @@ class SendCommunicationCampaign implements ShouldQueue
 
     public int $tries = 3;
 
-    public function __construct(public readonly int $campaignId)
-    {
-    }
+    public function __construct(public readonly int $campaignId) {}
 
     public function handle(): void
     {
