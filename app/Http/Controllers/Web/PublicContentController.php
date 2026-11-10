@@ -63,7 +63,8 @@ class PublicContentController extends Controller
     {
         $search = $request->validate(['q' => ['nullable', 'string', 'max:120']])['q'] ?? null;
         $faqLocale = app()->getLocale();
-        if (!FaqArticle::query()->published()->where('locale', $faqLocale)->exists()) {
+        $hasFaqTranslation = FaqArticle::query()->published()->where('locale', $faqLocale)->exists();
+        if ($hasFaqTranslation === false) {
             $faqLocale = 'fr';
         }
         $articles = FaqArticle::query()->published()
