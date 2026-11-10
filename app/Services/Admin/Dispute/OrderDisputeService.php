@@ -84,7 +84,7 @@ class OrderDisputeService
             'assignee:id,name,email',
             'resolver:id,name,email',
             'events.actor:id,name',
-            'messages' => fn ($q) => $q->where('visibility', 'participants')->orWhere('sender_id', auth()->id())->oldest()->with('sender:id,name'),
+            'messages' => fn ($q) => $q->when(\n                ! auth()->user()?->hasPermissionTo('disputes.manage'),\n                fn ($messages) => $messages->where('visibility', 'participants'),\n            )->oldest()->with('sender:id,name'),
             'attachments.uploader:id,name',
         ]);
     }
