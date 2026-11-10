@@ -230,7 +230,7 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => [__($status)]]);
         }
 
-        $this->auditLogService->recordEvent('auth.password.reset', $resetUser, $resetUser, [], $request, category: 'authentication', severity: 'medium');
+        $this->auditLogService->recordEvent('password_reset', $resetUser, $resetUser, [], $request, category: 'authentication', severity: 'medium');
 
         return response()->json([
             'message' => 'Mot de passe réinitialisé avec succès.',
