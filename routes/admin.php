@@ -250,7 +250,6 @@ Route::middleware(['auth', 'active.account', 'permission:notification_templates.
     Route::post('communication/templates', [NotificationTemplateController::class, 'store'])->name('communication.templates.store');
     Route::put('communication/templates/{template}', [NotificationTemplateController::class, 'update'])->name('communication.templates.update');
     Route::post('communication/templates/{template}/revise', [NotificationTemplateController::class, 'revise'])->name('communication.templates.revise');
-    Route::post('communication/templates/{template}/publish', [NotificationTemplateController::class, 'publish'])->name('communication.templates.publish');
 });
 Route::middleware(['auth', 'active.account', 'permission:announcements.view'])->group(function (): void {
     Route::get('communication/announcements', [AnnouncementController::class, 'index'])->name('communication.announcements.index');
@@ -258,7 +257,6 @@ Route::middleware(['auth', 'active.account', 'permission:announcements.view'])->
 Route::middleware(['auth', 'active.account', 'permission:announcements.manage'])->group(function (): void {
     Route::post('communication/announcements', [AnnouncementController::class, 'store'])->name('communication.announcements.store');
     Route::put('communication/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('communication.announcements.update');
-    Route::post('communication/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->name('communication.announcements.publish');
     Route::post('communication/announcements/{announcement}/archive', [AnnouncementController::class, 'archive'])->name('communication.announcements.archive');
 });
 Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.view'])->group(function (): void {
@@ -318,4 +316,11 @@ Route::middleware(['auth', 'active.account', 'permission:cms_media.manage'])->gr
 
 Route::middleware(['auth', 'active.account', 'permission:admin.notifications.retry'])->group(function (): void {
     Route::post('notifications/deliveries/{delivery}/retry', [NotificationDeliveryController::class, 'retry'])->whereNumber('delivery')->middleware('throttle:5,1')->name('notifications.deliveries.retry');
+});
+
+Route::middleware(['auth', 'active.account', 'permission:notification_templates.publish'])->group(function (): void {
+    Route::post('communication/templates/{template}/publish', [NotificationTemplateController::class, 'publish'])->name('communication.templates.publish');
+});
+Route::middleware(['auth', 'active.account', 'permission:announcements.publish'])->group(function (): void {
+    Route::post('communication/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->name('communication.announcements.publish');
 });
