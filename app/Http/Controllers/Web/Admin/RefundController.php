@@ -98,6 +98,7 @@ class RefundController extends Controller
     public function processing(Request $request, PaymentRefund $refund, PaymentRefundAdminService $service, AuditLogService $audit): RedirectResponse
     {
         $data = $request->validate(['note' => ['required', 'string', 'min:10', 'max:2000']]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.processing', fn () => $service->startProcessing($refund, (int) $request->user()->id, $data['note']), $data['note'], 'La demande est prise en charge.');
     }
 
@@ -113,6 +114,7 @@ class RefundController extends Controller
             'provider_reference' => ['required', 'string', 'max:191'],
             'note' => ['required', 'string', 'min:10', 'max:2000'],
         ]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.succeeded', fn () => $service->markSucceeded($refund, (int) $request->user()->id, $data['provider_reference'], $data['note']), $data['note'], 'Le résultat du remboursement a été enregistré avec sa référence externe.');
     }
 
