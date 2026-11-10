@@ -40,7 +40,15 @@ class WithdrawalService
         // Keep the service boundary aligned with the web/API request rules.
         // A syntactically valid but unsupported channel must never become a
         // withdrawal merely because a caller bypassed the FormRequest.
-        if (! in_array($provider, ['mobile_money', 'bank_transfer'], true)) {
+        $allowedProviders = ['mobile_money', 'bank_transfer'];
+
+        // The fake channel exists only for automated tests and can never be
+        // submitted by a real client in staging or production environments.
+        if (app()->environment('testing')) {
+            $allowedProviders[] = 'fake';
+        }
+
+        if (! in_array($provider, $allowedProviders, true)) {
             throw ValidationException::withMessages(['provider' => 'Le canal de retrait est invalide.']);
         }
 
