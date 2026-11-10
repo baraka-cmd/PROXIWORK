@@ -17,7 +17,7 @@ Les sept points sont regroupés autour de `audit_logs`, table déjà présente d
 - Aucun mot de passe, jeton bearer, cookie, identifiant de session brut, destination de retrait ou secret n'est conservé dans les métadonnées.
 - Les journaux sont en lecture seule via les routes applicatives. La purge est une opération de rétention dédiée.
 - Les alertes ne déclenchent aucune suspension ou révocation automatique.
-- Les sessions web et les jetons API sont traités comme deux mécanismes différents. Les changements de mot de passe, réinitialisations et suspensions révoquent les sessions suivies et les jetons historiques du compte.
+- Les sessions web et les jetons API sont traités comme deux mécanismes différents. Les changements de mot de passe, réinitialisations et suspensions révoquent les sessions suivies et les jetons historiques du compte. Les sessions web déjà ouvertes avant le déploiement ne sont pas reconstituées ; il faut prévoir une réauthentification globale ou une invalidation initiale des sessions selon le pilote configuré.
 - Les changements avant/après sont limités aux champs de statut et de configuration non secrets ; pas de sérialisation complète d'un modèle.
 - Les interventions ne constituent pas un ledger financier et ne confirment pas une opération auprès d'un prestataire de paiement.
 - La première règle d'anomalie est un seuil initial à calibrer à partir de l'usage réel ; elle n'est pas une preuve d'attaque.
