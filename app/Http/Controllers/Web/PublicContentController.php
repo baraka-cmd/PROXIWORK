@@ -45,6 +45,28 @@ class PublicContentController extends Controller
         return view('public.content.faq', ['articles' => $articles, 'search' => $search]);
     }
 
+    public function feedback(Request $request, FaqArticle $article): RedirectResponse
+    {
+        abort_unless($article->status === 'published', 404);
+        $data = $request->validate(['helpful' => ['required', 'boolean']]);
+        $identity = $request->user()
+            ? 'user:'.$request->user()->id
+            : 'guest:'.$request->ip().'|'.(string) $request->userAgent();
+        $fingerprint = hash('sha256', $identity);
+        $inserted = DB::table('content_feedback')->insertOrIgnore([
+            'faq_article_id' => $article->id,
+            'fingerprint' => $fingerprint,
+            'helpful' => (bool) $data['helpful'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        if ($inserted === 1) {
+            $article->increment($data['helpful'] ? 'helpful_yes' : 'helpful_no');
+        }
+
+        return back()->with('success', 'Merci pour votre retour.');
+    }
+
     public function document(string $slug): View
     {
         $document = InstitutionalDocument::query()->where('slug', $slug)->where('status', 'published')
