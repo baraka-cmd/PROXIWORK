@@ -150,15 +150,15 @@ class CommunicationCampaignController extends Controller
     {
         $audience = $campaign->audience_rules['audience'] ?? 'all';
 
+        $roleNames = match ($audience) {
+            'client' => ['client'],
+            'professional' => ['professional'],
+            default => ['client', 'professional'],
+        };
+
         return User::query()
             ->where('account_status', 'active')
-            ->whereHas('roles', function ($roles) use ($audience): void {
-                $roles->whereIn('name', match ($audience) {
-                    'client' => ['client'],
-                    'professional' => ['professional'],
-                    default => ['client', 'professional'],
-                });
-            })
+            ->whereHas('roles', static fn ($roles) => $roles->whereIn('name', $roleNames))
             ->whereNotNull('email_verified_at');
     }
 }
