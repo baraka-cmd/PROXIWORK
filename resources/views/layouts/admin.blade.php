@@ -55,7 +55,11 @@
                 'title' => 'Finances',
                 'icon' => 'fa-wallet',
                 'items' => [
-                    ['label' => 'Paiements et transactions', 'route' => 'admin.payments.index', 'permission' => 'payments.view', 'icon' => 'fa-credit-card', 'active' => ['admin.payments.*']],
+                    ['label' => 'Vue générale', 'route' => 'admin.finance.overview', 'permission' => 'finance.view', 'icon' => 'fa-chart-pie', 'active' => ['admin.finance.overview']],
+                    ['label' => 'Paiements', 'route' => 'admin.payments.index', 'permission' => 'payments.view', 'icon' => 'fa-credit-card', 'active' => ['admin.payments.*']],
+                    ['label' => 'Transactions', 'route' => 'admin.finance.transactions', 'permission' => 'transactions.view', 'icon' => 'fa-arrow-right-arrow-left', 'active' => ['admin.finance.transactions*']],
+                    ['label' => 'Commissions', 'route' => 'admin.finance.commissions', 'permission' => 'commissions.view', 'icon' => 'fa-percent', 'active' => ['admin.finance.commissions*']],
+                    ['label' => 'Portefeuilles professionnels', 'route' => 'admin.finance.wallets', 'permission' => 'wallets.view', 'icon' => 'fa-wallet', 'active' => ['admin.finance.wallets*']],
                     ['label' => 'Retraits', 'route' => 'admin.withdrawals.index', 'permission' => 'admin.withdrawals.manage', 'icon' => 'fa-money-bill-transfer', 'active' => ['admin.withdrawals.*']],
                 ],
             ],
