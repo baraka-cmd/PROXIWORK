@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class AdminNotificationDeliveryTest extends TestCase
@@ -92,6 +93,7 @@ class AdminNotificationDeliveryTest extends TestCase
     public function test_admin_can_retry_only_classified_transient_provider_failures(): void
     {
         $this->seed(RbacSeeder::class);
+        Queue::fake();
 
         $admin = User::factory()->create();
         $admin->assignRole('admin');
@@ -113,6 +115,7 @@ class AdminNotificationDeliveryTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseHas('notification_deliveries', ['id' => $delivery->id, 'status' => 'RETRYING']);
+        Queue::assertPushed(SendNotificationEmail::class);
     }
 
     public function test_admin_cannot_retry_a_permanent_notification_failure(): void
