@@ -99,7 +99,7 @@ class CmsPageController extends Controller
                 'published_at' => now(),
             ]);
 
-            $locked->versions()->where('status', 'published')->update(['status' => 'superseded']);
+            $locked->versions()->whereIn('status', ['draft', 'published'])->whereKeyNot($version->id)->update(['status' => 'superseded']);
             $version->update(['status' => 'published', 'published_at' => now()]);
         });
         $audit->record('cms_page_published', $page, $request->user(), [], $request);
