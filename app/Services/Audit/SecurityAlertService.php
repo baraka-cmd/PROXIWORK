@@ -35,7 +35,7 @@ class SecurityAlertService
         }
 
         $windowStart = now()->subMinutes(5);
-        $identifierHash = $event->metadata['identifier_hash'] ?? null;
+        $identifierHash = $event->identifier_hash;
 
         $query = AuditLog::query()
             ->where('category', $event->category)
