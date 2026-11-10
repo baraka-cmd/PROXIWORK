@@ -33,6 +33,7 @@ class CmsPageController extends Controller
     {
         return view('admin.communication.pages.index', [
             'pages' => CmsPage::query()
+                ->withCount('versions')
                 ->withCount(['versions as draft_versions_count' => fn ($query) => $query->where('status', 'draft')])
                 ->latest()
                 ->paginate(20),
