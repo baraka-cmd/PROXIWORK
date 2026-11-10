@@ -26,7 +26,7 @@ class AdminFinanceQueryService
      */
     public function overview(array $filters): array
     {
-        [$from, $to] = $this->optionalPeriod($filters);
+        [$from, $to] = $this->period($filters);
 
         $paymentStatuses = Payment::query()
             ->whereBetween('created_at', [$from, $to])
@@ -160,7 +160,7 @@ class AdminFinanceQueryService
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
             ->when($filters['provider'] ?? null, fn (Builder $query, string $provider) => $query->where('provider', $provider))
             ->when($filters['currency'] ?? null, fn (Builder $query, string $currency) => $query->where('currency', strtoupper($currency)))
-            ->whereBetween('created_at', [$from, $to])
+            ->when($from !== null && $to !== null, fn (Builder $query) => $query->whereBetween('created_at', [$from, $to]))
             ->latest('created_at')
             ->latest('id')
             ->paginate($filters['per_page'] ?? 20)
