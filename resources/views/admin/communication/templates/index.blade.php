@@ -29,7 +29,7 @@
 <label>Titre <input name="title" value="{{ $template->title }}" maxlength="180" required></label>
 <label>Message <textarea name="body" rows="4" maxlength="10000" required>{{ $template->body }}</textarea></label>
 <button>Enregistrer une version</button></form></details>
-<form method="POST" action="{{ route('admin.communication.templates.publish',$template) }}">@csrf<button type="submit">Publier</button></form>
+@if(auth()->user()?->hasPermissionTo('notification_templates.publish'))<form method="POST" action="{{ route('admin.communication.templates.publish',$template) }}">@csrf<button type="submit">Publier</button></form>@endif
 @elseif($template->status === 'published')
 <form method="POST" action="{{ route('admin.communication.templates.revise',$template) }}">@csrf<button type="submit">Créer une nouvelle révision</button></form>
 @endif
