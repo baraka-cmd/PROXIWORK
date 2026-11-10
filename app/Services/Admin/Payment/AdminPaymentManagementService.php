@@ -49,8 +49,15 @@ class AdminPaymentManagementService
             'order.client',
             'order.professional.user',
             'client',
-            'transactions',
-            'events',
+            'transactions' => fn ($query) => $query->select([
+                'id', 'payment_id', 'provider', 'provider_transaction_id', 'provider_reference',
+                'status', 'currency', 'amount', 'failure_code', 'failure_message',
+                'initiated_at', 'processed_at', 'created_at',
+            ]),
+            'events' => fn ($query) => $query->select([
+                'id', 'payment_id', 'payment_transaction_id', 'event_type',
+                'from_status', 'to_status', 'source', 'occurred_at',
+            ]),
             'commission',
         ]);
     }
