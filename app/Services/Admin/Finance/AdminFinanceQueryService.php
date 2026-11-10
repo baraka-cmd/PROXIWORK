@@ -186,7 +186,7 @@ class AdminFinanceQueryService
 
     public function commissions(array $filters): LengthAwarePaginator
     {
-        [$from, $to] = $this->period($filters);
+        [$from, $to] = $this->optionalPeriod($filters);
 
         return Commission::query()
             ->with([
