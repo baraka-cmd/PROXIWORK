@@ -110,8 +110,8 @@ class OrderService
                 ->where('effective_at', '<=', $lockedQuotation->accepted_at ?? $now)
                 ->orderByDesc('effective_at')
                 ->orderByDesc('id')
-                ->first(['id', 'rate'])
-                ?? DB::table('commission_rules')->orderBy('effective_at')->orderBy('id')->first(['id', 'rate']);
+                ->value('rate')
+                ?? DB::table('commission_rules')->orderBy('effective_at')->orderBy('id')->value('rate');
 
             if ($commissionRule === null) {
                 throw new \LogicException('Aucune règle de commission initiale n’est disponible.');
@@ -127,8 +127,7 @@ class OrderService
                 'currency' => strtoupper($acceptedOffer->currency),
                 'subtotal' => $acceptedOffer->amount,
                 'total' => $acceptedOffer->amount,
-                'commission_rate' => $commissionRule->rate,
-                'commission_rule_id' => $commissionRule->id,
+                'commission_rate' => $commissionRule,
                 'accepted_at' => $lockedQuotation->accepted_at ?? $now,
                 'created_at' => $now,
                 'updated_at' => $now,

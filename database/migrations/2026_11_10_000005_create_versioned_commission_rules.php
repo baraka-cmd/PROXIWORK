@@ -21,7 +21,7 @@ return new class extends Migration
 
         $initialRate = (string) config('commission.rate', '10.00');
         $now = now();
-        $ruleId = DB::table('commission_rules')->insertGetId([
+        DB::table('commission_rules')->insert([
             'rate' => $initialRate,
             'effective_at' => $now,
             'created_by' => null,
@@ -46,7 +46,6 @@ return new class extends Migration
         // Existing orders without a booked commission are frozen at the rollout rate.
         DB::table('orders')->whereNull('commission_rate')->update([
             'commission_rate' => $initialRate,
-            'commission_rule_id' => $ruleId,
         ]);
     }
 
