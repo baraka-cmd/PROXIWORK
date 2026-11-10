@@ -263,6 +263,7 @@ Route::middleware(['auth', 'active.account', 'permission:announcements.manage'])
 });
 Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.view'])->group(function (): void {
     Route::get('communication/campaigns', [CommunicationCampaignController::class, 'index'])->name('communication.campaigns.index');
+    Route::get('communication/campaigns/{campaign}', [CommunicationCampaignController::class, 'show'])->name('communication.campaigns.show');
     Route::get('communication/campaigns/{campaign}/preview', [CommunicationCampaignController::class, 'preview'])->name('communication.campaigns.preview');
 });
 Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.manage'])->group(function (): void {
