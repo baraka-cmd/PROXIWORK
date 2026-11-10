@@ -111,12 +111,25 @@ class AdminAnalyticsService
             ->whereBetween('completed_at', [$from, $to])
             ->count();
 
-        $averageCompletionHours = Order::query()
-            ->whereNotNull('accepted_at')
-            ->whereNotNull('completed_at')
-            ->whereBetween('completed_at', [$from, $to])
-            ->selectRaw('AVG(TIMESTAMPDIFF(SECOND, accepted_at, completed_at)) / 3600 AS average_hours')
-            ->value('average_hours');
+        $durationExpression = match (DB::connection()->getDriverName()) {
+            'mysql' => 'AVG(TIMESTAMPDIFF(SECOND, accepted_at, completed_at))',
+            'sqlite' => 'AVG((julianday(completed_at) - julianday(accepted_at)) * 86400)',
+            'pgsql' => 'AVG(EXTRACT(EPOCH FROM (completed_at - accepted_at)))',
+            default => null,
+        };
+
+        $averageCompletionSeconds = $durationExpression === null
+            ? null
+            : Order::query()
+                ->whereNotNull('accepted_at')
+                ->whereNotNull('completed_at')
+                ->whereBetween('completed_at', [$from, $to])
+                ->selectRaw($durationExpression.' AS average_seconds')
+                ->value('average_seconds');
+
+        $averageCompletionHours = $averageCompletionSeconds === null
+            ? null
+            : round((float) $averageCompletionSeconds / 3600, 1);
 
         return [
             'requests' => [
@@ -134,7 +147,7 @@ class AdminAnalyticsService
                 'total' => $orderCount,
                 'completed_in_period' => $completedOrders,
                 'by_status' => $this->statusCounts(Order::class, $from, $to),
-                'average_completion_hours' => $averageCompletionHours === null ? null : round((float) $averageCompletionHours, 1),
+                'average_completion_hours' => $averageCompletionHours,
             ],
             'conversion' => [
                 'request_to_quotation_percent' => $this->rate($requestsWithQuotation, $requestCount),
@@ -214,8 +227,12 @@ class AdminAnalyticsService
     {
         // Only public professional base locations are used. Client addresses,
         // address snapshots and precise GPS coordinates are deliberately excluded.
-        $grouped = ProfessionalProfile::query()
+        $visibleProfessionalIds = ProfessionalProfile::query()
             ->publiclyVisible()
+            ->select('professional_profiles.id');
+
+        $grouped = DB::table('professional_profiles')
+            ->whereIn('professional_profiles.id', $visibleProfessionalIds)
             ->leftJoin('service_requests', function ($join) use ($from, $to): void {
                 $join->on('service_requests.professional_id', '=', 'professional_profiles.id')
                     ->whereNotNull('service_requests.requested_at')
