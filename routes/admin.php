@@ -313,3 +313,7 @@ Route::middleware(['auth', 'active.account', 'permission:cms_media.view'])->grou
 Route::middleware(['auth', 'active.account', 'permission:cms_media.manage'])->group(function (): void {
     Route::post('communication/media', [MediaAssetController::class, 'store'])->name('communication.media.store');
 });
+
+Route::middleware(['auth', 'active.account', 'permission:admin.notifications.retry'])->group(function (): void {
+    Route::post('notifications/deliveries/{delivery}/retry', [NotificationDeliveryController::class, 'retry'])->whereNumber('delivery')->middleware('throttle:5,1')->name('notifications.deliveries.retry');
+});
