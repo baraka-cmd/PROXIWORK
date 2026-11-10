@@ -228,7 +228,6 @@ Route::middleware(['auth', 'active.account', 'permission:moderation.history.view
     Route::get('moderation/resolutions', [ModerationCenterController::class, 'resolutions'])->name('moderation.resolutions');
 });
 
-
 // Phase 7 — supervision du centre de notifications et de son historique de livraison.
 
 Route::middleware(['auth', 'active.account', 'permission:admin.notifications.view'])->group(function (): void {
