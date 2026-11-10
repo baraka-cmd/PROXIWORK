@@ -19,8 +19,7 @@ class FinanceController extends Controller
     public function __construct(
         private readonly AdminFinanceQueryService $finance,
         private readonly CommissionRuleService $commissionRules,
-    ) {
-    }
+    ) {}
 
     public function overview(AdminFinanceFilterRequest $request): View
     {

@@ -48,7 +48,7 @@ class StoreServiceRequestRequest extends FormRequest
 
         $idempotencyKey = $this->input('idempotency_key');
 
-        if (!is_string($idempotencyKey) || $idempotencyKey === '') {
+        if (! is_string($idempotencyKey) || $idempotencyKey === '') {
             $idempotencyKey = $this->header('Idempotency-Key');
         }
 
@@ -70,7 +70,7 @@ class StoreServiceRequestRequest extends FormRequest
                 return;
             }
 
-            if (!$service->isRequestableForClient()) {
+            if (! $service->isRequestableForClient()) {
                 $validator->errors()->add(
                     'service_id',
                     'Ce service n’est plus disponible pour recevoir une nouvelle demande.',
@@ -83,7 +83,7 @@ class StoreServiceRequestRequest extends FormRequest
                     ->where('user_id', $this->user()?->getAuthIdentifier())
                     ->exists();
 
-                if (!$owned) {
+                if (! $owned) {
                     $validator->errors()->add('address_id', 'Cette adresse ne vous appartient pas.');
                 }
             }

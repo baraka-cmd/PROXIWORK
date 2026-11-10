@@ -9,10 +9,10 @@ use App\Models\PlatformSetting;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
 use App\Services\Admin\Verification\ProfessionalVerificationService;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ProfessionalVerificationTest extends TestCase

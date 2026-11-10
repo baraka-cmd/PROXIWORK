@@ -57,6 +57,8 @@ class PlatformSettingsTest extends TestCase
         $this->assertFalse($settings->get('notifications.sms_enabled'));
         $this->assertDatabaseHas('platform_settings', ['key' => 'publication.maximum_images']);
         $this->assertDatabaseHas('audit_logs', ['action' => 'admin.settings.updated']);
+
+        $this->actingAs($admin)->get(route('admin.settings.index'))->assertSee('PROXIWORK RDC');
     }
 
     public function test_user_without_settings_permission_cannot_read_or_update_settings(): void

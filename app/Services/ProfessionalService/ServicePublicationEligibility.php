@@ -20,7 +20,10 @@ use Illuminate\Validation\ValidationException;
 
 class ServicePublicationEligibility
 {
-    public function __construct(private readonly PlatformSettingService $settings, private readonly CurrencyService $currencies) {}
+    public function __construct(
+        private readonly PlatformSettingService $settings,
+        private readonly CurrencyService $currencies,
+    ) {}
 
     public function assertProfessionalCanPublish(Service $service): void
     {
@@ -29,7 +32,7 @@ class ServicePublicationEligibility
         $profile = $service->professionalProfile;
         $user = $profile?->user;
 
-        if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE || !$user->hasVerifiedEmail()) {
+        if ($user === null || $user->account_status !== UserAccountStatus::ACTIVE || ! $user->hasVerifiedEmail()) {
             throw ValidationException::withMessages([
                 'professional' => 'Un compte actif et une adresse e-mail vérifiée sont nécessaires pour publier un service.',
             ]);
@@ -75,7 +78,7 @@ class ServicePublicationEligibility
         }
 
         foreach ($skills as $skill) {
-            if ($skill->status !== SkillStatus::ACTIVE || !$this->isSkillCompatible($skill, $category)) {
+            if ($skill->status !== SkillStatus::ACTIVE || ! $this->isSkillCompatible($skill, $category)) {
                 throw ValidationException::withMessages([
                     'skill_ids' => 'Chaque compétence doit être active et appartenir à la catégorie du service ou à son niveau parent/enfant.',
                 ]);
@@ -122,7 +125,7 @@ class ServicePublicationEligibility
         }
 
         $this->assertPricingIsCoherent($service);
-        if ($service->currency !== null && !$this->currencies->isActive((string) $service->currency)) {
+        if ($service->currency !== null && ! $this->currencies->isActive((string) $service->currency)) {
             throw ValidationException::withMessages(['currency' => 'La devise du service est inactive sur la plateforme.']);
         }
 

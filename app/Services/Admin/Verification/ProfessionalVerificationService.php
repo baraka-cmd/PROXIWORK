@@ -101,7 +101,7 @@ class ProfessionalVerificationService
 
             $from = $target->verification_status;
 
-            if (!$this->isAllowedTransition($from, $to)) {
+            if (! $this->isAllowedTransition($from, $to)) {
                 throw ValidationException::withMessages([
                     'verification_status' => [sprintf(
                         'Transition impossible : %s → %s.',
@@ -152,7 +152,7 @@ class ProfessionalVerificationService
         ];
 
         foreach ($requirements as $documentType => $settingKey) {
-            if (!(bool) $this->settings->get($settingKey)) {
+            if (! (bool) $this->settings->get($settingKey)) {
                 continue;
             }
 
@@ -162,7 +162,7 @@ class ProfessionalVerificationService
                 ->where('status', ProfessionalDocument::STATUS_APPROVED)
                 ->exists();
 
-            if (!$approved) {
+            if (! $approved) {
                 throw ValidationException::withMessages([
                     'documents' => 'Le dossier doit contenir un document approuvé de type : '.$documentType.'.',
                 ]);

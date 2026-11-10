@@ -56,14 +56,14 @@ class UpdateServiceRequestRequest extends FormRequest
                     ->where('user_id', $this->user()?->getAuthIdentifier())
                     ->exists();
 
-                if (!$owned) {
+                if (! $owned) {
                     $validator->errors()->add('address_id', 'Cette adresse ne vous appartient pas.');
                 }
             }
 
             $request = $this->route('serviceRequest');
 
-            if (!$request instanceof ServiceRequest) {
+            if (! $request instanceof ServiceRequest) {
                 return;
             }
 

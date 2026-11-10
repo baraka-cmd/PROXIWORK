@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Services\Settings\PlatformSettingService;
 use App\Services\Settings\CurrencyService;
+use App\Services\Settings\PlatformSettingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
