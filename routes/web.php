@@ -19,7 +19,6 @@ use App\Http\Controllers\Web\Client\ServiceCatalogController;
 use App\Http\Controllers\Web\Client\ServiceRequestController;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\HomePageController;
-use App\Http\Controllers\Web\PublicContentController;
 use App\Http\Controllers\Web\LoginController;
 use App\Http\Controllers\Web\NewPasswordController;
 use App\Http\Controllers\Web\OrderDeliveryAttachmentController;
