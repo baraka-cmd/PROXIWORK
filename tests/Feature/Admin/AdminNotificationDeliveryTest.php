@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Jobs\Notifications\SendNotificationEmail;
 use App\Models\NotificationDelivery;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class AdminNotificationDeliveryTest extends TestCase
@@ -84,6 +86,51 @@ class AdminNotificationDeliveryTest extends TestCase
             'attempt_number' => 1,
             'status' => 'FAILED',
         ]);
+    }
+
+    public function test_admin_can_retry_only_classified_transient_provider_failures(): void
+    {
+        $this->seed(RbacSeeder::class);
+        Queue::fake();
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $recipient = User::factory()->create();
+        $delivery = NotificationDelivery::query()->create([
+            'user_id' => $recipient->id,
+            'recipient_hint' => 'b***@example.test',
+            'channel' => 'mail',
+            'status' => 'FAILED',
+            'attempts' => 1,
+            'last_error_code' => 'Symfony\\\\Component\\\\Mailer\\\\Exception\\\\TransportException',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.notifications.deliveries.retry', $delivery))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('notification_deliveries', ['id' => $delivery->id, 'status' => 'RETRYING']);
+        Queue::assertPushed(SendNotificationEmail::class);
+    }
+
+    public function test_admin_cannot_retry_a_permanent_notification_failure(): void
+    {
+        $this->seed(RbacSeeder::class);
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $recipient = User::factory()->create();
+        $delivery = NotificationDelivery::query()->create([
+            'user_id' => $recipient->id,
+            'recipient_hint' => 'b***@example.test',
+            'channel' => 'mail',
+            'status' => 'FAILED',
+            'attempts' => 1,
+            'last_error_code' => 'EMAIL_DISABLED_BY_PREFERENCE',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.notifications.deliveries.retry', $delivery))
+            ->assertStatus(409);
     }
 
     public function test_user_without_notification_permission_cannot_consult_delivery_history(): void
