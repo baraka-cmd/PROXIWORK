@@ -83,6 +83,7 @@ class SupportTicketService
             'user:id,name,email',
             'assignee:id,name,email',
             'withdrawal',
+            'context',
             'messages' => fn ($query) => $query->oldest()->with('sender:id,name,email'),
         ]);
     }
