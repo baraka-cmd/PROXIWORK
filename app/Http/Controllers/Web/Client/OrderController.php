@@ -185,6 +185,7 @@ class OrderController extends Controller
             'addressSnapshot',
             'payment.transactions',
             'review.response',
+            'disputes',
         ]);
 
         $conversations = Conversation::query()
