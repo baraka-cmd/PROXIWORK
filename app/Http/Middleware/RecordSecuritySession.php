@@ -9,11 +9,10 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\PersonalAccessToken;
-use Symfony\Component\HttpFoundation\Response;
 
 class RecordSecuritySession
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next): \Symfony\Component\HttpFoundation\Response
     {
         $user = $request->user() ?? Auth::guard('web')->user();
 
