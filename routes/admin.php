@@ -264,6 +264,7 @@ Route::middleware(['auth', 'active.account', 'permission:communication_campaigns
     Route::get('communication/campaigns/{campaign}/preview', [CommunicationCampaignController::class, 'preview'])->name('communication.campaigns.preview');
 });
 Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.manage'])->group(function (): void {
+    Route::post('communication/segments', [CommunicationCampaignController::class, 'storeSegment'])->name('communication.segments.store');
     Route::post('communication/campaigns', [CommunicationCampaignController::class, 'store'])->name('communication.campaigns.store');
 });
 Route::middleware(['auth', 'active.account', 'permission:communication_campaigns.approve'])->group(function (): void {
