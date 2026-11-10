@@ -27,11 +27,11 @@ class AnnouncementController extends Controller
         $data = $this->validated($request);
         $announcement = DB::transaction(function () use ($data, $request): Announcement {
             $announcement = Announcement::query()->create([
-            ...$data,
-            'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(6)),
-            'status' => 'draft',
-            'created_by' => $request->user()->id,
-        ]);
+                ...$data,
+                'slug' => Str::slug($data['title']).'-'.Str::lower(Str::random(6)),
+                'status' => 'draft',
+                'created_by' => $request->user()->id,
+            ]);
             $this->snapshot($announcement, $request->user()->id);
 
             return $announcement;
