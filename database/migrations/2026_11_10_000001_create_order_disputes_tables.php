@@ -31,7 +31,7 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['status', 'priority', 'updated_at']);
             $table->index(['assigned_to', 'status']);
-            $table->index(['order_id', 'status']);
+            $table->unique('order_id');
             $table->index(['client_id', 'created_at']);
             $table->index(['professional_id', 'created_at']);
         });
