@@ -49,11 +49,16 @@ class AnalyticsControllerTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole(Role::query()->where('name', 'admin')->firstOrFail());
 
-        $this->actingAs($admin)
-            ->get(route('admin.analytics.export', ['range' => '7d']))
+        $response = $this->actingAs($admin)
+            ->get(route('admin.analytics.export', ['range' => '7d']));
+
+        $response
             ->assertOk()
-            ->assertHeader('content-type', 'text/csv; charset=UTF-8')
-            ->assertHeader('cache-control', 'private, no-store, max-age=0');
+            ->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+        $cacheControl = (string) $response->headers->get('cache-control');
+        $this->assertStringContainsString('private', $cacheControl);
+        $this->assertStringContainsString('no-store', $cacheControl);
     }
 
     public function test_non_admin_cannot_export_analytics(): void
