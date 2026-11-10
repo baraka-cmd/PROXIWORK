@@ -39,8 +39,6 @@ class PublicContentController extends Controller
             ]);
         });
 
-
-
         return response()->view('public.content.sitemap', ['urls' => $urls])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
