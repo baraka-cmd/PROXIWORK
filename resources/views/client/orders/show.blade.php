@@ -491,4 +491,36 @@
     </section>
 
 </div>
+
+    <section class="client-order-panel" aria-labelledby="order-dispute-heading">
+        <h2 id="order-dispute-heading">Réclamation commerciale / litige</h2>
+        @if ($order->disputes->isNotEmpty())
+            @php($orderDispute = $order->disputes->first())
+            <p>Un dossier existe déjà pour cette commande : <strong>#{{ $orderDispute->id }}</strong> — {{ str_replace('_', ' ', $orderDispute->status->value) }}.</p>
+            <a href="{{ route('client.disputes.show', $orderDispute) }}">Consulter le dossier de litige</a>
+        @elseif (! in_array($order->status->value, ['pending_payment', 'cancelled'], true))
+            <p>Si un désaccord sérieux concerne l’exécution de cette commande, vous pouvez ouvrir un dossier. Votre demande sera examinée par l’administration et l’autre partie pourra apporter ses explications.</p>
+            <form method="POST" action="{{ route('client.orders.disputes.store', $order) }}">
+                @csrf
+                <label for="dispute-reason">Motif</label>
+                <select id="dispute-reason" name="reason_code" required>
+                    <option value="">Choisir un motif</option>
+                    <option value="service_not_delivered">Prestation non réalisée</option>
+                    <option value="incomplete_work">Prestation incomplète</option>
+                    <option value="quality_dispute">Qualité contestée</option>
+                    <option value="late_delivery">Retard important</option>
+                    <option value="terms_not_respected">Conditions acceptées non respectées</option>
+                    <option value="delivery_disagreement">Désaccord sur la livraison</option>
+                    <option value="conduct">Comportement problématique</option>
+                    <option value="other">Autre</option>
+                </select>
+                <label for="dispute-description">Expliquez les faits (minimum 20 caractères)</label>
+                <textarea id="dispute-description" name="description" rows="5" minlength="20" maxlength="5000" required></textarea>
+                <button type="submit">Ouvrir un dossier de litige</button>
+            </form>
+        @else
+            <p>Cette commande ne peut pas faire l’objet d’un nouveau litige dans son état actuel.</p>
+        @endif
+    </section>
+
 @endsection
