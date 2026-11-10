@@ -11,6 +11,7 @@ use App\Models\Quotation;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Audit\SecuritySessionService;
 use BackedEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class AdminUserService
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly SecuritySessionService $securitySessions,
     ) {}
 
     public function paginate(array $filters)
