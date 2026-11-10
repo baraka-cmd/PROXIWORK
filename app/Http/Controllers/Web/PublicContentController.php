@@ -10,8 +10,8 @@ use App\Models\CmsPage;
 use App\Models\FaqArticle;
 use App\Models\InstitutionalDocument;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -39,8 +39,6 @@ class PublicContentController extends Controller
             ]);
         });
 
-
-
         return response()->view('public.content.sitemap', ['urls' => $urls])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
@@ -63,7 +61,8 @@ class PublicContentController extends Controller
     {
         $search = $request->validate(['q' => ['nullable', 'string', 'max:120']])['q'] ?? null;
         $faqLocale = app()->getLocale();
-        if (! FaqArticle::query()->published()->where('locale', $faqLocale)->exists()) {
+        $hasFaqTranslation = FaqArticle::query()->published()->where('locale', $faqLocale)->exists();
+        if ($hasFaqTranslation === false) {
             $faqLocale = 'fr';
         }
         $articles = FaqArticle::query()->published()
