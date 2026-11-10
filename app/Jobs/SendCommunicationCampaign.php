@@ -28,7 +28,7 @@ class SendCommunicationCampaign implements ShouldQueue
     public function handle(): void
     {
         $campaign = CommunicationCampaign::query()->findOrFail($this->campaignId);
-        if (! in_array($campaign->status, ['queued', 'sending'], true)) {
+        if (!in_array($campaign->status, ['queued', 'sending'], true)) {
             return;
         }
 
@@ -70,7 +70,7 @@ class SendCommunicationCampaign implements ShouldQueue
             });
 
         $remaining = $campaign->recipients()->where('status', 'pending')->exists();
-        if (! $remaining) {
+        if (!$remaining) {
             $campaign->update(['status' => 'completed', 'completed_at' => now()]);
         }
     }
