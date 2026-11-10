@@ -17,6 +17,7 @@ class NotificationTemplateRenderer
         string $fallbackMessage,
     ): array {
         $locale = app()->getLocale();
+        $locales = array_values(array_unique([$locale, 'fr']));
         $variables = [
             'user_name' => $recipient->name,
             'action_url' => $url ?? '',
@@ -25,8 +26,9 @@ class NotificationTemplateRenderer
         $databaseTemplate = NotificationTemplate::query()
             ->where('event_key', $eventKey)
             ->where('channel', 'database')
-            ->where('locale', $locale)
+            ->whereIn('locale', $locales)
             ->where('status', 'published')
+            ->orderByRaw('CASE WHEN locale = ? THEN 0 ELSE 1 END', [$locale])
             ->latest('id')
             ->first();
 
