@@ -74,6 +74,8 @@ class PublicContentTest extends TestCase
             'published_at' => now(),
         ]);
 
+        $this->get(route('public.faq'))->assertOk()->assertSee('Comment créer un compte ?');
+
         $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.10'])
             ->post(route('public.faq.feedback', $article), ['helpful' => '1'])
             ->assertRedirect();
