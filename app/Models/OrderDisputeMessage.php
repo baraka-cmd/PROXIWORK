@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OrderDisputeMessage extends Model
 {
+    protected static function booted(): void
+    {
+        static::updating(static function (): never {
+            throw new \\LogicException('Les événements d’un litige sont immuables.');
+        });
+        static::deleting(static function (): never {
+            throw new \\LogicException('Les événements d’un litige ne peuvent pas être supprimés.');
+        });
+    }
+
     protected $fillable = ['order_dispute_id', 'sender_id', 'body', 'visibility'];
     protected function casts(): array { return []; }
     public function dispute(): BelongsTo { return $this->belongsTo(OrderDispute::class, 'order_dispute_id'); }
