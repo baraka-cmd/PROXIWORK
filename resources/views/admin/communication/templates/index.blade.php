@@ -11,7 +11,7 @@
             <label>Code unique <input name="code" maxlength="120" required></label>
             <label>Événement <select name="event_key">@foreach($events as $event)<option value="{{ $event }}">{{ $event }}</option>@endforeach</select></label>
             <label>Catégorie <select name="category">@foreach(['account','requests','quotes','orders','payments','messages','reviews'] as $v)<option>{{ $v }}</option>@endforeach</select></label>
-            <label>Canal <select name="channel"><option value="database">Notification interne</option><option value="mail">E-mail</option></select></label>
+            <label>Canal <select name="channel"><option value="database">Notification interne</option><option value="mail">E-mail</option><option value="sms">SMS</option><option value="push">Notification push</option></select></label>
             <label>Langue <select name="locale"><option value="fr">Français</option><option value="en">English</option></select></label>
             <label>Objet e-mail <input name="subject" maxlength="180"></label>
             <label>Titre <input name="title" maxlength="180" required></label>
