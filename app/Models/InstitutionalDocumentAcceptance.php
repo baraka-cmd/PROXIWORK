@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InstitutionalDocumentAcceptance extends Model
 {
-    protected $fillable = ['institutional_document_version_id','user_id','accepted_at','source'];
+    protected $fillable = ['institutional_document_version_id', 'user_id', 'accepted_at', 'source'];
 
     protected function casts(): array
     {
