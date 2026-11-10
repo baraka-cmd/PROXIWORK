@@ -33,6 +33,7 @@ class FaqController extends Controller
             'created_by' => $request->user()->id,
             'updated_by' => $request->user()->id,
         ]);
+        $this->snapshot($article, $request->user()->id);
         $audit->record('faq_article_created', $article, $request->user(), [], $request);
 
         return back()->with('success', 'Question enregistrée en brouillon.');
@@ -42,7 +43,8 @@ class FaqController extends Controller
     {
         abort_unless($article->status !== 'archived', 409);
         $data = $this->validated($request);
-        $article->update([...$data, 'slug' => Str::slug($data['slug'] ?: $data['question']), 'updated_by' => $request->user()->id]);
+        $article->update([...$data, 'slug' => Str::slug($data['slug'] ?: $data['question']).'-'.Str::lower(Str::random(5)), 'updated_by' => $request->user()->id]);
+        $this->snapshot($article, $request->user()->id);
         $audit->record('faq_article_updated', $article, $request->user(), [], $request);
 
         return back()->with('success', 'Question mise à jour.');
@@ -54,6 +56,16 @@ class FaqController extends Controller
         $audit->record('faq_article_published', $article, $request->user(), [], $request);
 
         return back()->with('success', 'Question publiée.');
+    }
+
+    private function snapshot(FaqArticle $article, int $userId): void
+    {
+        $version = (int) $article->versions()->max('version') + 1;
+        $article->versions()->create([
+            'version' => $version,
+            'content' => $article->only(['faq_category_id', 'question', 'slug', 'answer', 'audience', 'locale', 'status', 'sort_order']),
+            'created_by' => $userId,
+        ]);
     }
 
     private function validated(Request $request): array
