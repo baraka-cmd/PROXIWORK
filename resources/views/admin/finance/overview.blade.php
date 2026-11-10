@@ -2,7 +2,7 @@
 
 @push('head')
     @unless (app()->environment('testing'))
-        @vite('resources/css/pages/admin/finance.css')
+        @vite(['resources/css/pages/admin/finance.css', 'resources/js/pages/admin/finance.js'])
     @endunless
 @endpush
 
@@ -20,7 +20,7 @@
 @endsection
 
 @section('content')
-<div class="admin-finance">
+<div class="admin-finance" data-finance-charts="{{ json_encode($overview['charts'], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}">
     <div class="admin-finance__meta">
         <span>Période : {{ $overview['period']['from']->format('d/m/Y') }} – {{ $overview['period']['to']->format('d/m/Y') }}</span>
         <span>Données actualisées à {{ $overview['updated_at']->format('d/m/Y H:i') }}</span>
@@ -54,6 +54,23 @@
                 </article>
             @empty
                 <p class="admin-finance__empty">Aucune commission comptabilisée sur cette période.</p>
+            @endforelse
+        </div>
+    </section>
+
+    <section class="admin-finance__section">
+        <div class="admin-finance__section-heading"><div><h2>Évolution financière</h2><p>Volumes journaliers par devise, sans additionner des monnaies différentes.</p></div></div>
+        @if($overview['charts']['is_limited'])
+            <p class="admin-finance__muted">Le graphique présente les 90 derniers jours de la période sélectionnée. Les indicateurs de synthèse couvrent toute la période.</p>
+        @endif
+        <div class="admin-finance__chart-grid">
+            @forelse($overview['charts']['currencies'] as $currency => $series)
+                <article class="admin-finance__chart-card">
+                    <h3>Flux confirmés · {{ $currency }}</h3>
+                    <div class="admin-finance__chart"><canvas data-finance-chart="{{ $currency }}" role="img" aria-label="Évolution des paiements confirmés et commissions en {{ $currency }}"></canvas></div>
+                </article>
+            @empty
+                <p class="admin-finance__empty">Aucune donnée de paiement ou de commission à représenter sur cette période.</p>
             @endforelse
         </div>
     </section>
