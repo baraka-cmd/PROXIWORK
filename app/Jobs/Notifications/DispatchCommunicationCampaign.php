@@ -32,7 +32,7 @@ class DispatchCommunicationCampaign implements ShouldQueue
     public function handle(NotificationTemplateRenderer $renderer): void
     {
         $campaign = CommunicationCampaign::query()->findOrFail($this->campaignId);
-        if (! in_array($campaign->status, ['dispatching', 'scheduled'], true)) {
+        if (in_array($campaign->status, ['dispatching', 'scheduled'], true) === false) {
             return;
         }
 
@@ -80,7 +80,7 @@ class DispatchCommunicationCampaign implements ShouldQueue
                         $recipient->notifications()->save($notification);
 
                         foreach ($campaign->channels ?? [] as $channel) {
-                            if (!in_array($channel, ['mail', 'sms', 'push'], true)) {
+                            if (in_array($channel, ['mail', 'sms', 'push'], true) === false) {
                                 continue;
                             }
                             NotificationDelivery::query()->firstOrCreate(

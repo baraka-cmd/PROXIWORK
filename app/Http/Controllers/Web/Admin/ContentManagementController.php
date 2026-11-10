@@ -125,7 +125,7 @@ class ContentManagementController extends Controller
 
     public function toggleFaq(Request $request, FaqItem $item): RedirectResponse
     {
-        $item->update(['is_active' => ! $item->is_active]);
+        $item->update(['is_active' => $item->is_active === false]);
         $this->audit->record('faq_item_visibility_changed', $item, $request->user(), ['is_active' => $item->is_active], $request);
 
         return back()->with('success', $item->is_active ? 'Question publiée.' : 'Question désactivée.');
