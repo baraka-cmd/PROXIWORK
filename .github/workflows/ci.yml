@@ -80,7 +80,7 @@ jobs:
             exit 0
           fi
 
-          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
+          printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test --format=checkstyle
 
       - name: Run Phase 6 moderation and dispute regression tests
         run: >-
