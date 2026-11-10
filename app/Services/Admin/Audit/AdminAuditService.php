@@ -9,9 +9,16 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class AdminAuditService
 {
-    public function paginate(array $filters): LengthAwarePaginator
+    public function paginate(array $filters, User $viewer): LengthAwarePaginator
     {
+        $allowedCategories = ['general', 'administrative'];
+
+        if ($viewer->hasPermissionTo('security.events.view')) {
+            $allowedCategories = array_merge($allowedCategories, ['authentication', 'security']);
+        }
+
         $query = AuditLog::query()
+            ->whereIn('category', $allowedCategories)
             ->with('user:id,name,email');
 
         if ($search = trim((string) ($filters['search'] ?? ''))) {
