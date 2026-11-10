@@ -114,7 +114,7 @@ class NotificationDeliveryController extends Controller
 
     public function show(NotificationDelivery $delivery): View
     {
-        $delivery->load(['user:id,name', 'notification', 'attempts']);
+        $delivery->load(['user:id,name', 'notification', 'deliveryAttempts']);
 
         return view('admin.notifications.deliveries.show', [
             'delivery' => $delivery,
