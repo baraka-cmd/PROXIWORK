@@ -17,7 +17,7 @@ class NotificationTemplateController extends Controller
 {
     private const EVENTS = ['account', 'service_request', 'quotation', 'order', 'payment', 'withdrawal', 'message', 'review'];
 
-    private const VARIABLES = ['user_name', 'reference', 'service_title', 'amount', 'currency', 'action_url'];
+    private const VARIABLES = ['user_name', 'action_url'];
 
     public function index(): View
     {
