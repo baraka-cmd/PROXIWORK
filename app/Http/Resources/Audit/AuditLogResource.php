@@ -28,7 +28,7 @@ class AuditLogResource extends JsonResource
             'resource_id' => $this->subject_id,
             'ip_address' => $this->ip_address,
             'user_agent' => $this->user_agent,
-            'metadata' => $this->metadata ?? [],
+            'metadata' => collect($this->metadata ?? [])->except(['identifier_hash'])->all(),
             'created_at' => $this->created_at?->toISOString(),
         ];
     }
