@@ -91,13 +91,15 @@ class CommunicationCampaignController extends Controller
             abort_unless($locked->status === 'draft', 409);
             $query = $this->audienceQuery($locked);
             $query->select('users.id as id')->orderBy('users.id')->chunkById(500, function ($users) use ($locked): void {
-                $rows = $users->map(static fn ($user) => [
-                    'campaign_id' => $locked->id,
-                    'user_id' => $user->id,
-                    'status' => 'pending',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ])->all();
+                $rows = $users->map(function ($user) use ($locked): array {
+                    return [
+                        'campaign_id' => $locked->id,
+                        'user_id' => $user->id,
+                        'status' => 'pending',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                })->all();
                 CommunicationCampaignRecipient::query()->insertOrIgnore($rows);
             }, 'users.id', 'id');
             $locked->update(['status' => 'queued', 'recipient_count' => $count, 'started_at' => now()]);
@@ -125,11 +127,13 @@ class CommunicationCampaignController extends Controller
 
         return User::query()
             ->where('account_status', 'active')
-            ->whereHas('roles', static fn ($roles) => $roles->whereIn('name', match ($audience) {
-                'client' => ['client'],
-                'professional' => ['professional'],
-                default => ['client', 'professional'],
-            }))
+            ->whereHas('roles', function ($roles) use ($audience): void {
+                $roles->whereIn('name', match ($audience) {
+                    'client' => ['client'],
+                    'professional' => ['professional'],
+                    default => ['client', 'professional'],
+                });
+            })
             ->whereNotNull('email_verified_at');
     }
 }
