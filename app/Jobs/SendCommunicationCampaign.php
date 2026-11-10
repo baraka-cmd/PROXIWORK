@@ -26,7 +26,11 @@ class SendCommunicationCampaign implements ShouldQueue
     public function handle(): void
     {
         $campaign = CommunicationCampaign::query()->findOrFail($this->campaignId);
-        if (in_array($campaign->status, ['queued', 'sending'], true) === false) {
+        if (in_array($campaign->status, ['queued', 'scheduled', 'sending'], true) === false) {
+            return;
+        }
+
+        if ($campaign->scheduled_at?->isFuture()) {
             return;
         }
 
