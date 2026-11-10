@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Announcement extends Model
 {
-    protected $fillable = ['title','slug','summary','body','type','placement','status','is_pinned','cta_label','cta_url','starts_at','ends_at','created_by','published_by','published_at'];
+    protected $fillable = ['title', 'slug', 'summary', 'body', 'type', 'placement', 'status', 'is_pinned', 'cta_label', 'cta_url', 'starts_at', 'ends_at', 'created_by', 'published_by', 'published_at'];
 
     protected function casts(): array
     {
