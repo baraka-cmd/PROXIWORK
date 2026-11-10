@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\Admin\AnalyticsController;
+use App\Http\Controllers\Web\Admin\AdminNotificationController;
 use App\Http\Controllers\Web\Admin\AnnouncementController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
@@ -240,6 +241,8 @@ Route::middleware(['auth', 'active.account', 'permission:moderation.history.view
 Route::middleware(['auth', 'active.account', 'permission:admin.notifications.view'])->group(function (): void {
     Route::get('notifications/deliveries', [NotificationDeliveryController::class, 'index'])->name('notifications.deliveries.index');
     Route::get('notifications/deliveries/{delivery}', [NotificationDeliveryController::class, 'show'])->whereNumber('delivery')->name('notifications.deliveries.show');
+    Route::get('notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/{notification}', [AdminNotificationController::class, 'show'])->name('notifications.show');
 });
 
 // Phase 7 — gestion des communications et contenus éditoriaux.
