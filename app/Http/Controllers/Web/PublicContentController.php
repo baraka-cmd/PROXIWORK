@@ -19,7 +19,7 @@ class PublicContentController extends Controller
     public function announcements(): View
     {
         return view('public.content.announcements', [
-            'announcements' => Announcement::query()->visible()->orderByDesc('is_pinned')->orderByDesc('published_at')->paginate(15),
+            'announcements' => Announcement::query()->visible()->where('placement', 'announcements')->orderByDesc('is_pinned')->orderByDesc('published_at')->paginate(15),
         ]);
     }
 
@@ -35,6 +35,8 @@ class PublicContentController extends Controller
         $search = $request->validate(['q' => ['nullable', 'string', 'max:120']])['q'] ?? null;
         $articles = FaqArticle::query()->published()
             ->with('category')
+            ->whereIn('audience', ['all', auth()->user()?->hasRole('professional') ? 'professional' : (auth()->user()?->hasRole('client') ? 'client' : 'all')])
+            ->where('locale', app()->getLocale())
             ->when($search, fn ($query) => $query->where(fn ($nested) => $nested
                 ->where('question', 'like', '%'.$search.'%')
                 ->orWhere('answer', 'like', '%'.$search.'%')))
@@ -61,10 +63,14 @@ class PublicContentController extends Controller
         abort_unless($document->requires_acceptance, 409);
         $version = $document->versions()->where('status', 'published')->latest('version')->firstOrFail();
 
-        DB::table('institutional_document_acceptances')->updateOrInsert(
-            ['institutional_document_version_id' => $version->id, 'user_id' => $request->user()->id],
-            ['accepted_at' => now(), 'source' => 'web', 'created_at' => now(), 'updated_at' => now()],
-        );
+        DB::table('institutional_document_acceptances')->insertOrIgnore([
+            'institutional_document_version_id' => $version->id,
+            'user_id' => $request->user()->id,
+            'accepted_at' => now(),
+            'source' => 'web',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         return back()->with('success', 'Votre acceptation de cette version a été enregistrée.');
     }
