@@ -21,7 +21,7 @@ class ModerateReportRequest extends FormRequest
         return [
             'action_type' => ['required', new Enum(ModerationActionType::class)],
             'reason_code' => ['nullable', new Enum(ReportReasonCode::class)],
-            'note' => ['nullable', 'string', 'max:5000'],
+            'note' => ['required', 'string', 'min:10', 'max:2000'],
         ];
     }
 }
