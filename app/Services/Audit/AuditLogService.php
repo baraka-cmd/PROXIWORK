@@ -106,7 +106,7 @@ class AuditLogService
             $this->recordInterventionProjection($event, $subject, $user, $action, $metadata, $safeChanges, $safeReason);
         }
 
-        if ($category === 'authentication' && $outcome === 'failure') {
+        if (($category === 'authentication' && $outcome === 'failure') || ($category === 'security' && $outcome === 'denied')) {
             $this->securityAlerts->observe($event);
         }
 
