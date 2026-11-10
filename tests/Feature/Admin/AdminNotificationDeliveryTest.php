@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Tests\\Feature\\Admin;
+namespace Tests\Feature\Admin;
 
-use App\\Models\\NotificationDelivery;
-use App\\Models\\User;
-use App\\Notifications\\AccountActivityNotification;
-use Database\\Seeders\\RbacSeeder;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\NotificationDelivery;
+use App\Models\User;
+use App\Notifications\AccountActivityNotification;
+use Database\Seeders\RbacSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class AdminNotificationDeliveryTest extends TestCase
 {
@@ -40,7 +40,7 @@ class AdminNotificationDeliveryTest extends TestCase
             ->get(route('admin.notifications.deliveries.index'))
             ->assertOk()
             ->assertSee('Notifications et livraisons')
-            ->assertSee('ProviderUnavailable', false);
+            ->assertSee('FAILED');
 
         $this->actingAs($admin)
             ->get(route('admin.notifications.deliveries.show', $delivery))

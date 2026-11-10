@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\Admin\CategoryController;
 use App\Http\Controllers\Web\Admin\FinanceController;
 use App\Http\Controllers\Web\Admin\FinancialOperationsController;
 use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\NotificationDeliveryController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
@@ -229,7 +230,6 @@ Route::middleware(['auth', 'active.account', 'permission:moderation.history.view
 
 
 // Phase 7 — supervision du centre de notifications et de son historique de livraison.
-use App\\Http\\Controllers\\Web\\Admin\\NotificationDeliveryController;
 
 Route::middleware(['auth', 'active.account', 'permission:admin.notifications.view'])->group(function (): void {
     Route::get('notifications/deliveries', [NotificationDeliveryController::class, 'index'])->name('notifications.deliveries.index');
