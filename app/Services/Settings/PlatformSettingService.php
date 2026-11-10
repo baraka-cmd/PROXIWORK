@@ -27,8 +27,8 @@ class PlatformSettingService
         'media.maximum_image_kb' => ['default' => 5120, 'rules' => 'required|integer|min:100|max:10240'],
         'media.maximum_document_kb' => ['default' => 10240, 'rules' => 'required|integer|min:100|max:20480'],
         'notifications.email_enabled' => ['default' => true, 'rules' => 'required|boolean'],
-        'notifications.sms_enabled' => ['default' => false, 'rules' => 'required|boolean'],
-        'notifications.push_enabled' => ['default' => false, 'rules' => 'required|boolean'],
+        'notifications.sms_enabled' => ['default' => true, 'rules' => 'required|boolean'],
+        'notifications.push_enabled' => ['default' => true, 'rules' => 'required|boolean'],
     ];
 
     public function __construct(
@@ -81,7 +81,7 @@ class PlatformSettingService
             $rules[$key] = $definition['rules'];
         }
 
-        $validated = Arr::dot(Validator::make($flattened, $rules)->validate());
+        $validated = Arr::dot(Validator::make($input, $rules)->validate());
         $changes = [];
 
         foreach ($validated as $key => $value) {
