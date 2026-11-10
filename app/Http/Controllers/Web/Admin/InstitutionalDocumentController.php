@@ -104,7 +104,8 @@ class InstitutionalDocumentController extends Controller
             abort_unless($locked->status === 'approved', 409);
             InstitutionalDocumentVersion::query()
                 ->where('institutional_document_id', $locked->institutional_document_id)
-                ->where('status', 'published')
+                ->whereIn('status', ['draft', 'approved', 'published'])
+                ->whereKeyNot($locked->id)
                 ->update(['status' => 'superseded']);
             $locked->update(['status' => 'published', 'published_at' => now(), 'effective_at' => $locked->effective_at ?? now()]);
             $locked->document()->update(['status' => 'published', 'current_version' => $locked->version]);
