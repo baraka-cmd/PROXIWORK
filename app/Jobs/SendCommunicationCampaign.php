@@ -8,15 +8,15 @@ use App\Models\CommunicationCampaign;
 use App\Models\CommunicationCampaignRecipient;
 use App\Notifications\CommunicationCampaignNotification;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-class SendCommunicationCampaign implements ShouldQueue, ShouldBeUnique
+class SendCommunicationCampaign implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -39,6 +39,7 @@ class SendCommunicationCampaign implements ShouldQueue, ShouldBeUnique
     public function handle(): void
     {
         $campaign = CommunicationCampaign::query()->findOrFail($this->campaignId);
+
         if (in_array($campaign->status, ['queued', 'scheduled', 'sending'], true) === false) {
             return;
         }
