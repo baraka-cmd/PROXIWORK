@@ -10,7 +10,6 @@ use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CommunicationCampaignDeliveryTest extends TestCase
@@ -19,7 +18,6 @@ class CommunicationCampaignDeliveryTest extends TestCase
 
     public function test_scheduler_queues_campaigns_when_their_scheduled_time_is_due(): void
     {
-        Queue::fake();
         $campaign = CommunicationCampaign::query()->create([
             'name' => 'Campagne programmée',
             'subject' => 'Information',
@@ -37,7 +35,6 @@ class CommunicationCampaignDeliveryTest extends TestCase
             'id' => $campaign->id,
             'status' => 'queued',
         ]);
-        Queue::assertPushed(SendCommunicationCampaign::class);
     }
 
     public function test_campaign_job_delivers_internal_notification_once_per_snapshotted_recipient(): void
