@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Enums\ProfessionalVerificationStatus;
 use App\Enums\UserAccountStatus;
+use App\Models\Announcement;
 use App\Models\Category;
 use App\Models\HomepageSlide;
 use App\Models\ProfessionalProfile;
@@ -42,6 +43,7 @@ class HomePageController
 
         return view('public.home-dynamic', [
             'slides' => $slides,
+            'announcements' => Announcement::query()->visible()->where('placement', 'homepage')->orderByDesc('is_pinned')->orderByDesc('published_at')->take(3)->get(),
             'heroServices' => $services->take(3),
             'categories' => Category::query()
                 ->active()
