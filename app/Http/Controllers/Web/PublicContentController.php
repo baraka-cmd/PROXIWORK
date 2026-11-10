@@ -113,7 +113,16 @@ class PublicContentController extends Controller
         $version = $document->versions->first();
         abort_if($version === null || ($version->effective_at && $version->effective_at->isFuture()), 404);
 
-        return view('public.content.document', ['document' => $document, 'version' => $version]);
+        $hasAccepted = auth()->check() && DB::table('institutional_document_acceptances')
+            ->where('institutional_document_version_id', $version->id)
+            ->where('user_id', auth()->id())
+            ->exists();
+
+        return view('public.content.document', [
+            'document' => $document,
+            'version' => $version,
+            'hasAccepted' => $hasAccepted,
+        ]);
     }
 
     public function acceptDocument(Request $request, string $slug): RedirectResponse
