@@ -142,6 +142,7 @@ Route::middleware(['auth', 'active.account', 'permission:disputes.view'])->group
 Route::middleware(['auth', 'active.account', 'permission:disputes.manage'])->group(function (): void {
     Route::post('disputes/{dispute}/assign', [OrderDisputeController::class, 'assign'])->name('disputes.assign');
     Route::post('disputes/{dispute}/transition', [OrderDisputeController::class, 'transition'])->name('disputes.transition');
+    Route::post('disputes/{dispute}/reopen', [OrderDisputeController::class, 'reopen'])->name('disputes.reopen');
 });
 Route::middleware(['auth', 'active.account', 'permission:disputes.decide'])->group(function (): void {
     Route::post('disputes/{dispute}/decide', [OrderDisputeController::class, 'decide'])->name('disputes.decide');
