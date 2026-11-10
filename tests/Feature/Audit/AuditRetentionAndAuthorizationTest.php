@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Audit;
 
 use App\Models\AuditLog;
+use App\Models\SecurityAlert;
+use App\Models\SecuritySession;
+use App\Models\SensitiveIntervention;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
