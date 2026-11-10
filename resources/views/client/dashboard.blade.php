@@ -267,21 +267,14 @@
             @if ($dashboard['professionals']->isNotEmpty())
                 <div class="client-dashboard__discovery-grid">
                     @foreach ($dashboard['professionals'] as $professional)
-                        @php
-                            $professionalProfile = $professional->user?->profile;
-                            $professionalName = $professional->business_name
-                                ?: trim(($professionalProfile?->first_name ?? '').' '.($professionalProfile?->last_name ?? ''))
-                                ?: $professional->user?->name
-                                ?: 'Professionnel PROXIWORK';
-                        @endphp
                         <article class="client-dashboard__professional-card">
                             <div class="client-dashboard__professional-identity">
-                                @if ($professionalProfile?->avatar_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($professionalProfile->avatar_path))
-                                    <img src="{{ route('client.professionals.photo', $professional) }}" alt="Photo de {{ $professionalName }}" loading="lazy">
+                                @if ($professional->user?->profile?->avatar_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($professional->user->profile->avatar_path))
+                                    <img src="{{ route('client.professionals.photo', $professional) }}" alt="Photo de {{ $professional->business_name ?: trim(($professional->user?->profile?->first_name ?? '').' '.($professional->user?->profile?->last_name ?? '')) ?: ($professional->user?->name ?? 'Professionnel PROXIWORK') }}" loading="lazy">
                                 @else
-                                    <span aria-hidden="true">{{ mb_strtoupper(mb_substr($professionalName, 0, 1)) }}</span>
+                                    <span aria-hidden="true">{{ mb_strtoupper(mb_substr($professional->business_name ?: trim(($professional->user?->profile?->first_name ?? '').' '.($professional->user?->profile?->last_name ?? '')) ?: ($professional->user?->name ?? 'Professionnel PROXIWORK'), 0, 1)) }}</span>
                                 @endif
-                                <div><h4>{{ $professionalName }}</h4><p>{{ $professional->professional_title ?: 'Professionnel vérifié' }}</p></div>
+                                <div><h4>{{ $professional->business_name ?: trim(($professional->user?->profile?->first_name ?? '').' '.($professional->user?->profile?->last_name ?? '')) ?: ($professional->user?->name ?? 'Professionnel PROXIWORK') }}</h4><p>{{ $professional->professional_title ?: 'Professionnel vérifié' }}</p></div>
                             </div>
                             <div class="client-dashboard__professional-meta">
                                 <span><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Profil vérifié</span>
