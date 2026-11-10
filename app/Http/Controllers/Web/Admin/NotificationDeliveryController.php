@@ -65,6 +65,8 @@ class NotificationDeliveryController extends Controller
     {
         abort_unless($delivery->status === 'FAILED', 409, 'Seules les livraisons définitivement échouées peuvent être relancées.');
         abort_if($delivery->attempts >= 5, 409, 'Le nombre maximal de tentatives est atteint.');
+        abort_unless($this->isRetryable($delivery), 409, 'Le dernier échec est permanent ou non classé comme relançable.');
+        abort_unless(in_array($delivery->channel, ['mail', 'sms', 'push'], true), 409, 'Canal de livraison non relançable.');
 
         DB::transaction(function () use ($delivery): void {
             $locked = NotificationDelivery::query()->lockForUpdate()->findOrFail($delivery->id);
@@ -92,12 +94,31 @@ class NotificationDeliveryController extends Controller
         return back()->with('success', 'Nouvelle tentative de livraison mise en file.');
     }
 
+    private function isRetryable(NotificationDelivery $delivery): bool
+    {
+        $error = (string) $delivery->last_error_code;
+
+        if ($delivery->channel === 'push') {
+            return $error === 'PUSH_PROVIDER_TEMPORARY_FAILURE';
+        }
+
+        if ($delivery->channel === 'sms') {
+            return preg_match('/^SMS_PROVIDER_HTTP_(429|5[0-9]{2})$/', $error) === 1;
+        }
+
+        return $delivery->channel === 'mail'
+            && (str_contains($error, 'TransportException')
+                || str_contains($error, 'ConnectionException')
+                || str_contains($error, 'Timeout'));
+    }
+
     public function show(NotificationDelivery $delivery): View
     {
         $delivery->load(['user:id,name', 'notification', 'attempts']);
 
         return view('admin.notifications.deliveries.show', [
             'delivery' => $delivery,
+            'retryable' => $this->isRetryable($delivery),
         ]);
     }
 }
