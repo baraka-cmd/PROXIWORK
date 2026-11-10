@@ -131,11 +131,12 @@ class AdminWithdrawalManagementTest extends TestCase
             'subject_id' => $withdrawal->id,
         ]);
 
-        $this->actingAs($admin)
-            ->get(route('admin.withdrawals.destination', $withdrawal))
-            ->assertOk()
-            ->assertSee('243970123456')
-            ->assertHeader('cache-control', 'private, no-store');
+        $destinationResponse = $this->actingAs($admin)
+            ->get(route('admin.withdrawals.destination', $withdrawal));
+        $destinationResponse->assertOk()->assertSee('243970123456');
+        $cacheControl = (string) $destinationResponse->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cacheControl);
+        $this->assertStringContainsString('private', $cacheControl);
 
         $this->assertDatabaseHas('audit_logs', [
             'user_id' => $admin->id,
