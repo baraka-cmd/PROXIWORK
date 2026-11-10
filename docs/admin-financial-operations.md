@@ -14,7 +14,7 @@ Cette évolution complète les opérations financières administratives sans cr�
 - Les montants cumulés remboursés sont comparés en unités mineures (centimes) et ne peuvent dépasser le paiement d'origine.
 - Une confirmation de remboursement exige une référence externe et une note de rapprochement. Elle ne prétend pas appeler un fournisseur absent.
 - Les transitions financières sont transactionnelles et auditées. Les références et notes brutes ne sont pas copiées dans les journaux d'audit; une empreinte de la note est conservée dans les événements.
-- Les exports CSV sont diffusés en flux, marqués privés/no-store et neutralisent les cellules susceptibles d'être interprétées comme formules.
+- Les exports CSV sont diffusés en flux, marqués privés/no-store et neutralisent les cellules susceptibles d'être interprétées comme formules. Ils incluent les opérations réussies ainsi que trois lignes de photographie actuelle par portefeuille (disponible, en attente, bloqué), clairement étiquetées comme instantanés.
 - Les filtres sont validés côté serveur, les listes sont paginées, les dates métier sont explicites et les devises ne sont jamais additionnées entre elles.
 
 ## Limites explicites

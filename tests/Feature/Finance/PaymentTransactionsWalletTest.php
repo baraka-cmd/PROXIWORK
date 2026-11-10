@@ -7,6 +7,7 @@ namespace Tests\Feature\Finance;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
+use App\Enums\PaymentRefundStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ServiceRequestStatus;
 use App\Enums\ServiceStatus;
@@ -16,18 +17,23 @@ use App\Models\Address;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\PaymentEvent;
+use App\Models\PaymentRefund;
 use App\Models\PaymentTransaction;
 use App\Models\ProfessionalProfile;
 use App\Models\Quotation;
 use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use App\Notifications\PaymentRefundStatusChanged;
 use App\Services\Order\OrderService;
+use App\Services\Payment\PaymentRefundAdminService;
 use App\Services\Payment\PaymentWebhookService;
 use App\Services\Wallet\WalletService;
 use App\Services\Wallet\WithdrawalService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Tests\TestCase;
@@ -731,6 +737,133 @@ class PaymentTransactionsWalletTest extends TestCase
     /**
      * @return array{0: User, 1: Order}
      */
+    public function test_admin_refund_workflow_records_verified_result_and_notifies_the_client_once(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'refund-admin-flow-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+        $refund = PaymentRefund::query()->forceCreate([
+            'reference' => 'RFD-ADMIN-FLOW-0001',
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'amount' => $payment->amount,
+            'currency' => $payment->currency,
+            'status' => PaymentRefundStatus::REQUESTED,
+            'reason' => 'La prestation n’a pas été fournie comme convenu.',
+            'requested_at' => now(),
+        ]);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $service = app(PaymentRefundAdminService::class);
+
+        $service->startProcessing($refund, (int) $admin->id, 'Vérification du dossier et de la preuve de paiement.');
+        $service->markSucceeded(
+            $refund,
+            (int) $admin->id,
+            'EXTERNAL-REFUND-0001',
+            'Remboursement externe vérifié avec la référence du prestataire.',
+        );
+        $service->markSucceeded(
+            $refund->fresh(),
+            (int) $admin->id,
+            'EXTERNAL-REFUND-0001',
+            'Remboursement externe vérifié avec la référence du prestataire.',
+        );
+
+        $this->assertDatabaseHas('payment_refunds', [
+            'id' => $refund->id,
+            'status' => PaymentRefundStatus::SUCCEEDED->value,
+            'provider_reference' => 'EXTERNAL-REFUND-0001',
+        ]);
+        $this->assertDatabaseHas('payments', [
+            'id' => $payment->id,
+            'status' => PaymentStatus::SUCCEEDED->value,
+        ]);
+        $this->assertDatabaseHas('payment_events', [
+            'event_type' => 'refund.succeeded',
+            'source' => 'admin',
+            'to_status' => PaymentRefundStatus::SUCCEEDED->value,
+        ]);
+        $refundNotifications = DB::table('notifications')
+            ->where('notifiable_id', $client->id)
+            ->where('type', PaymentRefundStatusChanged::class)
+            ->count();
+        $this->assertSame(2, $refundNotifications);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $client->id,
+            'type' => PaymentRefundStatusChanged::class,
+        ]);
+        $this->assertSame(1, PaymentEvent::query()->where('event_type', 'refund.succeeded')->count());
+    }
+
+    public function test_admin_refund_workflow_cannot_confirm_more_than_the_original_payment(): void
+    {
+        config(['payment.fake.status' => PaymentStatus::SUCCEEDED->value]);
+
+        [$client, $order] = $this->orderScenario();
+        $this->actingAs($client, 'sanctum')
+            ->withHeader('Idempotency-Key', 'refund-admin-limit-0001')
+            ->postJson('/api/v1/orders/'.$order->id.'/payments', [
+                'payment_method' => PaymentMethod::MOBILE_MONEY->value,
+                'payment_provider' => PaymentProvider::FAKE->value,
+            ])
+            ->assertOk();
+
+        $payment = Payment::query()->where('order_id', $order->id)->firstOrFail();
+        PaymentRefund::query()->forceCreate([
+            'reference' => 'RFD-ADMIN-LIMIT-0001',
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'amount' => $payment->amount,
+            'currency' => $payment->currency,
+            'status' => PaymentRefundStatus::SUCCEEDED,
+            'reason' => 'Premier remboursement confirmé.',
+            'requested_at' => now(),
+            'processed_at' => now(),
+            'provider_reference' => 'EXTERNAL-REFUND-LIMIT-0001',
+        ]);
+        $secondRefund = PaymentRefund::query()->forceCreate([
+            'reference' => 'RFD-ADMIN-LIMIT-0002',
+            'payment_id' => $payment->id,
+            'client_id' => $client->id,
+            'amount' => '0.01',
+            'currency' => $payment->currency,
+            'status' => PaymentRefundStatus::REQUESTED,
+            'reason' => 'Demande supplémentaire à vérifier.',
+            'requested_at' => now(),
+        ]);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $service = app(PaymentRefundAdminService::class);
+        $service->startProcessing($secondRefund, (int) $admin->id, 'Examen de la demande supplémentaire.');
+        
+        try {
+            $service->markSucceeded(
+                $secondRefund->fresh(),
+                (int) $admin->id,
+                'EXTERNAL-REFUND-LIMIT-0002',
+                'Tentative de confirmation au-delà du montant payé.',
+            );
+            $this->fail('Le remboursement excédentaire aurait dû être rejeté.');
+        } catch (PaymentConflictException) {
+            $this->assertDatabaseHas('payment_refunds', [
+                'id' => $secondRefund->id,
+                'status' => PaymentRefundStatus::PROCESSING->value,
+            ]);
+        }
+    }
+
     private function orderScenario(): array
     {
         [$professional, $profile] = $this->professional();

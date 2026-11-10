@@ -179,6 +179,23 @@ class AdminFinancialOperationsQueryService
         foreach ($withdrawals->lazyById(500) as $withdrawal) {
             yield [$withdrawal->completed_at?->toDateTimeString(), 'Retrait confirmé', 'WD-'.$withdrawal->id, $withdrawal->professional?->user?->name, $withdrawal->amount, $withdrawal->currency, $withdrawal->status->value, $withdrawal->provider_transaction_id];
         }
+
+        // The CSV also carries current wallet snapshots; they are not period flows.
+        $wallets = Wallet::query()
+            ->when($currency, fn (Builder $q) => $q->where('currency', $currency))
+            ->when($professionalId, fn (Builder $q) => $q->where('professional_id', $professionalId))
+            ->with(['professional.user:id,name'])
+            ->orderBy('id');
+
+        foreach ($wallets->lazyById(500) as $wallet) {
+            $name = $wallet->professional?->user?->name;
+            $reference = 'WALLET-'.$wallet->getKey();
+            $snapshotAt = now()->toDateTimeString();
+
+            yield [$snapshotAt, 'Solde disponible actuel', $reference, $name, $wallet->available_balance, $wallet->currency, 'instantané', $reference];
+            yield [$snapshotAt, 'Solde en attente actuel', $reference, $name, $wallet->pending_balance, $wallet->currency, 'instantané', $reference];
+            yield [$snapshotAt, 'Solde bloqué actuel', $reference, $name, $wallet->locked_balance, $wallet->currency, 'instantané', $reference];
+        }
     }
 
     private function optionalPeriod(array $filters): array
