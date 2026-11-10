@@ -83,7 +83,8 @@
                 'title' => 'Communication et contenus',
                 'icon' => 'fa-bullhorn',
                 'items' => [
-                    ['label' => 'Notifications et livraisons', 'route' => 'admin.notifications.deliveries.index', 'permission' => 'admin.notifications.view', 'icon' => 'fa-bell', 'active' => ['admin.notifications.*']],
+                    ['label' => 'Centre de notifications', 'route' => 'admin.notifications.index', 'permission' => 'admin.notifications.view', 'icon' => 'fa-bell', 'active' => ['admin.notifications.index', 'admin.notifications.show']],
+                    ['label' => 'Historique des livraisons', 'route' => 'admin.notifications.deliveries.index', 'permission' => 'admin.notifications.view', 'icon' => 'fa-envelope-open-text', 'active' => ['admin.notifications.deliveries.*']],
                     ['label' => 'Modèles de notifications', 'route' => 'admin.communication.templates.index', 'permission' => 'notification_templates.view', 'icon' => 'fa-file-lines', 'active' => ['admin.communication.templates.*']],
                     ['label' => 'Annonces', 'route' => 'admin.communication.announcements.index', 'permission' => 'announcements.view', 'icon' => 'fa-bullhorn', 'active' => ['admin.communication.announcements.*']],
                     ['label' => 'Campagnes ciblées', 'route' => 'admin.communication.campaigns.index', 'permission' => 'communication_campaigns.view', 'icon' => 'fa-paper-plane', 'active' => ['admin.communication.campaigns.*']],
