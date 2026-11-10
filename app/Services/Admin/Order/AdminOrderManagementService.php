@@ -20,6 +20,10 @@ class AdminOrderManagementService
                 'serviceRequest.service:id,title,category_id',
                 'payment:id,order_id,status,amount,currency,paid_at',
             ])
+            ->withExists([
+                'statusHistories as has_work_blocker' => fn ($history) => $history
+                    ->whereJsonContains('metadata->event', 'work_blocked'),
+            ])
             ->when($filters['search'] ?? null, function ($query, string $value): void {
                 $query->where(function ($nested) use ($value): void {
                     $nested->where('order_number', 'like', "%{$value}%")
