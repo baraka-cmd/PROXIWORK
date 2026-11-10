@@ -3,11 +3,19 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\Admin\AnalyticsController;
+use App\Http\Controllers\Web\Admin\AnnouncementController;
 use App\Http\Controllers\Web\Admin\AuditController;
 use App\Http\Controllers\Web\Admin\CategoryController;
+use App\Http\Controllers\Web\Admin\CmsPageController;
+use App\Http\Controllers\Web\Admin\CommunicationCampaignController;
+use App\Http\Controllers\Web\Admin\FaqController;
 use App\Http\Controllers\Web\Admin\FinanceController;
 use App\Http\Controllers\Web\Admin\FinancialOperationsController;
+use App\Http\Controllers\Web\Admin\InstitutionalDocumentController;
+use App\Http\Controllers\Web\Admin\MediaAssetController;
 use App\Http\Controllers\Web\Admin\ModerationCenterController;
+use App\Http\Controllers\Web\Admin\NotificationDeliveryController;
+use App\Http\Controllers\Web\Admin\NotificationTemplateController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
@@ -24,14 +32,6 @@ use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
-use App\Http\Controllers\Web\Admin\AnnouncementController;
-use App\Http\Controllers\Web\Admin\CmsPageController;
-use App\Http\Controllers\Web\Admin\CommunicationCampaignController;
-use App\Http\Controllers\Web\Admin\NotificationDeliveryController;
-use App\Http\Controllers\Web\Admin\NotificationTemplateController;
-use App\Http\Controllers\Web\Admin\FaqController;
-use App\Http\Controllers\Web\Admin\InstitutionalDocumentController;
-use App\Http\Controllers\Web\Admin\MediaAssetController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'active.account', 'permission:admin.users.view'])->group(function (): void {
