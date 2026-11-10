@@ -32,13 +32,6 @@ class PublicContentController extends Controller
             ]);
         });
 
-        FaqArticle::query()->published()->get()->each(function (FaqArticle $article) use ($urls): void {
-            $urls->push([
-                'loc' => route('public.faq').'#faq-'.$article->id,
-                'lastmod' => ($article->updated_at ?? $article->published_at)->toAtomString(),
-            ]);
-        });
-
         InstitutionalDocument::query()->where('status', 'published')->get()->each(function (InstitutionalDocument $document) use ($urls): void {
             $urls->push([
                 'loc' => route('public.legal.show', $document->slug),
@@ -46,12 +39,7 @@ class PublicContentController extends Controller
             ]);
         });
 
-        Announcement::query()->visible()->where('placement', 'announcements')->get()->each(function (Announcement $announcement) use ($urls): void {
-            $urls->push([
-                'loc' => route('public.announcements').'#announcement-'.$announcement->id,
-                'lastmod' => ($announcement->updated_at ?? $announcement->published_at)->toAtomString(),
-            ]);
-        });
+
 
         return response()->view('public.content.sitemap', ['urls' => $urls])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
