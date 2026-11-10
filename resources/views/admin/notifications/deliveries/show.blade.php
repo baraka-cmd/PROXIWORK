@@ -32,6 +32,13 @@
         </dl>
     </section>
 
+    <section class="admin-card">
+        <h2>Historique des tentatives</h2>
+        <div class="admin-table-container"><table class="admin-table"><thead><tr><th>Tentative</th><th>Canal</th><th>État</th><th>Début</th><th>Fin</th><th>Référence fournisseur</th><th>Erreur</th></tr></thead><tbody>
+        @forelse($delivery->attempts as $attempt)<tr><td>#{{ $attempt->attempt_number }}</td><td>{{ strtoupper($attempt->channel) }}</td><td>{{ $attempt->status }}</td><td>{{ $attempt->started_at?->format('d/m/Y H:i:s') ?? '—' }}</td><td>{{ $attempt->finished_at?->format('d/m/Y H:i:s') ?? '—' }}</td><td>{{ $attempt->provider_reference ?? '—' }}</td><td>{{ $attempt->error_code ?? '—' }}</td></tr>@empty<tr><td colspan="7">Aucune tentative enregistrée.</td></tr>@endforelse
+        </tbody></table></div>
+    </section>
+
     @if ($delivery->notification)
         <section class="admin-card">
             <h2>Notification interne associée</h2>
