@@ -8,12 +8,15 @@ use App\Models\NotificationDelivery;
 use App\Models\NotificationDevice;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
+use App\Services\Settings\PlatformSettingService;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TransactionalNotificationService
 {
+    public function __construct(private readonly PlatformSettingService $settings) {}
+
     public function serviceRequestCreated(
         User $recipient,
         string $serviceTitle,
@@ -225,7 +228,7 @@ class TransactionalNotificationService
             }
 
             $preference = $recipient->notificationPreference()->first();
-            $emailEnabled = $priority === 'critical' || ($preference?->email_enabled ?? true);
+            $emailEnabled = $priority === 'critical' || ((bool) $this->settings->get('notifications.email_enabled') && ($preference?->email_enabled ?? true));
 
             if ($emailEnabled) {
                 $validEmail = is_string($recipient->email)
@@ -247,7 +250,7 @@ class TransactionalNotificationService
             }
 
             $smsEligible = $priority === 'critical' || in_array($action, ['quotation', 'payment', 'order'], true);
-            $smsEnabled = $priority === 'critical' || ($preference?->sms_enabled ?? false);
+            $smsEnabled = $priority === 'critical' || ((bool) $this->settings->get('notifications.sms_enabled') && ($preference?->sms_enabled ?? false));
 
             if ($smsEnabled && $smsEligible) {
                 $phone = (string) $recipient->profile()->value('phone');
@@ -281,7 +284,7 @@ class TransactionalNotificationService
                     ],
                 );
             }
-            $pushEnabled = $priority === 'critical' || ($preference?->push_enabled ?? false);
+            $pushEnabled = $priority === 'critical' || ((bool) $this->settings->get('notifications.push_enabled') && ($preference?->push_enabled ?? false));
 
             if ($pushEnabled) {
                 $firebaseConfigured = trim((string) config('services.firebase.project_id')) !== ''

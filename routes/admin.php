@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\Admin\ModerationCenterController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
+use App\Http\Controllers\Web\Admin\PlatformSettingController;
 use App\Http\Controllers\Web\Admin\PermissionController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
 use App\Http\Controllers\Web\Admin\ProfessionalDocumentController;
@@ -245,4 +246,11 @@ Route::middleware(['auth', 'active.account', 'permission:reviews.moderate'])->gr
 Route::middleware(['auth', 'active.account', 'permission:moderation.history.view'])->group(function (): void {
     Route::get('moderation/history', [ModerationCenterController::class, 'history'])->name('moderation.history');
     Route::get('moderation/resolutions', [ModerationCenterController::class, 'resolutions'])->name('moderation.resolutions');
+});
+
+Route::middleware(['auth', 'active.account', 'permission:admin.settings.view'])->group(function (): void {
+    Route::get('settings', [PlatformSettingController::class, 'index'])->name('settings.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:admin.settings.manage'])->group(function (): void {
+    Route::put('settings', [PlatformSettingController::class, 'update'])->middleware('throttle:10,1')->name('settings.update');
 });
