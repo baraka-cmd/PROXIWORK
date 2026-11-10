@@ -33,13 +33,14 @@ class PublicContentController extends Controller
     public function faq(Request $request): View
     {
         $search = $request->validate(['q' => ['nullable', 'string', 'max:120']])['q'] ?? null;
-        $faqLocale = FaqArticle::query()->published()->where('locale', $faqLocale)->exists()
-            ? app()->getLocale()
-            : 'fr';
+        $faqLocale = app()->getLocale();
+        if (! FaqArticle::query()->published()->where('locale', $faqLocale)->exists()) {
+            $faqLocale = 'fr';
+        }
         $articles = FaqArticle::query()->published()
             ->with('category')
             ->whereIn('audience', ['all', auth()->user()?->hasRole('professional') ? 'professional' : (auth()->user()?->hasRole('client') ? 'client' : 'all')])
-            ->where('locale', app()->getLocale())
+            ->where('locale', $faqLocale)
             ->when($search, fn ($query) => $query->where(fn ($nested) => $nested
                 ->where('question', 'like', '%'.$search.'%')
                 ->orWhere('answer', 'like', '%'.$search.'%')))
