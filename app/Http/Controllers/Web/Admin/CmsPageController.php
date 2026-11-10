@@ -6,31 +6,50 @@ namespace App\Http\Controllers\Web\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CmsPage;
+use App\Models\CmsPageVersion;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class CmsPageController extends Controller
 {
+    private const CONTENT_FIELDS = [
+        'title',
+        'slug',
+        'excerpt',
+        'body',
+        'seo_title',
+        'meta_description',
+        'canonical_url',
+        'is_indexable',
+    ];
+
     public function index(): View
     {
-        return view('admin.communication.pages.index', ['pages' => CmsPage::query()->latest()->paginate(20)]);
+        return view('admin.communication.pages.index', [
+            'pages' => CmsPage::query()
+                ->withCount(['versions as draft_versions_count' => fn ($query) => $query->where('status', 'draft')])
+                ->latest()
+                ->paginate(20),
+        ]);
     }
 
     public function store(Request $request, AuditLogService $audit): RedirectResponse
     {
         $data = $this->validated($request);
+        $data['slug'] = Str::slug($data['slug'] ?: $data['title']);
+
         $page = DB::transaction(function () use ($data, $request): CmsPage {
             $page = CmsPage::query()->create([
                 ...$data,
-                'slug' => Str::slug($data['slug'] ?: $data['title']),
                 'status' => 'draft',
                 'created_by' => $request->user()->id,
             ]);
-            $this->snapshot($page, $request->user()->id);
+            $this->snapshot($page, $data, $request->user()->id);
 
             return $page;
         });
@@ -43,25 +62,47 @@ class CmsPageController extends Controller
     {
         abort_unless($page->status !== 'archived', 409);
         $data = $this->validated($request);
+        $data['slug'] = Str::slug($data['slug'] ?: $data['title']);
+
         DB::transaction(function () use ($page, $data, $request): void {
             $locked = CmsPage::query()->lockForUpdate()->findOrFail($page->id);
-            $locked->update([...$data, 'slug' => Str::slug($data['slug'] ?: $data['title'])]);
-            $this->snapshot($locked, $request->user()->id);
-        });
-        $audit->record('cms_page_updated', $page, $request->user(), [], $request);
 
-        return back()->with('success', 'Page mise à jour et nouvelle version historisée.');
+            // Keep the currently published page live while a new revision is being prepared.
+            if ($locked->status !== 'published') {
+                $locked->update($data);
+            }
+
+            $this->snapshot($locked, $data, $request->user()->id);
+        });
+        $audit->record('cms_page_revision_created', $page, $request->user(), [], $request);
+
+        return back()->with('success', 'Nouvelle version enregistrée en brouillon. La page publiée reste inchangée.');
     }
 
     public function publish(Request $request, CmsPage $page, AuditLogService $audit): RedirectResponse
     {
         DB::transaction(function () use ($page, $request): void {
             $locked = CmsPage::query()->lockForUpdate()->findOrFail($page->id);
-            $locked->update(['status' => 'published', 'published_by' => $request->user()->id, 'published_at' => now()]);
+            $version = $locked->versions()
+                ->where('status', 'draft')
+                ->latest('version')
+                ->lockForUpdate()
+                ->firstOrFail();
+            $content = Arr::only($version->content, self::CONTENT_FIELDS);
+
+            $locked->update([
+                ...$content,
+                'status' => 'published',
+                'published_by' => $request->user()->id,
+                'published_at' => now(),
+            ]);
+
+            $locked->versions()->where('status', 'published')->update(['status' => 'superseded']);
+            $version->update(['status' => 'published', 'published_at' => now()]);
         });
         $audit->record('cms_page_published', $page, $request->user(), [], $request);
 
-        return back()->with('success', 'Page publiée.');
+        return back()->with('success', 'La nouvelle version de la page est publiée.');
     }
 
     private function validated(Request $request): array
@@ -78,13 +119,14 @@ class CmsPageController extends Controller
         ]) + ['is_indexable' => $request->boolean('is_indexable')];
     }
 
-    private function snapshot(CmsPage $page, int $userId): void
+    private function snapshot(CmsPage $page, array $content, int $userId): void
     {
         $version = (int) $page->versions()->max('version') + 1;
         $page->versions()->create([
             'version' => $version,
-            'content' => $page->only(['title', 'slug', 'excerpt', 'body', 'seo_title', 'meta_description', 'canonical_url', 'is_indexable']),
+            'content' => Arr::only($content, self::CONTENT_FIELDS),
             'created_by' => $userId,
+            'status' => 'draft',
         ]);
     }
 }
