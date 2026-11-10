@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\AuditLog;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class PruneAuditLogs extends Command
 {
