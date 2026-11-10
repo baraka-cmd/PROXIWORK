@@ -63,7 +63,7 @@ class NotificationDelivery extends Model
             return;
         }
 
-        $this->attempts()->firstOrCreate(
+        $this->deliveryAttempts()->firstOrCreate(
             ['attempt_number' => $this->attempts],
             [
                 'channel' => $this->channel,
@@ -75,7 +75,7 @@ class NotificationDelivery extends Model
 
     public function recordAttemptFinish(): void
     {
-        $attempt = $this->attempts()->where('attempt_number', $this->attempts)->first();
+        $attempt = $this->deliveryAttempts()->where('attempt_number', $this->attempts)->first();
         if ($attempt === null) {
             return;
         }
