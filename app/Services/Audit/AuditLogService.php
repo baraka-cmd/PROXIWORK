@@ -154,7 +154,7 @@ class AuditLogService
 
     private function categoryFor(string $action): string
     {
-        if (str_starts_with($action, 'auth.') || in_array($action, ['login', 'logout', 'password_changed', 'password_reset'], true)) {
+        if (str_starts_with($action, 'auth.') || str_starts_with($action, 'admin.auth.') || in_array($action, ['login', 'logout', 'password_changed', 'password_reset'], true)) {
             return 'authentication';
         }
 
