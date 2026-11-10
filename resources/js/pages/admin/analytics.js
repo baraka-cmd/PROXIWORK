@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
     customButton?.addEventListener('click', () => {
         if (customFields) {
             customFields.hidden = false;
+            customFields.querySelectorAll('input').forEach((input) => {
+                input.disabled = false;
+            });
         }
     });
 
