@@ -6,11 +6,11 @@ namespace Tests\Feature\Admin\Communication;
 
 use App\Models\FaqCategory;
 use App\Models\FaqItem;
+use App\Models\NotificationTemplate;
+use App\Models\Profile;
 use App\Models\PublicPage;
 use App\Models\User;
-use Database\Seeders\RbacSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Services\Notification\NotificationTemplateRenderer;
 
 class CommunicationContentTest extends TestCase
 {
@@ -24,6 +24,46 @@ class CommunicationContentTest extends TestCase
         $this->seed(RbacSeeder::class);
         $this->admin = User::factory()->create();
         $this->admin->assignRole('admin');
+    }
+
+    public function test_notification_templates_support_french_and_english_variants_for_the_same_event(): void
+    {
+        foreach (['fr', 'en'] as $locale) {
+            $response = $this->actingAs($this->admin)->post(route('admin.communication.templates.store'), [
+                'key' => 'order',
+                'name' => 'Order notification',
+                'channel' => 'database',
+                'locale' => $locale,
+                'title' => $locale === 'fr' ? 'Bonjour {{ prenom }}' : 'Hello {{ prenom }}',
+                'body' => 'Information PROXIWORK',
+                'variables' => ['prenom'],
+            ]);
+            $response->assertRedirect(route('admin.communication.templates'));
+        }
+
+        $this->assertDatabaseCount('notification_templates', 2);
+    }
+
+    public function test_template_renderer_uses_the_recipient_profile_locale(): void
+    {
+        $recipient = User::factory()->create();
+        Profile::create(['user_id' => $recipient->id, 'locale' => 'en', 'first_name' => 'Alex']);
+        NotificationTemplate::create([
+            'key' => 'message',
+            'name' => 'Message EN',
+            'channel' => 'database',
+            'locale' => 'en',
+            'title' => 'Hello {{ prenom }}',
+            'body' => 'You have a message.',
+            'variables' => ['prenom'],
+            'status' => 'active',
+            'version' => 1,
+        ]);
+
+        $rendered = app(NotificationTemplateRenderer::class)->render('message', $recipient, 'Fallback', 'Fallback body');
+
+        $this->assertSame('Hello Alex', $rendered['title']);
+        $this->assertSame(1, $rendered['version']);
     }
 
     public function test_notification_template_rejects_undeclared_or_unknown_variables(): void

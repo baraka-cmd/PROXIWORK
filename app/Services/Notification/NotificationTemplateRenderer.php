@@ -14,17 +14,19 @@ class NotificationTemplateRenderer
 
     public function render(string $key, User $recipient, string $fallbackTitle, string $fallbackBody): array
     {
-        $template = NotificationTemplate::query()
+        $profile = $recipient->profile;
+        $locale = in_array($profile?->locale, ['fr', 'en'], true) ? $profile->locale : 'fr';
+        $templates = NotificationTemplate::query()
             ->where('key', $key)
             ->where('status', 'active')
-            ->where('channel', 'database')
-            ->first();
+            ->where('channel', 'database');
+        $template = (clone $templates)->where('locale', $locale)->first()
+            ?? $templates->where('locale', 'fr')->first();
 
         if ($template === null) {
             return ['title' => $fallbackTitle, 'body' => $fallbackBody, 'version' => null];
         }
 
-        $profile = $recipient->profile;
         $values = [
             'prenom' => (string) ($profile?->first_name ?? ''),
             'nom' => (string) ($profile?->last_name ?? $recipient->name),
@@ -36,7 +38,7 @@ class NotificationTemplateRenderer
         foreach ([$template->title, $template->body] as $content) {
             preg_match_all('/\{\{\s*([a-z_]+)\s*\}\}/', $content, $matches);
             foreach (array_unique($matches[1] ?? []) as $variable) {
-                if (!in_array($variable, self::ALLOWED_VARIABLES, true) || !in_array($variable, $declared, true)) {
+                if (! in_array($variable, self::ALLOWED_VARIABLES, true) || ! in_array($variable, $declared, true)) {
                     throw ValidationException::withMessages(['template' => 'Le modèle contient une variable non autorisée : '.$variable]);
                 }
             }
@@ -60,7 +62,7 @@ class NotificationTemplateRenderer
         }
 
         foreach (array_unique($used) as $variable) {
-            if (!in_array($variable, self::ALLOWED_VARIABLES, true) || !in_array($variable, $variables, true)) {
+            if (! in_array($variable, self::ALLOWED_VARIABLES, true) || ! in_array($variable, $variables, true)) {
                 throw ValidationException::withMessages(['body' => 'Variable inconnue ou non déclarée : '.$variable]);
             }
         }

@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('notification_templates', function (Blueprint $table): void {
             $table->id();
-            $table->string('key', 100)->unique();
+            $table->string('key', 100);
             $table->string('name', 160);
             $table->string('channel', 24)->default('database');
             $table->string('locale', 12)->default('fr');
@@ -24,6 +24,7 @@ return new class extends Migration
             $table->unsignedInteger('version')->default(1);
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->unique(['key', 'channel', 'locale'], 'nt_key_channel_locale_unique');
             $table->index(['status', 'channel', 'locale']);
         });
     }

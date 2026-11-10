@@ -12,6 +12,7 @@ use App\Services\Notification\NotificationTemplateRenderer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class NotificationAdminController extends Controller
@@ -111,7 +112,7 @@ class NotificationAdminController extends Controller
     public function storeTemplate(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'key' => ['required', 'alpha_dash', 'max:100', 'in:service_request,quotation,payment,order,message,review,account,campaign', 'unique:notification_templates,key'],
+            'key' => ['required', 'alpha_dash', 'max:100', 'in:service_request,quotation,payment,order,message,review,account,campaign', Rule::unique('notification_templates')->where(fn ($query) => $query->where('channel', $request->input('channel'))->where('locale', $request->input('locale')))],
             'name' => ['required', 'string', 'max:160'],
             'channel' => ['required', 'in:database'],
             'locale' => ['required', 'in:fr,en'],
@@ -145,7 +146,7 @@ class NotificationAdminController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:160'],
-            'locale' => ['required', 'in:fr,en'],
+            'locale' => ['required', 'in:fr,en', Rule::unique('notification_templates')->where(fn ($query) => $query->where('key', $template->key)->where('channel', $template->channel))->ignore($template->getKey())],
             'subject' => ['nullable', 'string', 'max:180'],
             'title' => ['required', 'string', 'max:180'],
             'body' => ['required', 'string', 'max:5000'],

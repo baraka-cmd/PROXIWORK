@@ -6,7 +6,7 @@ Cette livraison ajoute les fonctions administratives des points 46 à 52 en réu
 
 - Notifications : consultation des livraisons par canal, détail et relance uniquement des échecs explicites.
 - Historique : notification_deliveries reste la source canonique des états de livraison et des tentatives.
-- Modèles : modèles de notifications versionnés, avec variables autorisées (prenom, nom, email, plateforme). Les événements transactionnels utilisent le modèle actif correspondant à leur clé d'action, avec le texte historique comme repli.
+- Modèles : modèles de notifications versionnés par événement et langue, avec sélection selon la langue du profil et repli français ; variables autorisées (prenom, nom, email, plateforme). Les événements transactionnels utilisent le modèle actif correspondant à leur clé d'action, avec le texte historique comme repli.
 - Annonces : publication sur une page publique avec audience et fenêtre de visibilité.
 - Communications ciblées : campagnes vers les comptes actifs et vérifiés, audience calculée côté serveur, déduplication par campagne et utilisateur, livraisons confiées aux jobs de notification existants.
 - Pages publiques : pages éditoriales en texte brut, SEO de base et historique de versions. Les pages métier conservent leur rendu Laravel.
