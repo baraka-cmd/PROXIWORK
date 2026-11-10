@@ -102,7 +102,7 @@ class OrderDisputeService
             'resolver:id,name,email',
             'events.actor:id,name',
             'messages' => fn ($q) => $q->when(
-                ! auth()->user()?->hasPermissionTo('disputes.manage'),
+                !auth()->user()?->hasPermissionTo('disputes.manage'),
                 fn ($messages) => $messages->where('visibility', 'participants'),
             )->oldest()->with('sender:id,name'),
             'attachments.uploader:id,name',
