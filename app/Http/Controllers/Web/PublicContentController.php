@@ -31,7 +31,7 @@ class PublicContentController extends Controller
             ->with(['items' => fn ($query) => $query
                 ->where('is_active', true)
                 ->when($audience, fn ($q) => $q->whereIn('audience', ['all', $audience]))
-                ->when(! $audience, fn ($q) => $q->where('audience', 'all'))
+                ->when(!$audience, fn ($q) => $q->where('audience', 'all'))
                 ->orderBy('sort_order')])
             ->orderBy('sort_order')
             ->get()
@@ -48,7 +48,7 @@ class PublicContentController extends Controller
 
         $announcements = Announcement::query()
             ->visible($audience)
-            ->when(! $audience, fn ($query) => $query->where('audience', 'all'))
+            ->when(!$audience, fn ($query) => $query->where('audience', 'all'))
             ->paginate(15);
 
         return view('public.content.announcements', compact('announcements'));

@@ -36,7 +36,7 @@ class NotificationTemplateRenderer
         foreach ([$template->title, $template->body] as $content) {
             preg_match_all('/\{\{\s*([a-z_]+)\s*\}\}/', $content, $matches);
             foreach (array_unique($matches[1] ?? []) as $variable) {
-                if (! in_array($variable, self::ALLOWED_VARIABLES, true) || ! in_array($variable, $declared, true)) {
+                if (!in_array($variable, self::ALLOWED_VARIABLES, true) || !in_array($variable, $declared, true)) {
                     throw ValidationException::withMessages(['template' => 'Le modèle contient une variable non autorisée : '.$variable]);
                 }
             }
@@ -60,7 +60,7 @@ class NotificationTemplateRenderer
         }
 
         foreach (array_unique($used) as $variable) {
-            if (! in_array($variable, self::ALLOWED_VARIABLES, true) || ! in_array($variable, $variables, true)) {
+            if (!in_array($variable, self::ALLOWED_VARIABLES, true) || !in_array($variable, $variables, true)) {
                 throw ValidationException::withMessages(['body' => 'Variable inconnue ou non déclarée : '.$variable]);
             }
         }
