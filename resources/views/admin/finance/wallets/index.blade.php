@@ -1,5 +1,9 @@
 @extends('layouts.admin')
-@push('head')@unless(app()->environment('testing'))@vite('resources/css/pages/admin/finance.css')@endunless@endpush
+@push('head')
+    @unless (app()->environment('testing'))
+        @vite('resources/css/pages/admin/finance.css')
+    @endunless
+@endpush
 @section('page_eyebrow', 'FINANCES · PROFESSIONNELS')
 @section('page_title', 'Portefeuilles professionnels')
 @section('page_description', 'Supervisez les soldes disponibles, en attente et bloqués. Aucun solde ne peut être modifié depuis cet écran.')
