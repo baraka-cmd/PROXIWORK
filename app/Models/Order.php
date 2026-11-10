@@ -98,4 +98,9 @@ class Order extends Model
     {
         return $this->hasOne(Review::class);
     }
+
+    public function disputes(): HasMany
+    {
+        return $this->hasMany(OrderDispute::class)->latest('id');
+    }
 }
