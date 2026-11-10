@@ -144,8 +144,8 @@ class NotificationTemplateController extends Controller
 
     private function validateVariables(string $content): void
     {
-        preg_match_all('/\{\{\s*([a-z_]+)\s*\}\}/', $content, $matches);
-        foreach (array_unique($matches[1] ?? []) as $variable) {
+        preg_match_all('/\{\{\s*([^{}]+?)\s*\}\}/', $content, $matches);
+        foreach (array_unique(array_map('trim', $matches[1] ?? [])) as $variable) {
             if (! in_array($variable, self::VARIABLES, true)) {
                 throw ValidationException::withMessages([
                     'body' => 'Variable non autorisée : '.$variable,
