@@ -56,7 +56,7 @@ return new class extends Migration
             $table->text('body');
             $table->string('visibility', 16)->default('participants');
             $table->timestamps();
-            $table->index(['order_dispute_id', 'visibility', 'created_at']);
+            $table->index(['order_dispute_id', 'visibility', 'created_at'], 'odm_visibility_created_idx');
         });
 
         Schema::create('order_dispute_attachments', function (Blueprint $table): void {
