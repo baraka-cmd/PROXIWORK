@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\ServiceController;
 use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
+use App\Http\Controllers\Web\Admin\SecurityCenterController;
 use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
 use App\Http\Controllers\Web\Admin\UserController;
