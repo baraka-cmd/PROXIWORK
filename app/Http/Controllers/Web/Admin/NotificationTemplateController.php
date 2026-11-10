@@ -47,7 +47,7 @@ class NotificationTemplateController extends Controller
             $template = NotificationTemplate::query()->create([
                 ...$data,
                 'status' => 'draft',
-                'version' => 1,
+                'version' => $nextVersion,
                 'created_by' => $request->user()->id,
                 'updated_by' => $request->user()->id,
             ]);
@@ -99,7 +99,6 @@ class NotificationTemplateController extends Controller
             $locked = NotificationTemplate::query()->lockForUpdate()->findOrFail($template->id);
             abort_unless($locked->status === 'published', 409);
             $nextVersion = $locked->version + 1;
-            $locked->update(['version' => $nextVersion, 'updated_by' => $request->user()->id]);
             $revision = NotificationTemplate::query()->create([
                 'name' => $locked->name,
                 'code' => mb_substr($locked->code, 0, 108).'-v'.$nextVersion,
@@ -116,7 +115,7 @@ class NotificationTemplateController extends Controller
                 'updated_by' => $request->user()->id,
             ]);
             $revision->versions()->create([
-                'version' => 1,
+                'version' => $nextVersion,
                 'content' => $revision->only(['subject', 'title', 'body']),
                 'created_by' => $request->user()->id,
             ]);
