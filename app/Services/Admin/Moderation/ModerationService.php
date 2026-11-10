@@ -64,7 +64,7 @@ class ModerationService
     ): Report {
         return DB::transaction(function () use ($reporter, $type, $id, $reason, $description, $request): Report {
             $target = $this->resolveTarget($type, $id);
-            $lockedTarget = $target::query()->lockForUpdate()->findOrFail($target->getKey());
+            $lockedTarget = $target->newQuery()->lockForUpdate()->findOrFail($target->getKey());
 
             if ($this->ownsTarget($reporter, $lockedTarget)) {
                 throw ValidationException::withMessages(['target_id' => 'Vous ne pouvez pas signaler votre propre contenu.']);
@@ -162,9 +162,9 @@ class ModerationService
     {
         return ($target instanceof Profile && (int) $target->user_id === (int) $user->getKey())
             || ($target instanceof ProfessionalProfile && (int) $target->user_id === (int) $user->getKey())
-            || ($target instanceof Service && (int) $target->professionalProfile?->user_id === (int) $user->getKey())
+            || ($target instanceof Service && (int) ($target->professionalProfile?->user_id) === (int) $user->getKey())
             || ($target instanceof Review && (int) $target->client_id === (int) $user->getKey())
-            || ($target instanceof ReviewResponse && (int) $target->professional?->user_id === (int) $user->getKey())
+            || ($target instanceof ReviewResponse && (int) ($target->professional?->user_id) === (int) $user->getKey())
             || ($target instanceof Message && (int) $target->sender_id === (int) $user->getKey());
     }
 }
