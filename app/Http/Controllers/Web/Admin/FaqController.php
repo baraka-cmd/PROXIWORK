@@ -90,7 +90,7 @@ class FaqController extends Controller
             $content = Arr::only($version->content, self::CONTENT_FIELDS);
 
             $locked->update([...$content, 'status' => 'published', 'published_at' => now()]);
-            $locked->versions()->where('status', 'published')->update(['status' => 'superseded']);
+            $locked->versions()->whereIn('status', ['draft', 'published'])->whereKeyNot($version->id)->update(['status' => 'superseded']);
             $version->update(['status' => 'published', 'published_at' => now()]);
         });
         $audit->record('faq_article_published', $article, $request->user(), [], $request);
