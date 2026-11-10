@@ -38,11 +38,19 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function transaction(PaymentTransaction $transaction): View
+    public function transaction(PaymentTransaction $transaction, Request $request, AuditLogService $auditLogs): View
     {
-        return view('admin.finance.transactions.show', [
-            'transaction' => $this->finance->transaction($transaction),
-        ]);
+        $transaction = $this->finance->transaction($transaction);
+
+        $auditLogs->record(
+            action: 'admin.finance.transaction.viewed',
+            subject: $transaction,
+            user: $request->user(),
+            metadata: ['payment_transaction_id' => $transaction->getKey(), 'payment_id' => $transaction->payment_id, 'status' => $transaction->status->value],
+            request: $request,
+        );
+
+        return view('admin.finance.transactions.show', compact('transaction'));
     }
 
     public function commissions(AdminFinanceFilterRequest $request): View
@@ -56,10 +64,20 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function commission(Commission $commission): View
+    public function commission(Commission $commission, Request $request, AuditLogService $auditLogs): View
     {
+        $commission = $this->finance->commission($commission);
+
+        $auditLogs->record(
+            action: 'admin.finance.commission.viewed',
+            subject: $commission,
+            user: $request->user(),
+            metadata: ['commission_id' => $commission->getKey(), 'status' => $commission->status->value, 'currency' => $commission->currency],
+            request: $request,
+        );
+
         return view('admin.finance.commissions.show', [
-            'commission' => $this->finance->commission($commission),
+            'commission' => $commission,
             'configuredRate' => config('commission.rate', '10.00'),
         ]);
     }
@@ -74,10 +92,18 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function wallet(Wallet $wallet): View
+    public function wallet(Wallet $wallet, Request $request, AuditLogService $auditLogs): View
     {
-        return view('admin.finance.wallets.show', [
-            'wallet' => $this->finance->wallet($wallet),
-        ]);
+        $wallet = $this->finance->wallet($wallet);
+
+        $auditLogs->record(
+            action: 'admin.finance.wallet.viewed',
+            subject: $wallet,
+            user: $request->user(),
+            metadata: ['wallet_id' => $wallet->getKey(), 'currency' => $wallet->currency, 'status' => $wallet->status],
+            request: $request,
+        );
+
+        return view('admin.finance.wallets.show', compact('wallet'));
     }
 }
