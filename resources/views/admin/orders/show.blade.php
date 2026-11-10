@@ -43,6 +43,11 @@
             <div><span>Catégorie</span><strong>{{ $order->serviceRequest?->service?->category?->name ?? '—' }}</strong></div>
             <div><span>Devis</span><strong>{{ $order->quotation?->id ? '#'.$order->quotation->id : '—' }}</strong></div>
             <div><span>Offre acceptée</span><strong>{{ $order->accepted_offer_id ? '#'.$order->accepted_offer_id : '—' }}</strong></div>
+            @if($order->acceptedOffer)
+                <div><span>Montant de l'offre acceptée</span><strong>{{ number_format((float) $order->acceptedOffer->amount, 2) }} {{ $order->acceptedOffer->currency }}</strong></div>
+                <div><span>Durée convenue</span><strong>{{ $order->acceptedOffer->duration_value ?? '—' }} {{ $order->acceptedOffer->duration_unit?->value ?? '' }}</strong></div>
+                <div><span>Validité de l'offre</span><strong>{{ $order->acceptedOffer->valid_until?->format('d/m/Y H:i') ?? '—' }}</strong></div>
+            @endif
         </div>
     </section>
 
@@ -97,7 +102,11 @@
             <p>Aucun paiement associé à ce dossier.</p>
         @endif
         <div class="admin-detail-list">
-            <div><span>Commission</span><strong>{{ $order->commission ? number_format((float) $order->commission->amount, 2).' '.$order->currency : 'Non enregistrée' }}</strong></div>
+            <div><span>Commission</span><strong>{{ $order->commission ? number_format((float) $order->commission->commission_amount, 2).' '.$order->currency : 'Non enregistrée' }}</strong></div>
+            @if($order->commission)
+                <div><span>Net professionnel</span><strong>{{ number_format((float) $order->commission->net_amount, 2) }} {{ $order->currency }}</strong></div>
+                <div><span>État commission</span><strong>{{ $order->commission->status->value }}</strong></div>
+            @endif
             <div><span>Revue client</span><strong>{{ $order->review ? 'Enregistrée' : 'Aucune' }}</strong></div>
         </div>
         <p class="admin-order-note">Le total contractuel, le paiement encaissé, les remboursements et la commission sont des données distinctes. Cet écran ne déclenche aucune opération financière.</p>
@@ -118,7 +127,7 @@
         <h3>6. Livrables soumis</h3>
         @forelse($order->deliveryAttachments as $attachment)
             <div class="admin-order-attachment">
-                <strong>{{ $attachment->original_name }}</strong>
+                <a href="{{ route('admin.orders.delivery-attachments.download', [$order, $attachment]) }}"><strong>{{ $attachment->original_name }}</strong></a>
                 <span>{{ $attachment->mime_type }} · {{ number_format($attachment->size_bytes / 1024, 1) }} Ko</span>
                 <small>Déposé par {{ $attachment->submitter?->name ?? 'Utilisateur' }} · {{ $attachment->created_at?->format('d/m/Y H:i') ?? '—' }}</small>
             </div>
