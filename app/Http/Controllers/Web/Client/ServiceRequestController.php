@@ -90,7 +90,9 @@ class ServiceRequestController extends Controller
     {
         $serviceRequest = $this->serviceRequestService->create($request->user(), $request->validated());
 
-        if ($serviceRequest->getAttribute('_idempotent_replay') !== true) {
+        $isIdempotencyReplay = $serviceRequest->idempotencyReplay;
+
+        if (! $isIdempotencyReplay) {
             $this->auditLogService->record(
                 'service_request_created',
                 $serviceRequest,
@@ -100,9 +102,9 @@ class ServiceRequestController extends Controller
             );
         }
 
-        $message = $serviceRequest->status->value === 'draft'
-            ? 'Votre demande est enregistrée comme brouillon. Vérifiez-la puis envoyez-la au professionnel.'
-            : 'Une demande existante a été retrouvée. Consultez son état actuel avant de continuer.';
+        $message = $isIdempotencyReplay
+            ? 'Une demande existante a été retrouvée. Consultez son état actuel avant de continuer.'
+            : 'Votre demande est enregistrée comme brouillon. Vérifiez-la puis envoyez-la au professionnel.';
 
         return redirect()
             ->route('client.requests.show', $serviceRequest)

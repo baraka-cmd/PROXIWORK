@@ -252,6 +252,51 @@ class WebClientFavoritesRequestsQuotesTest extends TestCase
         ]);
     }
 
+    public function test_repeated_request_submission_reuses_existing_draft_without_duplicate_audit_log(): void
+    {
+        $client = $this->client();
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create(['user_id' => $professionalUser->id]);
+        $service = Service::factory()->create([
+            'professional_profile_id' => $professional->id,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+        $idempotencyKey = (string) \Illuminate\Support\Str::uuid();
+        $payload = [
+            'service_id' => $service->id,
+            'title' => 'Demande avec soumission répétée',
+            'description' => 'Je souhaite une prestation détaillée avec un résultat clairement défini.',
+            'currency' => 'USD',
+            'idempotency_key' => $idempotencyKey,
+        ];
+
+        $firstResponse = $this->actingAs($client)
+            ->post(route('client.requests.store'), $payload)
+            ->assertRedirect()
+            ->assertSessionHas('success', 'Votre demande est enregistrée comme brouillon. Vérifiez-la puis envoyez-la au professionnel.');
+
+        $firstRequestId = ServiceRequest::query()
+            ->where('client_id', $client->id)
+            ->where('idempotency_key', $idempotencyKey)
+            ->value('id');
+
+        $this->assertNotNull($firstRequestId);
+
+        $this->post(route('client.requests.store'), $payload)
+            ->assertRedirect(route('client.requests.show', $firstRequestId))
+            ->assertSessionHas('success', 'Une demande existante a été retrouvée. Consultez son état actuel avant de continuer.');
+
+        $this->assertDatabaseCount('service_requests', 1);
+        $this->assertDatabaseCount('audit_logs', 1);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'service_request_created',
+            'subject_id' => $firstRequestId,
+            'user_id' => $client->id,
+        ]);
+    }
+
     public function test_client_cannot_edit_another_clients_request(): void
     {
         $owner = $this->client();

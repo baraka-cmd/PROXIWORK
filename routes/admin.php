@@ -113,6 +113,8 @@ Route::middleware(['auth', 'active.account'])->group(function (): void {
 Route::middleware(['auth', 'active.account', 'permission:orders.view'])->group(function (): void {
     Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('orders/{order}/delivery-attachments/{attachment}', [OrderController::class, 'downloadDeliveryAttachment'])
+        ->name('orders.delivery-attachments.download');
 });
 Route::middleware(['auth', 'active.account', 'permission:payments.view'])->group(function (): void {
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');

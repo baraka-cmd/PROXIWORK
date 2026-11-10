@@ -52,7 +52,10 @@ class AdminServiceRequestManagementService
             'service.category',
             'address',
             'statusHistories.actor',
-            'quotation.offers',
+            'quotation.offers.creator',
+            'quotation.events.actor',
+            'quotation.currentOffer',
+            'quotation.acceptedOffer',
             'order',
         ]);
     }
