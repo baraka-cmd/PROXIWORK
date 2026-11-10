@@ -22,7 +22,11 @@
     <section class="admin-card"><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Professionnel</th><th>Portefeuille</th><th>Disponible</th><th>En attente</th><th>Bloqué</th><th>Devise</th><th>Statut</th><th>Actualisé</th></tr></thead><tbody>
         @forelse($wallets as $wallet)
             <tr><td><strong>{{ $wallet->professional?->user?->name ?? 'Profil professionnel indisponible' }}</strong><small>{{ $wallet->professional?->user?->email ?? '—' }}</small></td><td><a href="{{ route('admin.finance.wallets.show', $wallet) }}">WAL-{{ $wallet->id }}</a></td><td>{{ number_format((float) $wallet->available_balance, 2, ',', ' ') }} {{ $wallet->currency }}</td><td>{{ number_format((float) $wallet->pending_balance, 2, ',', ' ') }} {{ $wallet->currency }}</td><td>{{ number_format((float) $wallet->locked_balance, 2, ',', ' ') }} {{ $wallet->currency }}</td><td>{{ $wallet->currency }}</td><td><span class="admin-status">{{ $wallet->status }}</span></td><td>{{ $wallet->updated_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
-        @empty<tr><td colspan="8"><div class="admin-empty">Aucun portefeuille trouvé.</div></td></tr>@endforelse
-    </tbody></table></div>@if($wallets->hasPages())<div class="admin-pagination">{{ $wallets->links() }}</div>@endif</section>
+        @empty
+                            <tr><td colspan="8"><div class="admin-empty">Aucun portefeuille trouvé.</div></td></tr>
+                        @endforelse
+    </tbody></table></div>@if ($wallets->hasPages())
+            <div class="admin-pagination">{{ $wallets->links() }}</div>
+        @endif</section>
 </div>
 @endsection
