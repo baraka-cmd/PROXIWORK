@@ -37,7 +37,7 @@
             <div><dt>E-mail client</dt><dd>{{ $payment->client?->email ?? '—' }}</dd></div>
             <div><dt>Professionnel</dt><dd>{{ $payment->order?->professional?->user?->name ?? '—' }}</dd></div>
             <div><dt>Statut commande</dt><dd>{{ $payment->order?->status?->value ?? '—' }}</dd></div>
-            <div><dt>Commission</dt><dd>@if($payment->commission)<a href="{{ route('admin.finance.commissions.show', $payment->commission) }}">COM-{{ $payment->commission->id }}</a>@else Non comptabilisée @endif</dd></div>
+            <div><dt>Commission</dt><dd>@if($payment->commission)@if(auth()->user()?->hasPermissionTo('commissions.view'))<a href="{{ route('admin.finance.commissions.show', $payment->commission) }}">COM-{{ $payment->commission->id }}</a>@else COM-{{ $payment->commission->id }}@endif @else Non comptabilisée @endif</dd></div>
         </dl>
     </section>
 
@@ -49,7 +49,7 @@
                 <tbody>
                     @forelse($payment->transactions as $transaction)
                         <tr>
-                            <td><a href="{{ route('admin.finance.transactions.show', $transaction) }}">TX-{{ $transaction->id }}</a></td>
+                            <td>@if(auth()->user()?->hasPermissionTo('transactions.view'))<a href="{{ route('admin.finance.transactions.show', $transaction) }}">TX-{{ $transaction->id }}</a>@else TX-{{ $transaction->id }}@endif</td>
                             <td>{{ $transaction->provider }}</td>
                             <td>{{ number_format((float) $transaction->amount, 2, ',', ' ') }} {{ $transaction->currency }}</td>
                             <td><span class="admin-status admin-status--{{ $transaction->status->value }}">{{ $transaction->status->value }}</span></td>
