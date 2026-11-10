@@ -21,7 +21,7 @@
     </section>
     <section class="admin-card"><h2>Modèles existants</h2>
         <div class="admin-table-container"><table class="admin-table"><thead><tr><th>Nom</th><th>Code</th><th>Événement</th><th>Canal</th><th>Version</th><th>État</th><th>Action</th></tr></thead><tbody>
-        @forelse($templates as $template)<tr><td>{{ $template->name }}</td><td>{{ $template->code }}</td><td>{{ $template->event_key }}</td><td>{{ $template->channel }}</td><td>v{{ $template->version }}</td><td>{{ $template->status }}</td><td>
+        @forelse($templates as $template)<tr><td>{{ $template->name }}</td><td>{{ $template->code }}</td><td>{{ $template->event_key }}</td><td>{{ $template->channel }}</td><td>v{{ $template->version }} · {{ $template->versions_count }} snapshot(s)</td><td>{{ $template->status }}</td><td>
 @if($template->status === 'draft')
 <details><summary>Modifier le brouillon</summary><form method="POST" action="{{ route('admin.communication.templates.update',$template) }}">@csrf @method('PUT')
 <label>Nom <input name="name" value="{{ $template->name }}" maxlength="120" required></label>
