@@ -6,10 +6,8 @@ namespace App\Services\Audit;
 
 use App\Models\SecuritySession;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
 
@@ -19,7 +17,7 @@ class SecuritySessionService
     {
         $user = $request->user();
 
-        if (! $user instanceof User) {
+        if ($user instanceof User === false) {
             return;
         }
 
