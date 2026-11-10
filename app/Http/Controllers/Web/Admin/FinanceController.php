@@ -39,9 +39,9 @@ class FinanceController extends Controller
         ]);
     }
 
-    public function transaction(int $transaction, Request $request, AuditLogService $auditLogs): View
+    public function transaction(string $transaction, Request $request, AuditLogService $auditLogs): View
     {
-        $transaction = $this->finance->transaction($transaction);
+        $transaction = $this->finance->transaction((int) $transaction);
 
         $auditLogs->record(
             action: 'admin.finance.transaction.viewed',
