@@ -56,7 +56,10 @@ class CommunicationCampaignController extends Controller
             'status' => 'draft',
             'created_by' => $request->user()->id,
         ]);
-        $audit->record('communication_campaign_created', $campaign, $request->user(), ['audience' => $data['audience']], $request);
+        $audit->record('communication_campaign_created', $campaign, $request->user(), [
+            'audience' => $campaign->audience_rules['audience'] ?? 'all',
+            'segment_id' => $campaign->communication_segment_id,
+        ], $request);
 
         return back()->with('success', 'Campagne enregistrée en brouillon.');
     }
@@ -156,9 +159,12 @@ class CommunicationCampaignController extends Controller
             default => ['client', 'professional'],
         };
 
+        $roleIds = DB::table('roles')->select('id')->whereIn('name', $roleNames);
+        $userIds = DB::table('role_user')->select('user_id')->whereIn('role_id', $roleIds);
+
         return User::query()
             ->where('account_status', 'active')
-            ->whereHas('roles', static fn ($roles) => $roles->whereIn('name', $roleNames))
+            ->whereIn('id', $userIds)
             ->whereNotNull('email_verified_at');
     }
 }
