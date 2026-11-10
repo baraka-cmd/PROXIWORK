@@ -22,6 +22,7 @@ class OrderController extends Controller
             'orders' => $this->orderManager->paginate($request->validated()),
             'filters' => $request->validated(),
             'statuses' => $this->orderManager->statusOptions(),
+            'overview' => $this->orderManager->overview(),
         ]);
     }
 
