@@ -196,7 +196,7 @@ class AdminAnalyticsService
     {
         // Only public professional base locations are used. Client addresses,
         // address snapshots and precise GPS coordinates are deliberately excluded.
-        $rows = ProfessionalProfile::query()
+        $grouped = ProfessionalProfile::query()
             ->publiclyVisible()
             ->leftJoin('service_requests', function ($join) use ($from, $to): void {
                 $join->on('service_requests.professional_id', '=', 'professional_profiles.id')
@@ -218,23 +218,23 @@ class AdminAnalyticsService
             ->groupBy('professional_profiles.province', 'professional_profiles.city')
             ->orderByDesc('professionals_count')
             ->limit(50)
-            ->get()
-            ->map(function ($row): array {
-                $count = (int) $row->professionals_count;
+            ->get();
 
-                return [
-                    'province' => (string) ($row->province ?: 'Non renseignée'),
-                    'city' => (string) $row->city,
-                    'professionals' => $count >= 3 ? $count : null,
-                    'requests' => (int) $row->requests_count,
-                    'orders' => (int) $row->orders_count,
-                    'suppressed' => $count < 3,
-                ];
-            })->all();
+        $suppressedGroups = $grouped->filter(fn ($row): bool => (int) $row->professionals_count < 3)->count();
+        $rows = $grouped
+            ->filter(fn ($row): bool => (int) $row->professionals_count >= 3)
+            ->map(fn ($row): array => [
+                'province' => (string) ($row->province ?: 'Non renseignée'),
+                'city' => (string) $row->city,
+                'professionals' => (int) $row->professionals_count,
+                'requests' => (int) $row->requests_count,
+                'orders' => (int) $row->orders_count,
+            ])->values()->all();
 
         return [
             'professional_base_locations' => $rows,
-            'location_basis' => 'Localisation de base déclarée par les professionnels, et non adresse privée du client ou lieu exact d’exécution.',
+            'suppressed_location_groups' => $suppressedGroups,
+            'location_basis' => 'Localisation de base déclarée par les professionnels, et non adresse privée du client ou lieu exact d’exécution. Les groupes de moins de trois professionnels sont omis entièrement.',
             'privacy_threshold' => 3,
         ];
     }

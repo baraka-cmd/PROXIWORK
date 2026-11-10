@@ -91,7 +91,7 @@
             <tr><td colspan="5">Aucune localisation professionnelle exploitable.</td></tr>
         @endforelse
         </tbody></table></div>
-        <p>{{ $analytics['geography']['location_basis'] }} Les effectifs inférieurs à trois professionnels sont masqués.</p>
+        <p>{{ $analytics['geography']['location_basis'] }} Les groupes de moins de trois professionnels sont omis.</p>
     </section>
 </div>
 @endsection

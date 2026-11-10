@@ -41,7 +41,7 @@ Cette phase enrichit le service AdminAnalyticsService déjà présent. Elle ne c
 
 - La géographie utilise professional_profiles.province et professional_profiles.city pour les profils répondant au scope publiclyVisible().
 - Les adresses privées des clients, les snapshots d’adresse et les coordonnées GPS exactes ne sont ni interrogés ni exportés.
-- Le nombre de professionnels d’une zone est masqué lorsque le groupe compte moins de trois professionnels.
+- Les groupes de moins de trois professionnels sont omis entièrement du tableau et de l’export.
 - Les zones sont des localisations déclarées par les professionnels, pas une preuve du lieu d’exécution effectif d’une prestation.
 
 ### Accès et export

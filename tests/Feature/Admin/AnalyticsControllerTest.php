@@ -23,7 +23,9 @@ class AnalyticsControllerTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.analytics'))
             ->assertOk()
-            ->assertSee('Analytics');
+            ->assertSee('Analytics')
+            ->assertSee('Performance des catégories')
+            ->assertSee('Répartition de l’offre professionnelle');
     }
 
     public function test_analytics_rejects_periods_longer_than_one_year(): void
