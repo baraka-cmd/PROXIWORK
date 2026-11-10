@@ -7,11 +7,14 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDispute;
+use App\Models\OrderDisputeAttachment;
 use App\Services\Admin\Dispute\OrderDisputeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OrderDisputeParticipantController extends Controller
 {
@@ -42,6 +45,29 @@ class OrderDisputeParticipantController extends Controller
         $data = $request->validate(['body' => ['required', 'string', 'min:2', 'max:10000']]);
         $this->service->message($dispute, $request->user(), $data['body'], false, $request);
         return back()->with('success', 'Votre message a été ajouté au dossier.');
+    }
+
+    public function upload(Request $request, OrderDispute $dispute): RedirectResponse
+    {
+        Gate::authorize('message', $dispute);
+        $data = $request->validate([
+            'evidence' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'],
+        ]);
+        $this->service->addAttachment($dispute, $request->user(), $data['evidence'], $request);
+        return back()->with('success', 'La pièce justificative a été ajoutée au dossier.');
+    }
+
+    public function download(Request $request, OrderDispute $dispute, OrderDisputeAttachment $attachment): BinaryFileResponse
+    {
+        Gate::authorize('view', $dispute);
+        abort_unless($attachment->order_dispute_id === $dispute->getKey(), 404);
+        $disk = Storage::disk($attachment->disk);
+        abort_unless($disk->exists($attachment->path), 404);
+        return response()->download($disk->path($attachment->path), $attachment->original_name, [
+            'Content-Type' => $attachment->mime_type,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     private function routePrefix(Request $request): string
