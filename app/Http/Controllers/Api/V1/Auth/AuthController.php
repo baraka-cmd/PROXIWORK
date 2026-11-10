@@ -206,7 +206,7 @@ class AuthController extends Controller
         $status = DB::transaction(function () use ($request, &$resetUser) {
             return Password::reset(
                 $request->only('email', 'password', 'password_confirmation', 'token'),
-                function (User $user, string $password) use (&$resetUser): void {
+                function (User $user, string $password) use (&$resetUser, $request): void {
                     $resetUser = $user;
                     $user->forceFill([
                         'password' => Hash::make($password),
