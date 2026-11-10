@@ -12,10 +12,10 @@ class OrderDisputeEvent extends Model
     protected static function booted(): void
     {
         static::updating(static function (): never {
-            throw new \\LogicException('Les événements d’un litige sont immuables.');
+            throw new \LogicException('Les événements d’un litige sont immuables.');
         });
         static::deleting(static function (): never {
-            throw new \\LogicException('Les événements d’un litige ne peuvent pas être supprimés.');
+            throw new \LogicException('Les événements d’un litige ne peuvent pas être supprimés.');
         });
     }
 
