@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Service;
 use App\Models\User;
 use App\Services\Settings\CurrencyService;
 use Database\Seeders\RbacSeeder;
@@ -38,6 +39,22 @@ class CurrencyServiceTest extends TestCase
         $this->assertFalse($service->isActive('USD'));
         $this->assertTrue($service->isActive('CDF'));
         $this->assertDatabaseHas('audit_logs', ['action' => 'admin.settings.currency.updated']);
+    }
+
+    public function test_currency_cannot_be_deactivated_while_a_published_service_uses_it(): void
+    {
+        $admin = $this->admin();
+        Service::factory()->create([
+            'currency' => 'USD',
+            'status' => 'published',
+        ]);
+
+        $service = app(CurrencyService::class);
+        $request = Request::create('/admin/settings/currencies', 'PATCH');
+        $service->update('CDF', true, true, $admin, $request);
+
+        $this->expectException(ValidationException::class);
+        $service->update('USD', false, false, $admin, $request);
     }
 
     public function test_default_currency_cannot_be_deactivated(): void

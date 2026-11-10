@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use App\Models\NotificationPreference;
+use App\Services\Settings\PlatformSettingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -43,7 +44,7 @@ class AccountActivityNotification extends Notification implements ShouldQueue
 
         // Critical account/security alerts are not disabled by the optional
         // email preference. Callers must use this priority only for real events.
-        if ($this->priority === 'critical' || $preferences->email_enabled) {
+        if ($this->priority === 'critical' || (app(PlatformSettingService::class)->get('notifications.email_enabled') && $preferences->email_enabled)) {
             $channels[] = 'mail';
         }
 

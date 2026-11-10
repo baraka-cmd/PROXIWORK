@@ -16,13 +16,17 @@ use App\Models\QuotationOffer;
 use App\Models\ServiceRequest;
 use App\Models\User;
 use App\Services\Commission\CommissionRuleService;
+use App\Services\Settings\CurrencyService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private readonly CommissionRuleService $commissionRules) {}
+    public function __construct(
+        private readonly CommissionRuleService $commissionRules,
+        private readonly CurrencyService $currencies,
+    ) {}
 
     public function createFromAcceptedQuotation(Quotation $quotation, User $actor): Order
     {
@@ -110,6 +114,7 @@ class OrderService
             }
 
             $now = now();
+            $this->currencies->lockActive((string) $acceptedOffer->currency);
             $commissionRule = $this->commissionRules->ruleForDate(Carbon::parse($lockedQuotation->accepted_at ?? $now));
 
             $order = Order::query()->forceCreate([

@@ -68,6 +68,7 @@ class CurrencyService
             $before = ['is_active' => $currency->is_active, 'is_default' => $currency->is_default];
 
             if ($makeDefault) {
+                Currency::query()->where('is_default', true)->lockForUpdate()->first();
                 Currency::query()->where('is_default', true)->update(['is_default' => false]);
             }
 

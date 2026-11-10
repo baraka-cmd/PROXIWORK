@@ -91,8 +91,11 @@
     <section class="dashboard-card">
         <div class="dashboard-card__header"><div><h2>État des intégrations</h2><p>Les secrets restent exclusivement dans la configuration d'environnement. Cet indicateur ne réalise pas de transaction réelle avec les fournisseurs.</p></div></div>
         <div class="settings-integration-list">
-            @foreach ($integrations as $name => $configured)
-                <div class="settings-integration-row"><strong>{{ strtoupper($name) }}</strong><span class="status-badge {{ $configured ? 'status-badge--success' : 'status-badge--warning' }}">{{ $configured ? 'Configuration présente' : 'Non configuré ou incomplet' }}</span></div>
+            @foreach ($integrations as $name => $integration)
+                <div class="settings-integration-row">
+                    <div><strong>{{ $name }}</strong><p>{{ $integration['detail'] }}</p></div>
+                    <span class="status-badge {{ $integration['configured'] ? 'status-badge--success' : 'status-badge--warning' }}">{{ $integration['configured'] ? 'Paramètres présents' : 'Non configuré ou incomplet' }}</span>
+                </div>
             @endforeach
         </div>
     </section>

@@ -14,7 +14,16 @@ class FileStorageService
 {
     public function __construct(private readonly PlatformSettingService $settings) {}
 
-/** @var list<string> */
+    /** @var array<string, string> */
+    private const MIME_BY_EXTENSION = [
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        'webp' => 'image/webp',
+        'pdf' => 'application/pdf',
+    ];
+
+    /** @var list<string> */
     private const IMAGE_MIMES = ['jpg', 'jpeg', 'png', 'webp'];
 
     /** @var list<string> */
@@ -92,6 +101,13 @@ class FileStorageService
         if (in_array($extension, $allowedExtensions, true) === false) {
             throw ValidationException::withMessages([
                 'file' => 'The uploaded file type is not allowed.',
+            ]);
+        }
+
+        $detectedMime = strtolower((string) $file->getMimeType());
+        if (($allowedMime = self::MIME_BY_EXTENSION[$extension] ?? null) === null || $detectedMime !== $allowedMime) {
+            throw ValidationException::withMessages([
+                'file' => 'Le contenu réel du fichier ne correspond pas à son extension autorisée.',
             ]);
         }
 

@@ -24,10 +24,26 @@ class PlatformSettingController extends Controller
             'settings' => $this->settings->all(),
             'currencies' => $this->currencies->all(),
             'integrations' => [
-                'mail' => filled(config('mail.default')) && filled(config('mail.mailers.'.config('mail.default').'.transport')),
-                'sms' => filled(config('services.twilio.account_sid')) && filled(config('services.twilio.auth_token')) && filled(config('services.twilio.from')),
-                'push' => filled(config('services.firebase.project_id')) && filled(config('services.firebase.client_email')) && filled(config('services.firebase.private_key')),
-                'storage' => filled(config('filesystems.default')),
+                'Paiement (simulation)' => [
+                    'configured' => (bool) config('payment.simulation_enabled'),
+                    'detail' => 'Aucune passerelle de paiement réelle n’est déclarée par cette configuration.',
+                ],
+                'E-mail' => [
+                    'configured' => filled(config('mail.default')) && filled(config('mail.mailers.'.config('mail.default').'.transport')),
+                    'detail' => 'Présence de paramètres du mailer, sans test réseau.',
+                ],
+                'SMS (Twilio)' => [
+                    'configured' => filled(config('services.twilio.account_sid')) && filled(config('services.twilio.auth_token')) && filled(config('services.twilio.from')),
+                    'detail' => 'Les identifiants restent dans l’environnement.',
+                ],
+                'Push (Firebase)' => [
+                    'configured' => filled(config('services.firebase.project_id')) && filled(config('services.firebase.client_email')) && filled(config('services.firebase.private_key')),
+                    'detail' => 'La clé privée n’est jamais affichée.',
+                ],
+                'Stockage' => [
+                    'configured' => filled(config('filesystems.default')),
+                    'detail' => 'Le disque privé des documents reste contrôlé par le code.',
+                ],
             ],
         ]);
     }

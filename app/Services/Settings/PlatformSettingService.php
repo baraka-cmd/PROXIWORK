@@ -145,7 +145,7 @@ class PlatformSettingService
                     reason: 'Modification des paramètres opérationnels autorisés.',
                 );
             }
-        });
+        }, attempts: 3);
 
         Cache::forget(self::CACHE_KEY);
     }

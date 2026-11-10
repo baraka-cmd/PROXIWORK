@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Services\Admin\Verification;
 
 use App\Enums\ProfessionalVerificationStatus;
+use App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\ProfessionalVerificationReview;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
 use App\Services\Settings\PlatformSettingService;
-use App\Models\ProfessionalDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -101,7 +101,7 @@ class ProfessionalVerificationService
 
             $from = $target->verification_status;
 
-            if (! $this->isAllowedTransition($from, $to)) {
+            if (!$this->isAllowedTransition($from, $to)) {
                 throw ValidationException::withMessages([
                     'verification_status' => [sprintf(
                         'Transition impossible : %s → %s.',
@@ -152,7 +152,7 @@ class ProfessionalVerificationService
         ];
 
         foreach ($requirements as $documentType => $settingKey) {
-            if (! (bool) $this->settings->get($settingKey)) {
+            if (!(bool) $this->settings->get($settingKey)) {
                 continue;
             }
 
@@ -162,7 +162,7 @@ class ProfessionalVerificationService
                 ->where('status', ProfessionalDocument::STATUS_APPROVED)
                 ->exists();
 
-            if (! $approved) {
+            if (!$approved) {
                 throw ValidationException::withMessages([
                     'documents' => 'Le dossier doit contenir un document approuvé de type : '.$documentType.'.',
                 ]);

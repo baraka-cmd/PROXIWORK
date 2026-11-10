@@ -9,8 +9,8 @@ use App\Http\Requests\Admin\Finance\AdminFinanceFilterRequest;
 use App\Models\Commission;
 use App\Models\Wallet;
 use App\Services\Admin\Finance\AdminFinanceQueryService;
-use App\Services\Commission\CommissionRuleService;
 use App\Services\Audit\AuditLogService;
+use App\Services\Commission\CommissionRuleService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -19,8 +19,7 @@ class FinanceController extends Controller
     public function __construct(
         private readonly AdminFinanceQueryService $finance,
         private readonly CommissionRuleService $commissionRules,
-    )
-    {
+    ) {
     }
 
     public function overview(AdminFinanceFilterRequest $request): View
