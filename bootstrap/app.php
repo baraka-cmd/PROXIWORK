@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RecordSecuritySession;
+use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -76,7 +77,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AuthorizationException $e, Request $request) use ($isApi) {
             try {
-                app(\App\Services\Audit\AuditLogService::class)->recordEvent(
+                app(AuditLogService::class)->recordEvent(
                     'security.authorization.denied',
                     null,
                     $request->user(),
