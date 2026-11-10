@@ -9,13 +9,20 @@ use App\Models\FaqArticle;
 use App\Models\FaqCategory;
 use App\Models\InstitutionalDocument;
 use App\Models\InstitutionalDocumentVersion;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class PublicContentTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_public_sitemap_is_valid_xml_response(): void
+    {
+        $this->get(route('public.sitemap'))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+            ->assertSee('<urlset', false);
+    }
 
     public function test_published_cms_page_is_server_rendered_and_escaped(): void
     {
