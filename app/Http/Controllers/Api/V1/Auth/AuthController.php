@@ -150,7 +150,7 @@ class AuthController extends Controller
             $this->securitySessions->revokeAllForUser($user, $user, 'Mot de passe modifié.', $request);
 
             $this->auditLogService->recordEvent(
-                'auth.password.changed',
+                'password_changed',
                 $user,
                 $user,
                 [],
