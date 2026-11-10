@@ -16,7 +16,7 @@ class NotificationTemplateRenderingTest extends TestCase
 
     public function test_published_database_and_mail_templates_are_used_for_transactional_notifications(): void
     {
-        app()->setLocale('fr');
+        app()->setLocale('en');
         $recipient = User::factory()->create(['name' => 'Aline']);
 
         NotificationTemplate::query()->create([
