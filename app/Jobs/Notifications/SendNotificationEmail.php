@@ -122,8 +122,8 @@ class SendNotificationEmail implements ShouldQueue
         }
 
         $message = new TransactionalNotificationMail(
-            (string) ($data['title'] ?? 'Notification PROXIWORK'),
-            (string) ($data['message'] ?? 'Un événement important est disponible dans votre espace PROXIWORK.'),
+            (string) ($data['email_subject'] ?? $data['title'] ?? 'Notification PROXIWORK'),
+            (string) ($data['email_message'] ?? $data['message'] ?? 'Un événement important est disponible dans votre espace PROXIWORK.'),
             is_string($data['url'] ?? null) ? $data['url'] : null,
         );
 
