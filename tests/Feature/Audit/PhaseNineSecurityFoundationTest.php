@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature\Audit;
 
 use App\Models\AuditLog;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\SecurityAlert;
 use App\Models\SecuritySession;
 use App\Models\SensitiveIntervention;
@@ -219,7 +221,10 @@ class PhaseNineSecurityFoundationTest extends TestCase
     public function test_security_audit_permission_cannot_read_administrative_audit_events(): void
     {
         $viewer = User::factory()->create();
-        $viewer->givePermissionTo('security.events.view');
+        $supportRole = Role::query()->where('name', 'support')->firstOrFail();
+        $securityPermission = Permission::query()->where('name', 'security.events.view')->firstOrFail();
+        $supportRole->permissions()->syncWithoutDetaching([$securityPermission->getKey()]);
+        $viewer->assignRole($supportRole);
 
         $securityEvent = AuditLog::query()->create([
             'action' => 'security.authorization.denied',
