@@ -98,7 +98,7 @@ class ModerationService
                 'priority' => ReportPriority::NORMAL,
             ]);
 
-            $this->audit->record('admin.report.created', $report, $reporter, [
+            $this->audit->record('report.created', $report, $reporter, [
                 'reason_code' => $reason,
                 'target_type' => $report->target_type,
                 'target_id' => $report->target_id,
