@@ -137,12 +137,12 @@ Route::middleware(['auth', 'active.account', 'permission:disputes.view'])->group
     Route::get('disputes', [OrderDisputeController::class, 'index'])->name('disputes.index');
     Route::get('disputes/{dispute}', [OrderDisputeController::class, 'show'])->name('disputes.show');
     Route::get('disputes/{dispute}/attachments/{attachment}', [OrderDisputeController::class, 'downloadAttachment'])->name('disputes.attachments.download');
-    Route::post('disputes/{dispute}/message', [OrderDisputeController::class, 'message'])->name('disputes.message');
 });
 Route::middleware(['auth', 'active.account', 'permission:disputes.manage'])->group(function (): void {
     Route::post('disputes/{dispute}/assign', [OrderDisputeController::class, 'assign'])->name('disputes.assign');
     Route::post('disputes/{dispute}/transition', [OrderDisputeController::class, 'transition'])->name('disputes.transition');
     Route::post('disputes/{dispute}/reopen', [OrderDisputeController::class, 'reopen'])->name('disputes.reopen');
+    Route::post('disputes/{dispute}/message', [OrderDisputeController::class, 'message'])->name('disputes.message');
 });
 Route::middleware(['auth', 'active.account', 'permission:disputes.decide'])->group(function (): void {
     Route::post('disputes/{dispute}/decide', [OrderDisputeController::class, 'decide'])->name('disputes.decide');
