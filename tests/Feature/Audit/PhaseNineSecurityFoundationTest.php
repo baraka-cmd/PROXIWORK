@@ -173,6 +173,32 @@ class PhaseNineSecurityFoundationTest extends TestCase
         $this->assertSame($actor->id, $session->fresh()->revoked_by);
     }
 
+    public function test_revoking_a_web_session_uses_the_configured_laravel_handler(): void
+    {
+        config(['session.driver' => 'array']);
+        app('session')->forgetDrivers();
+
+        $actor = User::factory()->create();
+        $owner = User::factory()->create();
+        $sessionId = 'web-session-to-revoke';
+        $handler = app('session')->driver()->getHandler();
+        $handler->write($sessionId, 'serialized-session-payload');
+
+        $session = SecuritySession::query()->create([
+            'user_id' => $owner->id,
+            'guard' => 'web',
+            'identifier_hash' => hash_hmac('sha256', 'web:'.$sessionId, (string) config('app.key')),
+            'identifier_ciphertext' => $sessionId,
+            'device_name' => 'Test browser',
+            'last_seen_at' => now(),
+        ]);
+
+        app(SecuritySessionService::class)->revoke($session, $actor, 'Navigateur déclaré compromis.');
+
+        $this->assertSame('', $handler->read($sessionId));
+        $this->assertNotNull($session->fresh()->revoked_at);
+    }
+
     public function test_client_cannot_open_admin_security_pages(): void
     {
         $client = User::factory()->create();
