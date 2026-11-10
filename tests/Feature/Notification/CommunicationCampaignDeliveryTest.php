@@ -9,11 +9,36 @@ use App\Models\CommunicationCampaign;
 use App\Models\User;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class CommunicationCampaignDeliveryTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_scheduler_queues_campaigns_when_their_scheduled_time_is_due(): void
+    {
+        Queue::fake();
+        $campaign = CommunicationCampaign::query()->create([
+            'name' => 'Campagne programmée',
+            'subject' => 'Information',
+            'body' => 'Message planifié.',
+            'channel' => 'database',
+            'audience_rules' => ['audience' => 'all', 'account_status' => 'active'],
+            'status' => 'scheduled',
+            'scheduled_at' => now()->subMinute(),
+            'recipient_count' => 1,
+        ]);
+
+        Artisan::call('communication:dispatch-scheduled');
+
+        $this->assertDatabaseHas('communication_campaigns', [
+            'id' => $campaign->id,
+            'status' => 'queued',
+        ]);
+        Queue::assertPushed(SendCommunicationCampaign::class);
+    }
 
     public function test_campaign_job_delivers_internal_notification_once_per_snapshotted_recipient(): void
     {
