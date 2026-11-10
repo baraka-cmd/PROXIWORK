@@ -105,6 +105,7 @@ class RefundController extends Controller
     public function reject(Request $request, PaymentRefund $refund, PaymentRefundAdminService $service, AuditLogService $audit): RedirectResponse
     {
         $data = $request->validate(['note' => ['required', 'string', 'min:10', 'max:2000']]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.rejected', fn () => $service->reject($refund, (int) $request->user()->id, $data['note']), $data['note'], 'La demande a été refusée.');
     }
 
@@ -124,6 +125,7 @@ class RefundController extends Controller
             'provider_reference' => ['nullable', 'string', 'max:191'],
             'note' => ['required', 'string', 'min:10', 'max:2000'],
         ]);
+
         return $this->perform($request, $refund, $audit, 'admin.refund.failed', fn () => $service->markFailed($refund, (int) $request->user()->id, $data['note'], $data['provider_reference'] ?? null), $data['note'], 'L’échec du remboursement a été enregistré.');
     }
 
