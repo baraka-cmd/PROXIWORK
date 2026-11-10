@@ -38,6 +38,72 @@ class AdminFinanceSupervisionTest extends TestCase
         $this->get(route('admin.finance.wallets'))->assertForbidden();
     }
 
+    public function test_admin_can_open_payment_transaction_consultation(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.finance.transactions'))
+            ->assertOk()
+            ->assertSee('Transactions de paiement');
+    }
+
+    public function test_admin_can_open_commission_consultation(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.finance.commissions'))
+            ->assertOk()
+            ->assertSee('Commissions');
+    }
+
+    public function test_admin_can_open_professional_wallet_consultation(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.finance.wallets'))
+            ->assertOk()
+            ->assertSee('Portefeuilles professionnels');
+    }
+
+    public function test_admin_can_open_wallet_detail_and_sensitive_access_is_audited(): void
+    {
+        $professionalUser = User::factory()->create();
+        $professionalUser->assignRole('professional');
+        $professional = ProfessionalProfile::factory()->create([
+            'user_id' => $professionalUser->getKey(),
+        ]);
+
+        $wallet = Wallet::query()->forceCreate([
+            'professional_id' => $professional->getKey(),
+            'currency' => 'USD',
+            'available_balance' => '75.00',
+            'pending_balance' => '25.00',
+            'locked_balance' => '10.00',
+            'status' => 'active',
+        ]);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->actingAs($admin)
+            ->get(route('admin.finance.wallets.show', $wallet))
+            ->assertOk()
+            ->assertSee('75,00 USD')
+            ->assertSee('25,00 USD');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'user_id' => $admin->getKey(),
+            'action' => 'admin.finance.wallet.viewed',
+            'subject_id' => $wallet->getKey(),
+        ]);
+    }
+
     public function test_overview_keeps_wallet_balances_separated_by_currency(): void
     {
         $professionalUser = User::factory()->create();
