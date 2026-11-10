@@ -6,7 +6,9 @@
 @endpush
 @section('page_title', 'Portefeuille WAL-'.$wallet->id)
 @section('page_description', 'Situation actuelle du portefeuille professionnel et aperçu de ses dernières écritures.')
-@section('page_actions')<a class="button button--secondary" href="{{ route('admin.finance.wallets') }}">Retour aux portefeuilles</a>@endsection
+@section('page_actions')
+    <a class="button button--secondary" href="{{ route('admin.finance.wallets') }}">Retour aux portefeuilles</a>
+@endsection
 @section('content')
 <div class="admin-finance admin-finance__detail-grid">
     <section class="admin-card"><h3>Propriétaire</h3><dl class="admin-finance__details">
@@ -27,7 +29,9 @@
     <section class="admin-card admin-finance__full"><h3>Dernières écritures associées</h3><p class="admin-finance__muted">Aperçu limité aux huit dernières écritures. La consultation complète du registre est réservée au point 37.</p><div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Référence</th><th>Type</th><th>Direction</th><th>Compartiment</th><th>Montant</th><th>Solde avant</th><th>Solde après</th><th>Date</th></tr></thead><tbody>
         @forelse($wallet->recentTransactions as $entry)
             <tr><td>#{{ $entry->id }}</td><td>{{ $entry->type->value ?? $entry->type }}</td><td>{{ $entry->direction->value ?? $entry->direction }}</td><td>{{ $entry->balance_bucket }}</td><td>{{ number_format((float) $entry->amount, 2, ',', ' ') }} {{ $entry->currency }}</td><td>{{ number_format((float) $entry->balance_before, 2, ',', ' ') }}</td><td>{{ number_format((float) $entry->balance_after, 2, ',', ' ') }}</td><td>{{ $entry->created_at?->format('d/m/Y H:i') }}</td></tr>
-        @empty<tr><td colspan="8"><div class="admin-empty">Aucune écriture enregistrée.</div></td></tr>@endforelse
+        @empty
+                            <tr><td colspan="8"><div class="admin-empty">Aucune écriture enregistrée.</div></td></tr>
+                        @endforelse
     </tbody></table></div></section>
 </div>
 @endsection
