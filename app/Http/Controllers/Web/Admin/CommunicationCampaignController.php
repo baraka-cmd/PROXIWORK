@@ -19,7 +19,10 @@ class CommunicationCampaignController extends Controller
 {
     public function index(): View
     {
-        return view('admin.communication.campaigns.index', ['campaigns' => CommunicationCampaign::query()->latest()->paginate(20)]);
+        return view('admin.communication.campaigns.index', [
+            'campaigns' => CommunicationCampaign::query()->latest()->paginate(20),
+            'segments' => \\App\\Models\\CommunicationSegment::query()->latest()->get(),
+        ]);
     }
 
     public function store(Request $request, AuditLogService $audit): RedirectResponse
@@ -28,7 +31,8 @@ class CommunicationCampaignController extends Controller
             'name' => ['required', 'string', 'max:160'],
             'subject' => ['required', 'string', 'max:180'],
             'body' => ['required', 'string', 'max:10000'],
-            'audience' => ['required', 'in:all,client,professional'],
+            'audience' => ['nullable', 'in:all,client,professional'],
+            'segment_id' => ['nullable', 'integer', 'exists:communication_segments,id'],
         ]);
 
         $campaign = CommunicationCampaign::query()->create([
@@ -36,13 +40,32 @@ class CommunicationCampaignController extends Controller
             'subject' => $data['subject'],
             'body' => $data['body'],
             'channel' => 'database',
-            'audience_rules' => ['audience' => $data['audience'], 'account_status' => 'active'],
+            'audience_rules' => isset($data['segment_id'])
+                ? \\App\\Models\\CommunicationSegment::query()->findOrFail($data['segment_id'])->rules
+                : ['audience' => ($data['audience'] ?? 'all'), 'account_status' => 'active'],
+            'communication_segment_id' => $data['segment_id'] ?? null,
             'status' => 'draft',
             'created_by' => $request->user()->id,
         ]);
         $audit->record('communication_campaign_created', $campaign, $request->user(), ['audience' => $data['audience']], $request);
 
         return back()->with('success', 'Campagne enregistrée en brouillon.');
+    }
+
+    public function storeSegment(Request $request, AuditLogService $audit): RedirectResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'audience' => ['required', 'in:all,client,professional'],
+        ]);
+        $segment = \\App\\Models\\CommunicationSegment::query()->create([
+            'name' => $data['name'],
+            'rules' => ['audience' => $data['audience'], 'account_status' => 'active'],
+            'created_by' => $request->user()->id,
+        ]);
+        $audit->record('communication_segment_created', $segment, $request->user(), ['audience' => $data['audience']], $request);
+
+        return back()->with('success', 'Segment enregistré.');
     }
 
     public function preview(CommunicationCampaign $campaign): View
