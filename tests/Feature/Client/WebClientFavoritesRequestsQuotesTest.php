@@ -6,12 +6,11 @@ namespace Tests\Feature\Client;
 
 use App\Enums\ServiceExecutionMode;
 use App\Models\Address;
+use App\Models\AuditLog;
 use App\Models\Conversation;
 use App\Models\Favorite;
 use App\Models\Order;
-use App\Models\AuditLog;
 use App\Models\ProfessionalProfile;
-use Illuminate\Support\Str;
 use App\Models\Quotation;
 use App\Models\QuotationEvent;
 use App\Models\QuotationOffer;
@@ -22,6 +21,7 @@ use App\Notifications\AccountActivityNotification;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class WebClientFavoritesRequestsQuotesTest extends TestCase
