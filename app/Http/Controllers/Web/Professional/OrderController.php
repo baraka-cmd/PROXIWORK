@@ -137,6 +137,7 @@ class OrderController extends Controller
             'payment.transactions',
             'commission',
             'review',
+            'disputes',
         ]);
 
         return view('professional.orders.show', compact('order'));
