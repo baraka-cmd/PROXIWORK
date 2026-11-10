@@ -48,6 +48,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomePageController::class, 'index'])->name('home');
+Route::get('/sitemap.xml', [PublicContentController::class, 'sitemap'])->name('public.sitemap');
 Route::get('/announcements', [PublicContentController::class, 'announcements'])->name('public.announcements');
 Route::get('/pages/{slug}', [PublicContentController::class, 'page'])->where('slug', '[a-z0-9-]+')->name('public.pages.show');
 Route::get('/faq', [PublicContentController::class, 'faq'])->name('public.faq');
