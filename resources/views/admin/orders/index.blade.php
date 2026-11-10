@@ -31,7 +31,7 @@
         ['label' => 'Terminées', 'value' => $overview['completed'] ?? 0],
         ['label' => 'Annulées', 'value' => $overview['cancelled'] ?? 0],
         ['label' => 'Contestées', 'value' => $overview['disputed'] ?? 0],
-        ['label' => 'Blocages signalés', 'value' => $overview['work_blocked'] ?? 0],
+        ['label' => 'Commandes avec blocage signalé', 'value' => $overview['work_blocked'] ?? 0],
     ] as $kpi)
         <article class="admin-card admin-order-kpi">
             <span>{{ $kpi['label'] }}</span>
@@ -124,7 +124,7 @@
                     <td><span class="admin-status admin-status--{{ $order->status->value }}">{{ $statusLabels[$order->status->value] ?? $order->status->value }}</span></td>
                     <td>{{ number_format((float) $order->total, 2) }} {{ $order->currency }}</td>
                     <td>{{ $order->payment?->status?->value ?? 'Aucun paiement' }}</td>
-                    <td>{{ ($order->has_work_blocker ?? false) ? 'À examiner' : '—' }}</td>
+                    <td>{{ ($order->has_work_blocker ?? false) ? 'Signalement enregistré' : '—' }}</td>
                     <td><a class="admin-icon-button" href="{{ route('admin.orders.show', $order) }}" aria-label="Consulter le dossier {{ $order->order_number }}"><i class="fa-solid fa-arrow-up-right-from-square"></i></a></td>
                 </tr>
             @empty
