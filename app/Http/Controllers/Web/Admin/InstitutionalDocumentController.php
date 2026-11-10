@@ -87,10 +87,22 @@ class InstitutionalDocumentController extends Controller
 
     public function approve(Request $request, InstitutionalDocumentVersion $version, AuditLogService $audit): RedirectResponse
     {
-        abort_if($version->created_by === $request->user()->id, 403, 'Une personne différente doit approuver cette version.');
-        abort_unless($version->status === 'draft', 409);
-        abort_unless($version->version === $version->document()->firstOrFail()->versions()->max('version'), 409, 'Une version plus récente existe.');
-        $version->update(['status' => 'approved', 'approved_by' => $request->user()->id]);
+        DB::transaction(function () use ($version, $request): void {
+            $document = InstitutionalDocument::query()
+                ->lockForUpdate()
+                ->findOrFail($version->institutional_document_id);
+            $locked = InstitutionalDocumentVersion::query()->lockForUpdate()->findOrFail($version->id);
+
+            abort_if($locked->created_by === $request->user()->id, 403, 'Une personne différente doit approuver cette version.');
+            abort_unless($locked->status === 'draft', 409);
+            abort_unless(
+                $locked->version === $document->versions()->max('version'),
+                409,
+                'Une version plus récente existe.',
+            );
+
+            $locked->update(['status' => 'approved', 'approved_by' => $request->user()->id]);
+        });
         $audit->record('institutional_document_version_approved', $version, $request->user(), ['version' => $version->version], $request);
 
         return back()->with('success', 'Version approuvée.');
@@ -98,18 +110,31 @@ class InstitutionalDocumentController extends Controller
 
     public function publish(Request $request, InstitutionalDocumentVersion $version, AuditLogService $audit): RedirectResponse
     {
-        abort_unless($version->status === 'approved', 409, 'Seule une version approuvée peut être publiée.');
-        abort_unless($version->version === $version->document()->firstOrFail()->versions()->max('version'), 409, 'Une version plus récente existe.');
         DB::transaction(function () use ($version): void {
+            $document = InstitutionalDocument::query()
+                ->lockForUpdate()
+                ->findOrFail($version->institutional_document_id);
             $locked = InstitutionalDocumentVersion::query()->lockForUpdate()->findOrFail($version->id);
-            abort_unless($locked->status === 'approved', 409);
+
+            abort_unless($locked->status === 'approved', 409, 'Seule une version approuvée peut être publiée.');
+            abort_unless(
+                $locked->version === $document->versions()->max('version'),
+                409,
+                'Une version plus récente existe.',
+            );
+
             InstitutionalDocumentVersion::query()
                 ->where('institutional_document_id', $locked->institutional_document_id)
                 ->whereIn('status', ['draft', 'approved', 'published'])
                 ->whereKeyNot($locked->id)
                 ->update(['status' => 'superseded']);
-            $locked->update(['status' => 'published', 'published_at' => now(), 'effective_at' => $locked->effective_at ?? now()]);
-            $locked->document()->update(['status' => 'published', 'current_version' => $locked->version]);
+
+            $locked->update([
+                'status' => 'published',
+                'published_at' => now(),
+                'effective_at' => $locked->effective_at ?? now(),
+            ]);
+            $document->update(['status' => 'published', 'current_version' => $locked->version]);
         });
         $audit->record('institutional_document_version_published', $version, $request->user(), ['version' => $version->version], $request);
 
