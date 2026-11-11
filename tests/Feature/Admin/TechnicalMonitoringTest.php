@@ -36,6 +36,32 @@ class TechnicalMonitoringTest extends TestCase
             ->assertDontSee('AWS_SECRET_ACCESS_KEY');
     }
 
+    public function test_http_performance_snapshot_is_displayed(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('http_performance_snapshots')->insert([
+            'bucket_at' => now()->startOfMinute(),
+            'request_count' => 100,
+            'error_count' => 5,
+            'duration_total_ms' => 25000,
+            'p95_bucket_ms' => 500,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Requêtes HTTP (1 h)')
+            ->assertSee('100')
+            ->assertSee('5,00 %')
+            ->assertSee('25 ms');
+    }
+
     public function test_aggregated_incident_is_visible_without_exception_message_or_trace(): void
     {
         $this->seed(RbacSeeder::class);

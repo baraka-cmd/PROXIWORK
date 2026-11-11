@@ -291,12 +291,26 @@ class TechnicalMonitoringService
     /** @return array<string, mixed> */
     private function performanceHealth(?int $databaseLatencyMs): array
     {
+        $snapshots = Schema::hasTable('http_performance_snapshots')
+            ? DB::table('http_performance_snapshots')
+                ->where('bucket_at', '>=', now()->subHour())
+                ->orderBy('bucket_at')
+                ->get()
+            : collect();
+
+        $requests = (int) $snapshots->sum('request_count');
+        $errors = (int) $snapshots->sum('error_count');
+        $durationTotal = (int) $snapshots->sum('duration_total_ms');
+        $latest = $snapshots->last();
+
         return [
             'database_probe_ms' => $databaseLatencyMs,
-            'http_percentiles' => null,
-            'http_error_rate' => null,
+            'request_count_last_hour' => $requests,
+            'http_error_rate' => $requests > 0 ? round(($errors / $requests) * 100, 2) : null,
+            'average_response_ms' => $requests > 0 ? (int) round($durationTotal / $requests) : null,
+            'p95_bucket_ms' => $latest?->p95_bucket_ms,
             'availability_history' => null,
-            'message' => 'Les mesures HTTP historiques nécessitent une collecte dédiée et un contrôle externe.',
+            'message' => 'Les métriques HTTP sont agrégées par minute ; la disponibilité externe nécessite un contrôle indépendant.',
         ];
     }
 }

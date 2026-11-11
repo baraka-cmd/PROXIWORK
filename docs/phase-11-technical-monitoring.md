@@ -8,6 +8,7 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 
 - Files database queue : volumes en attente et réservés, ancienneté de la tâche en attente la plus ancienne.
 - Workers : heartbeat émis depuis la boucle réelle de chaque worker, limité à une écriture toutes les 20 secondes et considéré actif pendant deux minutes.
+- Performance HTTP : comptage agrégé des requêtes, réponses 5xx, temps moyen et classe P95 par histogramme, avec archivage à la minute via le scheduler.
 - Jobs échoués : dix dernières références, nom de classe réduit, file et date d'échec. Payload et stack trace non exposés.
 - Notifications : volumes par statut, avec lien vers l'historique détaillé déjà existant.
 - Paiements : agrégation par fournisseur et statut, transactions inconnues.
@@ -22,7 +23,7 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 Cette première livraison ne prétend pas mesurer ce qui n'est pas instrumenté :
 - Le heartbeat confirme que le processus worker exécute sa boucle ; il ne garantit pas à lui seul que chaque job métier réussit.
 - La connectivité réelle des fournisseurs de paiement n'est pas testée par cette page.
-- Les percentiles HTTP, taux d'erreur applicatif agrégé et historique de disponibilité nécessitent une collecte dédiée et, pour la disponibilité externe, un contrôleur indépendant.
+- Le P95 affiché est une classe d'histogramme (pas un percentile exact). Le taux 5xx et le temps moyen sont agrégés sur les minutes archivées. L'historique de disponibilité externe nécessite toujours un contrôleur indépendant.
 - Les erreurs applicatives ne sont pas encore regroupées en incidents ; les journaux bruts ne sont volontairement pas consultables depuis l'Admin.
 - Aucun retry générique de job n'est proposé : l'idempotence doit être vérifiée par classe de job avant toute reprise.
 - Aucun inventaire récursif ni nettoyage de fichiers orphelins n'est exécuté dans une requête web.

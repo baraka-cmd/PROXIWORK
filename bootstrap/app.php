@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureWebGuard;
 use App\Http\Middleware\RecordSecuritySession;
+use App\Http\Middleware\RecordHttpPerformance;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AddSecurityHeaders::class);
+        $middleware->append(RecordHttpPerformance::class);
         $middleware->web(append: [EnsureWebGuard::class, AuthenticateSession::class, RecordSecuritySession::class]);
         $middleware->api(append: [RecordSecuritySession::class]);
 

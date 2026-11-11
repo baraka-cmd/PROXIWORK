@@ -260,9 +260,24 @@
                     <small>Durée du contrôle SQL ponctuel</small>
                 </article>
                 <article class="admin-stat-card">
-                    <span>Percentiles HTTP</span>
-                    <strong>Non mesurés</strong>
-                    <small>P50 / P95 / P99</small>
+                    <span>Requêtes HTTP (1 h)</span>
+                    <strong>{{ number_format($monitoring['performance']['request_count_last_hour']) }}</strong>
+                    <small>Toutes routes hors contrôle /up</small>
+                </article>
+                <article class="admin-stat-card">
+                    <span>Taux d'erreur HTTP</span>
+                    <strong>{{ $monitoring['performance']['http_error_rate'] === null ? '—' : number_format($monitoring['performance']['http_error_rate'], 2, ',', ' ').' %' }}</strong>
+                    <small>Réponses 5xx agrégées</small>
+                </article>
+                <article class="admin-stat-card">
+                    <span>Temps moyen HTTP</span>
+                    <strong>{{ $monitoring['performance']['average_response_ms'] === null ? '—' : $monitoring['performance']['average_response_ms'].' ms' }}</strong>
+                    <small>Sur les minutes archivées</small>
+                </article>
+                <article class="admin-stat-card">
+                    <span>Classe P95 récente</span>
+                    <strong>{{ $monitoring['performance']['p95_bucket_ms'] === null ? '—' : ($monitoring['performance']['p95_bucket_ms'] > 1000 ? '> 1 000 ms' : '≤ '.$monitoring['performance']['p95_bucket_ms'].' ms') }}</strong>
+                    <small>Classe histogramme de la dernière minute</small>
                 </article>
                 <article class="admin-stat-card">
                     <span>Disponibilité historique</span>
