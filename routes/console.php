@@ -78,6 +78,12 @@ Schedule::call(function (): void {
             ->delete();
     }
 
+    if (Schema::hasTable('storage_integrity_runs')) {
+        DB::table('storage_integrity_runs')
+            ->where('completed_at', '<', now()->subDays(90))
+            ->delete();
+    }
+
     if (Schema::hasTable('application_incidents')) {
         DB::table('application_incidents')
             ->where('last_seen_at', '<', now()->subDays(90))
@@ -85,4 +91,7 @@ Schedule::call(function (): void {
     }
 })->dailyAt('03:50')->name('monitoring-telemetry-retention')->withoutOverlapping();
 
-Schedule::command('storage:integrity-check')->dailyAt('04:10')->withoutOverlapping();
+Schedule::command('storage:integrity-check')
+    ->weeklyOn(0, '04:10')
+    ->name('storage-integrity-check')
+    ->withoutOverlapping();
