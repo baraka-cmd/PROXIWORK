@@ -62,7 +62,11 @@ class PlatformSettingController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $this->settings->update($request->input('settings', []), $request->user(), $request);
+        $validated = $request->validate([
+            'settings' => ['required', 'array'],
+        ]);
+
+        $this->settings->update($validated['settings'], $request->user(), $request);
 
         return redirect()->route('admin.settings.index')->with('success', 'Les paramètres autorisés ont été enregistrés.');
     }
