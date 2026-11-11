@@ -7,6 +7,7 @@ namespace App\Http\Requests\ServiceRequest;
 use App\Models\Address;
 use App\Models\Service;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreServiceRequestRequest extends FormRequest
@@ -25,7 +26,7 @@ class StoreServiceRequestRequest extends FormRequest
             'description' => ['required', 'string', 'min:20', 'max:10000'],
             'budget_min' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'budget_max' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
-            'currency' => ['nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
+            'currency' => ['nullable', 'string', 'size:3', 'regex:/^[A-Z]{3}$/', Rule::exists('currencies', 'code')->where('is_active', true)],
             'desired_at' => ['nullable', 'date', 'after_or_equal:now'],
             'idempotency_key' => ['sometimes', 'nullable', 'uuid'],
         ];

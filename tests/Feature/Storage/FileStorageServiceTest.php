@@ -55,6 +55,18 @@ class FileStorageServiceTest extends TestCase
         );
     }
 
+    public function test_file_with_disallowed_real_mime_is_rejected_even_when_extension_looks_valid(): void
+    {
+        Storage::fake('local');
+
+        $this->expectException(ValidationException::class);
+
+        app(FileStorageService::class)->storeDocument(
+            UploadedFile::fake()->create('identity.pdf', 10, 'text/html'),
+            42,
+        );
+    }
+
     public function test_oversized_document_is_rejected(): void
     {
         Storage::fake('local');

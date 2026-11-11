@@ -20,6 +20,7 @@ use App\Http\Controllers\Web\Admin\NotificationTemplateController;
 use App\Http\Controllers\Web\Admin\OrderController;
 use App\Http\Controllers\Web\Admin\OrderDisputeController;
 use App\Http\Controllers\Web\Admin\PaymentController;
+use App\Http\Controllers\Web\Admin\PlatformSettingController;
 use App\Http\Controllers\Web\Admin\PermissionController;
 use App\Http\Controllers\Web\Admin\ProfessionalController;
 use App\Http\Controllers\Web\Admin\ProfessionalDocumentController;
@@ -347,4 +348,13 @@ Route::middleware(['auth', 'active.account', 'permission:notification_templates.
 });
 Route::middleware(['auth', 'active.account', 'permission:announcements.publish'])->group(function (): void {
     Route::post('communication/announcements/{announcement}/publish', [AnnouncementController::class, 'publish'])->name('communication.announcements.publish');
+});
+
+// Phase 10 — configuration générale et politiques opérationnelles.
+Route::middleware(['auth', 'active.account', 'permission:admin.settings.view'])->group(function (): void {
+    Route::get('settings', [PlatformSettingController::class, 'index'])->name('settings.index');
+});
+Route::middleware(['auth', 'active.account', 'permission:admin.settings.manage'])->group(function (): void {
+    Route::put('settings', [PlatformSettingController::class, 'update'])->middleware('throttle:10,1')->name('settings.update');
+    Route::patch('settings/currencies/{currency}', [PlatformSettingController::class, 'updateCurrency'])->where('currency', '[A-Z]{3}')->middleware('throttle:10,1')->name('settings.currencies.update');
 });

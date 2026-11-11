@@ -1,0 +1,27 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Currency extends Model
+{
+    protected $primaryKey = 'code';
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $fillable = ['code', 'name', 'symbol', 'decimal_places', 'is_active', 'is_default'];
+
+    protected function casts(): array
+    {
+        return [
+            'decimal_places' => 'integer',
+            'is_active' => 'boolean',
+            'is_default' => 'boolean',
+        ];
+    }
+}

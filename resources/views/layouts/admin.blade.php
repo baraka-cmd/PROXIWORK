@@ -102,6 +102,13 @@
                 ],
             ],
             [
+                'title' => 'Configuration',
+                'icon' => 'fa-sliders',
+                'items' => [
+                    ['label' => 'Paramètres généraux', 'route' => 'admin.settings.index', 'permission' => 'admin.settings.view', 'icon' => 'fa-gear', 'active' => ['admin.settings.*']],
+                ],
+            ],
+            [
                 'title' => 'Audit et sécurité',
                 'icon' => 'fa-shield-halved',
                 'items' => [
