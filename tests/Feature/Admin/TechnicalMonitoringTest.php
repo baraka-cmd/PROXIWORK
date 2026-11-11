@@ -36,6 +36,33 @@ class TechnicalMonitoringTest extends TestCase
             ->assertDontSee('AWS_SECRET_ACCESS_KEY');
     }
 
+    public function test_latest_storage_integrity_run_is_displayed(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('storage_integrity_runs')->insert([
+            'status' => 'missing_files_found',
+            'records_checked' => 250,
+            'missing_files' => 2,
+            'check_errors' => 1,
+            'table_results' => json_encode(['media_assets' => ['checked' => 250, 'missing' => 2, 'errors' => 1]], JSON_THROW_ON_ERROR),
+            'started_at' => now()->subMinutes(2),
+            'completed_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Dernier contrôle d'intégrité des fichiers')
+            ->assertSee('250')
+            ->assertSee('missing_files_found');
+    }
+
     public function test_http_performance_snapshot_is_displayed(): void
     {
         $this->seed(RbacSeeder::class);

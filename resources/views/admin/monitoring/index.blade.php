@@ -234,7 +234,21 @@
                     </tbody>
                 </table>
             </div>
-            <p class="admin-help-text">La capacité n'est fournie que pour les disques locaux. Aucun inventaire récursif ni nettoyage automatique n'est exécuté depuis cette page.</p>
+            <h3>Dernier contrôle d'intégrité des fichiers</h3>
+            @if (! $monitoring['storage']['integrity']['available'])
+                <p class="admin-empty-state">Le contrôle d'intégrité n'est pas encore configuré.</p>
+            @elseif ($monitoring['storage']['integrity']['latest'] === null)
+                <p class="admin-empty-state">Aucun contrôle d'intégrité exécuté pour le moment.</p>
+            @else
+                @php($integrity = $monitoring['storage']['integrity']['latest'])
+                <div class="admin-stats-grid">
+                    <article class="admin-stat-card"><span>Références vérifiées</span><strong>{{ number_format($integrity['records_checked']) }}</strong></article>
+                    <article class="admin-stat-card"><span>Fichiers manquants</span><strong>{{ number_format($integrity['missing_files']) }}</strong></article>
+                    <article class="admin-stat-card"><span>Erreurs de contrôle</span><strong>{{ number_format($integrity['check_errors']) }}</strong></article>
+                </div>
+                <p class="admin-help-text">État : {{ $integrity['status'] }} · Terminé le {{ $integrity['completed_at'] }}</p>
+            @endif
+            <p class="admin-help-text">La capacité système est mesurable pour les disques locaux. Le contrôle vérifie les références connues sans afficher les chemins privés ni supprimer automatiquement de fichiers.</p>
         </section>
 
         <section class="admin-card">

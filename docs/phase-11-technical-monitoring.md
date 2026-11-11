@@ -12,7 +12,7 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 - Jobs échoués : dix dernières références, nom de classe réduit, file et date d'échec. Payload et stack trace non exposés.
 - Notifications : volumes par statut, avec lien vers l'historique détaillé déjà existant.
 - Paiements : agrégation par fournisseur et statut, transactions inconnues.
-- Stockage local/public : accès au disque et capacité système lorsqu'elle est disponible.
+- Stockage local/public : accès au disque, capacité système lorsqu'elle est disponible et dernier contrôle d'intégrité des références fichiers connues (commande planifiée quotidienne).
 - Journaux : présence, taille et date de dernière écriture du fichier de log, sans exposition de son contenu.
 - Incidents applicatifs : regroupement par classe d'exception et point technique (fichier/ligne), avec compteur et dates de première/dernière occurrence ; messages et traces exclus.
 - Notifications : historique des tentatives en échec à partir de la table d'audit des tentatives, sans destinataire ni contenu.
@@ -24,9 +24,9 @@ Cette première livraison ne prétend pas mesurer ce qui n'est pas instrumenté 
 - Le heartbeat confirme que le processus worker exécute sa boucle ; il ne garantit pas à lui seul que chaque job métier réussit.
 - La connectivité réelle des fournisseurs de paiement n'est pas testée par cette page.
 - Le P95 affiché est une classe d'histogramme (pas un percentile exact). Le taux 5xx et le temps moyen sont agrégés sur les minutes archivées. L'historique de disponibilité externe nécessite toujours un contrôleur indépendant.
-- Les erreurs applicatives ne sont pas encore regroupées en incidents ; les journaux bruts ne sont volontairement pas consultables depuis l'Admin.
+- Les incidents sont regroupés par classe d'exception et fichier/ligne ; les messages, traces et données de requête ne sont pas stockés. Les journaux bruts ne sont volontairement pas consultables depuis l'Admin.
 - Aucun retry générique de job n'est proposé : l'idempotence doit être vérifiée par classe de job avant toute reprise.
-- Aucun inventaire récursif ni nettoyage de fichiers orphelins n'est exécuté dans une requête web.
+- Le contrôle d'intégrité est exécuté en tâche planifiée, par lots, et ne supprime aucun fichier. Il vérifie les références de tables connues ; il ne réalise pas un inventaire récursif du disque ni une suppression des fichiers orphelins.
 
 ### Sécurité
 
@@ -38,4 +38,4 @@ Cette première livraison ne prétend pas mesurer ce qui n'est pas instrumenté 
 
 ### Suite technique recommandée
 
-Instrumenter les événements queue avec un heartbeat worker explicite, créer des instantanés de métriques à faible fréquence, collecter des métriques HTTP agrégées avec rétention, ajouter un registre d'incidents expurgé des secrets, et connecter un contrôle de disponibilité externe. Ces éléments doivent être introduits après validation de l'impact opérationnel et des capacités de l'hébergement cible.
+Ajouter un contrôle externe indépendant de disponibilité et des alertes (seuils/canaux) après validation des capacités de l'hébergement cible. Les workers, incidents, métriques HTTP et vérification planifiée des références fichiers sont instrumentés dans cette livraison.

@@ -22,18 +22,18 @@ Artisan::command('inspire', function (): void {
 Schedule::call(function (): void {
     $bucketAt = now()->subMinute()->startOfMinute();
     $prefix = 'http-performance:'.$bucketAt->format('YmdHi');
-    $requests = (int) Cache::pull($prefix.':requests', 0);
+    $requests = (int) Cache::get($prefix.':requests', 0);
 
     if ($requests < 1) {
         return;
     }
 
     $buckets = [
-        'le_100' => (int) Cache::pull($prefix.':le_100', 0),
-        'le_250' => (int) Cache::pull($prefix.':le_250', 0),
-        'le_500' => (int) Cache::pull($prefix.':le_500', 0),
-        'le_1000' => (int) Cache::pull($prefix.':le_1000', 0),
-        'gt_1000' => (int) Cache::pull($prefix.':gt_1000', 0),
+        'le_100' => (int) Cache::get($prefix.':le_100', 0),
+        'le_250' => (int) Cache::get($prefix.':le_250', 0),
+        'le_500' => (int) Cache::get($prefix.':le_500', 0),
+        'le_1000' => (int) Cache::get($prefix.':le_1000', 0),
+        'gt_1000' => (int) Cache::get($prefix.':gt_1000', 0),
     ];
     $target = (int) ceil($requests * 0.95);
     $cumulative = 0;
@@ -51,13 +51,17 @@ Schedule::call(function (): void {
         ['bucket_at' => $bucketAt],
         [
             'request_count' => $requests,
-            'error_count' => (int) Cache::pull($prefix.':errors_5xx', 0),
-            'duration_total_ms' => (int) Cache::pull($prefix.':duration_total_ms', 0),
+            'error_count' => (int) Cache::get($prefix.':errors_5xx', 0),
+            'duration_total_ms' => (int) Cache::get($prefix.':duration_total_ms', 0),
             'p95_bucket_ms' => $p95Bucket,
             'updated_at' => now(),
             'created_at' => now(),
         ],
     );
+
+    foreach (['requests', 'duration_total_ms', 'errors_5xx', 'le_100', 'le_250', 'le_500', 'le_1000', 'gt_1000'] as $metric) {
+        Cache::forget($prefix.':'.$metric);
+    }
 })->everyMinute()->name('http-performance-snapshot')->withoutOverlapping();
 
 
@@ -80,3 +84,5 @@ Schedule::call(function (): void {
             ->delete();
     }
 })->dailyAt('03:50')->name('monitoring-telemetry-retention')->withoutOverlapping();
+
+Schedule::command('storage:integrity-check')->dailyAt('04:10')->withoutOverlapping();

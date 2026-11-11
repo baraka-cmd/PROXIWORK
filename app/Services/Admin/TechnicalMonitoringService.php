@@ -34,7 +34,7 @@ class TechnicalMonitoringService
             'failed_jobs' => $application['database'] === 'available' ? $this->failedJobs() : ['available' => false, 'total' => 0, 'recent' => []],
             'notifications' => $application['database'] === 'available' ? $this->notificationHealth() : ['available' => false, 'total' => 0, 'by_status' => [], 'attention' => 0],
             'payments' => $application['database'] === 'available' ? $this->paymentHealth() : ['available' => false, 'total' => 0, 'by_provider' => [], 'attention' => 0],
-            'storage' => $this->storageHealth(),
+            'storage' => $this->storageHealth($application['database'] === 'available'),
             'errors' => $this->applicationLogHealth(),
             'incidents' => $application['database'] === 'available' ? $this->incidentHealth() : ['available' => false, 'total' => 0, 'recent' => []],
             'performance' => $this->performanceHealth($application['database_latency_ms'], $application['database'] === 'available'),
@@ -202,7 +202,7 @@ class TechnicalMonitoringService
         $attention = 0;
 
         foreach ($rows as $row) {
-            $provider = (string) $row->provider;
+            $provider = $row->provider instanceof \\BackedEnum ? $row->provider->value : (string) $row->provider;
             $status = $row->status instanceof \BackedEnum ? $row->status->value : (string) $row->status;
             $total = (int) $row->total;
             $providers[$provider][$status] = $total;
@@ -242,7 +242,7 @@ class TechnicalMonitoringService
     }
 
     /** @return array<string, mixed> */
-    private function storageHealth(): array
+    private function storageHealth(bool $databaseAvailable): array
     {
         $disks = [];
 
@@ -269,7 +269,26 @@ class TechnicalMonitoringService
             }
         }
 
-        return ['disks' => $disks];
+        $integrity = ['available' => false, 'latest' => null];
+
+        if ($databaseAvailable && Schema::hasTable('storage_integrity_runs')) {
+            $latest = DB::table('storage_integrity_runs')
+                ->latest('id')
+                ->first(['status', 'records_checked', 'missing_files', 'check_errors', 'completed_at']);
+
+            $integrity = [
+                'available' => true,
+                'latest' => $latest === null ? null : [
+                    'status' => (string) $latest->status,
+                    'records_checked' => (int) $latest->records_checked,
+                    'missing_files' => (int) $latest->missing_files,
+                    'check_errors' => (int) $latest->check_errors,
+                    'completed_at' => $latest->completed_at,
+                ],
+            ];
+        }
+
+        return ['disks' => $disks, 'integrity' => $integrity];
     }
 
     /** @return array<string, mixed> */
