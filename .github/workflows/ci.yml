@@ -67,6 +67,14 @@ jobs:
       - name: Discover Laravel packages
         run: php artisan package:discover --ansi
 
+      - name: Check PHP syntax for changed files
+        shell: bash
+        run: |
+          changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
+          if [[ -n "$changed_files" ]]; then
+            while IFS= read -r file; do php -l "$file"; done <<< "$changed_files"
+          fi
+
       # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
       - name: Check code style for changed PHP files
         shell: bash
