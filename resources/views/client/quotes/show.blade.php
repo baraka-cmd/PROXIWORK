@@ -41,11 +41,27 @@
             <x-alert type="warning" :message="session('warning')" />
         @endif
         @if ($errors->any())
-            <div class="client-form-alert" role="alert" tabindex="-1">
-                <strong>La décision n'a pas été enregistrée.</strong>
+            <div class="client-form-alert client-quote-error-summary" data-error-summary role="alert" tabindex="-1" aria-labelledby="quote-error-summary-title">
+                <strong id="quote-error-summary-title">Un problème empêche l’enregistrement</strong>
+                <p>Vérifiez les informations ci-dessous. Les valeurs déjà saisies ont été conservées lorsque cela est possible.</p>
                 <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
+                    @foreach ($errors->getMessages() as $field => $messages)
+                        @foreach ($messages as $message)
+                            <li>
+                                @php
+                                    $errorTarget = match ($field) {
+                                        'amount' => '#counter-amount',
+                                        'duration_value' => '#counter-duration',
+                                        'duration_unit' => '#counter-duration-unit',
+                                        'valid_until' => '#counter-valid-until',
+                                        'description' => '#counter-description',
+                                        'conditions' => '#counter-conditions',
+                                        default => '#quote-decision',
+                                    };
+                                @endphp
+                                <a href="{{ $errorTarget }}">{{ $message }}</a>
+                            </li>
+                        @endforeach
                     @endforeach
                 </ul>
             </div>
@@ -173,7 +189,7 @@
                                             @case('counter_offer_rejected_by_professional') Contre-proposition refusée par le professionnel @break
                                             @case('quote_expired') Devis expiré @break
                                             @case('quotation_withdrawn') Devis retiré @break
-                                            @default {{ str_replace('_', ' ', ucfirst($event->type)) }}
+                                            @default Mise à jour enregistrée
                                         @endswitch
                                     </strong>
                                     <span>{{ optional($event->created_at)->format('d/m/Y à H:i') }} · {{ $event->actor?->name ?? 'Système PROXIWORK' }}</span>
@@ -209,7 +225,7 @@
                         @if ($quotation->order)
                             <dl class="client-definition-list">
                                 <div><dt>Commande</dt><dd>{{ $quotation->order->order_number }}</dd></div>
-                                <div><dt>État</dt><dd>{{ $quotation->order->status->value }}</dd></div>
+                                <div><dt>État de la commande</dt><dd>{{ match ($quotation->order->status) { \App\Enums\OrderStatus::PENDING_PAYMENT => 'En attente de paiement', \App\Enums\OrderStatus::CONFIRMED => 'Confirmée', \App\Enums\OrderStatus::IN_PROGRESS => 'En cours', \App\Enums\OrderStatus::DELIVERY_SUBMITTED => 'Livraison soumise', \App\Enums\OrderStatus::COMPLETED => 'Terminée', \App\Enums\OrderStatus::CANCELLED => 'Annulée', \App\Enums\OrderStatus::DISPUTED => 'En litige', default => 'État indisponible' } }}</dd></div>
                                 <div><dt>Total contractuel</dt><dd>{{ number_format((float) $quotation->order->total, 2, ',', ' ') }} {{ $quotation->order->currency }}</dd></div>
                             </dl>
                             <a class="btn btn-primary client-quote-full-width" href="{{ route('client.orders.show', $quotation->order) }}">Ouvrir la commande</a>
@@ -233,7 +249,7 @@
                         <div><strong>En attente du professionnel</strong><p>Votre dernière proposition est enregistrée. Vous pourrez décider lorsque le professionnel aura répondu.</p></div>
                     </section>
                 @elseif ($clientMustDecide)
-                    <section class="client-panel client-quote-decision-panel">
+                    <section class="client-panel client-quote-decision-panel" id="quote-decision">
                         <h2>Votre décision</h2>
                         <p>Vérifiez le montant, la devise, le délai et les conditions avant de répondre.</p>
                         @if (! $quotation->serviceRequest?->address)
@@ -261,16 +277,28 @@
                     </section>
 
                     <section class="client-panel client-quote-counter-panel">
-                        <h2>Demander une modification</h2>
-                        <p>Votre réponse crée une nouvelle version ; les versions précédentes restent consultables. La devise reste identique pendant la négociation.</p>
-                        <form class="client-form-grid" method="POST" action="{{ route('client.quotes.counter-offer', $quotation) }}">
+                        <div>
+                            <p class="client-module__eyebrow">NÉGOCIATION</p>
+                            <h2>Faire une contre-proposition</h2>
+                            <p>Comparez les conditions, puis proposez une nouvelle version. L’offre actuelle et son historique resteront consultables.</p>
+                        </div>
+                        <div class="client-quote-counter-current" aria-label="Résumé de l’offre actuelle">
+                            <span>Offre actuelle · Version {{ $offer->version }}</span>
+                            <strong>{{ number_format((float) $offer->amount, 2, ',', ' ') }} {{ $offer->currency }}</strong>
+                            <dl>
+                                <div><dt>Délai</dt><dd>{{ $offer->duration_value }} {{ $offer->duration_unit->value }}</dd></div>
+                                <div><dt>Valable jusqu’au</dt><dd>{{ optional($offer->valid_until)->format('d/m/Y à H:i') ?? 'Non défini' }}</dd></div>
+                            </dl>
+                            <p>La devise est verrouillée pendant cette négociation. Aucun taux de conversion n’est appliqué.</p>
+                        </div>
+                        <form id="counter-offer-form" class="client-form-grid" method="POST" action="{{ route('client.quotes.counter-offer', $quotation) }}">
                             @csrf
                             <input type="hidden" name="currency" value="{{ $offer->currency }}">
                             <div class="client-field">
                                 <label for="counter-amount">Montant proposé ({{ $offer->currency }})</label>
                                 <input id="counter-amount" name="amount" type="number" step="0.01" min="0.01" max="9999999999.99"
-                                       value="{{ old('amount') }}" required>
-                                @error('amount')<small class="client-field-error">{{ $message }}</small>@enderror
+                                       value="{{ old('amount') }}" required inputmode="decimal" @if ($errors->has('amount')) aria-invalid="true" aria-describedby="counter-amount-error" @endif>
+                                @error('amount')<small id="counter-amount-error" class="client-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="client-field">
                                 <label for="counter-currency-display">Devise</label>
@@ -279,33 +307,33 @@
                             <div class="client-field">
                                 <label for="counter-duration">Délai proposé</label>
                                 <input id="counter-duration" name="duration_value" type="number" min="1" max="10000"
-                                       value="{{ old('duration_value', $offer->duration_value) }}" required>
-                                @error('duration_value')<small class="client-field-error">{{ $message }}</small>@enderror
+                                       value="{{ old('duration_value', $offer->duration_value) }}" required @if ($errors->has('duration_value')) aria-invalid="true" aria-describedby="counter-duration-error" @endif>
+                                @error('duration_value')<small id="counter-duration-error" class="client-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="client-field">
                                 <label for="counter-duration-unit">Unité</label>
-                                <select id="counter-duration-unit" name="duration_unit" required>
+                                <select id="counter-duration-unit" name="duration_unit" required @if ($errors->has('duration_unit')) aria-invalid="true" aria-describedby="counter-duration-unit-error" @endif>
                                     @foreach (\App\Enums\QuotationDurationUnit::cases() as $unit)
                                         <option value="{{ $unit->value }}" @selected(old('duration_unit', $offer->duration_unit->value) === $unit->value)>{{ ucfirst($unit->value) }}</option>
                                     @endforeach
                                 </select>
-                                @error('duration_unit')<small class="client-field-error">{{ $message }}</small>@enderror
+                                @error('duration_unit')<small id="counter-duration-unit-error" class="client-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="client-field client-form-grid__full">
                                 <label for="counter-valid-until">Validité de votre proposition</label>
                                 <input id="counter-valid-until" name="valid_until" type="datetime-local"
-                                       value="{{ old('valid_until') }}" min="{{ now()->addMinute()->format('Y-m-d\TH:i') }}" required>
-                                @error('valid_until')<small class="client-field-error">{{ $message }}</small>@enderror
+                                       value="{{ old('valid_until') }}" min="{{ now()->addMinute()->format('Y-m-d\TH:i') }}" required @if ($errors->has('valid_until')) aria-invalid="true" aria-describedby="counter-valid-until-error" @endif>
+                                @error('valid_until')<small id="counter-valid-until-error" class="client-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="client-field client-form-grid__full">
                                 <label for="counter-description">Description et périmètre</label>
-                                <textarea id="counter-description" name="description" rows="4" minlength="10" maxlength="10000" required>{{ old('description', $offer->description) }}</textarea>
-                                @error('description')<small class="client-field-error">{{ $message }}</small>@enderror
+                                <textarea id="counter-description" name="description" rows="4" minlength="10" maxlength="10000" required @if ($errors->has('description')) aria-invalid="true" aria-describedby="counter-description-error" @endif>{{ old('description', $offer->description) }}</textarea>
+                                @error('description')<small id="counter-description-error" class="client-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="client-field client-form-grid__full">
                                 <label for="counter-conditions">Conditions complémentaires (facultatif)</label>
-                                <textarea id="counter-conditions" name="conditions" rows="3" maxlength="10000">{{ old('conditions', $offer->conditions) }}</textarea>
-                                @error('conditions')<small class="client-field-error">{{ $message }}</small>@enderror
+                                <textarea id="counter-conditions" name="conditions" rows="3" maxlength="10000" @if ($errors->has('conditions')) aria-invalid="true" aria-describedby="counter-conditions-error" @endif>{{ old('conditions', $offer->conditions) }}</textarea>
+                                @error('conditions')<small id="counter-conditions-error" class="client-field-error">{{ $message }}</small>@enderror
                             </div>
                             <div class="client-form-grid__full">
                                 <button class="btn btn-secondary client-quote-full-width" type="submit"
