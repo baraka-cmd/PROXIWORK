@@ -250,5 +250,4 @@ class TechnicalMonitoringTest extends TestCase
             'performance' => ['database_probe_ms' => 1, 'request_count_last_hour' => 0, 'http_error_rate' => null, 'average_response_ms' => null, 'p95_bucket_ms' => null, 'message' => 'Métriques de test.'],
         ];
     }
-
 }
