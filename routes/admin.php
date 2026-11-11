@@ -33,6 +33,7 @@ use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceR
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
 use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
+use App\Http\Controllers\Web\Admin\TechnicalMonitoringController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -357,4 +358,10 @@ Route::middleware(['auth', 'active.account', 'permission:admin.settings.view'])-
 Route::middleware(['auth', 'active.account', 'permission:admin.settings.manage'])->group(function (): void {
     Route::put('settings', [PlatformSettingController::class, 'update'])->middleware('throttle:10,1')->name('settings.update');
     Route::patch('settings/currencies/{currency}', [PlatformSettingController::class, 'updateCurrency'])->where('currency', '[A-Z]{3}')->middleware('throttle:10,1')->name('settings.currencies.update');
+});
+
+
+// Phase 11 — supervision technique (lecture seule).
+Route::middleware(['auth', 'active.account', 'permission:admin.monitoring.view'])->group(function (): void {
+    Route::get('technical-monitoring', [TechnicalMonitoringController::class, 'index'])->name('monitoring.index');
 });
