@@ -29,10 +29,11 @@ use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\SecurityCenterController;
 use App\Http\Controllers\Web\Admin\ServiceController;
-use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
+use App\Http\Controllers\Web\Admin\ServiceRealizationController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
 use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
+use App\Http\Controllers\Web\Admin\TechnicalMonitoringController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -105,11 +106,11 @@ Route::middleware(['auth', 'active.account', 'permission:admin.services.moderate
     Route::post('services/{service}/moderate', [ServiceController::class, 'moderate'])->name('services.moderate');
 });
 Route::middleware(['auth', 'active.account', 'permission:admin.services.view'])->group(function (): void {
-    Route::get('service-realizations/{realization}/file', [AdminServiceRealizationController::class, 'file'])->name('service-realizations.file');
+    Route::get('service-realizations/{realization}/file', [ServiceRealizationController::class, 'file'])->name('service-realizations.file');
 });
 Route::middleware(['auth', 'active.account', 'permission:admin.service_realizations.moderate'])->group(function (): void {
-    Route::post('service-realizations/{realization}/approve', [AdminServiceRealizationController::class, 'approve'])->name('service-realizations.approve');
-    Route::post('service-realizations/{realization}/reject', [AdminServiceRealizationController::class, 'reject'])->name('service-realizations.reject');
+    Route::post('service-realizations/{realization}/approve', [ServiceRealizationController::class, 'approve'])->name('service-realizations.approve');
+    Route::post('service-realizations/{realization}/reject', [ServiceRealizationController::class, 'reject'])->name('service-realizations.reject');
 });
 
 Route::middleware(['auth', 'active.account'])->group(function (): void {
@@ -361,5 +362,5 @@ Route::middleware(['auth', 'active.account', 'permission:admin.settings.manage']
 
 // Phase 11 — supervision technique (lecture seule).
 Route::middleware(['auth', 'active.account', 'permission:admin.monitoring.view'])->group(function (): void {
-    Route::get('technical-monitoring', [\App\Http\Controllers\Web\Admin\TechnicalMonitoringController::class, 'index'])->name('monitoring.index');
+    Route::get('technical-monitoring', [TechnicalMonitoringController::class, 'index'])->name('monitoring.index');
 });
