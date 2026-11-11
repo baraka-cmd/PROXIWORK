@@ -26,10 +26,13 @@
 
             return number_format($value, 1, ',', ' ').' To';
         };
-        $statusLabel = static fn (string $status): string => match ($status) {
-            'available' => 'Disponible',
-            'unavailable' => 'Indisponible',
-            default => 'Non mesuré',
+        $statusLabel = static fn (string $status): string => $status === 'available'
+            ? 'Disponible'
+            : ($status === 'unavailable' ? 'Indisponible' : 'Non mesuré');
+        $workerStatusLabel = match ($monitoring['queues']['worker_status'] ?? null) {
+            'active' => 'Heartbeat récent',
+            'inactive' => 'Aucun heartbeat récent',
+            default => 'Non instrumenté',
         };
     @endphp
 
@@ -99,7 +102,7 @@
                     <article class="admin-stat-card">
                         <span>Workers actifs (2 min)</span>
                         <strong>{{ $monitoring['queues']['worker_count'] ?? '—' }}</strong>
-                        <small>{{ match ($monitoring['queues']['worker_status']) { 'active' => 'Heartbeat récent', 'inactive' => 'Aucun heartbeat récent', default => 'Non instrumenté' } }}</small>
+                        <small>{{ $workerStatusLabel }}</small>
                     </article>
                 </div>
                 <p class="admin-help-text">
@@ -240,7 +243,9 @@
             @elseif ($monitoring['storage']['integrity']['latest'] === null)
                 <p class="admin-empty-state">Aucun contrôle d'intégrité exécuté pour le moment.</p>
             @else
-                @php($integrity = $monitoring['storage']['integrity']['latest'])
+                @php
+                    $integrity = $monitoring['storage']['integrity']['latest'];
+                @endphp
                 <div class="admin-stats-grid">
                     <article class="admin-stat-card"><span>Références vérifiées</span><strong>{{ number_format($integrity['records_checked']) }}</strong></article>
                     <article class="admin-stat-card"><span>Fichiers manquants</span><strong>{{ number_format($integrity['missing_files']) }}</strong></article>
