@@ -36,6 +36,29 @@ class TechnicalMonitoringTest extends TestCase
             ->assertDontSee('AWS_SECRET_ACCESS_KEY');
     }
 
+    public function test_recent_worker_heartbeat_is_counted_as_active(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('queue_worker_heartbeats')->insert([
+            'worker_id' => hash('sha256', 'test-worker'),
+            'hostname' => 'test-worker',
+            'process_id' => 1234,
+            'last_seen_at' => now()->subSeconds(10),
+            'created_at' => now()->subSeconds(10),
+            'updated_at' => now()->subSeconds(10),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Workers actifs (2 min)')
+            ->assertSee('Heartbeat récent');
+    }
+
     public function test_failed_job_payload_and_exception_trace_are_never_rendered(): void
     {
         $this->seed(RbacSeeder::class);

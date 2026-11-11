@@ -7,6 +7,7 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 ### Données effectivement observées
 
 - Files database queue : volumes en attente et réservés, ancienneté de la tâche en attente la plus ancienne.
+- Workers : heartbeat émis depuis la boucle réelle de chaque worker, limité à une écriture toutes les 20 secondes et considéré actif pendant deux minutes.
 - Jobs échoués : dix dernières références, nom de classe réduit, file et date d'échec. Payload et stack trace non exposés.
 - Notifications : volumes par statut, avec lien vers l'historique détaillé déjà existant.
 - Paiements : agrégation par fournisseur et statut, transactions inconnues.
@@ -17,7 +18,7 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 ### Limites explicitement signalées dans l'interface
 
 Cette première livraison ne prétend pas mesurer ce qui n'est pas instrumenté :
-- L'activité réelle des workers lorsqu'ils sont inactifs n'est pas prouvée par la table `jobs`.
+- Le heartbeat confirme que le processus worker exécute sa boucle ; il ne garantit pas à lui seul que chaque job métier réussit.
 - La connectivité réelle des fournisseurs de paiement n'est pas testée par cette page.
 - Les percentiles HTTP, taux d'erreur applicatif agrégé et historique de disponibilité nécessitent une collecte dédiée et, pour la disponibilité externe, un contrôleur indépendant.
 - Les erreurs applicatives ne sont pas encore regroupées en incidents ; les journaux bruts ne sont volontairement pas consultables depuis l'Admin.

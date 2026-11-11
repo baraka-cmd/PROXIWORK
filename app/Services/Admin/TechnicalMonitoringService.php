@@ -98,7 +98,12 @@ class TechnicalMonitoringService
             'reserved' => array_sum(array_column($queues, 'reserved')),
             'oldest_wait_seconds' => $oldest === null ? null : max(0, $now - (int) $oldest),
             // A database queue cannot prove that an idle worker process is alive.
-            'worker_status' => 'not_instrumented',
+            'worker_count' => Schema::hasTable('queue_worker_heartbeats')
+                ? DB::table('queue_worker_heartbeats')->where('last_seen_at', '>=', now()->subMinutes(2))->count()
+                : null,
+            'worker_status' => Schema::hasTable('queue_worker_heartbeats')
+                ? (DB::table('queue_worker_heartbeats')->where('last_seen_at', '>=', now()->subMinutes(2))->exists() ? 'active' : 'inactive')
+                : 'not_instrumented',
         ];
     }
 

@@ -11,6 +11,8 @@ use App\Services\Settings\PlatformSettingService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -27,6 +29,39 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Worker-loop heartbeat; stale records are ignored after two minutes.
+        Queue::looping(function (): void {
+            static $lastHeartbeatAt = 0;
+
+            if (time() - $lastHeartbeatAt < 20) {
+                return;
+            }
+
+            $lastHeartbeatAt = time();
+
+            try {
+                $hostname = gethostname() ?: 'unknown-host';
+                $pid = getmypid() ?: 0;
+                $workerId = hash('sha256', $hostname.'|'.$pid);
+                $now = now();
+
+                DB::table('queue_worker_heartbeats')->upsert(
+                    [[
+                        'worker_id' => $workerId,
+                        'hostname' => mb_substr($hostname, 0, 191),
+                        'process_id' => $pid,
+                        'last_seen_at' => $now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]],
+                    ['worker_id'],
+                    ['hostname', 'process_id', 'last_seen_at', 'updated_at'],
+                );
+            } catch (\Throwable) {
+                // Monitoring must never prevent a worker from processing jobs.
+            }
+        });
+
         /*
          * Relations polymorphes.
          *

@@ -95,10 +95,17 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="admin-stats-grid">
+                    <article class="admin-stat-card">
+                        <span>Workers actifs (2 min)</span>
+                        <strong>{{ $monitoring['queues']['worker_count'] ?? '—' }}</strong>
+                        <small>{{ match ($monitoring['queues']['worker_status']) { 'active' => 'Heartbeat récent', 'inactive' => 'Aucun heartbeat récent', default => 'Non instrumenté' } }}</small>
+                    </article>
+                </div>
                 <p class="admin-help-text">
                     Attente la plus ancienne :
                     {{ $monitoring['queues']['oldest_wait_seconds'] === null ? 'Aucune' : now()->subSeconds($monitoring['queues']['oldest_wait_seconds'])->diffForHumans(now(), true) }}
-                    · État des workers : non instrumenté (un worker inactif ne peut pas être déduit de la table jobs).
+                    · Le heartbeat est envoyé par le worker à chaque boucle, au plus toutes les 20 secondes.
                 </p>
             @endif
 
