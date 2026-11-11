@@ -85,7 +85,35 @@
     </form>
 
     <section class="dashboard-card">
-        <div class="dashboard-card__header"><div><h2>Devises et vérification</h2><p>Les devises rencontrées dans le projet sont {{ implode(' et ', $currencies) }}. Le workflow de vérification existant reste {{ implode(' → ', $verificationStates) }}. Les règles de paiement et les décisions de vérification ne peuvent pas être contournées depuis cette page.</p></div></div>
+        <div class="dashboard-card__header">
+            <div>
+                <h2>Devises</h2>
+                <p>La devise principale doit rester active. Une devise utilisée par des services publiés, des opérations ouvertes ou des soldes ne peut pas être désactivée. Les montants historiques ne sont jamais convertis automatiquement.</p>
+            </div>
+        </div>
+        <div class="settings-integration-list">
+            @foreach ($currencies as $currency)
+                <form method="POST" action="{{ route('admin.settings.currencies.update', $currency->code) }}" class="settings-integration-row">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <strong>{{ $currency->code }} — {{ $currency->name }}</strong>
+                        <p>{{ $currency->symbol }} · {{ $currency->decimal_places }} décimales</p>
+                    </div>
+                    <label class="form-field form-field--checkbox">
+                        <input type="hidden" name="is_active" value="0">
+                        <input type="checkbox" name="is_active" value="1" @checked($currency->is_active)>
+                        <span>Active</span>
+                    </label>
+                    <label class="form-field form-field--checkbox">
+                        <input type="hidden" name="is_default" value="0">
+                        <input type="checkbox" name="is_default" value="1" @checked($currency->is_default)>
+                        <span>Devise principale</span>
+                    </label>
+                    <button type="submit" class="button button-secondary">Enregistrer</button>
+                </form>
+            @endforeach
+        </div>
     </section>
 
     <section class="dashboard-card">
