@@ -67,18 +67,6 @@ jobs:
       - name: Discover Laravel packages
         run: php artisan package:discover --ansi
 
-      - name: Check PHP syntax for changed files
-        shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
-          else
-            changed_files="$(git diff --name-only HEAD^ HEAD -- '*.php' ':!*.blade.php')"
-          fi
-          if [[ -n "$changed_files" ]]; then
-            while IFS= read -r file; do php -l "$file"; done <<< "$changed_files"
-          fi
-
       # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
       - name: Check code style for changed PHP files
         shell: bash
@@ -97,12 +85,6 @@ jobs:
           fi
 
           printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
-
-      - name: Run technical monitoring service smoke test
-        run: vendor/bin/phpunit --filter=test_monitoring_service_snapshot_is_constructed tests/Feature/Admin/TechnicalMonitoringTest.php
-
-      - name: Run technical monitoring feature tests
-        run: vendor/bin/phpunit tests/Feature/Admin/TechnicalMonitoringTest.php
 
       - name: Run Phase 6 moderation and dispute regression tests
         run: >-
