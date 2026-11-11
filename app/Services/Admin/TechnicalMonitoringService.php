@@ -6,6 +6,7 @@ namespace App\Services\Admin;
 
 use App\Models\NotificationDelivery;
 use App\Models\Payment;
+use App\Models\PaymentEvent;
 use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -196,6 +197,22 @@ class TechnicalMonitoringService
             'unknown_transactions' => Schema::hasTable('payment_transactions')
                 ? PaymentTransaction::query()->where('status', 'UNKNOWN')->count()
                 : null,
+            'event_total' => Schema::hasTable('payment_events') ? PaymentEvent::query()->count() : null,
+            'recent_events' => Schema::hasTable('payment_events')
+                ? PaymentEvent::query()
+                    ->latest('occurred_at')
+                    ->limit(10)
+                    ->get(['id', 'payment_id', 'event_type', 'from_status', 'to_status', 'source', 'occurred_at'])
+                    ->map(fn (PaymentEvent $event): array => [
+                        'payment_id' => (int) $event->payment_id,
+                        'event_type' => (string) $event->event_type,
+                        'from_status' => $event->from_status,
+                        'to_status' => (string) $event->to_status,
+                        'source' => (string) $event->source,
+                        'occurred_at' => $event->occurred_at,
+                    ])
+                    ->all()
+                : [],
             // Provider credentials are intentionally never inspected or displayed here.
             'provider_connectivity' => 'not_checked',
         ];

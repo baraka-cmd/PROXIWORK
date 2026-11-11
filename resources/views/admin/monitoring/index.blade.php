@@ -164,8 +164,28 @@
                 </div>
                 <p class="admin-help-text">
                     Transactions inconnues : {{ $monitoring['payments']['unknown_transactions'] ?? 'Non disponible' }}.
+                    Événements tracés : {{ $monitoring['payments']['event_total'] ?? 'Non disponible' }}.
                     Connectivité externe : non vérifiée. Aucun appel de paiement réel n'est déclenché par cette page.
                 </p>
+                @if ($monitoring['payments']['recent_events'] !== [])
+                    <h3>Derniers événements de paiement</h3>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead><tr><th>Paiement</th><th>Événement</th><th>Transition</th><th>Source</th><th>Date</th></tr></thead>
+                            <tbody>
+                                @foreach ($monitoring['payments']['recent_events'] as $event)
+                                    <tr>
+                                        <td>#{{ $event['payment_id'] }}</td>
+                                        <td>{{ $event['event_type'] }}</td>
+                                        <td>{{ $event['from_status'] ?? '—' }} → {{ $event['to_status'] }}</td>
+                                        <td>{{ $event['source'] }}</td>
+                                        <td>{{ $event['occurred_at']?->format('d/m/Y H:i:s') ?? '—' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
                 <a class="btn btn-secondary" href="{{ route('admin.payments.index') }}">Consulter les paiements</a>
             @endif
         </section>
