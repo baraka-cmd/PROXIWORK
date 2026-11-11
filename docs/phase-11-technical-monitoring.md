@@ -41,3 +41,10 @@ Cette première livraison ne prétend pas mesurer ce qui n'est pas instrumenté 
 ### Suite technique recommandée
 
 Ajouter un contrôle externe indépendant de disponibilité et des alertes (seuils/canaux) après validation des capacités de l'hébergement cible. Les workers, incidents, métriques HTTP et vérification planifiée des références fichiers sont instrumentés dans cette livraison.
+
+### Exploitation
+
+- Vérifier les tâches planifiées avec `php artisan schedule:list`.
+- Lancer un contrôle limité en diagnostic : `php artisan storage:integrity-check --max-records=100`.
+- Lancer le contrôle complet : `php artisan storage:integrity-check`.
+- En production, le scheduler Laravel doit être exécuté régulièrement et les workers doivent être maintenus en vie par un gestionnaire de processus. Un heartbeat absent signale un worker non observé, pas une preuve de panne du fournisseur de paiement.

@@ -261,12 +261,12 @@
                     <div><dt>Taille</dt><dd>{{ $formatBytes($monitoring['errors']['size_bytes']) }}</dd></div>
                     <div><dt>Dernière écriture</dt><dd>{{ $monitoring['errors']['last_written_at'] }}</dd></div>
                 </dl>
-                <p class="admin-help-text">Les incidents ne sont pas encore regroupés automatiquement. Les journaux bruts ne sont pas exposés dans l'administration afin d'éviter la divulgation de secrets et de données personnelles.</p>
+                <p class="admin-help-text">Les journaux bruts ne sont pas exposés dans l'administration. Les incidents regroupés sont présentés dans la section suivante, sans message ni trace complète.</p>
             @endif
         </section>
 
         <section class="admin-card">
-            <h2>82. Incidents applicatifs agrégés</h2>
+            <h2>Incidents applicatifs agrégés</h2>
             @if (! $monitoring['incidents']['available'])
                 <p class="admin-empty-state">La collecte des incidents n'est pas encore disponible.</p>
             @elseif ($monitoring['incidents']['recent'] === [])
