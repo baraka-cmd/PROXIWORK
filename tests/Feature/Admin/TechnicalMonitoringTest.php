@@ -46,6 +46,11 @@ class TechnicalMonitoringTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
+        $this->mock(TechnicalMonitoringService::class)
+            ->shouldReceive('dashboard')
+            ->once()
+            ->andReturn($this->monitoringPayload());
+
         $this->actingAs($admin)
             ->get(route('admin.monitoring.index'))
             ->assertOk()
@@ -229,4 +234,21 @@ class TechnicalMonitoringTest extends TestCase
             ->get(route('admin.monitoring.index'))
             ->assertForbidden();
     }
+
+    private function monitoringPayload(): array
+    {
+        return [
+            'checked_at' => now(),
+            'application' => ['database' => 'available', 'database_latency_ms' => 1, 'environment' => 'testing', 'laravel' => app()->version(), 'php' => PHP_VERSION],
+            'queues' => ['available' => true, 'queues' => [], 'pending' => 0, 'reserved' => 0, 'oldest_wait_seconds' => null, 'worker_count' => 0, 'worker_status' => 'active'],
+            'failed_jobs' => ['available' => true, 'total' => 0, 'recent' => []],
+            'notifications' => ['available' => false, 'total' => 0, 'by_status' => [], 'attention' => 0, 'attempts_total' => 0, 'recent_failures' => []],
+            'payments' => ['available' => false, 'total' => 0, 'by_provider' => [], 'attention' => 0, 'unknown_transactions' => null, 'event_total' => null, 'recent_events' => []],
+            'storage' => ['disks' => [], 'integrity' => ['available' => false, 'latest' => null]],
+            'errors' => ['available' => false, 'file_name' => null, 'size_bytes' => null, 'last_written_at' => null],
+            'incidents' => ['available' => true, 'total' => 0, 'recent' => []],
+            'performance' => ['database_probe_ms' => 1, 'request_count_last_hour' => 0, 'http_error_rate' => null, 'average_response_ms' => null, 'p95_bucket_ms' => null, 'message' => 'Métriques de test.'],
+        ];
+    }
+
 }
