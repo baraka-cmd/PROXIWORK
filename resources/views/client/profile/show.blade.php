@@ -3,6 +3,14 @@
 @section('title', 'Mon profil')
 
 @section('content')
+@php
+    $profileDisplayName = trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name;
+    $profileInitials = collect(preg_split('/\\s+/', trim($profileDisplayName)) ?: [])
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)))
+        ->implode('');
+@endphp
 @push('head')
     @vite('resources/css/pages/client/profile.css')
 @endpush
@@ -20,24 +28,17 @@
         </a>
     </header>
 
-    @if (session('success'))
-        <div class="client-panel client-alert profile-feedback profile-feedback--success" role="status" aria-live="polite">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            {{ session('success') }}
-        </div>
-    @endif
-
     <section class="profile-hero client-panel" aria-labelledby="profile-identity-title">
         <div class="profile-avatar">
             @if ($user->profile?->avatar_path)
-                <img src="{{ route('client.profile.photo') }}" alt="Photo de profil de {{ $user->name }}">
+                <img src="{{ route('client.profile.photo') }}" alt="Photo de profil de {{ $profileDisplayName }}">
             @else
-                <span aria-hidden="true">{{ mb_strtoupper(mb_substr(trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name, 0, 1)) }}</span>
+                <span aria-hidden="true">{{ $profileInitials }}</span>
             @endif
         </div>
         <div class="profile-identity">
             <p class="profile-section-kicker">COMPTE CLIENT</p>
-            <h2 id="profile-identity-title">{{ trim(($user->profile?->first_name ?? '').' '.($user->profile?->last_name ?? '')) ?: $user->name }}</h2>
+            <h2 id="profile-identity-title">{{ $profileDisplayName }}</h2>
             <p>{{ $user->email }}</p>
             <div class="profile-status-list">
                 <span class="profile-status-pill">
@@ -67,8 +68,8 @@
         <section class="client-panel profile-verification-note" aria-label="Vérification de l’adresse e-mail">
             <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
             <div>
-                <h2>Confirmez votre adresse e-mail</h2>
-                <p>La vérification confirme que vous avez accès à cette boîte e-mail. Elle ne constitue pas une vérification de votre identité civile.</p>
+                <h2>Vérifiez votre adresse e-mail</h2>
+                <p>Cette étape confirme l’accès à votre boîte e-mail. Elle ne vérifie pas votre identité civile.</p>
                 @if (Route::has('verification.send'))
                     <form method="POST" action="{{ route('verification.send') }}">
                         @csrf

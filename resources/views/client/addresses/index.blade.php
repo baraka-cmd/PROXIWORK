@@ -20,13 +20,6 @@
         </a>
     </header>
 
-    @if(session('success'))
-        <div class="client-panel address-alert address-alert--success" role="status" aria-live="polite">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            {{ session('success') }}
-        </div>
-    @endif
-
     @if($errors->any())
         <div class="client-panel address-alert address-alert--error" role="alert" aria-live="assertive">
             <strong>Cette opération n’a pas pu être effectuée.</strong>
@@ -45,7 +38,7 @@
         </div>
     @else
         <div class="address-summary">
-            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $addresses->total() }} adresse(s) enregistrée(s)</span>
+            <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> {{ $addresses->total() }} {{ $addresses->total() === 1 ? 'adresse enregistrée' : 'adresses enregistrées' }}</span>
             <span>Les adresses restent privées à votre compte.</span>
         </div>
 
@@ -95,7 +88,7 @@
                         <p class="address-card__coordinates"><i class="fa-solid fa-crosshairs" aria-hidden="true"></i> Coordonnées GPS enregistrées</p>
                     @endif
 
-                    <footer class="address-card__actions">
+                    <footer class="address-card__actions" aria-label="Actions pour l’adresse {{ $address->label }}">
                         <a class="btn btn-secondary btn-sm" href="{{ route('client.addresses.edit', $address) }}">
                             <i class="fa-solid fa-pen" aria-hidden="true"></i> Modifier
                         </a>
@@ -107,7 +100,7 @@
                                 </button>
                             </form>
                         @endunless
-                        <form method="POST" action="{{ route('client.addresses.destroy', $address) }}" data-confirm-delete>
+                        <form method="POST" action="{{ route('client.addresses.destroy', $address) }}" data-confirm data-confirm-title="Supprimer cette adresse ?" data-confirm-message="Supprimer l’adresse « {{ $address->label }} » de votre carnet ? Les adresses déjà enregistrées dans l’historique des demandes et commandes ne seront pas effacées." data-confirm-label="Supprimer l’adresse">
                             @csrf
                             @method('DELETE')
                             <button class="btn btn-danger btn-sm" type="submit">

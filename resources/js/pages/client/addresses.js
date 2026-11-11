@@ -1,1 +1,29 @@
-document.addEventListener('click',(event)=>{const target=event.target;if(!(target instanceof Element))return;const form=target.closest('form[data-confirm-delete]');if(!form)return;if(!window.confirm('Supprimer cette adresse ? Cette action est définitive.'))event.preventDefault();});
+'use strict';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const errorSummary = document.querySelector('[data-error-summary]');
+
+    if (errorSummary instanceof HTMLElement) {
+        window.requestAnimationFrame(() => errorSummary.focus());
+    }
+
+    document.querySelectorAll('form[data-address-form][data-submit-label]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (event.defaultPrevented || form.dataset.submitting === 'true') {
+                event.preventDefault();
+                return;
+            }
+
+            const submitter = event.submitter;
+            if (!(submitter instanceof HTMLButtonElement)) {
+                return;
+            }
+
+            form.dataset.submitting = 'true';
+            form.setAttribute('aria-busy', 'true');
+            submitter.disabled = true;
+            submitter.setAttribute('aria-disabled', 'true');
+            submitter.textContent = form.dataset.submitLabel;
+        });
+    });
+});
