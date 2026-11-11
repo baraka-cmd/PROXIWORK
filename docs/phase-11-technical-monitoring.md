@@ -1,50 +1,65 @@
 # Phase 11 — Supervision technique
 
-## Implémentation initiale des points 77 à 83
+## État de l'implémentation
 
-Cette livraison ajoute une première vue de supervision intégrée à l'administration PROXIWORK. Elle réutilise les tables et services déjà présents : queue Laravel en base, `failed_jobs`, `notification_deliveries`, `payments`, `payment_transactions`, stockage Laravel et journaux applicatifs.
+La phase ajoute un centre de supervision intégré à l'administration PROXIWORK. Il réutilise les composants métier existants et n'expose ni secrets, ni payloads de jobs, ni contenus de notifications, ni traces d'exception.
 
-### Données effectivement observées
+### 77. Tâches asynchrones
+- Volumes par file : total, attente et tâches réservées.
+- Ancienneté de la tâche en attente la plus ancienne.
+- Heartbeat émis depuis la boucle des workers toutes les 20 secondes ; un worker est considéré observé actif pendant deux minutes.
+- Les heartbeats anciens sont purgés après sept jours.
 
-- Files database queue : volumes en attente et réservés, ancienneté de la tâche en attente la plus ancienne.
-- Workers : heartbeat émis depuis la boucle réelle de chaque worker, limité à une écriture toutes les 20 secondes et considéré actif pendant deux minutes.
-- Performance HTTP : comptage agrégé des requêtes, réponses 5xx, temps moyen et classe P95 par histogramme, avec archivage à la minute via le scheduler.
-- Jobs échoués : dix dernières références, nom de classe réduit, file et date d'échec. Payload et stack trace non exposés.
-- Notifications : volumes par statut, avec lien vers l'historique détaillé déjà existant.
-- Paiements : agrégation par fournisseur et statut, transactions inconnues et paiements restés en état initié/en attente/en traitement depuis plus de 15 minutes.
-- Stockage local/public : accès au disque, capacité système lorsqu'elle est disponible et dernier contrôle d'intégrité des références fichiers connues (commande planifiée quotidienne).
-- Journaux : présence, taille et date de dernière écriture du fichier de log, sans exposition de son contenu.
-- Incidents applicatifs : regroupement par classe d'exception et emplacement technique, avec compteur et dates ; messages et traces exclus.
-- Performance HTTP : comptage agrégé par minute, taux 5xx, temps moyen et classe P95 approximative via histogramme.
-- Incidents applicatifs : regroupement par classe d'exception et point technique (fichier/ligne), avec compteur et dates de première/dernière occurrence ; messages et traces exclus.
-- Notifications : historique des tentatives en échec à partir de la table d'audit des tentatives, sans destinataire ni contenu.
-- Application : contrôle SQL ponctuel, versions Laravel/PHP et environnement.
+### 78. Tâches échouées
+- Total des enregistrements `failed_jobs` et dix dernières références.
+- Affichage limité au nom de classe, à la file, à l'UUID et à la date.
+- Aucun payload ou stack trace n'est exposé.
+- Aucun retry générique n'est proposé : il faut démontrer l'idempotence de chaque job avant d'autoriser une reprise.
 
-### Limites explicitement signalées dans l'interface
+### 79. Notifications
+- Agrégation des livraisons par statut.
+- Historique des tentatives échouées/inconnues, avec canal, code d'erreur et date.
+- Aucun destinataire ni contenu de message n'est exposé.
+- L'historique détaillé existant reste la source métier de consultation.
 
-Cette première livraison ne prétend pas mesurer ce qui n'est pas instrumenté :
-- Le heartbeat confirme que le processus worker exécute sa boucle ; il ne garantit pas à lui seul que chaque job métier réussit.
-- La connectivité réelle des fournisseurs de paiement n'est pas testée par cette page.
-- Le P95 affiché est une classe d'histogramme (pas un percentile exact). Le taux 5xx et le temps moyen sont agrégés sur les minutes archivées. L'historique de disponibilité externe nécessite toujours un contrôleur indépendant.
-- Les incidents sont regroupés par classe d'exception et fichier/ligne ; les messages, traces et données de requête ne sont pas stockés. Les journaux bruts ne sont volontairement pas consultables depuis l'Admin.
-- Aucun retry générique de job n'est proposé : l'idempotence doit être vérifiée par classe de job avant toute reprise.
-- Le contrôle d'intégrité est exécuté en tâche planifiée, par lots, et ne supprime aucun fichier. Il vérifie les références de tables connues ; il ne réalise pas un inventaire récursif du disque ni une suppression des fichiers orphelins.
+### 80. Paiements
+- Agrégation par fournisseur et statut.
+- Détection des paiements restés initiés/en attente/en traitement depuis plus de 15 minutes.
+- Nombre de transactions inconnues et dix derniers événements de paiement expurgés.
+- Aucun appel réel aux fournisseurs n'est déclenché depuis le tableau de bord ; leur connectivité et la réconciliation externe restent à connecter selon les API des fournisseurs.
+- Aucune modification manuelle de statut ou de solde n'est permise.
 
-### Sécurité
+### 81. Stockage et fichiers
+- Accès et capacité des disques locaux/publics lorsque le système d'exploitation permet de les mesurer.
+- Commande `php artisan storage:integrity-check`, planifiée chaque semaine.
+- Vérification des références de fichiers connues : médiathèque CMS, images de services, documents professionnels, pièces jointes de messages, demandes et commandes.
+- Seuls les compteurs par table sont conservés ; les chemins ne sont pas affichés.
+- Aucun fichier n'est supprimé. Les fichiers orphelins non référencés ne sont pas encore inventoriés.
 
-- Route protégée par permission dédiée.
-- Pas d'accès aux payloads queue, traces d'exception, données de notification ou métadonnées de paiement.
-- Pas d'appel réel aux fournisseurs de paiement.
-- Pas de modification financière, relance générique ou suppression de fichier depuis cette page.
-- Les disques distants dont la capacité n'est pas mesurable sont signalés comme non disponibles plutôt que d'afficher une estimation trompeuse.
+### 82. Erreurs applicatives
+- Enregistrement des exceptions reportées dans `application_incidents`.
+- Regroupement par classe d'exception et emplacement technique (fichier/ligne).
+- Conservation du nombre d'occurrences et des dates de première/dernière apparition.
+- Messages, traces, URL complètes, données de requête et identifiants personnels exclus du registre.
+- Les journaux bruts ne sont pas consultables depuis l'interface Admin.
 
-### Suite technique recommandée
+### 83. Performance et disponibilité
+- Middleware de mesure HTTP et agrégation par minute : volume, réponses 5xx, temps moyen et histogramme de latence.
+- Le P95 présenté est une classe approximative de l'histogramme, pas un percentile exact.
+- Les mesures sont archivées par le scheduler et conservées 30 jours.
+- Contrôle ponctuel de la base de données.
+- La disponibilité externe de bout en bout nécessite un moniteur indépendant de l'hébergement PROXIWORK ; le endpoint Laravel `/up` ne suffit pas à lui seul.
 
-Ajouter un contrôle externe indépendant de disponibilité et des alertes (seuils/canaux) après validation des capacités de l'hébergement cible. Les workers, incidents, métriques HTTP et vérification planifiée des références fichiers sont instrumentés dans cette livraison.
+## Sécurité et exploitation
+- Accès au centre via la permission RBAC `admin.monitoring.view`.
+- Les opérations sensibles restent hors du tableau de bord tant que leurs garanties métier ne sont pas démontrées.
+- Les erreurs de collecte ne doivent jamais interrompre les workers ni les réponses HTTP.
+- Rétention : métriques HTTP 30 jours, heartbeats 7 jours, incidents 90 jours, historiques de contrôle de fichiers 90 jours.
+- Vérifier le scheduler avec `php artisan schedule:list`.
+- Maintenir les workers par un gestionnaire de processus et vérifier que le scheduler Laravel s'exécute régulièrement.
 
-### Exploitation
-
-- Vérifier les tâches planifiées avec `php artisan schedule:list`.
-- Lancer un contrôle limité en diagnostic : `php artisan storage:integrity-check --max-records=100`.
-- Lancer le contrôle complet : `php artisan storage:integrity-check`.
-- En production, le scheduler Laravel doit être exécuté régulièrement et les workers doivent être maintenus en vie par un gestionnaire de processus. Un heartbeat absent signale un worker non observé, pas une preuve de panne du fournisseur de paiement.
+## Limites à traiter avec l'infrastructure réelle
+1. Ajouter un fournisseur externe de disponibilité/alerting (indépendant du serveur applicatif).
+2. Ajouter les contrôles de connectivité et la réconciliation auprès des fournisseurs de paiement, après confirmation de leurs API et mécanismes d'authenticité.
+3. Définir des procédures de reprise autorisées job par job, sur preuve d'idempotence.
+4. Ajouter, si nécessaire, un inventaire contrôlé des fichiers orphelins ; aucune suppression automatique n'est prévue.
