@@ -18,7 +18,7 @@ class RecordHttpPerformance
         $response = $next($request);
         $durationMs = (int) round((hrtime(true) - $startedAt) / 1_000_000);
 
-        if ($request->is('up') === false) {
+        if (app()->environment('testing') === false && $request->is('up') === false) {
             try {
                 $bucket = now()->startOfMinute()->format('YmdHi');
                 $prefix = 'http-performance:'.$bucket;
