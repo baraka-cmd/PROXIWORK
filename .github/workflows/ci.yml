@@ -98,6 +98,9 @@ jobs:
 
           printf '%s\n' "$changed_files" | xargs -r ./vendor/bin/pint --test
 
+      - name: Run technical monitoring service smoke test
+        run: vendor/bin/phpunit --filter=test_monitoring_service_snapshot_is_constructed tests/Feature/Admin/TechnicalMonitoringTest.php
+
       - name: Run technical monitoring feature tests
         run: vendor/bin/phpunit tests/Feature/Admin/TechnicalMonitoringTest.php
 

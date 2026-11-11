@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\User;
 use App\Services\Admin\StorageIntegrityService;
+use App\Services\Admin\TechnicalMonitoringService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,20 @@ use Tests\TestCase;
 class TechnicalMonitoringTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_monitoring_service_snapshot_is_constructed(): void
+    {
+        $monitoring = app(TechnicalMonitoringService::class)->dashboard();
+
+        $this->assertArrayHasKey('application', $monitoring);
+        $this->assertArrayHasKey('queues', $monitoring);
+        $this->assertArrayHasKey('failed_jobs', $monitoring);
+        $this->assertArrayHasKey('notifications', $monitoring);
+        $this->assertArrayHasKey('payments', $monitoring);
+        $this->assertArrayHasKey('storage', $monitoring);
+        $this->assertArrayHasKey('incidents', $monitoring);
+        $this->assertArrayHasKey('performance', $monitoring);
+    }
 
     public function test_authorized_administrator_can_view_technical_monitoring_without_sensitive_payloads(): void
     {
