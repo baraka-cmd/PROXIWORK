@@ -42,6 +42,10 @@ class CommissionTest extends TestCase
     {
         [$client, $order, $professional] = $this->orderScenario();
 
+        $order->refresh();
+        $this->assertNotNull($order->commission_rule_id);
+        $this->assertSame((string) $order->commission_rate, (string) $order->commissionRule->rate);
+
         $response = $this->actingAs($client, 'sanctum')
             ->withHeader('Idempotency-Key', 'commission-success-0001')
             ->postJson('/api/v1/orders/'.$order->id.'/payments', [
