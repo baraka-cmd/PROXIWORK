@@ -14,9 +14,10 @@
 <div class="client-module client-requests-page">
     <div class="client-module__header client-requests-header">
         <div>
-            <p class="client-module__eyebrow">SUIVI DE LA DEMANDE · PW-REQ-{{ str_pad((string) $serviceRequest->id, 6, '0', STR_PAD_LEFT) }}</p>
+            <p class="client-module__eyebrow">RÉFÉRENCE · PW-REQ-{{ str_pad((string) $serviceRequest->id, 6, '0', STR_PAD_LEFT) }}</p>
             <h1>{{ $serviceRequest->title }}</h1>
             <p>{{ $serviceRequest->service?->title ?? 'Service indisponible' }} · {{ $serviceRequest->professional?->user?->name ?? 'Professionnel indisponible' }}</p>
+            <p class="request-detail-created"><i class="fa-regular fa-calendar" aria-hidden="true"></i> Créée le {{ $serviceRequest->created_at?->format('d/m/Y à H:i') ?? 'Date indisponible' }}</p>
         </div>
         <span class="request-status-badge request-status-badge--{{ $serviceRequest->status->value }}">
             {{ $serviceRequest->status->label() }}
@@ -27,9 +28,15 @@
         <x-alert type="success" :message="session('success')" />
     @endif
     @if($errors->any())
-        <div class="client-form-alert" role="alert">
+        <div class="client-form-alert client-form-alert--summary" role="alert" tabindex="-1" data-error-summary>
             <strong>La demande n’a pas pu être traitée.</strong>
-            <ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            <ul>
+                @foreach($errors->getMessages() as $field => $messages)
+                    @foreach($messages as $message)
+                        <li><a href="{{ $field === 'attachment' ? '#request-attachment' : ($field === 'address_id' ? '#request-address-id' : '#request-actions') }}">{{ $message }}</a></li>
+                    @endforeach
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -40,6 +47,11 @@
                 <span class="request-card__reference">#{{ $serviceRequest->id }}</span>
             </div>
             <p class="client-detail-text">{{ $serviceRequest->description }}</p>
+            @if($serviceRequest->status === \App\Enums\ServiceRequestStatus::DRAFT)
+                <div class="request-draft-notice"><i class="fa-regular fa-floppy-disk" aria-hidden="true"></i><div><strong>Votre demande est encore en brouillon.</strong><p>Elle n’a pas encore été transmise au professionnel. Vérifiez les informations et les documents, puis utilisez le bouton « Envoyer la demande » lorsque tout est prêt.</p></div></div>
+            @elseif($serviceRequest->status->requiresClientAction())
+                <div class="request-action-notice"><i class="fa-solid fa-file-invoice-dollar" aria-hidden="true"></i><div><strong>Une réponse nécessite votre attention.</strong><p>Consultez le devis associé pour examiner les conditions et décider de la suite.</p></div></div>
+            @endif
             <dl class="client-definition-list">
                 <div><dt>Créée le</dt><dd>{{ $serviceRequest->created_at?->format('d/m/Y à H:i') ?? '—' }}</dd></div>
                 <div><dt>Envoyée le</dt><dd>{{ $serviceRequest->requested_at?->format('d/m/Y à H:i') ?? 'Pas encore envoyée' }}</dd></div>
@@ -108,10 +120,12 @@
             <form method="POST" action="{{ route('client.requests.attachments.store', $serviceRequest) }}" enctype="multipart/form-data" class="request-attachment-upload">
                 @csrf
                 <label for="request-attachment">Ajouter un document (PDF, JPG, PNG, WEBP, DOC ou DOCX)</label>
-                <input id="request-attachment" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx" required>
-                <small>Maximum 10 Mo par fichier, cinq fichiers par demande.</small>
+                <input id="request-attachment" name="attachment" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx" aria-describedby="request-attachment-help request-attachment-selection" data-request-attachment-input required>
+                <small id="request-attachment-help">Formats acceptés : PDF, JPG/JPEG, PNG, WEBP, DOC et DOCX. Maximum 10 Mo par fichier, cinq fichiers au total. Le serveur vérifie toujours le type et la taille réels.</small>
+                <div id="request-attachment-selection" class="request-attachment-selection" data-attachment-preview aria-live="polite" hidden></div>
+                
                 @error('attachment')<span class="client-field-error" role="alert">{{ $message }}</span>@enderror
-                <button class="btn btn-secondary" type="submit">Ajouter la pièce jointe</button>
+                <button class="btn btn-secondary" type="submit" data-loading-label="Envoi en cours…">Ajouter la pièce jointe</button>
             </form>
         @elseif ($serviceRequest->status === \App\Enums\ServiceRequestStatus::QUOTED)
             <p class="client-form-note">Les pièces jointes sont verrouillées pendant l’évaluation du devis afin de préserver le périmètre déjà transmis au professionnel.</p>
@@ -216,14 +230,14 @@
         </section>
     @endif
 
-    <div class="client-action-bar">
+    <div id="request-actions" class="client-action-bar">
         @if($serviceRequest->status === \App\Enums\ServiceRequestStatus::DRAFT)
             <a class="btn btn-secondary" href="{{ route('client.requests.edit', $serviceRequest) }}">
                 <i class="fa-solid fa-pen" aria-hidden="true"></i> Modifier le brouillon
             </a>
             <form method="POST" action="{{ route('client.requests.submit', $serviceRequest) }}">
                 @csrf
-                <button class="btn btn-primary" type="submit" data-confirm-submit="Envoyer cette demande au professionnel ?" data-loading-label="Envoi…">
+                <button class="btn btn-primary" type="submit" data-confirm-submit="Envoyer cette demande au professionnel ? Vérifiez que le besoin, le lieu et les documents sont corrects." data-loading-label="Envoi en cours…">
                     <i class="fa-regular fa-paper-plane" aria-hidden="true"></i> Envoyer la demande
                 </button>
             </form>
@@ -231,7 +245,7 @@
         @if(in_array($serviceRequest->status, [\App\Enums\ServiceRequestStatus::DRAFT, \App\Enums\ServiceRequestStatus::REQUESTED], true))
             <form method="POST" action="{{ route('client.requests.cancel', $serviceRequest) }}">
                 @csrf
-                <button class="btn btn-danger" type="submit" data-confirm-submit="Voulez-vous vraiment annuler cette demande ?" data-loading-label="Annulation…">Annuler la demande</button>
+                <button class="btn btn-danger" type="submit" data-confirm-submit="Voulez-vous vraiment annuler cette demande ? Cette action changera son statut et ne pourra pas être annulée depuis cette page." data-loading-label="Annulation en cours…">Annuler la demande</button>
             </form>
         @endif
         <a class="btn btn-secondary" href="{{ route('client.requests.index') }}">Retour à mes demandes</a>

@@ -31,3 +31,88 @@ document.addEventListener('submit', (event) => {
     const label = button.dataset.loadingLabel || 'Traitement…';
     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> ' + label;
 });
+
+const requestErrorSummary = document.querySelector('[data-error-summary]');
+if (requestErrorSummary) {
+    requestErrorSummary.focus();
+}
+
+const requestAttachmentInput = document.querySelector('[data-request-attachment-input]');
+const requestAttachmentPreview = document.querySelector('[data-attachment-preview]');
+
+if (requestAttachmentInput instanceof HTMLInputElement && requestAttachmentPreview instanceof HTMLElement) {
+    let previewUrl = null;
+    const allowedExtensions = new Set(['pdf', 'jpg', 'jpeg', 'png', 'webp', 'doc', 'docx']);
+    const maxFileSize = 10 * 1024 * 1024;
+
+    requestAttachmentInput.addEventListener('change', () => {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            previewUrl = null;
+        }
+
+        requestAttachmentPreview.replaceChildren();
+        requestAttachmentPreview.classList.remove('is-error');
+        requestAttachmentPreview.hidden = true;
+        requestAttachmentInput.setCustomValidity('');
+        requestAttachmentInput.removeAttribute('aria-invalid');
+
+        const file = requestAttachmentInput.files?.[0];
+        if (!file) return;
+
+        const extension = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : '';
+        let error = '';
+
+        if (!allowedExtensions.has(extension)) {
+            error = 'Ce format de fichier n’est pas pris en charge. Choisissez un PDF, JPG, PNG, WEBP, DOC ou DOCX.';
+        } else if (file.size > maxFileSize) {
+            error = 'Ce fichier dépasse la limite de 10 Mo. Choisissez un fichier plus léger.';
+        } else if (file.size === 0) {
+            error = 'Ce fichier est vide. Choisissez un autre document.';
+        }
+
+        const icon = document.createElement('span');
+        icon.className = 'request-attachment-selection__icon';
+        icon.setAttribute('aria-hidden', 'true');
+
+        const imageTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+        if (!error && imageTypes.has(file.type) && ['jpg', 'jpeg', 'png', 'webp'].includes(extension)) {
+            const image = document.createElement('img');
+            image.className = 'request-attachment-selection__preview';
+            image.alt = '';
+            previewUrl = URL.createObjectURL(file);
+            image.src = previewUrl;
+            requestAttachmentPreview.append(image);
+        } else {
+            const iconElement = document.createElement('i');
+            iconElement.className = extension === 'pdf' ? 'fa-regular fa-file-pdf' : 'fa-regular fa-file-lines';
+            icon.append(iconElement);
+            requestAttachmentPreview.append(icon);
+        }
+
+        const details = document.createElement('div');
+        details.className = 'request-attachment-selection__details';
+        const name = document.createElement('strong');
+        name.textContent = file.name;
+        const metadata = document.createElement('small');
+        metadata.textContent = (file.size / 1024 / 1024).toLocaleString('fr-FR', { maximumFractionDigits: 2 }) + ' Mo · ' + extension.toUpperCase();
+        details.append(name, metadata);
+        requestAttachmentPreview.append(details);
+
+        if (error) {
+            const message = document.createElement('span');
+            message.className = 'request-attachment-selection__message';
+            message.textContent = error;
+            requestAttachmentPreview.append(message);
+            requestAttachmentPreview.classList.add('is-error');
+            requestAttachmentInput.setCustomValidity(error);
+            requestAttachmentInput.setAttribute('aria-invalid', 'true');
+        }
+
+        requestAttachmentPreview.hidden = false;
+    });
+
+    window.addEventListener('pagehide', () => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+    });
+}
