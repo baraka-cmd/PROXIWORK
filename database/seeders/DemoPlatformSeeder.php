@@ -37,6 +37,14 @@ class DemoPlatformSeeder extends Seeder
 
     public function run(): void
     {
+        // Demo identities and fictitious operational records must never be
+        // inserted into staging or production databases by an accidental seed.
+        if (! app()->environment(['local', 'testing'])) {
+            $this->command?->warn('DemoPlatformSeeder skipped: only local/testing environments are allowed.');
+
+            return;
+        }
+
         $this->now = now()->toDateTimeString();
 
         $this->seedUsersAndAccess();
