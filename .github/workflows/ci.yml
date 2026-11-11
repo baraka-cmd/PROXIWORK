@@ -70,7 +70,11 @@ jobs:
       - name: Check PHP syntax for changed files
         shell: bash
         run: |
-          changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            changed_files="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD" -- '*.php' ':!*.blade.php')"
+          else
+            changed_files="$(git diff --name-only HEAD^ HEAD -- '*.php' ':!*.blade.php')"
+          fi
           if [[ -n "$changed_files" ]]; then
             while IFS= read -r file; do php -l "$file"; done <<< "$changed_files"
           fi
