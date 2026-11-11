@@ -9,7 +9,6 @@ use App\Models\Payment;
 use App\Models\PaymentEvent;
 use App\Models\PaymentTransaction;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -56,8 +55,6 @@ class TechnicalMonitoringService
                 'php' => PHP_VERSION,
             ];
         } catch (Throwable) {
-            Log::warning('Technical monitoring: database health check failed.');
-
             return [
                 'database' => 'unavailable',
                 'database_latency_ms' => null,
