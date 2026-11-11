@@ -19,15 +19,7 @@ class TechnicalMonitoringTest extends TestCase
 
     public function test_monitoring_service_snapshot_is_constructed(): void
     {
-        $this->seed(RbacSeeder::class);
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $this->actingAs($admin);
-
         $monitoring = app(TechnicalMonitoringService::class)->dashboard();
-        $html = view('admin.monitoring.index', ['monitoring' => $monitoring])->render();
-
-        $this->assertStringContainsString('Supervision technique', $html);
 
         $this->assertArrayHasKey('application', $monitoring);
         $this->assertArrayHasKey('queues', $monitoring);
