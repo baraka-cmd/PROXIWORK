@@ -307,7 +307,7 @@ class TechnicalMonitoringService
             'size_bytes' => $latest === null ? null : (int) (filesize($latest) ?: 0),
             'last_written_at' => $latest === null ? null : date(DATE_ATOM, (int) filemtime($latest)),
             // Raw logs are not parsed or rendered here: they may contain sensitive context.
-            'incident_aggregation' => 'not_instrumented',
+            'incident_aggregation' => 'application_incidents',
         ];
     }
 
