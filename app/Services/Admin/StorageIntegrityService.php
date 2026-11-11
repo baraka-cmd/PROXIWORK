@@ -51,7 +51,7 @@ class StorageIntegrityService
             }
 
             DB::table($table)
-                ->whereNotNull($pathColumn)
+                ->whereNotNull('path')
                 ->orderBy('id')
                 ->select($columns)
                 ->chunkById(200, function ($rows) use (
