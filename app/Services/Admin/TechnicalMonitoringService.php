@@ -36,6 +36,7 @@ class TechnicalMonitoringService
             'payments' => $application['database'] === 'available' ? $this->paymentHealth() : ['available' => false, 'total' => 0, 'by_provider' => [], 'attention' => 0],
             'storage' => $this->storageHealth(),
             'errors' => $this->applicationLogHealth(),
+            'incidents' => $this->incidentHealth(),
             'performance' => $this->performanceHealth($application['database_latency_ms']),
         ];
     }
@@ -285,6 +286,31 @@ class TechnicalMonitoringService
             'last_written_at' => $latest === null ? null : date(DATE_ATOM, (int) filemtime($latest)),
             // Raw logs are not parsed or rendered here: they may contain sensitive context.
             'incident_aggregation' => 'not_instrumented',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function incidentHealth(): array
+    {
+        if (! Schema::hasTable('application_incidents')) {
+            return ['available' => false, 'total' => 0, 'recent' => []];
+        }
+
+        return [
+            'available' => true,
+            'total' => DB::table('application_incidents')->count(),
+            'recent' => DB::table('application_incidents')
+                ->orderByDesc('last_seen_at')
+                ->limit(10)
+                ->get(['exception_type', 'location_hint', 'occurrence_count', 'first_seen_at', 'last_seen_at'])
+                ->map(fn (object $incident): array => [
+                    'exception_type' => (string) $incident->exception_type,
+                    'location_hint' => (string) $incident->location_hint,
+                    'occurrence_count' => (int) $incident->occurrence_count,
+                    'first_seen_at' => $incident->first_seen_at,
+                    'last_seen_at' => $incident->last_seen_at,
+                ])
+                ->all(),
         ];
     }
 

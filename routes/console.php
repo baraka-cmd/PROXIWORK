@@ -2,9 +2,9 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
 Schedule::command('audit:prune')->dailyAt('03:30');

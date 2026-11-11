@@ -252,6 +252,34 @@
         </section>
 
         <section class="admin-card">
+            <h2>82. Incidents applicatifs agrégés</h2>
+            @if (! $monitoring['incidents']['available'])
+                <p class="admin-empty-state">La collecte des incidents n'est pas encore disponible.</p>
+            @elseif ($monitoring['incidents']['recent'] === [])
+                <p class="admin-empty-state">Aucun incident applicatif agrégé.</p>
+            @else
+                <p>Groupes d'incidents observés : <strong>{{ number_format($monitoring['incidents']['total']) }}</strong></p>
+                <div class="admin-table-wrapper">
+                    <table class="admin-table">
+                        <thead><tr><th>Type</th><th>Point technique</th><th>Occurrences</th><th>Première occurrence</th><th>Dernière occurrence</th></tr></thead>
+                        <tbody>
+                            @foreach ($monitoring['incidents']['recent'] as $incident)
+                                <tr>
+                                    <td>{{ $incident['exception_type'] }}</td>
+                                    <td>{{ $incident['location_hint'] }}</td>
+                                    <td>{{ number_format($incident['occurrence_count']) }}</td>
+                                    <td>{{ $incident['first_seen_at'] }}</td>
+                                    <td>{{ $incident['last_seen_at'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <p class="admin-help-text">Les messages, traces, URL complètes, données de requête et identifiants personnels ne sont pas stockés dans ce registre.</p>
+            @endif
+        </section>
+
+        <section class="admin-card">
             <h2>83. Performance et disponibilité</h2>
             <div class="admin-stats-grid">
                 <article class="admin-stat-card">
