@@ -64,7 +64,6 @@ Schedule::call(function (): void {
     }
 })->everyMinute()->name('http-performance-snapshot')->withoutOverlapping();
 
-
 Schedule::call(function (): void {
     if (Schema::hasTable('http_performance_snapshots')) {
         DB::table('http_performance_snapshots')
