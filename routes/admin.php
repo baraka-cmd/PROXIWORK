@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Web\Admin\AdminNotificationController;
-use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
 use App\Http\Controllers\Web\Admin\AnalyticsController;
 use App\Http\Controllers\Web\Admin\AnnouncementController;
 use App\Http\Controllers\Web\Admin\AuditController;
@@ -30,10 +29,10 @@ use App\Http\Controllers\Web\Admin\ReportController;
 use App\Http\Controllers\Web\Admin\RoleController;
 use App\Http\Controllers\Web\Admin\SecurityCenterController;
 use App\Http\Controllers\Web\Admin\ServiceController;
+use App\Http\Controllers\Web\Admin\ServiceRealizationController as AdminServiceRealizationController;
 use App\Http\Controllers\Web\Admin\ServiceRequestController;
 use App\Http\Controllers\Web\Admin\SkillController;
 use App\Http\Controllers\Web\Admin\SupportController;
-use App\Http\Controllers\Web\Admin\TechnicalMonitoringController;
 use App\Http\Controllers\Web\Admin\UserController;
 use App\Http\Controllers\Web\Admin\VerificationController;
 use Illuminate\Support\Facades\Route;
@@ -362,5 +361,5 @@ Route::middleware(['auth', 'active.account', 'permission:admin.settings.manage']
 
 // Phase 11 — supervision technique (lecture seule).
 Route::middleware(['auth', 'active.account', 'permission:admin.monitoring.view'])->group(function (): void {
-    Route::get('technical-monitoring', [TechnicalMonitoringController::class, 'index'])->name('monitoring.index');
+    Route::get('technical-monitoring', [\App\Http\Controllers\Web\Admin\TechnicalMonitoringController::class, 'index'])->name('monitoring.index');
 });
