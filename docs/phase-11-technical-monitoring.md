@@ -11,7 +11,7 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 - Performance HTTP : comptage agrégé des requêtes, réponses 5xx, temps moyen et classe P95 par histogramme, avec archivage à la minute via le scheduler.
 - Jobs échoués : dix dernières références, nom de classe réduit, file et date d'échec. Payload et stack trace non exposés.
 - Notifications : volumes par statut, avec lien vers l'historique détaillé déjà existant.
-- Paiements : agrégation par fournisseur et statut, transactions inconnues.
+- Paiements : agrégation par fournisseur et statut, transactions inconnues et paiements restés en état initié/en attente/en traitement depuis plus de 15 minutes.
 - Stockage local/public : accès au disque, capacité système lorsqu'elle est disponible et dernier contrôle d'intégrité des références fichiers connues (commande planifiée quotidienne).
 - Journaux : présence, taille et date de dernière écriture du fichier de log, sans exposition de son contenu.
 - Incidents applicatifs : regroupement par classe d'exception et emplacement technique, avec compteur et dates ; messages et traces exclus.

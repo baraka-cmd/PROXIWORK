@@ -63,7 +63,7 @@
                 <article class="admin-stat-card">
                     <span>Paiements à examiner</span>
                     <strong>{{ number_format($monitoring['payments']['attention']) }}</strong>
-                    <small>États non définitifs ou inconnus</small>
+                    <small>Transactions inconnues ou paiements en attente depuis plus de 15 minutes</small>
                 </article>
             </div>
         </section>

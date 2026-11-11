@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Models\User;
+use App\Services\Admin\StorageIntegrityService;
 use Database\Seeders\RbacSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,20 @@ class TechnicalMonitoringTest extends TestCase
             ->assertSee('Performance et disponibilité')
             ->assertDontSee('APP_KEY')
             ->assertDontSee('AWS_SECRET_ACCESS_KEY');
+    }
+
+    public function test_storage_integrity_check_persists_aggregate_results_without_exposing_paths(): void
+    {
+        $result = app(StorageIntegrityService::class)->run(1);
+
+        $this->assertDatabaseHas('storage_integrity_runs', [
+            'id' => $result['id'],
+            'status' => $result['status'],
+            'records_checked' => $result['records_checked'],
+            'missing_files' => $result['missing_files'],
+        ]);
+
+        $this->assertArrayNotHasKey('paths', $result);
     }
 
     public function test_latest_storage_integrity_run_is_displayed(): void

@@ -199,7 +199,6 @@ class TechnicalMonitoringService
             ->get();
 
         $providers = [];
-        $attention = 0;
 
         foreach ($rows as $row) {
             $provider = $row->provider instanceof \BackedEnum ? $row->provider->value : (string) $row->provider;
@@ -207,19 +206,23 @@ class TechnicalMonitoringService
             $total = (int) $row->total;
             $providers[$provider][$status] = $total;
 
-            if (in_array(strtoupper($status), ['UNKNOWN', 'PROCESSING', 'INITIATED'], true)) {
-                $attention += $total;
-            }
         }
+
+        $unknownTransactions = Schema::hasTable('payment_transactions')
+            ? PaymentTransaction::query()->where('status', 'unknown')->count()
+            : null;
+        $stalePayments = Payment::query()
+            ->whereIn('status', ['initiated', 'pending', 'processing'])
+            ->where('created_at', '<=', now()->subMinutes(15))
+            ->count();
 
         return [
             'available' => true,
             'total' => (int) Payment::query()->count(),
             'by_provider' => $providers,
-            'attention' => $attention,
-            'unknown_transactions' => Schema::hasTable('payment_transactions')
-                ? PaymentTransaction::query()->where('status', 'UNKNOWN')->count()
-                : null,
+            'attention' => $stalePayments + ($unknownTransactions ?? 0),
+            'stale_payments' => $stalePayments,
+            'unknown_transactions' => $unknownTransactions,
             'event_total' => Schema::hasTable('payment_events') ? PaymentEvent::query()->count() : null,
             'recent_events' => Schema::hasTable('payment_events')
                 ? PaymentEvent::query()
