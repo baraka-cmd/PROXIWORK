@@ -166,6 +166,21 @@ class TechnicalMonitoringTest extends TestCase
             ->assertDontSee('PRIVATE_EXCEPTION_TRACE_SECRET');
     }
 
+
+    public function test_reported_exception_is_recorded_without_sensitive_message(): void
+    {
+        report(new \RuntimeException('PRIVATE_EXCEPTION_MESSAGE'));
+
+        $this->assertDatabaseHas('application_incidents', [
+            'exception_type' => 'RuntimeException',
+            'occurrence_count' => 1,
+        ]);
+
+        $incident = DB::table('application_incidents')->first();
+        $this->assertNotNull($incident);
+        $this->assertStringNotContainsString('PRIVATE_EXCEPTION_MESSAGE', json_encode($incident, JSON_THROW_ON_ERROR));
+    }
+
     public function test_user_without_monitoring_permission_cannot_view_technical_monitoring(): void
     {
         $this->seed(RbacSeeder::class);
