@@ -73,6 +73,8 @@
             <span class="payment-receipt-verified"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Intégrité vérifiée côté serveur</span>
             <small>Empreinte SHA-256</small>
             <code>{{ $receipt->content_hash }}</code>
+            <button class="payment-copy-hash" type="button" data-copy-value="{{ $receipt->content_hash }}" data-copy-hash>Copier l’empreinte</button>
+            <span class="payment-copy-feedback" data-copy-feedback role="status" aria-live="polite"></span>
         </section>
 
         <footer class="payment-receipt-document__footer">

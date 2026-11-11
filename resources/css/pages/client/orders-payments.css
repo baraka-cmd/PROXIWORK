@@ -344,3 +344,77 @@
 .client-review-report textarea {
     resize: vertical;
 }
+
+
+/* P09 — Client payment UX refinements. Scoped to payment views to protect order pages. */
+.client-payments .payment-metric{grid-template-columns:auto minmax(0,1fr);align-content:start;min-height:154px}
+.client-payments .payment-metric__totals{padding-top:.25rem}
+.client-payments .payment-metric__totals strong{line-height:1.45}
+.client-payments .payment-filter-form{align-items:start}
+.client-payments .payment-filter-form__search small{display:block;margin-top:.2rem;color:var(--color-text-muted);font-size:.76rem;line-height:1.45}
+.payment-filter-advanced{grid-column:1/-1;min-width:0;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-background)}
+.payment-filter-advanced>summary{display:flex;align-items:center;gap:.65rem;padding:.85rem 1rem;cursor:pointer;font-weight:750;list-style-position:inside}
+.payment-filter-advanced>summary span{color:var(--color-text-muted);font-size:.8rem;font-weight:500}
+.payment-filter-advanced[open]>summary{border-bottom:1px solid var(--color-border)}
+.payment-filter-advanced__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;padding:1rem}
+.payment-filter-advanced__grid>label{display:grid;gap:.4rem;min-width:0}
+.payment-filter-advanced__grid>label>span{font-size:.82rem;font-weight:700;color:var(--color-text-muted)}
+.payment-filter-advanced__grid input,.payment-filter-advanced__grid select{width:100%;min-width:0;min-height:44px;padding:.7rem .8rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:inherit;font:inherit}
+.payment-filter-advanced__grid input:focus-visible,.payment-filter-advanced__grid select:focus-visible{outline:3px solid color-mix(in srgb,var(--color-primary) 28%,transparent);outline-offset:1px;border-color:var(--color-primary)}
+.payment-date-filter{align-content:start}
+.payment-field-error{grid-column:1/-1;margin:.1rem 0 0;color:var(--color-danger);font-size:.82rem;font-weight:650;line-height:1.45}
+.payment-error-summary{padding:1rem 1.1rem;border:1px solid var(--color-danger);border-left-width:4px;border-radius:var(--radius-md);background:color-mix(in srgb,var(--color-danger) 5%,var(--color-surface))}
+.payment-error-summary:focus{outline:3px solid color-mix(in srgb,var(--color-primary) 30%,transparent);outline-offset:2px}
+.payment-error-summary h2,.payment-error-summary h3{margin:0 0 .5rem;font-size:1rem}
+.payment-error-summary ul{display:grid;gap:.3rem;margin:0;padding-left:1.2rem}
+.payment-error-summary a{color:var(--color-danger);text-decoration:underline;text-underline-offset:2px}
+.payment-filter-advanced [aria-invalid=true],.payment-refund-field [aria-invalid=true]{border-color:var(--color-danger)}
+.payment-table th:nth-child(2),.payment-table td:nth-child(2){text-align:right}
+.payment-table__amount-cell{font-variant-numeric:tabular-nums}
+.payment-table__amount{display:inline-block;white-space:nowrap;font-variant-numeric:tabular-nums}
+.payment-table td[data-label="État"] small{display:block;margin-top:.35rem;color:var(--color-text-muted);font-size:.75rem}
+.payment-empty-state .btn{margin-top:1rem}
+.payment-detail-header h1{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.payment-feedback{display:flex;align-items:flex-start;gap:.7rem}
+.payment-feedback>i{margin-top:.2rem;color:var(--color-success)}
+.payment-feedback p{margin:.2rem 0 0}
+.payment-attempt__safe-message{margin:.7rem 0 0;padding:.75rem .9rem;border-radius:var(--radius-md);background:color-mix(in srgb,var(--color-danger) 5%,var(--color-surface));font-size:.86rem;line-height:1.55}
+.payment-uncertain-notice{margin-top:.75rem;padding:.9rem 1rem;border:1px solid color-mix(in srgb,var(--color-warning) 45%,var(--color-border));border-radius:var(--radius-md);background:color-mix(in srgb,var(--color-warning) 7%,var(--color-surface))}
+.payment-uncertain-notice p{margin:.3rem 0 0;font-size:.86rem;line-height:1.55}
+.payment-technical-details{margin-top:.75rem;border-top:1px solid var(--color-border);padding-top:.7rem}
+.payment-technical-details summary{width:fit-content;cursor:pointer;color:var(--color-text-muted);font-size:.82rem;font-weight:700}
+.payment-technical-details .client-definition-list{margin-top:.7rem}
+.payment-event-item__body p{overflow-wrap:anywhere}
+.payment-refund-item{align-items:start}
+.payment-refund-item__identity{overflow-wrap:anywhere}
+.payment-refund-item__amount strong{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.payment-refund-item__state{grid-column:1/-1;margin:0;padding:.7rem .85rem;border-radius:var(--radius-md);background:color-mix(in srgb,var(--color-warning) 7%,var(--color-surface));font-size:.84rem;line-height:1.55}
+.payment-refund-item--succeeded .payment-refund-item__state{background:color-mix(in srgb,var(--color-success) 7%,var(--color-surface))}
+.payment-refund-item__reason{display:grid;gap:.25rem;grid-column:1/-1;margin:0;color:var(--color-text-muted);font-size:.86rem;line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
+.payment-refund-item__reason strong{color:var(--color-text)}
+.payment-refund-form__intro{display:flex;align-items:flex-start;gap:.8rem}
+.payment-refund-form__intro>div{display:grid;gap:.3rem;min-width:0}
+.payment-refund-context{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;padding:1rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}
+.payment-refund-context>div{display:grid;gap:.2rem;min-width:0}
+.payment-refund-context span{color:var(--color-text-muted);font-size:.76rem}
+.payment-refund-context strong{font-size:.88rem;overflow-wrap:anywhere}
+.payment-refund-field{display:grid;gap:.45rem}
+.payment-refund-field label{font-size:.88rem;font-weight:750}
+.payment-refund-field>p:not(.payment-field-error){margin:0;color:var(--color-text-muted);font-size:.84rem;line-height:1.5}
+.payment-refund-form textarea{min-height:140px;line-height:1.55}
+.payment-character-count{justify-self:end;color:var(--color-text-muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+.payment-refund-form__actions{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding-top:.5rem;border-top:1px solid var(--color-border)}
+.payment-refund-form__actions>p{display:flex;gap:.45rem;max-width:420px;font-size:.8rem}
+.payment-refund-form__actions>p i{margin-top:.2rem;color:var(--color-primary)}
+.payment-open-refund-note{display:flex;align-items:flex-start;gap:.8rem;margin-top:1rem;padding:1rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-background)}
+.payment-open-refund-note>div{min-width:0}
+.payment-open-refund-note p{margin:.25rem 0 0;color:var(--color-text-muted);font-size:.85rem;line-height:1.55}
+.payment-receipt-document__section{break-inside:avoid-page}
+.payment-receipt-document__integrity code{overflow-wrap:anywhere;word-break:break-word;user-select:all}
+.payment-copy-hash{justify-self:start;padding:.45rem .65rem;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-background);color:var(--color-text);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.payment-copy-hash:focus-visible{outline:3px solid color-mix(in srgb,var(--color-primary) 30%,transparent);outline-offset:2px}
+.payment-copy-feedback{color:var(--color-text-muted);font-size:.78rem}
+@media(max-width:900px){.payment-filter-advanced__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.payment-refund-form__actions{align-items:flex-start;flex-direction:column}}
+@media(max-width:640px){.payment-filter-advanced>summary{align-items:flex-start;flex-direction:column;gap:.2rem}.payment-filter-advanced__grid{grid-template-columns:1fr}.payment-date-filter{grid-template-columns:repeat(2,minmax(0,1fr))}.payment-refund-context{grid-template-columns:1fr}.payment-refund-form__actions .btn{width:100%;justify-content:center}.payment-table th:nth-child(2),.payment-table td:nth-child(2){text-align:left}.payment-table__amount{white-space:normal}.payment-refund-item__amount{justify-items:start!important}}
+@media(prefers-reduced-motion:reduce){.payment-copy-hash{scroll-behavior:auto}}
+@media print{.payment-receipt-page{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important}.payment-receipt-toolbar,.payment-copy-hash,.payment-copy-feedback,.client-module__header,.client-sidebar,.client-topbar,nav,footer:not(.payment-receipt-document__footer){display:none!important}.payment-receipt-document{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#111!important;background:#fff!important}.payment-receipt-document__header{padding-bottom:6mm!important}.payment-receipt-warning,.payment-receipt-document__amount,.payment-receipt-document__integrity{background:#fff!important;color:#111!important;border-color:#333!important;break-inside:avoid!important}.payment-receipt-document__section,.payment-receipt-document__integrity,.payment-receipt-document__footer,.payment-receipt-document__amount{break-inside:avoid-page!important}.payment-receipt-document__section{margin-top:5mm!important}.payment-receipt-document__integrity code{font-size:8pt!important;overflow-wrap:anywhere!important;word-break:break-all!important}.payment-receipt-document__footer{margin-top:5mm!important;padding-top:4mm!important;border-top:1px solid #555!important}.payment-receipt-document__footer p,.payment-receipt-warning p{color:#111!important}.payment-receipt-confirmed,.payment-receipt-verified{color:#111!important}}
