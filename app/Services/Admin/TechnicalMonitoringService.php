@@ -36,8 +36,8 @@ class TechnicalMonitoringService
             'payments' => $application['database'] === 'available' ? $this->paymentHealth() : ['available' => false, 'total' => 0, 'by_provider' => [], 'attention' => 0],
             'storage' => $this->storageHealth(),
             'errors' => $this->applicationLogHealth(),
-            'incidents' => $this->incidentHealth(),
-            'performance' => $this->performanceHealth($application['database_latency_ms']),
+            'incidents' => $application['database'] === 'available' ? $this->incidentHealth() : ['available' => false, 'total' => 0, 'recent' => []],
+            'performance' => $this->performanceHealth($application['database_latency_ms'], $application['database'] === 'available'),
         ];
     }
 
@@ -315,9 +315,9 @@ class TechnicalMonitoringService
     }
 
     /** @return array<string, mixed> */
-    private function performanceHealth(?int $databaseLatencyMs): array
+    private function performanceHealth(?int $databaseLatencyMs, bool $databaseAvailable): array
     {
-        $snapshots = Schema::hasTable('http_performance_snapshots')
+        $snapshots = $databaseAvailable && Schema::hasTable('http_performance_snapshots')
             ? DB::table('http_performance_snapshots')
                 ->where('bucket_at', '>=', now()->subHour())
                 ->orderBy('bucket_at')
