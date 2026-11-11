@@ -181,7 +181,6 @@ class TechnicalMonitoringTest extends TestCase
             ->assertDontSee('PRIVATE_EXCEPTION_TRACE_SECRET');
     }
 
-
     public function test_reported_exception_is_recorded_without_sensitive_message(): void
     {
         report(new \RuntimeException('PRIVATE_EXCEPTION_MESSAGE'));
