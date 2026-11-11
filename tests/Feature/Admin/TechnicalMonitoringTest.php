@@ -43,6 +43,8 @@ class TechnicalMonitoringTest extends TestCase
             ->once()
             ->andReturn($this->monitoringPayload());
 
+        $this->withoutExceptionHandling();
+
         $this->actingAs($admin)
             ->get(route('admin.monitoring.index'))
             ->assertOk()
