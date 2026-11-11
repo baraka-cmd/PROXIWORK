@@ -51,7 +51,7 @@ class StorageIntegrityService
             }
 
             DB::table($table)
-                ->whereNotNull('path')
+                ->whereNotNull($pathColumn)
                 ->orderBy('id')
                 ->select($columns)
                 ->chunkById(200, function ($rows) use (
@@ -77,9 +77,8 @@ class StorageIntegrityService
                             continue;
                         }
 
-                        $diskName = $hasDiskColumn && is_string($row->{$diskColumn} ?? null)
-                            ? $row->{$diskColumn}
-                            : $definition['default_disk'];
+                        $storedDisk = $hasDiskColumn ? trim((string) ($row->{$diskColumn} ?? '')) : '';
+                        $diskName = $storedDisk !== '' ? $storedDisk : $definition['default_disk'];
 
                         try {
                             if (! Storage::disk($diskName)->exists($path)) {
