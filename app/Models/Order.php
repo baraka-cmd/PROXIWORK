@@ -90,6 +90,11 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function commissionRule(): BelongsTo
+    {
+        return $this->belongsTo(CommissionRule::class, 'commission_rule_id');
+    }
+
     public function commission(): HasOne
     {
         return $this->hasOne(Commission::class);
