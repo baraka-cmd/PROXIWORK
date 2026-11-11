@@ -6,11 +6,11 @@
     <div class="dashboard-shell">
         <aside id="dashboard-sidebar" class="dashboard-sidebar" data-dashboard-sidebar aria-label="Navigation de l'espace" aria-hidden="false">
             <div class="dashboard-sidebar__header">
-                <a class="brand" href="{{ url('/') }}" aria-label="PROXIWORK — accueil">
+                <a class="brand" href="{{ url('/') }}" aria-label="{{ $platformName ?? "PROXIWORK" }} — accueil">
                     <span class="brand-mark" aria-hidden="true">
                         <i class="fa-solid fa-link"></i>
                     </span>
-                    <span>PROXIWORK</span>
+                    <span>{{ $platformName ?? "PROXIWORK" }}</span>
                 </a>
 
                 <button

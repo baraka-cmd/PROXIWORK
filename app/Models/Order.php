@@ -23,6 +23,7 @@ class Order extends Model
             'status' => OrderStatus::class,
             'subtotal' => 'decimal:2',
             'total' => 'decimal:2',
+            'commission_rate' => 'decimal:2',
             'accepted_at' => 'datetime',
             'confirmed_at' => 'datetime',
             'started_at' => 'datetime',
@@ -87,6 +88,11 @@ class Order extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    public function commissionRule(): BelongsTo
+    {
+        return $this->belongsTo(CommissionRule::class, 'commission_rule_id');
     }
 
     public function commission(): HasOne

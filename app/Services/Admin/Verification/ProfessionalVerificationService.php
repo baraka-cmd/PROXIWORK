@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Services\Admin\Verification;
 
 use App\Enums\ProfessionalVerificationStatus;
+use App\Models\ProfessionalDocument;
 use App\Models\ProfessionalProfile;
 use App\Models\ProfessionalVerificationReview;
 use App\Models\User;
 use App\Notifications\AccountActivityNotification;
 use App\Services\Audit\AuditLogService;
+use App\Services\Settings\PlatformSettingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +20,7 @@ class ProfessionalVerificationService
 {
     public function __construct(
         private readonly AuditLogService $auditLogService,
+        private readonly PlatformSettingService $settings,
     ) {}
 
     public function startReview(ProfessionalProfile $professional, User $admin, Request $request, ?string $note = null): ProfessionalProfile
@@ -35,6 +38,8 @@ class ProfessionalVerificationService
 
     public function verify(ProfessionalProfile $professional, User $admin, Request $request, ?string $note = null): ProfessionalProfile
     {
+        $this->assertRequiredDocumentsApproved($professional);
+
         $updated = $this->transition(
             $professional,
             $admin,
@@ -135,6 +140,34 @@ class ProfessionalVerificationService
 
             return $target->fresh(['user.roles']);
         });
+    }
+
+    private function assertRequiredDocumentsApproved(ProfessionalProfile $professional): void
+    {
+        $requirements = [
+            'identity' => 'verification.require_identity',
+            'certificate' => 'verification.require_certificate',
+            'training' => 'verification.require_training',
+            'license' => 'verification.require_license',
+        ];
+
+        foreach ($requirements as $documentType => $settingKey) {
+            if (! (bool) $this->settings->get($settingKey)) {
+                continue;
+            }
+
+            $approved = ProfessionalDocument::query()
+                ->where('professional_profile_id', $professional->getKey())
+                ->where('document_type', $documentType)
+                ->where('status', ProfessionalDocument::STATUS_APPROVED)
+                ->exists();
+
+            if (! $approved) {
+                throw ValidationException::withMessages([
+                    'documents' => 'Le dossier doit contenir un document approuvé de type : '.$documentType.'.',
+                ]);
+            }
+        }
     }
 
     private function isAllowedTransition(

@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Contracts\Payments\PaymentGateway;
 use App\Models\Service;
 use App\Payments\Gateways\FakePaymentGateway;
+use App\Services\Settings\PlatformSettingService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
@@ -122,6 +123,10 @@ class AppServiceProvider extends ServiceProvider
          * Le compteur partagé du menu est calculé côté serveur, sur les seules
          * notifications de l'utilisateur authentifié, hors archives.
          */
+        View::composer('layouts.app', function ($view): void {
+            $view->with('platformName', app(PlatformSettingService::class)->get('platform.name'));
+        });
+
         View::composer('layouts.client', function ($view): void {
             $user = auth()->user();
 

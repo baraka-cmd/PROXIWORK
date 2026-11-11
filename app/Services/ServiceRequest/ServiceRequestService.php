@@ -10,6 +10,7 @@ use App\Models\Service;
 use App\Models\ServiceRequest;
 use App\Models\ServiceRequestAddressSnapshot;
 use App\Models\User;
+use App\Services\Settings\CurrencyService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,8 @@ use Illuminate\Validation\ValidationException;
 
 class ServiceRequestService
 {
+    public function __construct(private readonly CurrencyService $currencies) {}
+
     public function create(User $client, array $attributes): ServiceRequest
     {
         $idempotencyKey = $attributes['idempotency_key'] ?? null;
@@ -70,6 +73,10 @@ class ServiceRequestService
                             'address_id' => 'Cette adresse ne vous appartient pas ou n’est plus disponible.',
                         ]);
                     }
+                }
+
+                if (filled($attributes['currency'] ?? null)) {
+                    $this->currencies->lockActive((string) $attributes['currency']);
                 }
 
                 $this->validateBudget($attributes);
@@ -171,6 +178,10 @@ class ServiceRequestService
                         'address_id' => 'Cette adresse ne vous appartient pas ou n’est plus disponible.',
                     ]);
                 }
+            }
+
+            if (filled($attributes['currency'] ?? null)) {
+                $this->currencies->lockActive((string) $attributes['currency']);
             }
 
             $this->validateBudget($attributes, $locked);

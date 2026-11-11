@@ -14,10 +14,17 @@ use App\Enums\UserAccountStatus;
 use App\Models\Category;
 use App\Models\Service;
 use App\Models\Skill;
+use App\Services\Settings\CurrencyService;
+use App\Services\Settings\PlatformSettingService;
 use Illuminate\Validation\ValidationException;
 
 class ServicePublicationEligibility
 {
+    public function __construct(
+        private readonly PlatformSettingService $settings,
+        private readonly CurrencyService $currencies,
+    ) {}
+
     public function assertProfessionalCanPublish(Service $service): void
     {
         $this->assertCommonRequirements($service);
@@ -107,13 +114,24 @@ class ServicePublicationEligibility
             ]);
         }
 
-        if (trim((string) $service->title) === '' || trim((string) $service->description) === '') {
+        $minimumDescriptionLength = (int) $this->settings->get('publication.minimum_description_length');
+        $maximumTitleLength = (int) $this->settings->get('publication.maximum_title_length');
+        $maximumImages = (int) $this->settings->get('publication.maximum_images');
+
+        if (trim((string) $service->title) === '' || mb_strlen(trim((string) $service->title)) > $maximumTitleLength || mb_strlen(trim((string) $service->description)) < $minimumDescriptionLength) {
             throw ValidationException::withMessages([
                 'service' => 'Le service doit posséder un titre et une description.',
             ]);
         }
 
         $this->assertPricingIsCoherent($service);
+        if ($service->currency !== null && ! $this->currencies->isActive((string) $service->currency)) {
+            throw ValidationException::withMessages(['currency' => 'La devise du service est inactive sur la plateforme.']);
+        }
+
+        if ($service->images->count() > $maximumImages) {
+            throw ValidationException::withMessages(['images' => 'Le nombre d’images dépasse la limite de publication actuellement configurée.']);
+        }
 
         if ($service->images->where('is_cover', true)->isEmpty()) {
             throw ValidationException::withMessages([

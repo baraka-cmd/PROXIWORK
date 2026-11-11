@@ -56,6 +56,7 @@ class AdminSidebarNavigationTest extends TestCase
             ->assertDontSee('Aucune page de gestion disponible pour le moment.')
             ->assertSee('Communication et contenus')
             ->assertSee('Historique des livraisons')
-            ->assertDontSee('Configuration');
+            ->assertSee('Paramètres généraux')
+            ->assertSee('Configuration');
     }
 }
