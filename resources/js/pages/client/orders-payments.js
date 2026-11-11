@@ -1,2 +1,7 @@
-document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;const button=event.submitter;if(!(button instanceof HTMLButtonElement))return;button.disabled=true;button.setAttribute('aria-busy','true');button.innerHTML='<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Traitement…';});
+document.addEventListener('submit',(event)=>{const form=event.target;if(!(form instanceof HTMLFormElement))return;const button=event.submitter;if(!(button instanceof HTMLButtonElement)||button.disabled)return;button.disabled=true;button.setAttribute('aria-busy','true');button.dataset.originalLabel=button.innerHTML;button.innerHTML='<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Traitement…';});
+
 document.addEventListener('click',(event)=>{const button=event.target instanceof Element?event.target.closest('[data-print-receipt]'):null;if(button)window.print();});
+
+document.addEventListener('input',(event)=>{const field=event.target;if(!(field instanceof HTMLTextAreaElement)||!field.matches('[data-character-counter]'))return;const counter=document.getElementById(field.dataset.characterCounter);if(counter)counter.textContent=String(field.value.length);});
+
+document.addEventListener('DOMContentLoaded',()=>{const summary=document.querySelector('[data-order-error-summary]');if(summary instanceof HTMLElement){summary.focus({preventScroll:true});summary.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});}document.querySelectorAll('textarea[data-character-counter]').forEach((field)=>{const counter=document.getElementById(field.dataset.characterCounter);if(counter)counter.textContent=String(field.value.length);});});
