@@ -14,6 +14,8 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 - Paiements : agrégation par fournisseur et statut, transactions inconnues.
 - Stockage local/public : accès au disque, capacité système lorsqu'elle est disponible et dernier contrôle d'intégrité des références fichiers connues (commande planifiée quotidienne).
 - Journaux : présence, taille et date de dernière écriture du fichier de log, sans exposition de son contenu.
+- Incidents applicatifs : regroupement par classe d'exception et emplacement technique, avec compteur et dates ; messages et traces exclus.
+- Performance HTTP : comptage agrégé par minute, taux 5xx, temps moyen et classe P95 approximative via histogramme.
 - Incidents applicatifs : regroupement par classe d'exception et point technique (fichier/ligne), avec compteur et dates de première/dernière occurrence ; messages et traces exclus.
 - Notifications : historique des tentatives en échec à partir de la table d'audit des tentatives, sans destinataire ni contenu.
 - Application : contrôle SQL ponctuel, versions Laravel/PHP et environnement.
