@@ -55,7 +55,6 @@ class StorageIntegrityService
                 ->orderBy('id')
                 ->select($columns)
                 ->chunkById(200, function ($rows) use (
-                    $table,
                     $definition,
                     $hasDiskColumn,
                     $diskColumn,
