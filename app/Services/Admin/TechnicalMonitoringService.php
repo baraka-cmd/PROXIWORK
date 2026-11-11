@@ -202,7 +202,7 @@ class TechnicalMonitoringService
         $attention = 0;
 
         foreach ($rows as $row) {
-            $provider = $row->provider instanceof \\BackedEnum ? $row->provider->value : (string) $row->provider;
+            $provider = $row->provider instanceof \BackedEnum ? $row->provider->value : (string) $row->provider;
             $status = $row->status instanceof \BackedEnum ? $row->status->value : (string) $row->status;
             $total = (int) $row->total;
             $providers[$provider][$status] = $total;

@@ -58,7 +58,7 @@ class TechnicalMonitoringTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.monitoring.index'))
             ->assertOk()
-            ->assertSee('Dernier contrôle d'intégrité des fichiers')
+            ->assertSee("Dernier contrôle d'intégrité des fichiers")
             ->assertSee('250')
             ->assertSee('missing_files_found');
     }
