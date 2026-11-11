@@ -79,6 +79,11 @@ jobs:
             while IFS= read -r file; do php -l "$file"; done <<< "$changed_files"
           fi
 
+      - name: Diagnose test formatting
+        run: |
+          ./vendor/bin/pint tests/Feature/Admin/TechnicalMonitoringTest.php
+          git diff -- tests/Feature/Admin/TechnicalMonitoringTest.php
+
       # Keep the style gate focused on this PR's PHP changes; legacy formatting debt remains visible in the repository audit.
       - name: Check code style for changed PHP files
         shell: bash
