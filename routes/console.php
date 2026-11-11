@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Schema;
 
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
 Schedule::command('audit:prune')->dailyAt('03:30');
@@ -57,4 +58,25 @@ Schedule::call(function (): void {
             'created_at' => now(),
         ],
     );
-})->everyMinute()->withoutOverlapping();
+})->everyMinute()->name('http-performance-snapshot')->withoutOverlapping();
+
+
+Schedule::call(function (): void {
+    if (Schema::hasTable('http_performance_snapshots')) {
+        DB::table('http_performance_snapshots')
+            ->where('bucket_at', '<', now()->subDays(30))
+            ->delete();
+    }
+
+    if (Schema::hasTable('queue_worker_heartbeats')) {
+        DB::table('queue_worker_heartbeats')
+            ->where('last_seen_at', '<', now()->subDays(7))
+            ->delete();
+    }
+
+    if (Schema::hasTable('application_incidents')) {
+        DB::table('application_incidents')
+            ->where('last_seen_at', '<', now()->subDays(90))
+            ->delete();
+    }
+})->dailyAt('03:50')->name('monitoring-telemetry-retention')->withoutOverlapping();
