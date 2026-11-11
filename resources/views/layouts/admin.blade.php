@@ -109,6 +109,13 @@
                 ],
             ],
             [
+                'title' => 'Supervision technique',
+                'icon' => 'fa-heart-pulse',
+                'items' => [
+                    ['label' => 'Centre de supervision', 'route' => 'admin.monitoring.index', 'permission' => 'admin.monitoring.view', 'icon' => 'fa-server', 'active' => ['admin.monitoring.*']],
+                ],
+            ],
+            [
                 'title' => 'Audit et sécurité',
                 'icon' => 'fa-shield-halved',
                 'items' => [

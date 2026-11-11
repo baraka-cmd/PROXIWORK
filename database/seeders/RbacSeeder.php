@@ -97,6 +97,7 @@ class RbacSeeder extends Seeder
             'admin.professionals.review' => ['Administration - professionnels revoir', 'admin.professionals', 'Placer une vérification professionnelle en revue.'],
             'admin.professionals.verify' => ['Administration - professionnels vérifier', 'admin.professionals', 'Valider une vérification professionnelle.'],
             'admin.professionals.reject' => ['Administration - professionnels rejeter', 'admin.professionals', 'Rejeter une vérification professionnelle.'],
+            'admin.monitoring.view' => ['Supervision technique - consulter', 'admin.monitoring', 'Consulter les indicateurs techniques sans accéder aux secrets ni aux payloads.'],
             'admin.settings.view' => ['Configuration - consulter', 'admin.settings', 'Consulter les paramètres généraux et les états des intégrations.'],
             'admin.settings.manage' => ['Configuration - modifier', 'admin.settings', 'Modifier les paramètres opérationnels autorisés de la plateforme.'],
         ];

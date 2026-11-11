@@ -7,6 +7,7 @@ use App\Http\Middleware\EnsureUserHasPermission;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\EnsureWebGuard;
+use App\Http\Middleware\RecordHttpPerformance;
 use App\Http\Middleware\RecordSecuritySession;
 use App\Services\Audit\AuditLogService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -17,6 +18,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -36,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(AddSecurityHeaders::class);
+        $middleware->append(RecordHttpPerformance::class);
         $middleware->web(append: [EnsureWebGuard::class, AuthenticateSession::class, RecordSecuritySession::class]);
         $middleware->api(append: [RecordSecuritySession::class]);
 
@@ -50,6 +53,36 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request): bool => $request->is('api/*') || $request->expectsJson(),
         );
+
+        $exceptions->report(function (Throwable $exception): void {
+            try {
+                if (! DB::getSchemaBuilder()->hasTable('application_incidents')) {
+                    return;
+                }
+
+                $type = class_basename($exception);
+                $location = basename($exception->getFile()).':'.$exception->getLine();
+                $fingerprint = hash('sha256', $type.'|'.$location);
+                $now = now();
+
+                DB::table('application_incidents')->insertOrIgnore([
+                    'fingerprint' => $fingerprint,
+                    'exception_type' => $type,
+                    'location_hint' => mb_substr($location, 0, 191),
+                    'occurrence_count' => 0,
+                    'first_seen_at' => $now,
+                    'last_seen_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+
+                DB::table('application_incidents')
+                    ->where('fingerprint', $fingerprint)
+                    ->increment('occurrence_count', 1, ['last_seen_at' => $now, 'updated_at' => $now]);
+            } catch (Throwable) {
+                // Incident collection must never interfere with exception handling.
+            }
+        });
 
         $isApi = static fn (Request $request): bool => $request->is('api/*');
 

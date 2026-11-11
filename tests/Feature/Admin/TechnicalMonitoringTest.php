@@ -1,0 +1,245 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Admin;
+
+use App\Models\User;
+use App\Services\Admin\StorageIntegrityService;
+use App\Services\Admin\TechnicalMonitoringService;
+use Database\Seeders\RbacSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Tests\TestCase;
+
+class TechnicalMonitoringTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_monitoring_service_snapshot_is_constructed(): void
+    {
+        $monitoring = app(TechnicalMonitoringService::class)->dashboard();
+
+        $this->assertArrayHasKey('application', $monitoring);
+        $this->assertArrayHasKey('queues', $monitoring);
+        $this->assertArrayHasKey('failed_jobs', $monitoring);
+        $this->assertArrayHasKey('notifications', $monitoring);
+        $this->assertArrayHasKey('payments', $monitoring);
+        $this->assertArrayHasKey('storage', $monitoring);
+        $this->assertArrayHasKey('incidents', $monitoring);
+        $this->assertArrayHasKey('performance', $monitoring);
+    }
+
+    public function test_authorized_administrator_can_view_technical_monitoring_without_sensitive_payloads(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $this->mock(TechnicalMonitoringService::class)
+            ->shouldReceive('dashboard')
+            ->once()
+            ->andReturn($this->monitoringPayload());
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Supervision technique')
+            ->assertSee('Files et tâches échouées')
+            ->assertSee('Notifications et livraisons')
+            ->assertSee('Services de paiement')
+            ->assertSee('Stockage et fichiers')
+            ->assertSee('Erreurs applicatives')
+            ->assertSee('Performance et disponibilité')
+            ->assertDontSee('APP_KEY')
+            ->assertDontSee('AWS_SECRET_ACCESS_KEY');
+    }
+
+    public function test_storage_integrity_check_persists_aggregate_results_without_exposing_paths(): void
+    {
+        $result = app(StorageIntegrityService::class)->run(1);
+
+        $this->assertDatabaseHas('storage_integrity_runs', [
+            'id' => $result['id'],
+            'status' => $result['status'],
+            'records_checked' => $result['records_checked'],
+            'missing_files' => $result['missing_files'],
+        ]);
+
+        $this->assertArrayNotHasKey('paths', $result);
+    }
+
+    public function test_latest_storage_integrity_run_is_displayed(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('storage_integrity_runs')->insert([
+            'status' => 'missing_files_found',
+            'records_checked' => 250,
+            'missing_files' => 2,
+            'check_errors' => 1,
+            'table_results' => json_encode(['media_assets' => ['checked' => 250, 'missing' => 2, 'errors' => 1]], JSON_THROW_ON_ERROR),
+            'started_at' => now()->subMinutes(2),
+            'completed_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee("Dernier contrôle d'intégrité des fichiers")
+            ->assertSee('250')
+            ->assertSee('missing_files_found');
+    }
+
+    public function test_http_performance_snapshot_is_displayed(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('http_performance_snapshots')->insert([
+            'bucket_at' => now()->startOfMinute(),
+            'request_count' => 100,
+            'error_count' => 5,
+            'duration_total_ms' => 25000,
+            'p95_bucket_ms' => 500,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Requêtes HTTP (1 h)')
+            ->assertSee('100')
+            ->assertSee('5,00 %')
+            ->assertSee('25 ms');
+    }
+
+    public function test_aggregated_incident_is_visible_without_exception_message_or_trace(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('application_incidents')->insert([
+            'fingerprint' => hash('sha256', 'test-incident'),
+            'exception_type' => 'RuntimeException',
+            'location_hint' => 'OrderService.php:120',
+            'occurrence_count' => 3,
+            'first_seen_at' => now()->subHour(),
+            'last_seen_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Incidents applicatifs agrégés')
+            ->assertSee('RuntimeException')
+            ->assertSee('OrderService.php:120')
+            ->assertSee('3');
+    }
+
+    public function test_recent_worker_heartbeat_is_counted_as_active(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('queue_worker_heartbeats')->insert([
+            'worker_id' => hash('sha256', 'test-worker'),
+            'hostname' => 'test-worker',
+            'process_id' => 1234,
+            'last_seen_at' => now()->subSeconds(10),
+            'created_at' => now()->subSeconds(10),
+            'updated_at' => now()->subSeconds(10),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Workers actifs (2 min)')
+            ->assertSee('Heartbeat récent');
+    }
+
+    public function test_failed_job_payload_and_exception_trace_are_never_rendered(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('failed_jobs')->insert([
+            'uuid' => (string) Str::uuid(),
+            'connection' => 'database',
+            'queue' => 'default',
+            'payload' => json_encode([
+                'displayName' => 'App\\Jobs\\SensitiveJob',
+                'data' => ['command' => 'PRIVATE_JOB_PAYLOAD_SECRET'],
+            ], JSON_THROW_ON_ERROR),
+            'exception' => 'RuntimeException: PRIVATE_EXCEPTION_TRACE_SECRET',
+            'failed_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('SensitiveJob')
+            ->assertDontSee('PRIVATE_JOB_PAYLOAD_SECRET')
+            ->assertDontSee('PRIVATE_EXCEPTION_TRACE_SECRET');
+    }
+
+    public function test_reported_exception_is_recorded_without_sensitive_message(): void
+    {
+        report(new \RuntimeException('PRIVATE_EXCEPTION_MESSAGE'));
+
+        $this->assertDatabaseHas('application_incidents', [
+            'exception_type' => 'RuntimeException',
+            'occurrence_count' => 1,
+        ]);
+
+        $incident = DB::table('application_incidents')->first();
+        $this->assertNotNull($incident);
+        $this->assertStringNotContainsString('PRIVATE_EXCEPTION_MESSAGE', json_encode($incident, JSON_THROW_ON_ERROR));
+    }
+
+    public function test_user_without_monitoring_permission_cannot_view_technical_monitoring(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $support = User::factory()->create();
+        $support->assignRole('support');
+
+        $this->actingAs($support)
+            ->get(route('admin.monitoring.index'))
+            ->assertForbidden();
+    }
+
+    private function monitoringPayload(): array
+    {
+        return [
+            'checked_at' => now(),
+            'application' => ['database' => 'available', 'database_latency_ms' => 1, 'environment' => 'testing', 'laravel' => app()->version(), 'php' => PHP_VERSION],
+            'queues' => ['available' => true, 'queues' => [], 'pending' => 0, 'reserved' => 0, 'oldest_wait_seconds' => null, 'worker_count' => 0, 'worker_status' => 'active'],
+            'failed_jobs' => ['available' => true, 'total' => 0, 'recent' => []],
+            'notifications' => ['available' => false, 'total' => 0, 'by_status' => [], 'attention' => 0, 'attempts_total' => 0, 'recent_failures' => []],
+            'payments' => ['available' => false, 'total' => 0, 'by_provider' => [], 'attention' => 0, 'unknown_transactions' => null, 'event_total' => null, 'recent_events' => []],
+            'storage' => ['disks' => [], 'integrity' => ['available' => false, 'latest' => null]],
+            'errors' => ['available' => false, 'file_name' => null, 'size_bytes' => null, 'last_written_at' => null],
+            'incidents' => ['available' => true, 'total' => 0, 'recent' => []],
+            'performance' => ['database_probe_ms' => 1, 'request_count_last_hour' => 0, 'http_error_rate' => null, 'average_response_ms' => null, 'p95_bucket_ms' => null, 'message' => 'Métriques de test.'],
+        ];
+    }
+}
