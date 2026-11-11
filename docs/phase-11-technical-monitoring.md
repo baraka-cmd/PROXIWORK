@@ -13,6 +13,8 @@ Cette livraison ajoute une première vue de supervision intégrée à l'administ
 - Paiements : agrégation par fournisseur et statut, transactions inconnues.
 - Stockage local/public : accès au disque et capacité système lorsqu'elle est disponible.
 - Journaux : présence, taille et date de dernière écriture du fichier de log, sans exposition de son contenu.
+- Incidents applicatifs : regroupement par classe d'exception et point technique (fichier/ligne), avec compteur et dates de première/dernière occurrence ; messages et traces exclus.
+- Notifications : historique des tentatives en échec à partir de la table d'audit des tentatives, sans destinataire ni contenu.
 - Application : contrôle SQL ponctuel, versions Laravel/PHP et environnement.
 
 ### Limites explicitement signalées dans l'interface

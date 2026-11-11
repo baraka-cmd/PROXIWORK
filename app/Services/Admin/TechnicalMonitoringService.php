@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Admin;
 
 use App\Models\NotificationDelivery;
+use App\Models\NotificationDeliveryAttempt;
 use App\Models\Payment;
 use App\Models\PaymentEvent;
 use App\Models\PaymentTransaction;
@@ -160,6 +161,25 @@ class TechnicalMonitoringService
             'total' => array_sum($statuses),
             'by_status' => $statuses,
             'attention' => (int) (($statuses['FAILED'] ?? 0) + ($statuses['UNKNOWN'] ?? 0)),
+            'attempts_total' => Schema::hasTable('notification_delivery_attempts')
+                ? NotificationDeliveryAttempt::query()->count()
+                : null,
+            'recent_failures' => Schema::hasTable('notification_delivery_attempts')
+                ? NotificationDeliveryAttempt::query()
+                    ->whereIn('status', ['FAILED', 'UNKNOWN'])
+                    ->latest('started_at')
+                    ->limit(5)
+                    ->get(['notification_delivery_id', 'attempt_number', 'channel', 'status', 'error_code', 'started_at'])
+                    ->map(fn (NotificationDeliveryAttempt $attempt): array => [
+                        'delivery_id' => (int) $attempt->notification_delivery_id,
+                        'attempt_number' => (int) $attempt->attempt_number,
+                        'channel' => (string) $attempt->channel,
+                        'status' => (string) $attempt->status,
+                        'error_code' => $attempt->error_code,
+                        'started_at' => $attempt->started_at,
+                    ])
+                    ->all()
+                : [],
         ];
     }
 

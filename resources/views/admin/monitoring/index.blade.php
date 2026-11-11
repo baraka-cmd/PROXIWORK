@@ -139,12 +139,32 @@
             @if (! $monitoring['notifications']['available'])
                 <p class="admin-empty-state">Le suivi des livraisons n'est pas disponible.</p>
             @else
-                <p>Total des livraisons suivies : <strong>{{ number_format($monitoring['notifications']['total']) }}</strong></p>
+                <p>Total des livraisons suivies : <strong>{{ number_format($monitoring['notifications']['total']) }}</strong> · Tentatives historisées : {{ $monitoring['notifications']['attempts_total'] ?? 'Non disponible' }}</p>
                 <div class="admin-stats-grid">
                     @foreach ($monitoring['notifications']['by_status'] as $status => $total)
                         <article class="admin-stat-card"><span>{{ $status }}</span><strong>{{ number_format($total) }}</strong></article>
                     @endforeach
                 </div>
+                @if ($monitoring['notifications']['recent_failures'] !== [])
+                    <h3>Dernières tentatives en échec</h3>
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead><tr><th>Livraison</th><th>Canal</th><th>Tentative</th><th>État</th><th>Code</th><th>Date</th></tr></thead>
+                            <tbody>
+                                @foreach ($monitoring['notifications']['recent_failures'] as $attempt)
+                                    <tr>
+                                        <td>#{{ $attempt['delivery_id'] }}</td>
+                                        <td>{{ $attempt['channel'] }}</td>
+                                        <td>{{ $attempt['attempt_number'] }}</td>
+                                        <td>{{ $attempt['status'] }}</td>
+                                        <td>{{ $attempt['error_code'] ?? '—' }}</td>
+                                        <td>{{ $attempt['started_at']?->format('d/m/Y H:i:s') ?? '—' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
                 <a class="btn btn-secondary" href="{{ route('admin.notifications.deliveries.index') }}">Consulter l'historique des livraisons</a>
             @endif
         </section>

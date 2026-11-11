@@ -36,6 +36,33 @@ class TechnicalMonitoringTest extends TestCase
             ->assertDontSee('AWS_SECRET_ACCESS_KEY');
     }
 
+    public function test_aggregated_incident_is_visible_without_exception_message_or_trace(): void
+    {
+        $this->seed(RbacSeeder::class);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        DB::table('application_incidents')->insert([
+            'fingerprint' => hash('sha256', 'test-incident'),
+            'exception_type' => 'RuntimeException',
+            'location_hint' => 'OrderService.php:120',
+            'occurrence_count' => 3,
+            'first_seen_at' => now()->subHour(),
+            'last_seen_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.monitoring.index'))
+            ->assertOk()
+            ->assertSee('Incidents applicatifs agrégés')
+            ->assertSee('RuntimeException')
+            ->assertSee('OrderService.php:120')
+            ->assertSee('3');
+    }
+
     public function test_recent_worker_heartbeat_is_counted_as_active(): void
     {
         $this->seed(RbacSeeder::class);
