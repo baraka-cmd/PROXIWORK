@@ -360,7 +360,6 @@ Route::middleware(['auth', 'active.account', 'permission:admin.settings.manage']
     Route::patch('settings/currencies/{currency}', [PlatformSettingController::class, 'updateCurrency'])->where('currency', '[A-Z]{3}')->middleware('throttle:10,1')->name('settings.currencies.update');
 });
 
-
 // Phase 11 — supervision technique (lecture seule).
 Route::middleware(['auth', 'active.account', 'permission:admin.monitoring.view'])->group(function (): void {
     Route::get('technical-monitoring', [TechnicalMonitoringController::class, 'index'])->name('monitoring.index');
